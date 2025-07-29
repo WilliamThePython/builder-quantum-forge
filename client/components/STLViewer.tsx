@@ -117,7 +117,7 @@ function Scene() {
 }
 
 export default function STLViewer() {
-  const { loadDefaultSTL, geometry } = useSTL();
+  const { loadDefaultSTL, geometry, viewerSettings } = useSTL();
 
   // Load default model on mount
   useEffect(() => {
@@ -126,8 +126,16 @@ export default function STLViewer() {
     }
   }, [loadDefaultSTL, geometry]);
 
+  // Check if background is a gradient
+  const isGradient = viewerSettings.backgroundColor.includes('gradient');
+
   return (
-    <div className="w-full h-full relative">
+    <div
+      className="w-full h-full relative"
+      style={{
+        background: isGradient ? viewerSettings.backgroundColor : 'transparent'
+      }}
+    >
       <Canvas
         camera={{
           position: [50, 50, 50],
