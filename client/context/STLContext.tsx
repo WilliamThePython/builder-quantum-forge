@@ -136,21 +136,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setGeometry(geometry);
       setFileName(file.name);
 
-      // Track STL upload analytics
-      analytics.trackSTLUpload({
-        file_name: file.name,
-        file_size: file.size,
-        vertices: vertices,
-        triangles: triangles,
-        upload_time: uploadTime
-      });
+      // Track STL upload analytics - temporarily disabled for debugging
+      // analytics.trackSTLUpload({
+      //   file_name: file.name,
+      //   file_size: file.size,
+      //   vertices: vertices,
+      //   triangles: triangles,
+      //   upload_time: uploadTime
+      // });
 
       console.log(`STL loaded successfully: ${file.name} (${triangles.toLocaleString()} triangles)`);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
       setError(errorMessage);
-      console.error('STL loading error:', err);
+      console.error('STL loading error details:', {
+        error: err,
+        message: errorMessage,
+        fileName: file?.name || 'unknown'
+      });
     } finally {
       setIsLoading(false);
     }
