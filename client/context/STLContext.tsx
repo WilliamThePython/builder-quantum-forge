@@ -100,13 +100,42 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      // For demo purposes, create a simple procedural geometry instead of loading from file
-      // In production, you would load actual STL files
-      const geometry = new THREE.BoxGeometry(20, 20, 20);
-      geometry.computeVertexNormals();
-      
-      setGeometry(geometry);
-      setFileName('default-model.stl');
+      // Create random procedural geometries for demo
+      const geometryOptions = [
+        {
+          geometry: new THREE.BoxGeometry(20, 20, 20),
+          name: 'cube-model.stl'
+        },
+        {
+          geometry: new THREE.SphereGeometry(15, 32, 16),
+          name: 'sphere-model.stl'
+        },
+        {
+          geometry: new THREE.CylinderGeometry(12, 12, 25, 32),
+          name: 'cylinder-model.stl'
+        },
+        {
+          geometry: new THREE.TorusGeometry(15, 6, 16, 100),
+          name: 'torus-model.stl'
+        },
+        {
+          geometry: new THREE.ConeGeometry(15, 25, 32),
+          name: 'cone-model.stl'
+        },
+        {
+          geometry: new THREE.OctahedronGeometry(18),
+          name: 'octahedron-model.stl'
+        }
+      ];
+
+      // Randomly select a geometry
+      const randomIndex = Math.floor(Math.random() * geometryOptions.length);
+      const selected = geometryOptions[randomIndex];
+
+      selected.geometry.computeVertexNormals();
+
+      setGeometry(selected.geometry);
+      setFileName(selected.name);
     } catch (err) {
       setError('Failed to load default model');
       console.error('Default STL loading error:', err);
