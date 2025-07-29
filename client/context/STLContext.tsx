@@ -179,6 +179,39 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setError(null);
   }, []);
 
+  const exportSTL = useCallback(async (customFilename?: string) => {
+    if (!geometry) {
+      setError('No model available for export');
+      return;
+    }
+
+    try {
+      const { exportCurrentSTL } = await import('../lib/stlExporter');
+
+      const exportFilename = customFilename ||
+        (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.stl') : 'exported_model.stl');
+
+      exportCurrentSTL(geometry, exportFilename);
+
+      // Track export event
+      analytics.trackEvent({
+        event_name: 'stl_export',
+        event_category: '3d_interaction',
+        event_label: exportFilename,
+        custom_parameters: {
+          original_filename: fileName,
+          export_filename: exportFilename,
+          vertex_count: geometry.attributes.position?.count || 0,
+          triangle_count: Math.floor((geometry.attributes.position?.count || 0) / 3)
+        }
+      });
+
+    } catch (error) {
+      setError('Failed to export STL file');
+      console.error('STL export error:', error);
+    }
+  }, [geometry, fileName]);
+
   const value: STLContextType = {
     geometry,
     fileName,
