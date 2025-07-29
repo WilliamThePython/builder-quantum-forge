@@ -86,11 +86,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         return;
       }
 
-      if (file.size < 1024) { // 1KB minimum
-        addError('File too small. Minimum size: 1KB');
-        return;
-      }
-
       console.log('Basic validation passed, proceeding with STL loading...');
 
       const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
