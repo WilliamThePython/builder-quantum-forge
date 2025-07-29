@@ -64,6 +64,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const unsubscribe = onAuthStateChange((user) => {
       setUser(user);
       setLoading(false);
+
+      // Track user authentication status
+      if (user) {
+        analytics.setUserId(user.uid);
+        analytics.trackEvent({
+          event_name: 'user_authenticated',
+          event_category: 'authentication',
+          custom_parameters: {
+            user_id: user.uid,
+            email: user.email,
+            provider: user.providerData[0]?.providerId || 'unknown',
+            is_new_user: user.metadata.creationTime === user.metadata.lastSignInTime
+          }
+        });
+      } else {
+        analytics.trackEvent({
+          event_name: 'user_signed_out',
+          event_category: 'authentication'
+        });
+      }
     });
 
     return unsubscribe;
