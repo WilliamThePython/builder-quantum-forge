@@ -112,6 +112,9 @@ export default function Index() {
         onClose={() => setShowAuthModal(false)}
         initialMode={authMode}
       />
+
+      {/* Bottom Banner Ads */}
+      <BottomBannerAds />
       </div>
     </AdManager>
   );
