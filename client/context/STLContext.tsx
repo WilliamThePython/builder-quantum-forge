@@ -60,29 +60,63 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
   const loadSTLFromFile = useCallback(async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.stl')) {
-      setError('Please select a valid STL file');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
     try {
+      // Comprehensive file validation
+      const { validateSTLFile } = await import('../lib/stlValidator');
+      const validationResult = await validateSTLFile(file);
+
+      if (!validationResult.isValid) {
+        setError(validationResult.error || 'Invalid STL file');
+        return;
+      }
+
+      // Display validation info
+      const fileInfo = validationResult.fileInfo!;
+      console.log('STL File validated:', {
+        name: fileInfo.name,
+        size: `${(fileInfo.size / 1024 / 1024).toFixed(2)} MB`,
+        format: fileInfo.isBinary ? 'Binary STL' : 'ASCII STL',
+        triangles: fileInfo.estimatedTriangles?.toLocaleString()
+      });
+
       const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
       const loader = new STLLoader();
-      
+
       const uploadStartTime = Date.now();
       const arrayBuffer = await file.arrayBuffer();
-      const geometry = loader.parse(arrayBuffer);
+
+      let geometry: THREE.BufferGeometry;
+      try {
+        geometry = loader.parse(arrayBuffer);
+      } catch (parseError) {
+        throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+      }
+
+      // Validate parsed geometry
+      if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
+        throw new Error('STL file contains no valid geometry data');
+      }
 
       // Center and scale the geometry
       geometry.computeBoundingBox();
-      const center = geometry.boundingBox!.getCenter(new THREE.Vector3());
+
+      if (!geometry.boundingBox) {
+        throw new Error('Unable to compute geometry bounds');
+      }
+
+      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
       geometry.translate(-center.x, -center.y, -center.z);
 
-      const size = geometry.boundingBox!.getSize(new THREE.Vector3());
+      const size = geometry.boundingBox.getSize(new THREE.Vector3());
       const maxDimension = Math.max(size.x, size.y, size.z);
+
+      if (maxDimension === 0) {
+        throw new Error('STL geometry has zero dimensions');
+      }
+
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
 
