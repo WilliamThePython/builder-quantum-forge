@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Info, LogIn } from 'lucide-react';
+import { Info, LogIn, BarChart3 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
