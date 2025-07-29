@@ -33,7 +33,7 @@ function STLMesh() {
     });
   }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
-  // Create edges geometry
+  // Create edges geometry only when showEdges is true
   const edgesGeometry = useMemo(() => {
     if (!geometry || !viewerSettings.showEdges) return null;
     return new THREE.EdgesGeometry(geometry, 15); // 15 degree threshold
