@@ -238,6 +238,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setError(null);
   }, []);
 
+  const addError = useCallback((message: string) => {
+    const newError: ErrorMessage = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      message,
+      timestamp: Date.now()
+    };
+
+    setErrors(prev => [...prev, newError]);
+
+    // Auto-remove error after 10 seconds
+    setTimeout(() => {
+      setErrors(prev => prev.filter(error => error.id !== newError.id));
+    }, 10000);
+  }, []);
+
+  const clearErrorById = useCallback((id: string) => {
+    setErrors(prev => prev.filter(error => error.id !== id));
+  }, []);
+
   const exportSTL = useCallback(async (customFilename?: string) => {
     if (!geometry) {
       setError('No model available for export');
