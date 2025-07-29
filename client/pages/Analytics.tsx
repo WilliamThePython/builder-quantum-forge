@@ -270,15 +270,15 @@ export default function Analytics() {
           />
           <MetricCard
             title="Total Users"
-            value={formatNumber(mockAnalytics.overview.totalUsers)}
-            change={mockAnalytics.overview.userGrowth}
+            value={formatNumber(analyticsData.overview.totalUsers)}
+            change={analyticsData.overview.userGrowth}
             icon={Users}
             trend="up"
           />
           <MetricCard
             title="Total Sessions"
-            value={formatNumber(mockAnalytics.overview.sessions)}
-            change={mockAnalytics.overview.sessionGrowth}
+            value={formatNumber(analyticsData.overview.sessions)}
+            change={analyticsData.overview.sessionGrowth}
             icon={Activity}
             trend="up"
           />
