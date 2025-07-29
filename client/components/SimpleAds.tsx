@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
 
 interface SimpleAdProps {
   type: 'banner' | 'vertical';
