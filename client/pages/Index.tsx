@@ -16,7 +16,7 @@ export default function Index() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const { user, isAuthenticated } = useAuth();
   return (
-    <AdManager page="home">
+    // <AdManager page="home">
       <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
       {/* Fullscreen 3D Canvas */}
       <div className="absolute inset-0">
@@ -113,8 +113,8 @@ export default function Index() {
         initialMode={authMode}
       />
 
-      {/* Google AdSense Bottom Banner Ads */}
-      <AdSenseBottomBanners />
+      {/* Google AdSense Bottom Banner Ads - Temporarily disabled for testing */}
+      {/* <AdSenseBottomBanners /> */}
 
       {/* Invisible Analytics Button - Bottom Left */}
       <div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">
@@ -128,6 +128,6 @@ export default function Index() {
         </Link>
       </div>
       </div>
-    </AdManager>
+    // </AdManager>
   );
 }
