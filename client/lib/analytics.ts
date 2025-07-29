@@ -77,18 +77,22 @@ class Analytics {
   }
 
   private initializeCustomTracking() {
-    // Track session start
-    this.trackEvent({
-      event_name: 'session_start',
-      event_category: 'engagement',
-      custom_parameters: {
-        session_id: this.sessionId,
-        timestamp: Date.now(),
-        user_agent: navigator.userAgent,
-        screen_resolution: `${window.screen.width}x${window.screen.height}`,
-        viewport_size: `${window.innerWidth}x${window.innerHeight}`
-      }
-    });
+    try {
+      // Track session start
+      this.trackEvent({
+        event_name: 'session_start',
+        event_category: 'engagement',
+        custom_parameters: {
+          session_id: this.sessionId,
+          timestamp: Date.now(),
+          user_agent: navigator.userAgent,
+          screen_resolution: `${window.screen.width}x${window.screen.height}`,
+          viewport_size: `${window.innerWidth}x${window.innerHeight}`
+        }
+      });
+    } catch (error) {
+      // Silent fail for session tracking initialization
+    }
 
     // Track page visibility changes
     document.addEventListener('visibilitychange', () => {
@@ -134,70 +138,94 @@ class Analytics {
   trackPageView(path: string, title?: string) {
     if (!this.isInitialized) return;
 
-    window.gtag?.('event', 'page_view', {
-      page_title: title || document.title,
-      page_location: window.location.href,
-      page_path: path,
-      session_id: this.sessionId
-    });
-
-    this.trackEvent({
-      event_name: 'page_view',
-      event_category: 'navigation',
-      event_label: path,
-      custom_parameters: {
+    try {
+      window.gtag?.('event', 'page_view', {
         page_title: title || document.title,
-        referrer: document.referrer
-      }
-    });
+        page_location: window.location.href,
+        page_path: path,
+        session_id: this.sessionId
+      });
+    } catch (error) {
+      // Silent fail for Google Analytics page view
+    }
+
+    try {
+      this.trackEvent({
+        event_name: 'page_view',
+        event_category: 'navigation',
+        event_label: path,
+        custom_parameters: {
+          page_title: title || document.title,
+          referrer: document.referrer
+        }
+      });
+    } catch (error) {
+      // Silent fail for custom page view tracking
+    }
   }
 
   // Track custom events
   trackEvent(event: AnalyticsEvent) {
     if (!this.isInitialized) return;
 
-    // Send to Google Analytics
-    window.gtag?.('event', event.event_name, {
-      event_category: event.event_category,
-      event_label: event.event_label,
-      value: event.value,
-      session_id: this.sessionId,
-      user_id: this.userId,
-      ...event.custom_parameters
-    });
+    try {
+      // Send to Google Analytics
+      window.gtag?.('event', event.event_name, {
+        event_category: event.event_category,
+        event_label: event.event_label,
+        value: event.value,
+        session_id: this.sessionId,
+        user_id: this.userId,
+        ...event.custom_parameters
+      });
+    } catch (error) {
+      // Silent fail for Google Analytics errors
+    }
 
-    // Send to custom analytics endpoint (if you have one)
-    this.sendToCustomAnalytics(event);
+    try {
+      // Send to custom analytics endpoint (if you have one)
+      this.sendToCustomAnalytics(event);
+    } catch (error) {
+      // Silent fail for custom analytics errors
+    }
   }
 
   // STL-specific tracking methods
   trackSTLUpload(metrics: STLMetrics) {
-    this.trackEvent({
-      event_name: 'stl_upload',
-      event_category: '3d_interaction',
-      event_label: metrics.file_name,
-      value: metrics.file_size,
-      custom_parameters: {
-        file_name: metrics.file_name,
-        file_size_mb: Math.round(metrics.file_size / 1024 / 1024 * 100) / 100,
-        vertices: metrics.vertices,
-        triangles: metrics.triangles,
-        upload_duration: metrics.upload_time
-      }
-    });
+    try {
+      this.trackEvent({
+        event_name: 'stl_upload',
+        event_category: '3d_interaction',
+        event_label: metrics.file_name,
+        value: metrics.file_size,
+        custom_parameters: {
+          file_name: metrics.file_name,
+          file_size_mb: Math.round(metrics.file_size / 1024 / 1024 * 100) / 100,
+          vertices: metrics.vertices,
+          triangles: metrics.triangles,
+          upload_duration: metrics.upload_time
+        }
+      });
+    } catch (error) {
+      // Silent fail for STL upload tracking errors
+    }
   }
 
   trackSTLVisualization(action: string, settings?: Record<string, any>) {
-    this.trackEvent({
-      event_name: 'stl_visualization',
-      event_category: '3d_interaction',
-      event_label: action,
-      custom_parameters: {
-        action,
-        settings: JSON.stringify(settings || {}),
-        timestamp: Date.now()
-      }
-    });
+    try {
+      this.trackEvent({
+        event_name: 'stl_visualization',
+        event_category: '3d_interaction',
+        event_label: action,
+        custom_parameters: {
+          action,
+          settings: JSON.stringify(settings || {}),
+          timestamp: Date.now()
+        }
+      });
+    } catch (error) {
+      // Silent fail for visualization tracking errors
+    }
   }
 
   trackToolUsage(tool: string, duration?: number) {
@@ -333,23 +361,29 @@ class Analytics {
   }
 
   private sendToCustomAnalytics(event: AnalyticsEvent) {
-    // Send to your own analytics endpoint
-    fetch('/api/analytics/track', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...event,
-        timestamp: Date.now(),
-        session_id: this.sessionId,
-        user_id: this.userId,
-        url: window.location.href,
-        referrer: document.referrer
-      })
-    }).catch(error => {
-      console.error('Failed to send custom analytics:', error);
-    });
+    // Send to your own analytics endpoint with robust error handling
+    try {
+      fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...event,
+          timestamp: Date.now(),
+          session_id: this.sessionId,
+          user_id: this.userId,
+          url: window.location.href,
+          referrer: document.referrer
+        })
+      }).catch(error => {
+        // Silent fail for analytics - don't log to console to avoid spam
+        // Analytics failures should not impact user experience
+      });
+    } catch (error) {
+      // Silent fail for any synchronous errors
+      // Analytics failures should not impact user experience
+    }
   }
 
   private getMockRealTimeData() {
