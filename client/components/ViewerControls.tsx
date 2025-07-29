@@ -229,8 +229,8 @@ export default function ViewerControls() {
 
       {/* Error Toast */}
       {error && (
-        <div className="fixed top-6 right-6 z-50">
-          <div className="bg-red-600/90 backdrop-blur-md text-white p-4 rounded-xl border border-red-500/30 max-w-sm">
+        <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
+          <div className="bg-red-600/90 backdrop-blur-md text-white p-3 md:p-4 rounded-xl border border-red-500/30 max-w-xs md:max-w-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm">{error}</span>
               <Button
