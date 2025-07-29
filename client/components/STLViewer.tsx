@@ -76,7 +76,7 @@ function STLMesh() {
   return (
     <group>
       <mesh ref={meshRef} geometry={geometry} material={material} />
-      {edgesGeometry && viewerSettings.showEdges && (
+      {viewerSettings.showEdges && edgesGeometry && (
         <lineSegments ref={edgesRef} geometry={edgesGeometry}>
           <lineBasicMaterial color="#00ff88" linewidth={1} />
         </lineSegments>
