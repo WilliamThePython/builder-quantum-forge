@@ -87,17 +87,22 @@ function STLMesh() {
 
 function Scene() {
   const { viewerSettings } = useSTL();
-  
+
+  // Check if background is a gradient
+  const isGradient = viewerSettings.backgroundColor.includes('gradient');
+
   return (
     <>
-      <color attach="background" args={[viewerSettings.backgroundColor]} />
+      {!isGradient && (
+        <color attach="background" args={[viewerSettings.backgroundColor]} />
+      )}
       <ambientLight intensity={0.4} />
       <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-      
+
       <STLMesh />
-      
-      <OrbitControls 
+
+      <OrbitControls
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
@@ -105,7 +110,7 @@ function Scene() {
         maxDistance={200}
         target={[0, 0, 0]}
       />
-      
+
       <Environment preset="city" />
     </>
   );
