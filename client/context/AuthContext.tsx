@@ -12,6 +12,7 @@ import {
   deleteUserAccount,
   logOut
 } from '../lib/firebase';
+import { analytics } from '../lib/analytics';
 
 interface AuthContextType {
   user: User | null;
