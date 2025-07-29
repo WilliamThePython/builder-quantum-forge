@@ -44,10 +44,21 @@ export default function ViewerControls() {
   const [showControls, setShowControls] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File upload triggered');
     const file = event.target.files?.[0];
+    console.log('Selected file:', file);
+
     if (file) {
+      console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
       loadSTLFromFile(file);
+    } else {
+      console.log('No file selected');
     }
+
     // Reset input
     event.target.value = '';
   };
