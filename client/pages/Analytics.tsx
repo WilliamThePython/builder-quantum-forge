@@ -258,13 +258,13 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <MetricCard
             title="Active Users Right Now"
-            value={mockAnalytics.realTime.activeUsers}
+            value={realTimeData.activeUsers}
             icon={Users}
             trend="neutral"
           />
           <MetricCard
             title="Page Views (Last Hour)"
-            value={mockAnalytics.realTime.currentPageViews}
+            value={realTimeData.currentPageViews}
             icon={Eye}
             trend="neutral"
           />
