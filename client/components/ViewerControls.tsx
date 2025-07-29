@@ -118,7 +118,7 @@ export default function ViewerControls() {
               className="border-white/20 text-white hover:bg-white/10"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Reset
+              RANDOM
             </Button>
           </div>
 
@@ -131,7 +131,7 @@ export default function ViewerControls() {
                 className="w-full border-white/20 text-white hover:bg-white/10"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Viewer Settings
+                SETTINGS
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -193,16 +193,23 @@ export default function ViewerControls() {
                 <div className="space-y-2">
                   <Label className="text-sm">Background</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {['#0a0a0a', '#1a1a2e', '#16213e', '#2a0845'].map((color) => (
+                    {[
+                      { color: '#0a0a0a', name: 'Space Black' },
+                      { color: '#1a1a2e', name: 'Deep Ocean' },
+                      { color: '#16213e', name: 'Midnight Blue' },
+                      { color: '#2a0845', name: 'Purple Night' },
+                      { color: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%)', name: 'Meadow Sky' }
+                    ].map((bg) => (
                       <button
-                        key={color}
+                        key={bg.color}
                         className={`w-full h-8 rounded border-2 transition-all ${
-                          viewerSettings.backgroundColor === color 
-                            ? 'border-white' 
+                          viewerSettings.backgroundColor === bg.color
+                            ? 'border-white'
                             : 'border-white/20 hover:border-white/40'
                         }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => updateViewerSettings({ backgroundColor: color })}
+                        style={{ background: bg.color }}
+                        onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                        title={bg.name}
                       />
                     ))}
                   </div>
