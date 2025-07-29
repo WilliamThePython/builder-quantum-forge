@@ -213,8 +213,8 @@ export default function About() {
         </footer>
       </div>
 
-      {/* Sidebar Ads */}
-      <SidebarAds />
+      {/* Google AdSense Sidebar Ads */}
+      <AdSenseSidebarAds />
     </div>
   );
 }
