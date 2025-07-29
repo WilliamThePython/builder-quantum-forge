@@ -10,6 +10,9 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const { user, isAuthenticated } = useAuth();
   return (
     <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
       {/* Fullscreen 3D Canvas */}
