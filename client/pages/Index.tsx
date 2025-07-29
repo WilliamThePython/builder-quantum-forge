@@ -115,6 +115,18 @@ export default function Index() {
 
       {/* Google AdSense Bottom Banner Ads */}
       <AdSenseBottomBanners />
+
+      {/* Invisible Analytics Button - Bottom Left */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <Link to="/analytics">
+          <button
+            className="w-8 h-8 bg-transparent hover:bg-white/5 transition-all duration-300 rounded opacity-10 hover:opacity-30"
+            title="Analytics Dashboard"
+          >
+            <BarChart3 className="w-5 h-5 text-white/50" />
+          </button>
+        </Link>
+      </div>
       </div>
     </AdManager>
   );
