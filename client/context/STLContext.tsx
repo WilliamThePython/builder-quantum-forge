@@ -221,6 +221,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     loadSTLFromFile,
     loadDefaultSTL,
     updateViewerSettings,
+    exportSTL,
     clearError
   };
 

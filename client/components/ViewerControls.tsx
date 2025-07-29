@@ -35,7 +35,8 @@ export default function ViewerControls() {
     isLoading,
     error,
     clearError,
-    geometry
+    geometry,
+    exportSTL
   } = useSTL();
 
   const { isAuthenticated, user } = useAuth();
@@ -52,23 +53,7 @@ export default function ViewerControls() {
   };
 
   const downloadSTL = () => {
-    if (!geometry) {
-      console.error('No geometry available for export');
-      return;
-    }
-
-    try {
-      // Import the STL exporter
-      import('../lib/stlExporter').then(({ exportCurrentSTL }) => {
-        const exportFilename = fileName ?
-          fileName.replace(/\.[^/.]+$/, '_exported.stl') :
-          'exported_model.stl';
-
-        exportCurrentSTL(geometry, exportFilename);
-      });
-    } catch (error) {
-      console.error('Failed to export STL:', error);
-    }
+    exportSTL();
   };
 
   const getVertexCount = () => {
