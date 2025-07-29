@@ -11,6 +11,7 @@ import {
   Crown,
   Lock
 } from 'lucide-react';
+import ErrorDisplay from './ErrorDisplay';
 import { useSTL } from '../context/STLContext';
 import { useAuth } from '../context/AuthContext';
 import { useFeatureAccess } from './auth/ProtectedRoute';
@@ -34,7 +35,9 @@ export default function ViewerControls() {
     fileName,
     isLoading,
     error,
+    errors,
     clearError,
+    clearErrorById,
     geometry,
     exportSTL
   } = useSTL();
@@ -257,7 +260,10 @@ export default function ViewerControls() {
         </div>
       </div>
 
-      {/* Error Toast */}
+      {/* Centered Error Display */}
+      <ErrorDisplay errors={errors} onClearError={clearErrorById} />
+
+      {/* Legacy Error Toast - for any remaining single error usage */}
       {error && (
         <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
           <div className="bg-red-600/90 backdrop-blur-md text-white p-3 md:p-4 rounded-xl border border-red-500/30 max-w-xs md:max-w-sm">
