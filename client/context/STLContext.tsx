@@ -60,15 +60,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
   const loadSTLFromFile = useCallback(async (file: File) => {
+    console.log('loadSTLFromFile called with:', file.name);
     setIsLoading(true);
     setError(null);
 
     try {
       // Comprehensive file validation
+      console.log('Starting STL validation...');
       const { validateSTLFile } = await import('../lib/stlValidator');
       const validationResult = await validateSTLFile(file);
 
+      console.log('Validation result:', validationResult);
+
       if (!validationResult.isValid) {
+        console.error('Validation failed:', validationResult.error);
         setError(validationResult.error || 'Invalid STL file');
         return;
       }
