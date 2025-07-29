@@ -23,26 +23,34 @@ export default function Index() {
       </div>
 
       {/* Welcome Overlay for First-Time Users */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-30 pointer-events-none">
-        <div className="text-center text-white max-w-xs md:max-w-md mx-auto px-4 md:px-6">
-          <div className="bg-black/60 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10 pointer-events-auto">
-            <h1 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-              STL Viewer Platform
-            </h1>
-            <p className="text-base md:text-lg text-white/80 mb-4 md:mb-6">
-              Interactive 3D model viewing and manipulation tools
-            </p>
-            <div className="text-sm text-white/60 space-y-2">
-              <p>���� Upload your own STL files</p>
-              <p>⚡ Real-time visualization controls</p>
-              <p>🛠️ Advanced manipulation tools</p>
-            </div>
-            <div className="mt-4 md:mt-6 text-xs text-white/40">
-              Use the controls on the left to get started
+      {showWelcome && (
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-30 cursor-pointer"
+          onClick={() => setShowWelcome(false)}
+        >
+          <div className="text-center text-white max-w-xs md:max-w-md mx-auto px-4 md:px-6">
+            <div className="bg-black/60 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10">
+              <h1 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+                STL Viewer Platform
+              </h1>
+              <p className="text-base md:text-lg text-white/80 mb-4 md:mb-6">
+                Interactive 3D model viewing and manipulation tools
+              </p>
+              <div className="text-sm text-white/60 space-y-2">
+                <p>🎯 Upload your own STL files</p>
+                <p>⚡ Real-time visualization controls</p>
+                <p>🛠️ Advanced manipulation tools</p>
+              </div>
+              <div className="mt-4 md:mt-6 text-xs text-white/40">
+                Use the controls on the left to get started
+              </div>
+              <div className="mt-3 text-xs text-blue-400">
+                Click anywhere to start exploring →
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
