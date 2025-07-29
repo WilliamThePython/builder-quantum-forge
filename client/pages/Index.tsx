@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Info } from 'lucide-react';
+import { Info, LogIn } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
+import AuthModal from '../components/auth/AuthModal';
+import UserProfile from '../components/auth/UserProfile';
+import { useAuth } from '../context/AuthContext';
 
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
