@@ -1,18 +1,18 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  GithubAuthProvider, 
+import {
+  getAuth,
+  GoogleAuthProvider,
+  GithubAuthProvider,
   FacebookAuthProvider,
-  signInWithPopup, 
+  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User,
   sendPasswordResetEmail,
   updateProfile,
-  deleteUser
+  deleteUser,
+  type User
 } from 'firebase/auth';
 
 // Firebase configuration - you'll need to add your actual config
