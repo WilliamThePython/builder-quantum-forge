@@ -212,6 +212,9 @@ export default function About() {
           </div>
         </footer>
       </div>
+
+      {/* Sidebar Ads */}
+      <SidebarAds />
     </div>
   );
 }
