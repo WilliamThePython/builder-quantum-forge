@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { 
-  User,
+import {
+  type User,
   onAuthStateChange,
   signInWithGoogle,
   signInWithGithub,
