@@ -6,6 +6,7 @@ import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
 import AuthModal from '../components/auth/AuthModal';
 import UserProfile from '../components/auth/UserProfile';
+import AdManager from '../components/ads/AdManager';
 import { useAuth } from '../context/AuthContext';
 
 export default function Index() {
