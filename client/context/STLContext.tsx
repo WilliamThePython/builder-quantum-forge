@@ -15,10 +15,11 @@ interface STLContextType {
   isLoading: boolean;
   error: string | null;
   viewerSettings: ViewerSettings;
-  
+
   loadSTLFromFile: (file: File) => Promise<void>;
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
+  exportSTL: (customFilename?: string) => void;
   clearError: () => void;
 }
 
