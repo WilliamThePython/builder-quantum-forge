@@ -65,38 +65,39 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      // Comprehensive file validation
-      console.log('Starting STL validation...');
-      const { validateSTLFile } = await import('../lib/stlValidator');
-      const validationResult = await validateSTLFile(file);
-
-      console.log('Validation result:', validationResult);
-
-      if (!validationResult.isValid) {
-        console.error('Validation failed:', validationResult.error);
-        setError(validationResult.error || 'Invalid STL file');
+      // Basic file validation first
+      if (!file.name.toLowerCase().endsWith('.stl')) {
+        setError('Please select a valid STL file');
         return;
       }
 
-      // Display validation info
-      const fileInfo = validationResult.fileInfo!;
-      console.log('STL File validated:', {
-        name: fileInfo.name,
-        size: `${(fileInfo.size / 1024 / 1024).toFixed(2)} MB`,
-        format: fileInfo.isBinary ? 'Binary STL' : 'ASCII STL',
-        triangles: fileInfo.estimatedTriangles?.toLocaleString()
-      });
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+        setError('File too large. Maximum size: 50MB');
+        return;
+      }
+
+      if (file.size < 1024) { // 1KB minimum
+        setError('File too small. Minimum size: 1KB');
+        return;
+      }
+
+      console.log('Basic validation passed, proceeding with STL loading...');
 
       const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
       const loader = new STLLoader();
 
       const uploadStartTime = Date.now();
+      console.log('Reading file as array buffer...');
       const arrayBuffer = await file.arrayBuffer();
+      console.log('Array buffer size:', arrayBuffer.byteLength);
 
       let geometry: THREE.BufferGeometry;
       try {
+        console.log('Parsing STL with Three.js STLLoader...');
         geometry = loader.parse(arrayBuffer);
+        console.log('STL parsed successfully');
       } catch (parseError) {
+        console.error('STL parsing error:', parseError);
         throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
       }
 
