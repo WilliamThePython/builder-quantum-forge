@@ -64,8 +64,8 @@ export default function ViewerControls() {
   return (
     <>
       {/* Main Controls Panel */}
-      <div className="fixed top-6 left-6 z-50">
-        <div className="bg-black/80 backdrop-blur-md rounded-xl border border-white/10 p-4 space-y-4">
+      <div className="fixed top-4 left-4 md:top-6 md:left-6 z-50">
+        <div className="bg-black/80 backdrop-blur-md rounded-xl border border-white/10 p-3 md:p-4 space-y-3 md:space-y-4 w-72 md:w-auto">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h2 className="text-white font-semibold text-lg">STL Viewer</h2>
