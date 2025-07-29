@@ -107,20 +107,22 @@ export default function ViewerControls() {
 
           {/* Quick Actions */}
           <div className="flex gap-2">
-            <label className="cursor-pointer">
+            <label className="cursor-pointer" onClick={() => console.log('Upload label clicked')}>
               <input
                 type="file"
-                accept=".stl,application/sla,application/octet-stream,model/stl"
+                accept=".stl"
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={isLoading}
                 title="Upload STL file (max 50MB)"
+                onClick={() => console.log('File input clicked')}
               />
               <Button
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                 disabled={isLoading}
                 title="Upload STL file from your computer"
+                onClick={() => console.log('Upload button clicked')}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {isLoading ? 'Loading...' : 'Upload STL'}
