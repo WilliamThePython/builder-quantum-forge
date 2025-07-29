@@ -22,7 +22,7 @@ interface STLContextType {
 }
 
 const defaultViewerSettings: ViewerSettings = {
-  showEdges: true,
+  showEdges: false,
   randomColors: false,
   wireframe: false,
   backgroundColor: '#0a0a0a'
