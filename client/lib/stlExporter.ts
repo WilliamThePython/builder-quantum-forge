@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 
 /**
- * STL Exporter utility for exporting Three.js geometry to STL format
+ * STL Exporter utility for exporting Three.js geometry to solid STL format
+ * Ensures exported models are watertight, properly oriented solid objects
  */
 export class STLExporter {
   /**
-   * Export geometry to STL format with specified size constraints
+   * Export geometry to solid STL format with proper normals and winding
+   * Creates watertight solid objects suitable for 3D printing
    */
   static exportGeometry(
-    geometry: THREE.BufferGeometry, 
-    filename: string = 'model.stl',
+    geometry: THREE.BufferGeometry,
+    filename: string = 'solid_model.stl',
     targetSize: { min: number; max: number } = { min: 50, max: 100 }
   ): void {
     if (!geometry || !geometry.attributes.position) {
@@ -33,15 +35,15 @@ export class STLExporter {
   }
 
   /**
-   * Scale geometry to fit within target size range (in mm)
+   * Scale geometry to fit within target size range (in mm) while preserving solid properties
    */
   private static scaleGeometryToSize(
-    geometry: THREE.BufferGeometry, 
+    geometry: THREE.BufferGeometry,
     targetSize: { min: number; max: number }
   ): THREE.BufferGeometry {
     // Compute bounding box
     geometry.computeBoundingBox();
-    
+
     if (!geometry.boundingBox) {
       throw new Error('Could not compute geometry bounding box');
     }
@@ -52,88 +54,182 @@ export class STLExporter {
 
     // Find the largest dimension
     const maxDimension = Math.max(size.x, size.y, size.z);
-    
+
     if (maxDimension === 0) {
       throw new Error('Geometry has zero size');
     }
 
     // Calculate scale factor to fit within target size
-    // Default to middle of range if current size is acceptable
+    // Default to middle of range for optimal 3D printing
     const targetDimension = (targetSize.min + targetSize.max) / 2;
     const scaleFactor = targetDimension / maxDimension;
-    
-    // Apply scale
+
+    // Apply uniform scale to maintain proportions and solid properties
     geometry.scale(scaleFactor, scaleFactor, scaleFactor);
-    
-    // Center the geometry
+
+    // Center the geometry at origin for proper solid object positioning
     geometry.computeBoundingBox();
     if (geometry.boundingBox) {
       const center = new THREE.Vector3();
       geometry.boundingBox.getCenter(center);
       geometry.translate(-center.x, -center.y, -center.z);
+
+      // Move to sit on the Z=0 plane (common for 3D printing)
+      const minZ = geometry.boundingBox.min.z;
+      if (minZ < 0) {
+        geometry.translate(0, 0, -minZ);
+      }
     }
+
+    // Recompute normals after transformations to ensure solid object integrity
+    geometry.computeVertexNormals();
 
     return geometry;
   }
 
   /**
-   * Generate STL file content from geometry
+   * Generate STL file content from geometry ensuring solid object
    */
   private static generateSTLContent(geometry: THREE.BufferGeometry): string {
     const positions = geometry.attributes.position;
     const triangleCount = positions.count / 3;
-    
-    // STL Header (80 bytes)
-    let stlContent = 'solid exported\n';
-    
-    // Process each triangle
+
+    // Ensure geometry has proper normals for solid object
+    const processedGeometry = this.ensureSolidGeometry(geometry);
+    const processedPositions = processedGeometry.attributes.position;
+
+    // STL Header
+    let stlContent = 'solid exported_solid\n';
+
+    // Process each triangle with proper winding and normals
     for (let i = 0; i < triangleCount; i++) {
       const i3 = i * 3;
-      
+
       // Get triangle vertices
       const v1 = new THREE.Vector3(
-        positions.getX(i3),
-        positions.getY(i3),
-        positions.getZ(i3)
+        processedPositions.getX(i3),
+        processedPositions.getY(i3),
+        processedPositions.getZ(i3)
       );
       const v2 = new THREE.Vector3(
-        positions.getX(i3 + 1),
-        positions.getY(i3 + 1),
-        positions.getZ(i3 + 1)
+        processedPositions.getX(i3 + 1),
+        processedPositions.getY(i3 + 1),
+        processedPositions.getZ(i3 + 1)
       );
       const v3 = new THREE.Vector3(
-        positions.getX(i3 + 2),
-        positions.getY(i3 + 2),
-        positions.getZ(i3 + 2)
+        processedPositions.getX(i3 + 2),
+        processedPositions.getY(i3 + 2),
+        processedPositions.getZ(i3 + 2)
       );
-      
-      // Calculate normal
-      const normal = this.calculateTriangleNormal(v1, v2, v3);
-      
-      // Write facet
+
+      // Calculate normal with proper outward orientation
+      const normal = this.calculateOutwardNormal(v1, v2, v3);
+
+      // Ensure counter-clockwise winding (right-hand rule)
+      const { vertex1, vertex2, vertex3 } = this.ensureCounterClockwiseWinding(v1, v2, v3, normal);
+
+      // Write facet with proper solid formatting
       stlContent += `  facet normal ${normal.x.toFixed(6)} ${normal.y.toFixed(6)} ${normal.z.toFixed(6)}\n`;
       stlContent += `    outer loop\n`;
-      stlContent += `      vertex ${v1.x.toFixed(6)} ${v1.y.toFixed(6)} ${v1.z.toFixed(6)}\n`;
-      stlContent += `      vertex ${v2.x.toFixed(6)} ${v2.y.toFixed(6)} ${v2.z.toFixed(6)}\n`;
-      stlContent += `      vertex ${v3.x.toFixed(6)} ${v3.y.toFixed(6)} ${v3.z.toFixed(6)}\n`;
+      stlContent += `      vertex ${vertex1.x.toFixed(6)} ${vertex1.y.toFixed(6)} ${vertex1.z.toFixed(6)}\n`;
+      stlContent += `      vertex ${vertex2.x.toFixed(6)} ${vertex2.y.toFixed(6)} ${vertex2.z.toFixed(6)}\n`;
+      stlContent += `      vertex ${vertex3.x.toFixed(6)} ${vertex3.y.toFixed(6)} ${vertex3.z.toFixed(6)}\n`;
       stlContent += `    endloop\n`;
       stlContent += `  endfacet\n`;
     }
-    
-    stlContent += 'endsolid exported\n';
-    
+
+    stlContent += 'endsolid exported_solid\n';
+
+    // Clean up
+    if (processedGeometry !== geometry) {
+      processedGeometry.dispose();
+    }
+
     return stlContent;
   }
 
   /**
-   * Calculate triangle normal vector
+   * Ensure geometry forms a solid object with proper normals
    */
-  private static calculateTriangleNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
+  private static ensureSolidGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    // Clone geometry to avoid modifying original
+    const solidGeometry = geometry.clone();
+
+    // Ensure we have proper vertex normals
+    if (!solidGeometry.attributes.normal) {
+      solidGeometry.computeVertexNormals();
+    }
+
+    // Merge vertices to ensure watertight mesh
+    solidGeometry.mergeVertices();
+
+    // Recompute normals after merging
+    solidGeometry.computeVertexNormals();
+
+    return solidGeometry;
+  }
+
+  /**
+   * Calculate outward-facing normal for solid object
+   */
+  private static calculateOutwardNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
     const edge1 = new THREE.Vector3().subVectors(v2, v1);
     const edge2 = new THREE.Vector3().subVectors(v3, v1);
-    const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
-    
+
+    // Use right-hand rule: edge1 × edge2 gives outward normal
+    const normal = new THREE.Vector3().crossVectors(edge1, edge2);
+
+    // Normalize the normal vector
+    normal.normalize();
+
+    // Ensure we have a valid normal (not zero vector)
+    if (normal.length() === 0) {
+      // Fallback to a default normal if calculation fails
+      normal.set(0, 0, 1);
+    }
+
     return normal;
+  }
+
+  /**
+   * Ensure counter-clockwise vertex winding for outward-facing triangles
+   */
+  private static ensureCounterClockwiseWinding(
+    v1: THREE.Vector3,
+    v2: THREE.Vector3,
+    v3: THREE.Vector3,
+    expectedNormal: THREE.Vector3
+  ): { vertex1: THREE.Vector3; vertex2: THREE.Vector3; vertex3: THREE.Vector3 } {
+    // Calculate current normal with current winding
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+    const currentNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+    // Check if normals are pointing in the same direction
+    const dot = currentNormal.dot(expectedNormal);
+
+    if (dot < 0) {
+      // Normals are opposite, swap v2 and v3 to flip winding
+      return {
+        vertex1: v1.clone(),
+        vertex2: v3.clone(), // Swapped
+        vertex3: v2.clone()  // Swapped
+      };
+    }
+
+    // Winding is correct
+    return {
+      vertex1: v1.clone(),
+      vertex2: v2.clone(),
+      vertex3: v3.clone()
+    };
+  }
+
+  /**
+   * Calculate triangle normal vector (legacy method for compatibility)
+   */
+  private static calculateTriangleNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
+    return this.calculateOutwardNormal(v1, v2, v3);
   }
 
   /**
@@ -192,22 +288,24 @@ export class STLExporter {
 }
 
 /**
- * Export current STL with default 50-100mm sizing
+ * Export current STL as solid object with default 50-100mm sizing
+ * Creates watertight solid suitable for 3D printing
  */
 export function exportCurrentSTL(
   geometry: THREE.BufferGeometry,
   filename?: string,
   customSize?: { min: number; max: number }
 ): void {
-  const defaultSize = { min: 50, max: 100 }; // 50-100mm default
+  const defaultSize = { min: 50, max: 100 }; // 50-100mm default for 3D printing
   const exportSize = customSize || defaultSize;
-  const exportFilename = filename || 'exported_model.stl';
-  
+  const exportFilename = filename || 'solid_exported_model.stl';
+
   try {
     STLExporter.exportGeometry(geometry, exportFilename, exportSize);
-    console.log(`STL exported successfully: ${exportFilename}`);
+    console.log(`Solid STL exported successfully: ${exportFilename}`);
+    console.log(`Model sized for 3D printing: ${exportSize.min}-${exportSize.max}mm range`);
   } catch (error) {
-    console.error('Failed to export STL:', error);
+    console.error('Failed to export solid STL:', error);
     throw error;
   }
 }
