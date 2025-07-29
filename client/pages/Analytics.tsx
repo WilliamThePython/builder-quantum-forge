@@ -96,7 +96,66 @@ const mockAnalytics = {
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('7d');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState(mockAnalytics);
+  const [realTimeData, setRealTimeData] = useState(mockAnalytics.realTime);
+  const { getRealTimeData, getHistoricalData, trackPageView } = useAnalytics();
+
+  // Track page view
+  useEffect(() => {
+    trackPageView('/analytics', 'Analytics Dashboard');
+  }, []);
+
+  // Fetch real-time data
+  useEffect(() => {
+    const fetchRealTimeData = async () => {
+      try {
+        const data = await getRealTimeData();
+        setRealTimeData(data);
+      } catch (error) {
+        console.error('Failed to fetch real-time data:', error);
+      }
+    };
+
+    fetchRealTimeData();
+    const interval = setInterval(fetchRealTimeData, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch historical data when time range changes
+  useEffect(() => {
+    const fetchHistoricalData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getHistoricalData(timeRange);
+        setAnalyticsData(prevData => ({
+          ...prevData,
+          overview: {
+            ...prevData.overview,
+            totalUsers: data.totalUsers,
+            sessions: data.sessions,
+            pageViews: data.pageViews,
+            bounceRate: data.bounceRate,
+            avgSessionDuration: data.avgSessionDuration
+          },
+          stlMetrics: {
+            ...prevData.stlMetrics,
+            totalUploads: data.stlUploads
+          },
+          revenue: {
+            ...prevData.revenue,
+            totalRevenue: data.revenue
+          }
+        }));
+      } catch (error) {
+        console.error('Failed to fetch historical data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistoricalData();
+  }, [timeRange]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
