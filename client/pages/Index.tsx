@@ -13,10 +13,10 @@ export default function Index() {
       <ViewerControls />
       
       {/* Brand Watermark */}
-      <div className="absolute bottom-6 right-6 z-40">
-        <div className="bg-black/60 backdrop-blur-sm text-white/70 px-4 py-2 rounded-lg border border-white/10">
-          <div className="text-sm font-medium">STL Viewer Platform</div>
-          <div className="text-xs text-white/50">Interactive 3D Model Viewer</div>
+      <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-40">
+        <div className="bg-black/60 backdrop-blur-sm text-white/70 px-3 py-2 md:px-4 rounded-lg border border-white/10">
+          <div className="text-xs md:text-sm font-medium">STL Viewer Platform</div>
+          <div className="text-xs text-white/50 hidden md:block">Interactive 3D Model Viewer</div>
         </div>
       </div>
 
