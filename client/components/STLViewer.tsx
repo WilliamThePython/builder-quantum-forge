@@ -12,32 +12,43 @@ function STLMesh() {
   // Create materials based on settings
   const material = useMemo(() => {
     if (viewerSettings.wireframe) {
-      return new THREE.MeshBasicMaterial({ 
-        wireframe: true, 
-        color: 0x00ff88 
-      });
-    }
-    
-    if (viewerSettings.randomColors) {
-      return new THREE.MeshStandardMaterial({ 
-        vertexColors: true,
-        metalness: 0.3,
-        roughness: 0.4
+      return new THREE.MeshBasicMaterial({
+        wireframe: true,
+        color: 0x00ff88
       });
     }
 
-    return new THREE.MeshStandardMaterial({ 
-      color: 0x606060,
+    const baseColor = viewerSettings.randomColors ? 0xffffff : 0x606060;
+
+    return new THREE.MeshStandardMaterial({
+      color: baseColor,
+      vertexColors: viewerSettings.randomColors,
       metalness: 0.3,
-      roughness: 0.4
+      roughness: 0.4,
+      // Show edges as black lines when showEdges is true and wireframe is false
+      ...(viewerSettings.showEdges && !viewerSettings.wireframe && {
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
+      })
     });
-  }, [viewerSettings.wireframe, viewerSettings.randomColors]);
+  }, [viewerSettings.wireframe, viewerSettings.randomColors, viewerSettings.showEdges]);
 
-  // Create edges geometry only when showEdges is true
+  // Create edge material for showing black edges
+  const edgeMaterial = useMemo(() => {
+    return new THREE.LineBasicMaterial({
+      color: 0x000000,
+      linewidth: 1,
+      transparent: true,
+      opacity: 0.8
+    });
+  }, []);
+
+  // Create edges geometry only when showEdges is true and wireframe is false
   const edgesGeometry = useMemo(() => {
-    if (!geometry || !viewerSettings.showEdges) return null;
+    if (!geometry || !viewerSettings.showEdges || viewerSettings.wireframe) return null;
     return new THREE.EdgesGeometry(geometry, 15); // 15 degree threshold
-  }, [geometry, viewerSettings.showEdges]);
+  }, [geometry, viewerSettings.showEdges, viewerSettings.wireframe]);
 
   // Add random colors to geometry if enabled
   useEffect(() => {
