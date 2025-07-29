@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { trackEvent, getRealTimeData, getHistoricalData, getSTLAnalytics } from "./routes/analytics";
+import { trackEvent, getRealTimeData, getHistoricalData, getSTLAnalytics, getUserMetrics } from "./routes/analytics";
 
 export function createServer() {
   const app = express();
@@ -25,6 +25,7 @@ export function createServer() {
   app.get("/api/analytics/realtime", getRealTimeData);
   app.get("/api/analytics/historical", getHistoricalData);
   app.get("/api/analytics/stl", getSTLAnalytics);
+  app.get("/api/analytics/user-metrics", getUserMetrics);
 
   return app;
 }
