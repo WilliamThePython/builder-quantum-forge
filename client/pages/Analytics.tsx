@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAnalytics } from '../lib/analytics';
 import { 
   ArrowLeft, 
   Users, 
