@@ -30,6 +30,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/adsense-setup" element={<AdSenseSetup />} />
+              <Route path="/analytics" element={<Analytics />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
