@@ -99,18 +99,20 @@ export default function ViewerControls() {
             <label className="cursor-pointer">
               <input
                 type="file"
-                accept=".stl"
+                accept=".stl,application/sla,application/octet-stream,model/stl"
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={isLoading}
+                title="Upload STL file (max 50MB)"
               />
               <Button
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                 disabled={isLoading}
+                title="Upload STL file from your computer"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload
+                {isLoading ? 'Loading...' : 'Upload STL'}
               </Button>
             </label>
 

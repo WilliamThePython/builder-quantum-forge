@@ -139,10 +139,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         upload_time: uploadTime
       });
 
-      setGeometry(geometry);
-      setFileName(file.name);
+      console.log(`STL loaded successfully: ${file.name} (${triangles.toLocaleString()} triangles)`);
+
     } catch (err) {
-      setError('Failed to load STL file');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
+      setError(errorMessage);
       console.error('STL loading error:', err);
     } finally {
       setIsLoading(false);
