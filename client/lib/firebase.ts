@@ -66,7 +66,7 @@ export const deleteUserAccount = () => {
 
 export const logOut = () => signOut(auth);
 
-export const onAuthStateChange = (callback: (user: User | null) => void) => 
+export const onAuthStateChange = (callback: (user: User | null) => void) =>
   onAuthStateChanged(auth, callback);
 
-export { User };
+export type { User };
