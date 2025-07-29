@@ -314,8 +314,22 @@ class Analytics {
     } catch (error) {
       console.error('Failed to fetch historical analytics:', error);
     }
-    
+
     return this.getMockHistoricalData(timeRange);
+  }
+
+  // Get custom analytics data from any endpoint
+  async getCustomData(endpoint: string) {
+    try {
+      const response = await fetch(endpoint);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (error) {
+      console.error(`Failed to fetch data from ${endpoint}:`, error);
+    }
+
+    return {};
   }
 
   private sendToCustomAnalytics(event: AnalyticsEvent) {
@@ -380,7 +394,8 @@ export function useAnalytics() {
     trackError: analytics.trackError.bind(analytics),
     setUserId: analytics.setUserId.bind(analytics),
     getRealTimeData: analytics.getRealTimeData.bind(analytics),
-    getHistoricalData: analytics.getHistoricalData.bind(analytics)
+    getHistoricalData: analytics.getHistoricalData.bind(analytics),
+    getCustomData: analytics.getCustomData.bind(analytics)
   };
 }
 
