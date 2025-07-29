@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { analytics } from '../lib/analytics';
 
 interface ViewerSettings {
-  showEdges: boolean;
   randomColors: boolean;
   wireframe: boolean;
   backgroundColor: string;
@@ -33,7 +32,6 @@ interface STLContextType {
 }
 
 const defaultViewerSettings: ViewerSettings = {
-  showEdges: false,
   randomColors: false,
   wireframe: false,
   backgroundColor: '#0a0a0a'

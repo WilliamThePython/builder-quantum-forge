@@ -7,7 +7,6 @@ import { useSTL } from '../context/STLContext';
 function STLMesh() {
   const { geometry, viewerSettings } = useSTL();
   const meshRef = useRef<THREE.Mesh>(null);
-  const edgesRef = useRef<THREE.LineSegments>(null);
 
   // Create materials based on settings
   const material = useMemo(() => {
@@ -24,31 +23,11 @@ function STLMesh() {
       color: baseColor,
       vertexColors: viewerSettings.randomColors,
       metalness: 0.3,
-      roughness: 0.4,
-      // Show edges as black lines when showEdges is true and wireframe is false
-      ...(viewerSettings.showEdges && !viewerSettings.wireframe && {
-        polygonOffset: true,
-        polygonOffsetFactor: 1,
-        polygonOffsetUnits: 1
-      })
+      roughness: 0.4
     });
-  }, [viewerSettings.wireframe, viewerSettings.randomColors, viewerSettings.showEdges]);
+  }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
-  // Create edge material for showing black edges
-  const edgeMaterial = useMemo(() => {
-    return new THREE.LineBasicMaterial({
-      color: 0x000000,
-      linewidth: 1,
-      transparent: true,
-      opacity: 0.8
-    });
-  }, []);
 
-  // Create edges geometry only when showEdges is true and wireframe is false
-  const edgesGeometry = useMemo(() => {
-    if (!geometry || !viewerSettings.showEdges || viewerSettings.wireframe) return null;
-    return new THREE.EdgesGeometry(geometry, 15); // 15 degree threshold
-  }, [geometry, viewerSettings.showEdges, viewerSettings.wireframe]);
 
   // Add random colors to geometry if enabled
   useEffect(() => {
@@ -85,13 +64,51 @@ function STLMesh() {
   if (!geometry) return null;
 
   return (
-    <group>
-      <mesh ref={meshRef} geometry={geometry} material={material} />
-      {viewerSettings.showEdges && !viewerSettings.wireframe && edgesGeometry && (
-        <lineSegments ref={edgesRef} geometry={edgesGeometry} material={edgeMaterial} />
-      )}
-    </group>
+    <mesh ref={meshRef} geometry={geometry} material={material} />
   );
+}
+
+function GradientBackground() {
+  const { viewerSettings } = useSTL();
+
+  // Create gradient background for Three.js scene
+  if (viewerSettings.backgroundColor.includes('gradient')) {
+    return (
+      <mesh scale={[200, 200, 1]} position={[0, 0, -100]}>
+        <planeGeometry />
+        <shaderMaterial
+          vertexShader={`
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+          fragmentShader={`
+            varying vec2 vUv;
+            void main() {
+              // Meadow gradient: light blue sky to soft green grass
+              vec3 topColor = vec3(0.722, 0.902, 1.0);    // #B8E6FF
+              vec3 midColor = vec3(0.910, 0.961, 0.910);  // #E8F5E8
+              vec3 bottomColor = vec3(0.784, 0.902, 0.788); // #C8E6C9
+
+              vec3 color;
+              if (vUv.y > 0.5) {
+                // Top half: sky to horizon
+                color = mix(bottomColor, topColor, (vUv.y - 0.5) * 2.0);
+              } else {
+                // Bottom half: horizon to grass
+                color = mix(bottomColor, midColor, vUv.y * 2.0);
+              }
+
+              gl_FragColor = vec4(color, 1.0);
+            }
+          `}
+        />
+      </mesh>
+    );
+  }
+  return null;
 }
 
 function Scene() {
@@ -102,8 +119,10 @@ function Scene() {
 
   return (
     <>
-      {!isGradient && (
+      {!isGradient ? (
         <color attach="background" args={[viewerSettings.backgroundColor]} />
+      ) : (
+        <GradientBackground />
       )}
       <ambientLight intensity={0.4} />
       <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
