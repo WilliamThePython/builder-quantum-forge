@@ -71,21 +71,35 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
       const loader = new STLLoader();
       
+      const uploadStartTime = Date.now();
       const arrayBuffer = await file.arrayBuffer();
       const geometry = loader.parse(arrayBuffer);
-      
+
       // Center and scale the geometry
       geometry.computeBoundingBox();
       const center = geometry.boundingBox!.getCenter(new THREE.Vector3());
       geometry.translate(-center.x, -center.y, -center.z);
-      
+
       const size = geometry.boundingBox!.getSize(new THREE.Vector3());
       const maxDimension = Math.max(size.x, size.y, size.z);
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
-      
+
       geometry.computeVertexNormals();
-      
+
+      const uploadTime = Date.now() - uploadStartTime;
+      const vertices = geometry.attributes.position?.count || 0;
+      const triangles = Math.floor(vertices / 3);
+
+      // Track STL upload analytics
+      analytics.trackSTLUpload({
+        file_name: file.name,
+        file_size: file.size,
+        vertices: vertices,
+        triangles: triangles,
+        upload_time: uploadTime
+      });
+
       setGeometry(geometry);
       setFileName(file.name);
     } catch (err) {
