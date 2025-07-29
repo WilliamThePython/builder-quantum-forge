@@ -134,9 +134,10 @@ export default function ViewerControls() {
                 Viewer Settings
               </Button>
             </PopoverTrigger>
-            <PopoverContent 
-              side="right" 
-              className="w-80 bg-black/90 backdrop-blur-md border-white/10 text-white"
+            <PopoverContent
+              side="right"
+              sideOffset={8}
+              className="w-72 md:w-80 bg-black/90 backdrop-blur-md border-white/10 text-white"
             >
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Display Options</h3>
