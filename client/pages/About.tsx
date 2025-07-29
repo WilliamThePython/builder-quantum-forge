@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Heart, Users, Zap, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { SidebarAds } from '../components/SimpleAds';
+import { AdSenseSidebarAds } from '../components/GoogleAdSenseAds';
 
 export default function About() {
   return (
