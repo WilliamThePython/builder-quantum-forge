@@ -77,17 +77,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     try {
       // Basic file validation first
       if (!file.name.toLowerCase().endsWith('.stl')) {
-        setError('Please select a valid STL file');
+        addError('Please select a valid STL file');
         return;
       }
 
       if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        setError('File too large. Maximum size: 50MB');
+        addError('File too large. Maximum size: 50MB');
         return;
       }
 
       if (file.size < 1024) { // 1KB minimum
-        setError('File too small. Minimum size: 1KB');
+        addError('File too small. Minimum size: 1KB');
         return;
       }
 
@@ -159,7 +159,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
-      setError(errorMessage);
+      addError(errorMessage);
       console.error('STL loading error details:', {
         error: err,
         message: errorMessage,
@@ -212,7 +212,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setGeometry(selected.geometry);
       setFileName(selected.name);
     } catch (err) {
-      setError('Failed to load default model');
+      addError('Failed to load default model');
       console.error('Default STL loading error:', err);
     } finally {
       setIsLoading(false);
@@ -259,7 +259,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const exportSTL = useCallback(async (customFilename?: string) => {
     if (!geometry) {
-      setError('No model available for export');
+      addError('No model available for export');
       return;
     }
 
@@ -285,7 +285,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
 
     } catch (error) {
-      setError('Failed to export STL file');
+      addError('Failed to export STL file');
       console.error('STL export error:', error);
     }
   }, [geometry, fileName]);
@@ -295,12 +295,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     fileName,
     isLoading,
     error,
+    errors,
     viewerSettings,
     loadSTLFromFile,
     loadDefaultSTL,
     updateViewerSettings,
     exportSTL,
-    clearError
+    clearError,
+    clearErrorById,
+    addError
   };
 
   return (
