@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Info } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
 
