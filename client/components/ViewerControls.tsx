@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { 
-  Settings, 
-  Eye, 
-  Palette, 
-  Grid3X3, 
+import {
+  Settings,
+  Eye,
+  Palette,
+  Grid3X3,
   Upload,
   Download,
   RefreshCw,
-  Info
+  Info,
+  Crown,
+  Lock
 } from 'lucide-react';
 import { useSTL } from '../context/STLContext';
+import { useAuth } from '../context/AuthContext';
+import { useFeatureAccess } from './auth/ProtectedRoute';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
