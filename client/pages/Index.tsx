@@ -16,6 +16,19 @@ export default function Index() {
       
       {/* Floating UI Controls */}
       <ViewerControls />
+
+      {/* About Button - Top Right */}
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
+        <Link to="/about">
+          <Button
+            className="bg-white/90 hover:bg-white text-black font-semibold hover:shadow-lg transition-all duration-200 border border-gray-300"
+            size="sm"
+          >
+            <Info className="w-4 h-4 mr-2" />
+            About
+          </Button>
+        </Link>
+      </div>
       
       {/* Brand Watermark */}
       <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-40">
