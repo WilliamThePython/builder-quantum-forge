@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
 
 export default function Index() {
+  const [showWelcome, setShowWelcome] = useState(true);
   return (
     <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
       {/* Fullscreen 3D Canvas */}
@@ -31,7 +33,7 @@ export default function Index() {
               Interactive 3D model viewing and manipulation tools
             </p>
             <div className="text-sm text-white/60 space-y-2">
-              <p>🎯 Upload your own STL files</p>
+              <p>���� Upload your own STL files</p>
               <p>⚡ Real-time visualization controls</p>
               <p>🛠️ Advanced manipulation tools</p>
             </div>
