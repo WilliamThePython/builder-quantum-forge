@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { analytics } from '../lib/analytics';
 
 interface ViewerSettings {
   showEdges: boolean;
