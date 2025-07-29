@@ -115,7 +115,7 @@ export default function ViewerControls() {
               variant="outline"
               onClick={loadDefaultSTL}
               disabled={isLoading}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-gray-300 bg-white/90 text-black font-semibold hover:bg-white hover:shadow-md transition-all duration-200"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               RANDOM
@@ -128,7 +128,7 @@ export default function ViewerControls() {
               <Button 
                 variant="outline" 
                 size="sm"
-                className="w-full border-white/20 text-white hover:bg-white/10"
+                className="w-full border-gray-300 bg-white/90 text-black font-semibold hover:bg-white hover:shadow-md transition-all duration-200"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 SETTINGS
