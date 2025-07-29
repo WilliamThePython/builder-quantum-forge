@@ -168,20 +168,7 @@ export default function ViewerControls() {
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Display Options</h3>
                 
-                {/* Show Edges */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Grid3X3 className="w-4 h-4" />
-                    <Label htmlFor="edges" className="text-sm">Show Edges</Label>
-                  </div>
-                  <Switch
-                    id="edges"
-                    checked={viewerSettings.showEdges}
-                    onCheckedChange={(checked) => 
-                      updateViewerSettings({ showEdges: checked })
-                    }
-                  />
-                </div>
+
 
                 {/* Random Colors */}
                 <div className="flex items-center justify-between">
