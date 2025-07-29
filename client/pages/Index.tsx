@@ -113,8 +113,8 @@ export default function Index() {
         initialMode={authMode}
       />
 
-      {/* Bottom Banner Ads */}
-      <BottomBannerAds />
+      {/* Google AdSense Bottom Banner Ads */}
+      <AdSenseBottomBanners />
       </div>
     </AdManager>
   );
