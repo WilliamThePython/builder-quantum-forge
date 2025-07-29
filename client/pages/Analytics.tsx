@@ -6,155 +6,87 @@ import {
   Users, 
   Eye, 
   Upload, 
-  Download,
-  Globe,
-  Smartphone,
   Clock,
   TrendingUp,
-  TrendingDown,
-  BarChart3,
-  PieChart,
   Activity,
-  DollarSign,
-  FileText,
-  MousePointer,
-  Zap,
-  AlertCircle
+  BarChart3,
+  Calendar,
+  Timer,
+  Globe
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 
-// Mock analytics data - in production, this would come from your analytics service
-const mockAnalytics = {
-  overview: {
-    totalUsers: 15247,
-    newUsers: 2893,
-    sessions: 18456,
-    pageViews: 45231,
-    bounceRate: 32.1,
-    avgSessionDuration: '4:32',
-    userGrowth: 15.3,
-    sessionGrowth: 8.7
-  },
-  stlMetrics: {
-    totalUploads: 8934,
-    totalDownloads: 12456,
-    avgFileSize: '2.4 MB',
-    popularFormats: [
-      { format: 'STL', count: 8934, percentage: 89.3 },
-      { format: 'OBJ', count: 756, percentage: 7.6 },
-      { format: 'PLY', count: 310, percentage: 3.1 }
-    ]
-  },
-  geographic: {
-    countries: [
-      { country: 'United States', users: 4573, percentage: 30.0 },
-      { country: 'Germany', users: 2134, percentage: 14.0 },
-      { country: 'United Kingdom', users: 1829, percentage: 12.0 },
-      { country: 'Canada', users: 1371, percentage: 9.0 },
-      { country: 'France', users: 1067, percentage: 7.0 }
-    ]
-  },
-  devices: {
-    desktop: 62.3,
-    mobile: 28.7,
-    tablet: 9.0
-  },
-  browsers: [
-    { browser: 'Chrome', percentage: 67.2 },
-    { browser: 'Firefox', percentage: 18.4 },
-    { browser: 'Safari', percentage: 9.1 },
-    { browser: 'Edge', percentage: 5.3 }
-  ],
-  performance: {
-    avgLoadTime: 1.23,
-    errorRate: 0.12,
-    uptime: 99.97
-  },
-  engagement: {
-    avgTimeOnPage: '3:45',
-    pagesPerSession: 2.8,
-    returnVisitorRate: 43.2
-  },
-  revenue: {
-    totalRevenue: 1247.50,
-    adRevenue: 892.30,
-    premiumRevenue: 355.20,
-    revenueGrowth: 23.4
-  },
-  realTime: {
-    activeUsers: 127,
-    currentPageViews: 89,
-    topPages: [
-      { page: '/', views: 45 },
-      { page: '/about', views: 23 },
-      { page: '/profile', views: 12 }
-    ]
-  }
-};
+interface UserMetrics {
+  current: number;
+  lastHour: number;
+  lastDay: number;
+  lastWeek: number;
+  lastMonth: number;
+  lastYear: number;
+}
+
+interface RealTimeData {
+  activeUsers: number;
+  currentPageViews: number;
+  topPages: Array<{ page: string; views: number }>;
+  timestamp: number;
+}
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('7d');
   const [isLoading, setIsLoading] = useState(true);
-  const [analyticsData, setAnalyticsData] = useState(mockAnalytics);
-  const [realTimeData, setRealTimeData] = useState(mockAnalytics.realTime);
-  const { getRealTimeData, getHistoricalData, trackPageView } = useAnalytics();
+  const [userMetrics, setUserMetrics] = useState<UserMetrics>({
+    current: 0,
+    lastHour: 0,
+    lastDay: 0,
+    lastWeek: 0,
+    lastMonth: 0,
+    lastYear: 0
+  });
+  const [realTimeData, setRealTimeData] = useState<RealTimeData>({
+    activeUsers: 0,
+    currentPageViews: 0,
+    topPages: [],
+    timestamp: Date.now()
+  });
+  const [pageViews, setPageViews] = useState(0);
+  const [stlUploads, setStlUploads] = useState(0);
+  const { getRealTimeData, getHistoricalData, trackPageView, getCustomData } = useAnalytics();
 
   // Track page view
   useEffect(() => {
     trackPageView('/analytics', 'Analytics Dashboard');
   }, []);
 
-  // Fetch real-time data
+  // Fetch real-time data and user metrics
   useEffect(() => {
-    const fetchRealTimeData = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getRealTimeData();
-        setRealTimeData(data);
-      } catch (error) {
-        console.error('Failed to fetch real-time data:', error);
-      }
-    };
+        // Get real-time data
+        const realtimeData = await getRealTimeData();
+        setRealTimeData(realtimeData);
 
-    fetchRealTimeData();
-    const interval = setInterval(fetchRealTimeData, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
+        // Get user metrics for different time periods
+        const userMetricsData = await getCustomData('/api/analytics/user-metrics');
+        setUserMetrics(userMetricsData);
 
-  // Fetch historical data when time range changes
-  useEffect(() => {
-    const fetchHistoricalData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getHistoricalData(timeRange);
-        setAnalyticsData(prevData => ({
-          ...prevData,
-          overview: {
-            ...prevData.overview,
-            totalUsers: data.totalUsers,
-            sessions: data.sessions,
-            pageViews: data.pageViews,
-            bounceRate: data.bounceRate,
-            avgSessionDuration: data.avgSessionDuration
-          },
-          stlMetrics: {
-            ...prevData.stlMetrics,
-            totalUploads: data.stlUploads
-          },
-          revenue: {
-            ...prevData.revenue,
-            totalRevenue: data.revenue
-          }
-        }));
+        // Get page views and STL uploads
+        const historicalData = await getHistoricalData(timeRange);
+        setPageViews(historicalData.pageViews || 0);
+        setStlUploads(historicalData.stlUploads || 0);
+
       } catch (error) {
-        console.error('Failed to fetch historical data:', error);
+        console.error('Failed to fetch analytics data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchHistoricalData();
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
   }, [timeRange]);
 
   const formatNumber = (num: number) => {
@@ -166,39 +98,26 @@ export default function Analytics() {
   const MetricCard = ({ 
     title, 
     value, 
-    change, 
     icon: Icon, 
-    trend = 'up',
-    suffix = '' 
+    description,
+    trend = 'neutral',
+    className = ''
   }: {
     title: string;
     value: string | number;
-    change?: number;
     icon: any;
+    description?: string;
     trend?: 'up' | 'down' | 'neutral';
-    suffix?: string;
+    className?: string;
   }) => (
-    <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+    <Card className={`bg-white/5 border-white/10 backdrop-blur-sm ${className}`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400 mb-1">{title}</p>
-            <p className="text-2xl font-bold text-white">{value}{suffix}</p>
-            {change !== undefined && (
-              <div className="flex items-center mt-2">
-                {trend === 'up' ? (
-                  <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
-                ) : trend === 'down' ? (
-                  <TrendingDown className="w-4 h-4 text-red-400 mr-1" />
-                ) : null}
-                <span className={`text-sm ${
-                  trend === 'up' ? 'text-green-400' : 
-                  trend === 'down' ? 'text-red-400' : 'text-gray-400'
-                }`}>
-                  {change > 0 ? '+' : ''}{change}%
-                </span>
-                <span className="text-sm text-gray-500 ml-1">vs last period</span>
-              </div>
+            <p className="text-2xl font-bold text-white">{value}</p>
+            {description && (
+              <p className="text-xs text-gray-500 mt-1">{description}</p>
             )}
           </div>
           <div className="p-3 bg-blue-500/20 rounded-full">
@@ -208,6 +127,44 @@ export default function Analytics() {
       </CardContent>
     </Card>
   );
+
+  const TimeRangeCard = ({ 
+    period, 
+    value, 
+    icon: Icon,
+    description
+  }: {
+    period: string;
+    value: number;
+    icon: any;
+    description: string;
+  }) => (
+    <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-medium text-white">{period}</span>
+          </div>
+          <Badge className="bg-blue-500/20 text-blue-400 text-xs">
+            {formatNumber(value)}
+          </Badge>
+        </div>
+        <p className="text-xs text-gray-400">{description}</p>
+      </CardContent>
+    </Card>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-white flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-white">
@@ -227,8 +184,8 @@ export default function Analytics() {
               </Link>
               
               <div>
-                <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-                <p className="text-gray-400">3D Tools Platform Insights</p>
+                <h1 className="text-2xl font-bold">User Analytics Dashboard</h1>
+                <p className="text-gray-400">Real-time user tracking & engagement metrics</p>
               </div>
             </div>
 
@@ -254,293 +211,197 @@ export default function Analytics() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Real-time Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Current Activity Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MetricCard
-            title="Active Users Right Now"
+            title="Users Online Now"
             value={realTimeData.activeUsers}
             icon={Users}
-            trend="neutral"
+            description="Active in last 30 minutes"
+            className="ring-2 ring-green-500/20"
           />
           <MetricCard
-            title="Page Views (Last Hour)"
+            title="Page Views (1 Hour)"
             value={realTimeData.currentPageViews}
             icon={Eye}
-            trend="neutral"
+            description="Total views last hour"
           />
           <MetricCard
-            title="Total Users"
-            value={formatNumber(analyticsData.overview.totalUsers)}
-            change={analyticsData.overview.userGrowth}
-            icon={Users}
-            trend="up"
-          />
-          <MetricCard
-            title="Total Sessions"
-            value={formatNumber(analyticsData.overview.sessions)}
-            change={analyticsData.overview.sessionGrowth}
-            icon={Activity}
-            trend="up"
-          />
-        </div>
-
-        {/* Main Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <MetricCard
-            title="Page Views"
-            value={formatNumber(mockAnalytics.overview.pageViews)}
-            icon={Eye}
-          />
-          <MetricCard
-            title="New Users"
-            value={formatNumber(mockAnalytics.overview.newUsers)}
-            icon={Users}
-          />
-          <MetricCard
-            title="Bounce Rate"
-            value={mockAnalytics.overview.bounceRate}
-            suffix="%"
-            icon={MousePointer}
-            trend="down"
-          />
-          <MetricCard
-            title="Avg Session Duration"
-            value={mockAnalytics.overview.avgSessionDuration}
-            icon={Clock}
-          />
-          <MetricCard
-            title="STL Uploads"
-            value={formatNumber(mockAnalytics.stlMetrics.totalUploads)}
+            title="STL Uploads Today"
+            value={stlUploads}
             icon={Upload}
-          />
-          <MetricCard
-            title="Revenue (Month)"
-            value={`$${mockAnalytics.revenue.totalRevenue}`}
-            change={mockAnalytics.revenue.revenueGrowth}
-            icon={DollarSign}
-            trend="up"
+            description="Files uploaded today"
           />
         </div>
 
-        {/* STL File Analytics */}
+        {/* User Metrics by Time Period */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
-              <FileText className="w-5 h-5 mr-2" />
-              STL File Analytics
+              <BarChart3 className="w-5 h-5 mr-2" />
+              User Activity Timeline
             </CardTitle>
+            <p className="text-gray-400 text-sm">Unique users across different time periods</p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Total Uploads</p>
-                <p className="text-2xl font-bold text-white">{formatNumber(mockAnalytics.stlMetrics.totalUploads)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Total Downloads</p>
-                <p className="text-2xl font-bold text-white">{formatNumber(mockAnalytics.stlMetrics.totalDownloads)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Avg File Size</p>
-                <p className="text-2xl font-bold text-white">{mockAnalytics.stlMetrics.avgFileSize}</p>
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <p className="text-sm text-gray-400 mb-4">File Format Distribution</p>
-              <div className="space-y-3">
-                {mockAnalytics.stlMetrics.popularFormats.map((format) => (
-                  <div key={format.format} className="flex items-center justify-between">
-                    <span className="text-white">{format.format}</span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-32 bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full" 
-                          style={{ width: `${format.percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-400 w-12">{format.percentage}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <TimeRangeCard
+                period="Last Hour"
+                value={userMetrics.lastHour}
+                icon={Timer}
+                description="Users active in past hour"
+              />
+              <TimeRangeCard
+                period="Last Day"
+                value={userMetrics.lastDay}
+                icon={Clock}
+                description="Users active in past 24 hours"
+              />
+              <TimeRangeCard
+                period="Last Week"
+                value={userMetrics.lastWeek}
+                icon={Calendar}
+                description="Users active in past 7 days"
+              />
+              <TimeRangeCard
+                period="Last Month"
+                value={userMetrics.lastMonth}
+                icon={Calendar}
+                description="Users active in past 30 days"
+              />
+              <TimeRangeCard
+                period="Last Year"
+                value={userMetrics.lastYear}
+                icon={TrendingUp}
+                description="Users active in past year"
+              />
+              <TimeRangeCard
+                period="Currently Online"
+                value={userMetrics.current}
+                icon={Activity}
+                description="Users online right now"
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Geographic & Device Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Geographic Distribution */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Globe className="w-5 h-5 mr-2" />
-                Geographic Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockAnalytics.geographic.countries.map((country) => (
-                  <div key={country.country} className="flex items-center justify-between">
-                    <span className="text-white">{country.country}</span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-24 bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full" 
-                          style={{ width: `${country.percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-400 w-16">{formatNumber(country.users)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Device & Browser Analytics */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Smartphone className="w-5 h-5 mr-2" />
-                Device & Browser Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-sm text-gray-400 mb-3">Device Types</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-white">Desktop</span>
-                      <span className="text-gray-400">{mockAnalytics.devices.desktop}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white">Mobile</span>
-                      <span className="text-gray-400">{mockAnalytics.devices.mobile}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white">Tablet</span>
-                      <span className="text-gray-400">{mockAnalytics.devices.tablet}%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-400 mb-3">Top Browsers</p>
-                  <div className="space-y-2">
-                    {mockAnalytics.browsers.map((browser) => (
-                      <div key={browser.browser} className="flex justify-between">
-                        <span className="text-white">{browser.browser}</span>
-                        <span className="text-gray-400">{browser.percentage}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance & Revenue */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Performance Metrics */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Zap className="w-5 h-5 mr-2" />
-                Performance Metrics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Avg Load Time</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono">{mockAnalytics.performance.avgLoadTime}s</span>
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">Good</Badge>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Error Rate</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono">{mockAnalytics.performance.errorRate}%</span>
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">Excellent</Badge>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Uptime</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono">{mockAnalytics.performance.uptime}%</span>
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">Excellent</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Revenue Breakdown */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Revenue Breakdown
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Ad Revenue</span>
-                  <span className="text-white font-mono">${mockAnalytics.revenue.adRevenue}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Premium Revenue</span>
-                  <span className="text-white font-mono">${mockAnalytics.revenue.premiumRevenue}</span>
-                </div>
-                <div className="border-t border-white/10 pt-3 flex justify-between items-center">
-                  <span className="text-white font-medium">Total Revenue</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono font-bold">${mockAnalytics.revenue.totalRevenue}</span>
-                    <TrendingUp className="w-4 h-4 text-green-400" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Real-time Activity */}
+        {/* Real-time Activity Details */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <Activity className="w-5 h-5 mr-2" />
-              Real-time Activity
+              Real-time Activity Feed
             </CardTitle>
+            <p className="text-gray-400 text-sm">Live user activity on the platform</p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-400 mb-2">Active Users</p>
-                <p className="text-3xl font-bold text-green-400">{mockAnalytics.realTime.activeUsers}</p>
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                  <Globe className="w-5 h-5 mr-2 text-blue-400" />
+                  Active Now
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span className="text-gray-300">Active Users</span>
+                    <span className="text-2xl font-bold text-green-400">{realTimeData.activeUsers}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-black/20 rounded-lg">
+                    <span className="text-gray-300">Page Views</span>
+                    <span className="text-2xl font-bold text-blue-400">{realTimeData.currentPageViews}</span>
+                  </div>
+                </div>
               </div>
+              
               <div>
-                <p className="text-sm text-gray-400 mb-2">Current Page Views</p>
-                <p className="text-3xl font-bold text-blue-400">{mockAnalytics.realTime.currentPageViews}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400 mb-3">Top Pages (Live)</p>
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                  <Eye className="w-5 h-5 mr-2 text-blue-400" />
+                  Top Pages (Live)
+                </h3>
                 <div className="space-y-2">
-                  {mockAnalytics.realTime.topPages.map((page) => (
-                    <div key={page.page} className="flex justify-between">
-                      <span className="text-white text-sm">{page.page}</span>
-                      <span className="text-gray-400 text-sm">{page.views}</span>
-                    </div>
-                  ))}
+                  {realTimeData.topPages.length > 0 ? (
+                    realTimeData.topPages.map((page, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-black/20 rounded-lg">
+                        <span className="text-gray-300 text-sm">{page.page}</span>
+                        <Badge className="bg-blue-500/20 text-blue-400">
+                          {page.views} views
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">No recent page views</p>
+                  )}
                 </div>
               </div>
             </div>
+            
+            <div className="mt-6 p-4 bg-black/20 rounded-lg">
+              <p className="text-xs text-gray-500">
+                Last updated: {new Date(realTimeData.timestamp).toLocaleTimeString()}
+                <span className="ml-2">• Auto-refresh every 30 seconds</span>
+              </p>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Usage Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Usage Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Total Page Views</span>
+                  <span className="text-white font-mono">{formatNumber(pageViews)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">STL File Uploads</span>
+                  <span className="text-white font-mono">{formatNumber(stlUploads)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Peak Users (Today)</span>
+                  <span className="text-white font-mono">{Math.max(userMetrics.current, userMetrics.lastHour)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Clock className="w-5 h-5 mr-2" />
+                Growth Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Daily Growth</span>
+                  <span className="text-green-400 font-mono">
+                    +{Math.round(((userMetrics.lastDay - userMetrics.lastWeek + userMetrics.lastDay) / userMetrics.lastWeek) * 100)}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Weekly Growth</span>
+                  <span className="text-green-400 font-mono">
+                    +{Math.round(((userMetrics.lastWeek - userMetrics.lastMonth + userMetrics.lastWeek) / userMetrics.lastMonth) * 100)}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Monthly Growth</span>
+                  <span className="text-green-400 font-mono">
+                    +{Math.round(((userMetrics.lastMonth - userMetrics.lastYear + userMetrics.lastMonth) / userMetrics.lastYear) * 100)}%
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

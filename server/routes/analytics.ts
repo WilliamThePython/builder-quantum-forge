@@ -199,19 +199,56 @@ export const getHistoricalData: RequestHandler = (req, res) => {
   }
 };
 
+// Get user metrics by time periods
+export const getUserMetrics: RequestHandler = (req, res) => {
+  try {
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    const oneDay = 24 * oneHour;
+    const oneWeek = 7 * oneDay;
+    const oneMonth = 30 * oneDay;
+    const oneYear = 365 * oneDay;
+
+    // Get unique users for different time periods
+    const getUniqueUsersInPeriod = (startTime: number) => {
+      const eventsInPeriod = analytics_events.filter(event => event.timestamp >= startTime);
+      return new Set(eventsInPeriod.map(event => event.user_id || event.session_id)).size;
+    };
+
+    // Currently active users (last 30 minutes)
+    const thirtyMinutesAgo = now - (30 * 60 * 1000);
+    const currentUsers = Array.from(active_sessions.values())
+      .filter(session => session.last_activity > thirtyMinutesAgo).length;
+
+    const userMetrics = {
+      current: currentUsers,
+      lastHour: getUniqueUsersInPeriod(now - oneHour),
+      lastDay: getUniqueUsersInPeriod(now - oneDay),
+      lastWeek: getUniqueUsersInPeriod(now - oneWeek),
+      lastMonth: getUniqueUsersInPeriod(now - oneMonth),
+      lastYear: getUniqueUsersInPeriod(now - oneYear)
+    };
+
+    res.json(userMetrics);
+  } catch (error) {
+    console.error('User metrics error:', error);
+    res.status(500).json({ error: 'Failed to get user metrics' });
+  }
+};
+
 // Get STL-specific analytics
 export const getSTLAnalytics: RequestHandler = (req, res) => {
   try {
-    const stlEvents = analytics_events.filter(event => 
-      event.event_name === 'stl_upload' || 
+    const stlEvents = analytics_events.filter(event =>
+      event.event_name === 'stl_upload' ||
       event.event_name === 'stl_visualization' ||
       event.event_name === 'tool_usage'
     );
-    
+
     const uploads = stlEvents.filter(event => event.event_name === 'stl_upload');
     const visualizations = stlEvents.filter(event => event.event_name === 'stl_visualization');
     const toolUsage = stlEvents.filter(event => event.event_name === 'tool_usage');
-    
+
     // Calculate file format distribution
     const formatCounts: Record<string, number> = {};
     uploads.forEach(event => {
@@ -219,7 +256,7 @@ export const getSTLAnalytics: RequestHandler = (req, res) => {
       const extension = fileName.split('.').pop()?.toUpperCase() || 'UNKNOWN';
       formatCounts[extension] = (formatCounts[extension] || 0) + 1;
     });
-    
+
     const totalFiles = uploads.length;
     const formatDistribution = Object.entries(formatCounts)
       .map(([format, count]) => ({
@@ -228,12 +265,12 @@ export const getSTLAnalytics: RequestHandler = (req, res) => {
         percentage: Math.round((count / totalFiles) * 100 * 10) / 10
       }))
       .sort((a, b) => b.count - a.count);
-    
+
     // Calculate average file size
     const fileSizes = uploads
       .map(event => event.custom_parameters?.file_size_mb || 0)
       .filter(size => size > 0);
-    const avgFileSize = fileSizes.length > 0 
+    const avgFileSize = fileSizes.length > 0
       ? Math.round((fileSizes.reduce((sum, size) => sum + size, 0) / fileSizes.length) * 100) / 100
       : 0;
 
