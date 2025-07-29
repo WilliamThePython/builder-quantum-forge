@@ -160,7 +160,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, []);
 
   const updateViewerSettings = useCallback((newSettings: Partial<ViewerSettings>) => {
-    setViewerSettings(prev => ({ ...prev, ...newSettings }));
+    setViewerSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+
+      // Track visualization changes
+      analytics.trackSTLVisualization('settings_change', {
+        previous_settings: prev,
+        new_settings: newSettings,
+        final_settings: updated
+      });
+
+      return updated;
+    });
   }, []);
 
   const clearError = useCallback(() => {
