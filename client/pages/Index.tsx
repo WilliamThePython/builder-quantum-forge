@@ -102,6 +102,13 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
+      />
     </div>
   );
 }
