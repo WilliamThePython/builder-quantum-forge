@@ -9,11 +9,18 @@ interface ViewerSettings {
   backgroundColor: string;
 }
 
+interface ErrorMessage {
+  id: string;
+  message: string;
+  timestamp: number;
+}
+
 interface STLContextType {
   geometry: THREE.BufferGeometry | null;
   fileName: string | null;
   isLoading: boolean;
   error: string | null;
+  errors: ErrorMessage[];
   viewerSettings: ViewerSettings;
 
   loadSTLFromFile: (file: File) => Promise<void>;
@@ -21,6 +28,8 @@ interface STLContextType {
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
   exportSTL: (customFilename?: string) => void;
   clearError: () => void;
+  clearErrorById: (id: string) => void;
+  addError: (message: string) => void;
 }
 
 const defaultViewerSettings: ViewerSettings = {
