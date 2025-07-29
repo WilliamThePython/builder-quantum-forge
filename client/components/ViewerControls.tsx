@@ -26,10 +26,10 @@ import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 
 export default function ViewerControls() {
-  const { 
-    viewerSettings, 
-    updateViewerSettings, 
-    loadSTLFromFile, 
+  const {
+    viewerSettings,
+    updateViewerSettings,
+    loadSTLFromFile,
     loadDefaultSTL,
     fileName,
     isLoading,
@@ -37,7 +37,9 @@ export default function ViewerControls() {
     clearError,
     geometry
   } = useSTL();
-  
+
+  const { isAuthenticated, user } = useAuth();
+  const { canUseAuthFeatures, canUsePremiumFeatures } = useFeatureAccess();
   const [showControls, setShowControls] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
