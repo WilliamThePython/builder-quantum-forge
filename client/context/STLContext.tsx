@@ -66,6 +66,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ErrorMessage[]>([]);
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
   const loadSTLFromFile = useCallback(async (file: File) => {
