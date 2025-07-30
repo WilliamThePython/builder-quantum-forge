@@ -19,9 +19,7 @@ export default function Index() {
     getGeometryStats,
     addError,
     viewerSettings,
-    updateViewerSettings,
-    exportSTL,
-    geometry
+    updateViewerSettings
   } = useSTL();
 
   const handleToolModeChange = (mode: STLToolMode) => {
