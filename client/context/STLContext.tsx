@@ -214,6 +214,137 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         {
           geometry: new THREE.OctahedronGeometry(18),
           name: 'octahedron-model.stl'
+        },
+        // Irregular rectangular prisms
+        {
+          geometry: new THREE.BoxGeometry(
+            5 + Math.random() * 30,   // width: 5-35
+            8 + Math.random() * 20,   // height: 8-28
+            12 + Math.random() * 25   // depth: 12-37
+          ),
+          name: 'irregular-prism-1.stl'
+        },
+        {
+          geometry: new THREE.BoxGeometry(
+            15 + Math.random() * 15,  // width: 15-30
+            3 + Math.random() * 40,   // height: 3-43
+            6 + Math.random() * 18    // depth: 6-24
+          ),
+          name: 'irregular-prism-2.stl'
+        },
+        {
+          geometry: new THREE.BoxGeometry(
+            25 + Math.random() * 10,  // width: 25-35
+            20 + Math.random() * 5,   // height: 20-25
+            2 + Math.random() * 35    // depth: 2-37
+          ),
+          name: 'irregular-prism-3.stl'
+        },
+        // Dodecahedron
+        {
+          geometry: new THREE.DodecahedronGeometry(15),
+          name: 'dodecahedron-model.stl'
+        },
+        // Icosahedron
+        {
+          geometry: new THREE.IcosahedronGeometry(16),
+          name: 'icosahedron-model.stl'
+        },
+        // Tetrahedron
+        {
+          geometry: new THREE.TetrahedronGeometry(20),
+          name: 'tetrahedron-model.stl'
+        },
+        // Irregular cylinder (elliptical)
+        {
+          geometry: (() => {
+            const geom = new THREE.CylinderGeometry(
+              8 + Math.random() * 12,   // top radius: 8-20
+              12 + Math.random() * 8,   // bottom radius: 12-20
+              15 + Math.random() * 20,  // height: 15-35
+              16 + Math.floor(Math.random() * 16) // segments: 16-32
+            );
+            return geom;
+          })(),
+          name: 'irregular-cylinder.stl'
+        },
+        // Capsule (rounded cylinder)
+        {
+          geometry: new THREE.CapsuleGeometry(8, 20, 4, 8),
+          name: 'capsule-model.stl'
+        },
+        // Ring/Torus with random parameters
+        {
+          geometry: new THREE.TorusGeometry(
+            10 + Math.random() * 15,  // tube radius: 10-25
+            3 + Math.random() * 8,    // tube thickness: 3-11
+            8 + Math.floor(Math.random() * 16), // radial segments: 8-24
+            50 + Math.floor(Math.random() * 50)  // tubular segments: 50-100
+          ),
+          name: 'random-torus.stl'
+        },
+        // Twisted cone
+        {
+          geometry: (() => {
+            const geom = new THREE.ConeGeometry(
+              8 + Math.random() * 15,   // radius: 8-23
+              20 + Math.random() * 20,  // height: 20-40
+              6 + Math.floor(Math.random() * 26) // segments: 6-32
+            );
+            return geom;
+          })(),
+          name: 'random-cone.stl'
+        },
+        // Spheroid (flattened/stretched sphere)
+        {
+          geometry: (() => {
+            const geom = new THREE.SphereGeometry(15, 32, 16);
+            geom.scale(
+              0.5 + Math.random() * 1.5,  // x scale: 0.5-2.0
+              0.3 + Math.random() * 2.0,  // y scale: 0.3-2.3
+              0.7 + Math.random() * 1.0   // z scale: 0.7-1.7
+            );
+            return geom;
+          })(),
+          name: 'spheroid-model.stl'
+        },
+        // Twisted box
+        {
+          geometry: (() => {
+            const geom = new THREE.BoxGeometry(
+              12 + Math.random() * 16,
+              18 + Math.random() * 12,
+              8 + Math.random() * 20
+            );
+            // Apply slight rotation to make it "twisted"
+            geom.rotateX(Math.random() * 0.3);
+            geom.rotateY(Math.random() * 0.3);
+            geom.rotateZ(Math.random() * 0.3);
+            return geom;
+          })(),
+          name: 'twisted-prism.stl'
+        },
+        // Compound shape (box + sphere boolean-ish)
+        {
+          geometry: (() => {
+            const box = new THREE.BoxGeometry(25, 15, 20);
+            const sphere = new THREE.SphereGeometry(12, 32, 16);
+            sphere.translate(10, 0, 0);
+
+            // Merge geometries (simple concatenation)
+            const mergedGeometry = new THREE.BufferGeometry();
+            const boxPositions = box.attributes.position.array;
+            const spherePositions = sphere.attributes.position.array;
+
+            const combinedPositions = new Float32Array(boxPositions.length + spherePositions.length);
+            combinedPositions.set(boxPositions);
+            combinedPositions.set(spherePositions, boxPositions.length);
+
+            mergedGeometry.setAttribute('position', new THREE.BufferAttribute(combinedPositions, 3));
+            mergedGeometry.computeVertexNormals();
+            return mergedGeometry;
+          })(),
+          name: 'compound-shape.stl'
         }
       ];
 
