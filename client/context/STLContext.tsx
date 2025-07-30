@@ -28,6 +28,12 @@ interface STLContextType {
   errors: ErrorMessage[];
   viewerSettings: ViewerSettings;
 
+  // Model data (dual format support)
+  processedModel: any | null; // ProcessedModel from ModelFileHandler
+  originalFormat: 'stl' | 'obj' | null;
+  objString: string | null; // Always maintained for processing
+  cleanupResults: any | null;
+
   // STL Tools
   toolMode: STLToolMode;
   isProcessingTool: boolean;
@@ -36,11 +42,11 @@ interface STLContextType {
   highlightedTriangle: number | null;
   triangleStats: any;
 
-  loadSTLFromFile: (file: File) => Promise<void>;
+  loadModelFromFile: (file: File) => Promise<void>; // Renamed to support both formats
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
-  exportSTL: (customFilename?: string) => void;
-  exportParts: (options?: any) => Promise<void>;
+  exportModel: (format: 'stl' | 'obj', customFilename?: string) => void; // Enhanced export
+  exportParts: (format: 'stl' | 'obj', options?: any) => Promise<void>; // Enhanced parts export
   clearError: () => void;
   clearErrorById: (id: string) => void;
   addError: (message: string) => void;
