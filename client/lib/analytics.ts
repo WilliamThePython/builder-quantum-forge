@@ -28,6 +28,12 @@ class Analytics {
   private userId: string | null = null;
   private sessionId: string;
   private startTime: number;
+  private analyticsFailureCount: number = 0;
+  private lastAnalyticsFailure: number = 0;
+  private maxFailures: number = 3;
+  private cooldownPeriod: number = 5 * 60 * 1000; // 5 minutes
+  private isInCooldown: boolean = false;
+  private isTrackingAnalyticsErrors: boolean = false;
 
   constructor() {
     this.sessionId = this.generateSessionId();
