@@ -492,7 +492,7 @@ export default function STLWorkflowPanel({
               {activeToolMode !== STLToolMode.None && (
                 <div className="p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
                   <div className="text-blue-300 text-xs font-medium">
-                    {activeToolMode === STLToolMode.Highlight && '✨ Hover over model to highlight triangles'}
+                    {activeToolMode === STLToolMode.Highlight && '✨ Hover over model to highlight polygon faces'}
                     {activeToolMode === STLToolMode.Reduce && '⚙️ Configure settings above and apply'}
                   </div>
                   {activeToolMode === STLToolMode.Highlight && (
