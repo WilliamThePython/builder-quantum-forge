@@ -29,7 +29,11 @@ export default function STLToolsPanel({
   onCleanupSTL,
   onReducePoints,
   isProcessing,
-  geometryStats
+  geometryStats,
+  randomColors,
+  wireframe,
+  onRandomColorsChange,
+  onWireframeChange
 }: STLToolsPanelProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
