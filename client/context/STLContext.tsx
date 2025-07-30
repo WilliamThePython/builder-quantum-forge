@@ -574,12 +574,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return STLManipulator.getDetailedGeometryStats(geometry);
   }, [geometry]);
 
-  const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
-    setHighlightedTriangleState(triangleIndex);
+  const setHighlightedTriangle = useCallback((faceIndex: number | null) => {
+    setHighlightedTriangleState(faceIndex);
 
-    if (triangleIndex !== null && geometry) {
-      const stats = STLManipulator.getTriangleStats(geometry, triangleIndex);
-      setTriangleStats(stats);
+    if (faceIndex !== null && geometry) {
+      const polygonFaces = (geometry as any).polygonFaces;
+
+      if (polygonFaces && Array.isArray(polygonFaces)) {
+        // Use polygon face stats for polygon-based geometries
+        const stats = STLManipulator.getPolygonFaceStats(geometry, faceIndex);
+        setTriangleStats(stats);
+      } else {
+        // Fallback to triangle stats for non-polygon geometries
+        const stats = STLManipulator.getTriangleStats(geometry, faceIndex);
+        setTriangleStats(stats);
+      }
     } else {
       setTriangleStats(null);
     }
