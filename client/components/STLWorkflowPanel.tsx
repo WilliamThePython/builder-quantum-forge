@@ -63,7 +63,8 @@ export default function STLWorkflowPanel({
     exportSTL,
     exportParts,
     viewerSettings,
-    updateViewerSettings
+    updateViewerSettings,
+    getDetailedGeometryStats
   } = useSTL();
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
