@@ -103,15 +103,11 @@ function STLMesh() {
         // Calculate which triangles belong to this polygon face
         for (let faceIndex = 0; faceIndex < highlightedTriangle; faceIndex++) {
           const face = polygonFaces[faceIndex];
-          triangleOffset += STLManipulator.getTriangleCountForPolygon ?
-            (STLManipulator as any).getTriangleCountForPolygon(face) :
-            this.getTriangleCountForPolygon(face);
+          triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
         }
 
         const currentFace = polygonFaces[highlightedTriangle];
-        const triangleCount = STLManipulator.getTriangleCountForPolygon ?
-          (STLManipulator as any).getTriangleCountForPolygon(currentFace) :
-          this.getTriangleCountForPolygon(currentFace);
+        const triangleCount = STLManipulator.getTriangleCountForPolygon(currentFace);
 
         // Highlight all triangles in this polygon face
         for (let t = 0; t < triangleCount; t++) {
