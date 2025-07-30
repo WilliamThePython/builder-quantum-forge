@@ -62,11 +62,8 @@ export default function Index() {
         <STLViewer />
       </div>
       
-      {/* Floating UI Controls */}
-      <ViewerControls />
-
-      {/* STL Tools Panel */}
-      <STLToolsPanel
+      {/* Unified STL Workflow Panel */}
+      <STLWorkflowPanel
         activeToolMode={toolMode}
         onToolModeChange={handleToolModeChange}
         onReducePoints={handleReducePoints}
@@ -79,18 +76,7 @@ export default function Index() {
       />
 
       {/* Top Right Navigation */}
-      <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50 flex gap-3">
-        {geometry && (
-          <Button
-            onClick={exportSTL}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold hover:shadow-lg transition-all duration-200"
-            size="sm"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export STL
-          </Button>
-        )}
-
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50">
         <Link to="/about">
           <Button
             className="bg-white/90 hover:bg-white text-black font-semibold hover:shadow-lg transition-all duration-200 border border-gray-300"
