@@ -10,15 +10,19 @@ export class STLManipulator {
 
   
   /**
-   * Reduce the number of vertices in the geometry
+   * Reduce the number of vertices in the geometry using OBJ format for better manipulation
    */
   static reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
     method: 'random' | 'best' = 'random'
   ): THREE.BufferGeometry {
-    console.log(`Starting ${method} point reduction...`);
+    console.log(`Starting ${method} point reduction using OBJ processing...`);
     const startTime = Date.now();
+
+    // Convert to OBJ for manipulation
+    const objContent = FormatConverter.createManipulationOBJ(geometry);
+    const manipulationGeometry = FormatConverter.objToGeometry(objContent);
 
     // Clone geometry to avoid modifying original
     const reducedGeometry = geometry.clone();
