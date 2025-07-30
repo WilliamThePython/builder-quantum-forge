@@ -413,7 +413,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     clearErrorById,
     addError,
     setToolMode,
-    cleanupSTL,
     reducePoints,
     highlightTriangle,
     getGeometryStats
