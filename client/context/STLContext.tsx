@@ -340,10 +340,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setGeometry(reducedGeometry);
 
       const processingTime = Date.now() - startTime;
-      const removedTriangles = originalStats.triangles - newStats.triangles;
-      const actualReduction = ((removedTriangles / originalStats.triangles) * 100).toFixed(1);
+      const removedVertices = originalStats.vertices - newStats.vertices;
+      const actualReduction = ((removedVertices / originalStats.vertices) * 100).toFixed(1);
 
-      const message = `Point reduction completed: Reduced from ${originalStats.triangles.toLocaleString()} to ${newStats.triangles.toLocaleString()} triangles (${actualReduction}% reduction)`;
+      const message = `Point reduction (${method}) completed: Reduced from ${originalStats.vertices.toLocaleString()} to ${newStats.vertices.toLocaleString()} vertices (${actualReduction}% reduction)`;
 
       // Track tool usage
       try {
