@@ -314,10 +314,9 @@ export default function STLWorkflowPanel({
         {/* 3. TOOLS SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="3. MANIPULATION TOOLS"
+            title="3. REDUCE MODEL"
             isExpanded={expandedSections.tools}
             onToggle={() => toggleSection('tools')}
-            badge={activeToolMode !== STLToolMode.None ? "Active" : undefined}
           />
           
           {expandedSections.tools && (
