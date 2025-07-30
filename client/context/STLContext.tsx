@@ -472,7 +472,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         ? fileName.replace(/\.[^/.]+$/, '_assembly_kit.zip')
         : 'assembly_kit.zip';
 
-      await TriangleExporter.exportTrianglesAsZip(geometry, exportFilename, options);
+      await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
 
       console.log('Assembly kit export completed successfully');
 
