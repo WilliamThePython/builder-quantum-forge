@@ -53,6 +53,14 @@ export default function Index() {
       addError(result.message);
     }
   };
+
+  const handleRandomColorsChange = (checked: boolean) => {
+    updateViewerSettings({ randomColors: checked });
+  };
+
+  const handleWireframeChange = (checked: boolean) => {
+    updateViewerSettings({ wireframe: checked });
+  };
   return (
     // <AdManager page="home">
       <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
