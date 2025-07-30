@@ -459,13 +459,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     error,
     errors,
     viewerSettings,
+    toolMode,
+    isProcessingTool,
+    highlightGeometry,
     loadSTLFromFile,
     loadDefaultSTL,
     updateViewerSettings,
     exportSTL,
     clearError,
     clearErrorById,
-    addError
+    addError,
+    setToolMode,
+    cleanupSTL,
+    reducePoints,
+    highlightTriangle,
+    getGeometryStats
   };
 
   return (
