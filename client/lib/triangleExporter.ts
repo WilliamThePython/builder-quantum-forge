@@ -103,9 +103,13 @@ export class TriangleExporter {
     const edge2 = new THREE.Vector3().subVectors(v3, v1);
     const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
 
-    // Create extruded triangle (prism)
-    const halfThickness = thickness / 2;
-    const offset = normal.clone().multiplyScalar(halfThickness);
+    // Ensure valid normal (not zero vector)
+    if (normal.length() < 0.001) {
+      normal.set(0, 0, 1); // Default upward normal
+    }
+
+    // Create extruded triangle (prism) - full thickness in normal direction
+    const offset = normal.clone().multiplyScalar(thickness);
 
     // Front face vertices
     const v1f = v1.clone().add(offset);
