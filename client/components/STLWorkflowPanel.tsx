@@ -322,23 +322,16 @@ export default function STLWorkflowPanel({
           
           {expandedSections.tools && (
             <div className="mt-4 space-y-3">
-              {/* Highlight Facet */}
-              <Button
-                onClick={() => onToolModeChange(activeToolMode === STLToolMode.Highlight ? STLToolMode.None : STLToolMode.Highlight)}
-                className={`w-full justify-start text-left p-4 h-auto ${
-                  activeToolMode === STLToolMode.Highlight 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
-                    : 'bg-blue-500 hover:bg-blue-600'
-                } text-white border-0 transition-all duration-200`}
-              >
-                <MousePointer className="w-4 h-4 mr-3 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm">Highlight Facet</div>
-                  <div className="text-xs text-white/80 mt-1">
-                    Hover over model to highlight polygon faces
-                  </div>
+              {/* Face Highlighting Status */}
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-blue-300">
+                  <MousePointer className="w-4 h-4" />
+                  <span className="text-sm font-medium">Face Highlighting Active</span>
                 </div>
-              </Button>
+                <div className="text-xs text-blue-200/80 mt-1">
+                  Hover over the model to highlight polygon faces and view statistics
+                </div>
+              </div>
 
               {/* Reduce Points */}
               <div>
