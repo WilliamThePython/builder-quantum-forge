@@ -106,6 +106,78 @@ export class STLManipulator {
   }
   
   /**
+   * Get detailed statistics for a specific triangle
+   */
+  static getTriangleStats(geometry: THREE.BufferGeometry, triangleIndex: number): {
+    area: number;
+    perimeter: number;
+    width: number;
+    height: number;
+    centroid: THREE.Vector3;
+    vertices: THREE.Vector3[];
+  } | null {
+    if (!geometry || triangleIndex < 0) return null;
+
+    const positions = geometry.attributes.position;
+    const i3 = triangleIndex * 3;
+
+    // Check bounds
+    if (i3 + 2 >= positions.count / 3) return null;
+
+    // Get triangle vertices
+    const v1 = new THREE.Vector3(
+      positions.getX(i3 * 3),
+      positions.getY(i3 * 3),
+      positions.getZ(i3 * 3)
+    );
+    const v2 = new THREE.Vector3(
+      positions.getX(i3 * 3 + 3),
+      positions.getY(i3 * 3 + 3),
+      positions.getZ(i3 * 3 + 3)
+    );
+    const v3 = new THREE.Vector3(
+      positions.getX(i3 * 3 + 6),
+      positions.getY(i3 * 3 + 6),
+      positions.getZ(i3 * 3 + 6)
+    );
+
+    // Calculate edges
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+    const edge3 = new THREE.Vector3().subVectors(v3, v2);
+
+    // Calculate area using cross product
+    const area = edge1.clone().cross(edge2).length() / 2;
+
+    // Calculate perimeter
+    const perimeter = edge1.length() + edge2.length() + edge3.length();
+
+    // Calculate centroid
+    const centroid = new THREE.Vector3()
+      .addVectors(v1, v2)
+      .add(v3)
+      .divideScalar(3);
+
+    // Calculate bounding box dimensions
+    const minX = Math.min(v1.x, v2.x, v3.x);
+    const maxX = Math.max(v1.x, v2.x, v3.x);
+    const minY = Math.min(v1.y, v2.y, v3.y);
+    const maxY = Math.max(v1.y, v2.y, v3.y);
+
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    return {
+      area,
+      perimeter,
+      width,
+      height,
+      centroid,
+      vertices: [v1, v2, v3]
+    };
+  }
+
+  /**
    * Get geometry statistics for display
    */
   static getGeometryStats(geometry: THREE.BufferGeometry): {
