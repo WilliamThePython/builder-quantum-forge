@@ -469,12 +469,7 @@ export default function STLWorkflowPanel({
                       >
                         Apply Simplification
                       </Button>
-                      <Button
-                        onClick={() => setShowToolSettings(false)}
-                        className="bg-white/20 hover:bg-white/30 text-white text-xs py-2 px-3 h-8"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
+
                     </div>
                   </div>
                 )}
