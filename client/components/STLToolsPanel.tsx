@@ -58,11 +58,9 @@ export default function STLToolsPanel({
   ];
 
   const handleToolClick = (tool: any) => {
-    if (tool.id === STLToolMode.Cleanup) {
-      onCleanupSTL();
-    } else if (tool.id === STLToolMode.Reduce) {
+    if (tool.id === STLToolMode.Reduce) {
       if (showSettings) {
-        onReducePoints(reductionAmount);
+        onReducePoints(reductionAmount, reductionMethod);
         setShowSettings(false);
       } else {
         setShowSettings(true);
