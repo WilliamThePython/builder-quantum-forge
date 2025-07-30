@@ -197,7 +197,8 @@ export class STLExporter {
   }
 
   /**
-   * Ensure counter-clockwise vertex winding for outward-facing triangles
+   * Preserve original vertex order to maintain geometry integrity
+   * Three.js geometries already have correct winding for outward-facing normals
    */
   private static ensureCounterClockwiseWinding(
     v1: THREE.Vector3,
@@ -205,24 +206,10 @@ export class STLExporter {
     v3: THREE.Vector3,
     expectedNormal: THREE.Vector3
   ): { vertex1: THREE.Vector3; vertex2: THREE.Vector3; vertex3: THREE.Vector3 } {
-    // Calculate current normal with current winding
-    const edge1 = new THREE.Vector3().subVectors(v2, v1);
-    const edge2 = new THREE.Vector3().subVectors(v3, v1);
-    const currentNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+    // For Three.js geometries, preserve the original vertex order
+    // The geometry already has correct winding from Three.js primitives
+    // Flipping winding can cause deformation in complex models
 
-    // Check if normals are pointing in the same direction
-    const dot = currentNormal.dot(expectedNormal);
-
-    if (dot < 0) {
-      // Normals are opposite, swap v2 and v3 to flip winding
-      return {
-        vertex1: v1.clone(),
-        vertex2: v3.clone(), // Swapped
-        vertex3: v2.clone()  // Swapped
-      };
-    }
-
-    // Winding is correct
     return {
       vertex1: v1.clone(),
       vertex2: v2.clone(),
