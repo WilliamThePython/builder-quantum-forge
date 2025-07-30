@@ -98,6 +98,41 @@ export default function STLToolsPanel({
           </div>
         )}
 
+        {/* Visualization Controls */}
+        <div className="space-y-3 mb-4">
+          <div className="text-white text-xs font-semibold text-center opacity-80">
+            VISUALIZATION
+          </div>
+
+          {/* Random Colors */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-white/70" />
+              <Label htmlFor="colors" className="text-sm text-white/80">Random Colors</Label>
+            </div>
+            <Switch
+              id="colors"
+              checked={randomColors}
+              onCheckedChange={onRandomColorsChange}
+            />
+          </div>
+
+          {/* Wireframe */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-white/70" />
+              <Label htmlFor="wireframe" className="text-sm text-white/80">Wireframe Mode</Label>
+            </div>
+            <Switch
+              id="wireframe"
+              checked={wireframe}
+              onCheckedChange={onWireframeChange}
+            />
+          </div>
+        </div>
+
+        <Separator className="bg-white/20 mb-4" />
+
         {/* Tool Buttons */}
         <div className="space-y-2">
           {tools.map((tool) => {
