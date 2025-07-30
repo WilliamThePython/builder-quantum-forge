@@ -322,16 +322,7 @@ export default function STLWorkflowPanel({
           
           {expandedSections.tools && (
             <div className="mt-4 space-y-3">
-              {/* Face Highlighting Status */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-blue-300">
-                  <MousePointer className="w-4 h-4" />
-                  <span className="text-sm font-medium">Face Highlighting Active</span>
-                </div>
-                <div className="text-xs text-blue-200/80 mt-1">
-                  Hover over the model to highlight polygon faces and view statistics
-                </div>
-              </div>
+
 
               {/* Reduce Points */}
               <div>
