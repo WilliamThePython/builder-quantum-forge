@@ -202,23 +202,35 @@ export class STLManipulator {
     const polygonType = (geometry as any).polygonType;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
-      // Analyze polygon face data
+      // Analyze polygon face data to get actual geometric properties
       const faceTypeCounts: Record<string, number> = {};
-      let totalEdges = 0;
+      const uniqueVertices = new Set<string>();
+      const edges = new Set<string>();
 
       polygonFaces.forEach((face: any) => {
         const faceType = face.type;
         faceTypeCounts[faceType] = (faceTypeCounts[faceType] || 0) + 1;
 
-        // Count edges for this face
-        if (face.originalVertices) {
-          totalEdges += face.originalVertices.length;
-        } else if (faceType === 'triangle') {
-          totalEdges += 3;
-        } else if (faceType === 'quad') {
-          totalEdges += 4;
-        } else if (faceType === 'polygon') {
-          totalEdges += 6; // Estimate for general polygon
+        if (face.originalVertices && Array.isArray(face.originalVertices)) {
+          const faceVertices = face.originalVertices;
+
+          // Add unique vertices (using string representation for uniqueness)
+          faceVertices.forEach((vertex: any) => {
+            const vertexKey = `${vertex.x.toFixed(6)},${vertex.y.toFixed(6)},${vertex.z.toFixed(6)}`;
+            uniqueVertices.add(vertexKey);
+          });
+
+          // Add edges (each edge connects two consecutive vertices in the face)
+          for (let i = 0; i < faceVertices.length; i++) {
+            const v1 = faceVertices[i];
+            const v2 = faceVertices[(i + 1) % faceVertices.length];
+
+            // Create edge key (sorted to avoid duplicates like AB and BA)
+            const v1Key = `${v1.x.toFixed(6)},${v1.y.toFixed(6)},${v1.z.toFixed(6)}`;
+            const v2Key = `${v2.x.toFixed(6)},${v2.y.toFixed(6)},${v2.z.toFixed(6)}`;
+            const edgeKey = v1Key < v2Key ? `${v1Key}|${v2Key}` : `${v2Key}|${v1Key}`;
+            edges.add(edgeKey);
+          }
         }
       });
 
@@ -236,15 +248,9 @@ export class STLManipulator {
           return (order[a.type as keyof typeof order] || 4) - (order[b.type as keyof typeof order] || 4);
         });
 
-      // For closed polyhedra, estimate unique edges
-      // In a closed mesh, each edge is typically shared by exactly 2 faces
-      // Use Euler's formula: V - E + F = 2 for closed polyhedra
-      const eulerEdges = vertices + polygonFaces.length - 2;
-      const estimatedEdges = Math.max(Math.floor(totalEdges / 2), eulerEdges);
-
       return {
-        vertices,
-        edges: estimatedEdges,
+        vertices: uniqueVertices.size,
+        edges: edges.size,
         polygonBreakdown,
         hasPolygonData: true,
         geometryType: polygonType || 'polygon-based'
