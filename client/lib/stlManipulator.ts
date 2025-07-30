@@ -183,7 +183,7 @@ export class STLManipulator {
    * Get triangle index from intersection point
    */
   static getTriangleIndexFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
-    if (!intersection.face || !intersection.face.a !== undefined) {
+    if (!intersection.face || intersection.face.a === undefined) {
       return null;
     }
     
