@@ -39,7 +39,7 @@ interface STLContextType {
 
   // STL Tool Methods
   setToolMode: (mode: STLToolMode) => void;
-  reducePoints: (reductionAmount: number, method: 'random' | 'best') => Promise<ToolOperationResult>;
+  reducePoints: (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random') => Promise<ToolOperationResult>;
   getGeometryStats: () => any;
 }
 
