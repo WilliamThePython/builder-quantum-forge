@@ -5,13 +5,15 @@ import {
   Info, 
   Download,
   Settings,
-  Palette, 
-  Eye, 
-  MousePointer, 
+  Palette,
+  Eye,
+  MousePointer,
   Minimize2,
   X,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Package,
+  Wrench
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
