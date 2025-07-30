@@ -1,0 +1,221 @@
+import React, { useState } from 'react';
+import { Scissors, Minimize2, MousePointer, Settings, X } from 'lucide-react';
+import { Button } from './ui/button';
+import { STLToolMode } from '../lib/stlManipulator';
+
+interface STLToolsPanelProps {
+  activeToolMode: STLToolMode;
+  onToolModeChange: (mode: STLToolMode) => void;
+  onCleanupSTL: () => void;
+  onReducePoints: (reduction: number) => void;
+  isProcessing: boolean;
+  geometryStats: {
+    vertices: number;
+    triangles: number;
+  } | null;
+}
+
+export default function STLToolsPanel({
+  activeToolMode,
+  onToolModeChange,
+  onCleanupSTL,
+  onReducePoints,
+  isProcessing,
+  geometryStats
+}: STLToolsPanelProps) {
+  const [showSettings, setShowSettings] = useState(false);
+  const [reductionAmount, setReductionAmount] = useState(0.5);
+
+  const tools = [
+    {
+      id: STLToolMode.Highlight,
+      name: 'Highlight Facet',
+      icon: MousePointer,
+      description: 'Hover over model to highlight triangles',
+      color: 'bg-blue-500 hover:bg-blue-600',
+      activeColor: 'bg-blue-600'
+    },
+    {
+      id: STLToolMode.Cleanup,
+      name: 'Clean Up STL',
+      icon: Scissors,
+      description: 'Remove duplicate points and clean geometry',
+      color: 'bg-green-500 hover:bg-green-600',
+      activeColor: 'bg-green-600',
+      action: onCleanupSTL
+    },
+    {
+      id: STLToolMode.Reduce,
+      name: 'Reduce Points',
+      icon: Minimize2,
+      description: 'Simplify model by reducing triangle count',
+      color: 'bg-orange-500 hover:bg-orange-600',
+      activeColor: 'bg-orange-600',
+      hasSettings: true
+    }
+  ];
+
+  const handleToolClick = (tool: any) => {
+    if (tool.id === STLToolMode.Cleanup) {
+      onCleanupSTL();
+    } else if (tool.id === STLToolMode.Reduce) {
+      if (showSettings) {
+        onReducePoints(reductionAmount);
+        setShowSettings(false);
+      } else {
+        setShowSettings(true);
+      }
+    } else {
+      onToolModeChange(tool.id);
+    }
+  };
+
+  return (
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40">
+      <div className="bg-black/80 backdrop-blur-md rounded-xl border border-white/20 p-4 min-w-[200px] max-w-[280px]">
+        {/* Header */}
+        <div className="text-white text-sm font-semibold mb-4 text-center">
+          STL Tools
+        </div>
+
+        {/* Geometry Stats */}
+        {geometryStats && (
+          <div className="text-xs text-white/70 mb-4 p-2 bg-white/5 rounded-lg">
+            <div>Vertices: {geometryStats.vertices.toLocaleString()}</div>
+            <div>Triangles: {geometryStats.triangles.toLocaleString()}</div>
+          </div>
+        )}
+
+        {/* Tool Buttons */}
+        <div className="space-y-2">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            const isActive = activeToolMode === tool.id;
+            
+            return (
+              <div key={tool.id}>
+                <Button
+                  onClick={() => handleToolClick(tool)}
+                  disabled={isProcessing}
+                  className={`
+                    w-full justify-start text-left p-3 h-auto relative group
+                    ${isActive ? tool.activeColor : tool.color}
+                    ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+                    text-white border-0 transition-all duration-200
+                  `}
+                >
+                  <Icon className="w-4 h-4 mr-3 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm">{tool.name}</div>
+                    <div className="text-xs text-white/80 mt-1">
+                      {tool.description}
+                    </div>
+                  </div>
+                  {tool.hasSettings && (
+                    <Settings className="w-3 h-3 ml-2 opacity-70" />
+                  )}
+                </Button>
+
+                {/* Reduction Settings */}
+                {tool.id === STLToolMode.Reduce && showSettings && (
+                  <div className="mt-2 p-3 bg-white/10 rounded-lg border border-white/20">
+                    <div className="text-white text-xs font-medium mb-2">
+                      Reduction Amount
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="0.9"
+                        step="0.1"
+                        value={reductionAmount}
+                        onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-white/70">
+                        <span>10%</span>
+                        <span className="font-medium text-white">
+                          {Math.round(reductionAmount * 100)}%
+                        </span>
+                        <span>90%</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        onClick={() => {
+                          onReducePoints(reductionAmount);
+                          setShowSettings(false);
+                        }}
+                        className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1 px-2 h-7"
+                        disabled={isProcessing}
+                      >
+                        Apply
+                      </Button>
+                      <Button
+                        onClick={() => setShowSettings(false)}
+                        className="bg-white/20 hover:bg-white/30 text-white text-xs py-1 px-2 h-7"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Active Tool Indicator */}
+        {activeToolMode !== STLToolMode.None && (
+          <div className="mt-4 p-2 bg-blue-500/20 rounded-lg border border-blue-500/30">
+            <div className="text-blue-300 text-xs font-medium">
+              {activeToolMode === STLToolMode.Highlight && 'Hover over model to highlight triangles'}
+              {activeToolMode === STLToolMode.Cleanup && 'Click "Clean Up STL" to remove duplicates'}
+              {activeToolMode === STLToolMode.Reduce && 'Adjust settings and click "Apply"'}
+            </div>
+            {activeToolMode === STLToolMode.Highlight && (
+              <Button
+                onClick={() => onToolModeChange(STLToolMode.None)}
+                className="w-full mt-2 bg-white/10 hover:bg-white/20 text-white text-xs py-1 h-6"
+              >
+                Disable Highlighting
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Processing Indicator */}
+        {isProcessing && (
+          <div className="mt-4 p-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+            <div className="text-yellow-300 text-xs font-medium flex items-center">
+              <div className="w-3 h-3 border-2 border-yellow-300 border-t-transparent rounded-full animate-spin mr-2"></div>
+              Processing...
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #f97316;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .slider::-moz-range-thumb {
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #f97316;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+      `}</style>
+    </div>
+  );
+}
