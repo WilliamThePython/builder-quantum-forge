@@ -112,8 +112,8 @@ function STLMesh() {
 
       if (intersects.length > 0) {
         const intersection = intersects[0];
-        const triangleIndex = STLManipulator.getTriangleIndexFromIntersection(geometry!, intersection);
-        setHighlightedTriangle(triangleIndex);
+        const faceIndex = STLManipulator.getPolygonFaceFromIntersection(geometry!, intersection);
+        setHighlightedTriangle(faceIndex);
       } else {
         setHighlightedTriangle(null);
       }
