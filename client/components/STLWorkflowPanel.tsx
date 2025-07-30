@@ -536,7 +536,7 @@ export default function STLWorkflowPanel({
               <div>
                 <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
                   <Package className="w-3 h-3" />
-                  Assembly Kit Export
+                  Polygon Parts Export
                 </div>
 
                 <Button
