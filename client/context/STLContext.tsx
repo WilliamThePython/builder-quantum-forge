@@ -347,14 +347,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       try {
         const stats = TriangleExporter.getExportStats(geometry, options.partThickness || 2);
         analytics.trackEvent({
-          event_name: 'triangle_export',
+          event_name: 'assembly_kit_export',
           event_category: '3d_interaction',
           event_label: exportFilename,
           custom_parameters: {
             original_filename: fileName,
             export_filename: exportFilename,
-            triangle_count: stats.triangleCount,
+            part_count: stats.triangleCount,
+            part_thickness: options.partThickness || 2,
             estimated_print_time: stats.estimatedPrintTime,
+            estimated_material: stats.estimatedMaterial,
             export_options: options
           }
         });
