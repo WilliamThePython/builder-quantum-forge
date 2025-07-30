@@ -37,15 +37,18 @@ function STLMesh() {
 
 
 
+  // Store original colors for highlighting
+  const originalColors = useRef<Float32Array | null>(null);
+
   // Add random colors to geometry if enabled
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const color = new THREE.Color();
-      
+
       for (let i = 0; i < colors.length; i += 9) { // 9 values per triangle (3 vertices * 3 color components)
         color.setHSL(Math.random(), 0.7, 0.6);
-        
+
         // Apply same color to all 3 vertices of the triangle
         for (let j = 0; j < 9; j += 3) {
           colors[i + j] = color.r;
@@ -53,14 +56,56 @@ function STLMesh() {
           colors[i + j + 2] = color.b;
         }
       }
-      
+
+      // Store original colors for highlighting
+      originalColors.current = new Float32Array(colors);
+
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute('color');
+      originalColors.current = null;
     }
   }, [geometry, viewerSettings.randomColors, viewerSettings.wireframe]);
+
+  // Handle highlighting by brightening colors
+  useEffect(() => {
+    if (!geometry || !viewerSettings.randomColors || !originalColors.current) return;
+
+    const colors = geometry.attributes.color?.array as Float32Array;
+    if (!colors) return;
+
+    // Reset all colors to original
+    colors.set(originalColors.current);
+
+    // Brighten highlighted triangle
+    if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
+      const triangleStart = highlightedTriangle * 9; // 3 vertices * 3 color components
+
+      for (let i = 0; i < 9; i += 3) {
+        const idx = triangleStart + i;
+        if (idx < colors.length) {
+          // Brighten the color by increasing lightness
+          const color = new THREE.Color(colors[idx], colors[idx + 1], colors[idx + 2]);
+          const hsl = { h: 0, s: 0, l: 0 };
+          color.getHSL(hsl);
+
+          // Make it much brighter
+          hsl.l = Math.min(1.0, hsl.l + 0.4);
+          hsl.s = Math.min(1.0, hsl.s + 0.3);
+
+          color.setHSL(hsl.h, hsl.s, hsl.l);
+
+          colors[idx] = color.r;
+          colors[idx + 1] = color.g;
+          colors[idx + 2] = color.b;
+        }
+      }
+    }
+
+    geometry.attributes.color.needsUpdate = true;
+  }, [geometry, highlightedTriangle, toolMode, viewerSettings.randomColors]);
 
   // Handle mouse interaction for highlighting
   useEffect(() => {
