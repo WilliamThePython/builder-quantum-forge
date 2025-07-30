@@ -171,11 +171,11 @@ export default function STLWorkflowPanel({
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 relative z-0 h-12"
                   disabled={isLoading}
-                  title="Upload STL file from your computer"
+                  title="Upload STL or OBJ file from your computer"
                   type="button"
                 >
                   <Upload className="w-5 h-5 mr-3" />
-                  {isLoading ? 'Loading...' : 'Upload STL File'}
+                  {isLoading ? 'Loading...' : 'Upload STL/OBJ File'}
                 </Button>
               </div>
 
