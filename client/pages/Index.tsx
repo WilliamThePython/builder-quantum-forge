@@ -150,12 +150,7 @@ export default function Index() {
         </div>
       )}
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialMode={authMode}
-      />
+
 
       {/* Google AdSense Bottom Banner Ads - Temporarily disabled for testing */}
       {/* <AdSenseBottomBanners /> */}
