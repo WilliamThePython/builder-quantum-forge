@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Scissors, Minimize2, MousePointer, Settings, X } from 'lucide-react';
+import { Scissors, Minimize2, MousePointer, Settings, X, Palette, Eye } from 'lucide-react';
 import { Button } from './ui/button';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
+import { Separator } from './ui/separator';
 import { STLToolMode } from '../lib/stlManipulator';
 
 interface STLToolsPanelProps {
