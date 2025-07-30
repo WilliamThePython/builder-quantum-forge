@@ -175,29 +175,7 @@ export class TriangleExporter {
     return content;
   }
 
-  /**
-   * Add small connection tabs for assembly
-   */
-  private static addConnectionTabs(
-    v1f: THREE.Vector3, v2f: THREE.Vector3, v3f: THREE.Vector3,
-    v1b: THREE.Vector3, v2b: THREE.Vector3, v3b: THREE.Vector3,
-    triangleIndex: number
-  ): string {
-    let tabContent = '';
 
-    // Add small tabs on each edge for connection points
-    const tabSize = 1; // 1mm tabs
-    
-    // Calculate edge midpoints
-    const edge1Mid = new THREE.Vector3().addVectors(v1f, v2f).multiplyScalar(0.5);
-    const edge2Mid = new THREE.Vector3().addVectors(v2f, v3f).multiplyScalar(0.5);
-    const edge3Mid = new THREE.Vector3().addVectors(v3f, v1f).multiplyScalar(0.5);
-
-    // Add simple tab geometry (simplified for now)
-    // In a full implementation, these would be proper connector geometry
-    
-    return tabContent;
-  }
 
   /**
    * Generate assembly instructions
