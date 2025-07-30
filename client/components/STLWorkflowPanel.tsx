@@ -61,6 +61,7 @@ export default function STLWorkflowPanel({
     loadSTLFromFile,
     loadDefaultSTL,
     exportSTL,
+    exportTriangles,
     viewerSettings,
     updateViewerSettings
   } = useSTL();
