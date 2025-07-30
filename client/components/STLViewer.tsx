@@ -15,6 +15,20 @@ function STLMesh() {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
+  // Helper method for triangle counting
+  const getTriangleCountForPolygon = (face: any): number => {
+    if (!face.originalVertices) {
+      if (face.type === 'triangle') return 1;
+      if (face.type === 'quad') return 2;
+      return 3; // estimate for polygon
+    }
+
+    const vertexCount = face.originalVertices.length;
+    if (vertexCount === 3) return 1;
+    if (vertexCount === 4) return 2;
+    return vertexCount - 2; // fan triangulation
+  };
+
   // Create materials based on settings
   const material = useMemo(() => {
     if (viewerSettings.wireframe) {
