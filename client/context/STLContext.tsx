@@ -80,6 +80,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
+  // STL Tools state
+  const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.None);
+  const [isProcessingTool, setIsProcessingTool] = useState(false);
+  const [highlightGeometry, setHighlightGeometry] = useState<THREE.BufferGeometry | null>(null);
+
   const loadSTLFromFile = useCallback(async (file: File) => {
     console.log('loadSTLFromFile called with:', file.name);
     setIsLoading(true);
