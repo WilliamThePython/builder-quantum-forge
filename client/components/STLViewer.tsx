@@ -73,9 +73,39 @@ function STLMesh() {
     }
   }, [geometry, viewerSettings.randomColors, viewerSettings.wireframe]);
 
-  // Subtle rotation animation
+  // Handle mouse interaction for highlighting
+  useEffect(() => {
+    if (toolMode !== STLToolMode.Highlight || !meshRef.current) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      // Update pointer position
+      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Perform raycasting
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObject(meshRef.current!);
+
+      if (intersects.length > 0) {
+        const intersection = intersects[0];
+        const triangleIndex = STLManipulator.getTriangleIndexFromIntersection(geometry!, intersection);
+        highlightTriangle(triangleIndex);
+      } else {
+        highlightTriangle(null);
+      }
+    };
+
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('mousemove', handleMouseMove);
+      return () => canvas.removeEventListener('mousemove', handleMouseMove);
+    }
+  }, [toolMode, geometry, camera, raycaster, pointer, highlightTriangle]);
+
+  // Subtle rotation animation (disabled when highlighting)
   useFrame((state) => {
-    if (meshRef.current) {
+    if (meshRef.current && toolMode !== STLToolMode.Highlight) {
       meshRef.current.rotation.y += 0.001;
     }
   });
