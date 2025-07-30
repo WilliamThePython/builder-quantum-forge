@@ -38,7 +38,6 @@ interface STLContextType {
   // STL Tool Methods
   setToolMode: (mode: STLToolMode) => void;
   reducePoints: (reductionAmount: number, method: 'random' | 'best') => Promise<ToolOperationResult>;
-  highlightTriangle: (triangleIndex: number | null) => void;
   getGeometryStats: () => any;
 }
 
