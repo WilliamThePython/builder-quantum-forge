@@ -135,7 +135,7 @@ function STLMesh() {
       canvas.addEventListener('mousemove', handleMouseMove);
       return () => canvas.removeEventListener('mousemove', handleMouseMove);
     }
-  }, [toolMode, geometry, camera, raycaster, pointer, highlightTriangle]);
+  }, [toolMode, geometry, camera, raycaster, pointer]);
 
   // Subtle rotation animation (disabled when highlighting)
   useFrame((state) => {
