@@ -431,6 +431,31 @@ export default function STLWorkflowPanel({
                       </div>
                     </div>
 
+                    {/* Before/After Statistics */}
+                    {simplificationStats.originalStats && simplificationStats.newStats && (
+                      <div className="mb-3 p-2 bg-white/5 rounded border border-white/10">
+                        <div className="text-white text-xs font-medium mb-1">Last Simplification Results:</div>
+                        <div className="text-xs text-white/70 space-y-1">
+                          <div className="flex justify-between">
+                            <span>Vertices:</span>
+                            <span>{simplificationStats.originalStats.vertices.toLocaleString()} → {simplificationStats.newStats.vertices.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Faces:</span>
+                            <span>{simplificationStats.originalStats.faces.toLocaleString()} → {simplificationStats.newStats.faces.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Reduction:</span>
+                            <span className="text-green-400">{(simplificationStats.reductionAchieved! * 100).toFixed(1)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Time:</span>
+                            <span>{simplificationStats.processingTime}ms</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex gap-2">
                       <Button
                         onClick={() => {
@@ -440,7 +465,7 @@ export default function STLWorkflowPanel({
                         className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-8"
                         disabled={isProcessing}
                       >
-                        Apply Reduction
+                        Apply Simplification
                       </Button>
                       <Button
                         onClick={() => setShowToolSettings(false)}
