@@ -457,19 +457,22 @@ class Analytics {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
+      // Safe JSON serialization to avoid circular references
+      const safeEventData = this.sanitizeEventData({
+        ...event,
+        timestamp: Date.now(),
+        session_id: this.sessionId,
+        user_id: this.userId,
+        url: window.location.href,
+        referrer: document.referrer
+      });
+
       fetch('/api/analytics/track', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...event,
-          timestamp: Date.now(),
-          session_id: this.sessionId,
-          user_id: this.userId,
-          url: window.location.href,
-          referrer: document.referrer
-        }),
+        body: JSON.stringify(safeEventData),
         signal: controller.signal
       })
       .then(response => {
