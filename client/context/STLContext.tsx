@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { analytics } from '../lib/analytics';
 import { STLManipulator, STLToolMode, ToolOperationResult } from '../lib/stlManipulator';
 import { TriangleExporter } from '../lib/triangleExporter';
+import { PolygonPartsExporter } from '../lib/polygonPartsExporter';
 import { PolygonGeometryBuilder } from '../lib/polygonGeometryBuilder';
 
 interface ViewerSettings {
