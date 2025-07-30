@@ -157,7 +157,7 @@ export default function ViewerControls() {
                 className="w-full border-gray-300 bg-white/90 text-black font-semibold hover:bg-white hover:shadow-md transition-all duration-200"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                SETTINGS
+                BACKGROUND
               </Button>
             </PopoverTrigger>
             <PopoverContent
