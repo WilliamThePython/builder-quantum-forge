@@ -160,11 +160,8 @@ export class STLExporter {
       solidGeometry.computeVertexNormals();
     }
 
-    // Merge vertices to ensure watertight mesh
-    solidGeometry.mergeVertices();
-
-    // Recompute normals after merging
-    solidGeometry.computeVertexNormals();
+    // Note: mergeVertices() was removed - geometry is already optimized from Three.js primitives
+    // For STL export, we don't need to merge vertices as it may cause issues
 
     return solidGeometry;
   }
