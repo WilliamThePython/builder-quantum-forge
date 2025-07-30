@@ -242,7 +242,6 @@ export class STLManipulator {
 export enum STLToolMode {
   None = 'none',
   Highlight = 'highlight',
-  Cleanup = 'cleanup',
   Reduce = 'reduce'
 }
 
