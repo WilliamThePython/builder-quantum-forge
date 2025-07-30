@@ -111,15 +111,15 @@ export class TriangleExporter {
     // Create extruded triangle (prism) - full thickness in normal direction
     const offset = normal.clone().multiplyScalar(thickness);
 
-    // Front face vertices
-    const v1f = v1.clone().add(offset);
-    const v2f = v2.clone().add(offset);
-    const v3f = v3.clone().add(offset);
+    // Front face vertices (original triangle)
+    const v1f = v1.clone();
+    const v2f = v2.clone();
+    const v3f = v3.clone();
 
-    // Back face vertices  
-    const v1b = v1.clone().sub(offset);
-    const v2b = v2.clone().sub(offset);
-    const v3b = v3.clone().sub(offset);
+    // Back face vertices (extruded by thickness)
+    const v1b = v1.clone().add(offset);
+    const v2b = v2.clone().add(offset);
+    const v3b = v3.clone().add(offset);
 
     // Generate STL content
     let stlContent = `solid triangle_${triangleIndex + 1}\n`;
