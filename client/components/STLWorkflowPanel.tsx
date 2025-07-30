@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  Upload, 
-  RefreshCw, 
-  Info, 
+import {
+  Upload,
+  RefreshCw,
+  Info,
   Download,
-  Settings,
   Palette,
   Eye,
-  MousePointer,
-  Minimize2,
   X,
   ChevronDown,
   ChevronRight,
