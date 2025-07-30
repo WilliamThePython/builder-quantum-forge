@@ -501,15 +501,15 @@ export default function STLWorkflowPanel({
                   Standard Export
                 </div>
                 <Button
-                  onClick={exportSTL}
+                  onClick={() => handleExportClick('complete')}
                   disabled={!geometry}
                   className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Export Complete STL
+                  Export Complete Model
                 </Button>
                 <p className="text-xs text-white/60 mt-1">
-                  Download the complete model as a single STL file
+                  Download the complete model in STL or OBJ format
                 </p>
               </div>
 
