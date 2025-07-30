@@ -351,10 +351,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           event_name: 'stl_reduce_points',
           event_category: 'stl_tools',
           custom_parameters: {
-            original_triangles: originalStats.triangles,
-            new_triangles: newStats.triangles,
+            original_vertices: originalStats.vertices,
+            new_vertices: newStats.vertices,
             target_reduction: reductionAmount,
             actual_reduction: parseFloat(actualReduction),
+            method: method,
             processing_time: processingTime
           }
         });
