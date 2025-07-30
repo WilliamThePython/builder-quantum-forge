@@ -35,13 +35,14 @@ export class STLExporter {
   }
 
   /**
-   * Scale geometry to fit within target size range (in mm) while preserving solid properties
+   * Prepare geometry for export while preserving its current scale and transforms
+   * Only applies minimal corrections needed for valid STL output
    */
-  private static scaleGeometryToSize(
+  private static prepareGeometryForExport(
     geometry: THREE.BufferGeometry,
     targetSize: { min: number; max: number }
   ): THREE.BufferGeometry {
-    // Compute bounding box
+    // Compute bounding box for the current geometry
     geometry.computeBoundingBox();
 
     if (!geometry.boundingBox) {
@@ -52,36 +53,40 @@ export class STLExporter {
     const size = new THREE.Vector3();
     boundingBox.getSize(size);
 
-    // Find the largest dimension
+    // Find the largest dimension in the current (already scaled) geometry
     const maxDimension = Math.max(size.x, size.y, size.z);
 
     if (maxDimension === 0) {
       throw new Error('Geometry has zero size');
     }
 
-    // Calculate scale factor to fit within target size
-    // Default to middle of range for optimal 3D printing
+    // Only apply target sizing if the current scale is very different from target
+    // This prevents double-scaling issues
     const targetDimension = (targetSize.min + targetSize.max) / 2;
-    const scaleFactor = targetDimension / maxDimension;
+    const currentToTargetRatio = targetDimension / maxDimension;
 
-    // Apply uniform scale to maintain proportions and solid properties
-    geometry.scale(scaleFactor, scaleFactor, scaleFactor);
+    // Only rescale if the geometry is significantly different from target size
+    // This preserves viewer scaling while ensuring appropriate export size
+    if (currentToTargetRatio < 0.1 || currentToTargetRatio > 10) {
+      console.log(`Applying export scaling: ${currentToTargetRatio.toFixed(3)}x to reach ${targetDimension}mm target`);
+      geometry.scale(currentToTargetRatio, currentToTargetRatio, currentToTargetRatio);
 
-    // Center the geometry at origin for proper solid object positioning
-    geometry.computeBoundingBox();
+      // Recompute bounding box after scaling
+      geometry.computeBoundingBox();
+    } else {
+      console.log(`Preserving current scale (${maxDimension.toFixed(1)} units) - within target range`);
+    }
+
+    // Ensure geometry sits on Z=0 plane for 3D printing without moving X,Y center
     if (geometry.boundingBox) {
-      const center = new THREE.Vector3();
-      geometry.boundingBox.getCenter(center);
-      geometry.translate(-center.x, -center.y, -center.z);
-
-      // Move to sit on the Z=0 plane (common for 3D printing)
       const minZ = geometry.boundingBox.min.z;
       if (minZ < 0) {
         geometry.translate(0, 0, -minZ);
+        console.log(`Moved geometry to Z=0 plane (raised by ${(-minZ).toFixed(3)} units)`);
       }
     }
 
-    // Recompute normals after transformations to ensure solid object integrity
+    // Ensure we have proper normals for solid STL output
     geometry.computeVertexNormals();
 
     return geometry;
