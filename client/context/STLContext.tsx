@@ -321,6 +321,137 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry, fileName]);
 
+  // STL Tool Methods
+  const cleanupSTL = useCallback(async (): Promise<ToolOperationResult> => {
+    if (!geometry) {
+      return { success: false, message: 'No model available for cleanup' };
+    }
+
+    setIsProcessingTool(true);
+    const startTime = Date.now();
+
+    try {
+      const originalStats = STLManipulator.getGeometryStats(geometry);
+      console.log('Starting STL cleanup...', originalStats);
+
+      const cleanedGeometry = STLManipulator.cleanupGeometry(geometry);
+      const newStats = STLManipulator.getGeometryStats(cleanedGeometry);
+
+      // Update the geometry
+      setGeometry(cleanedGeometry);
+
+      const processingTime = Date.now() - startTime;
+      const removedVertices = originalStats.vertices - newStats.vertices;
+      const reductionPercent = ((removedVertices / originalStats.vertices) * 100).toFixed(1);
+
+      const message = `Cleanup completed: Removed ${removedVertices} duplicate vertices (${reductionPercent}% reduction)`;
+
+      // Track tool usage
+      try {
+        analytics.trackEvent({
+          event_name: 'stl_cleanup',
+          event_category: 'stl_tools',
+          custom_parameters: {
+            original_vertices: originalStats.vertices,
+            new_vertices: newStats.vertices,
+            reduction_percent: parseFloat(reductionPercent),
+            processing_time: processingTime
+          }
+        });
+      } catch (analyticsError) {
+        console.warn('Failed to track cleanup event:', analyticsError);
+      }
+
+      return {
+        success: true,
+        message,
+        originalStats,
+        newStats,
+        processingTime
+      };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to cleanup STL';
+      addError(`Cleanup failed: ${errorMessage}`);
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsProcessingTool(false);
+    }
+  }, [geometry]);
+
+  const reducePoints = useCallback(async (reductionAmount: number): Promise<ToolOperationResult> => {
+    if (!geometry) {
+      return { success: false, message: 'No model available for point reduction' };
+    }
+
+    setIsProcessingTool(true);
+    const startTime = Date.now();
+
+    try {
+      const originalStats = STLManipulator.getGeometryStats(geometry);
+      console.log('Starting point reduction...', originalStats);
+
+      const reducedGeometry = STLManipulator.reducePoints(geometry, reductionAmount);
+      const newStats = STLManipulator.getGeometryStats(reducedGeometry);
+
+      // Update the geometry
+      setGeometry(reducedGeometry);
+
+      const processingTime = Date.now() - startTime;
+      const removedTriangles = originalStats.triangles - newStats.triangles;
+      const actualReduction = ((removedTriangles / originalStats.triangles) * 100).toFixed(1);
+
+      const message = `Point reduction completed: Reduced from ${originalStats.triangles.toLocaleString()} to ${newStats.triangles.toLocaleString()} triangles (${actualReduction}% reduction)`;
+
+      // Track tool usage
+      try {
+        analytics.trackEvent({
+          event_name: 'stl_reduce_points',
+          event_category: 'stl_tools',
+          custom_parameters: {
+            original_triangles: originalStats.triangles,
+            new_triangles: newStats.triangles,
+            target_reduction: reductionAmount,
+            actual_reduction: parseFloat(actualReduction),
+            processing_time: processingTime
+          }
+        });
+      } catch (analyticsError) {
+        console.warn('Failed to track reduction event:', analyticsError);
+      }
+
+      return {
+        success: true,
+        message,
+        originalStats,
+        newStats,
+        processingTime
+      };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reduce points';
+      addError(`Point reduction failed: ${errorMessage}`);
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsProcessingTool(false);
+    }
+  }, [geometry]);
+
+  const highlightTriangle = useCallback((triangleIndex: number | null) => {
+    if (!geometry || triangleIndex === null) {
+      setHighlightGeometry(null);
+      return;
+    }
+
+    const highlightGeom = STLManipulator.createFacetHighlight(geometry, triangleIndex);
+    setHighlightGeometry(highlightGeom);
+  }, [geometry]);
+
+  const getGeometryStats = useCallback(() => {
+    if (!geometry) return null;
+    return STLManipulator.getGeometryStats(geometry);
+  }, [geometry]);
+
   const value: STLContextType = {
     geometry,
     fileName,
