@@ -37,7 +37,7 @@ interface STLContextType {
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
   exportSTL: (customFilename?: string) => void;
-  exportTriangles: (options?: any) => Promise<void>;
+  exportParts: (options?: any) => Promise<void>;
   clearError: () => void;
   clearErrorById: (id: string) => void;
   addError: (message: string) => void;
