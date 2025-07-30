@@ -469,25 +469,31 @@ export default function STLWorkflowPanel({
                       </Button>
                     </div>
 
-                    {/* Before/After Statistics */}
+                    {/* Reduction Results */}
                     {simplificationStats.originalStats && simplificationStats.newStats && (
-                      <div className="mb-3 p-2 bg-white/5 rounded border border-white/10">
-                        <div className="text-white text-xs font-medium mb-1">Last Simplification Results:</div>
+                      <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded">
+                        <div className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
+                          ✅ Reduction Complete
+                        </div>
                         <div className="text-xs text-white/70 space-y-1">
                           <div className="flex justify-between">
                             <span>Vertices:</span>
                             <span>{simplificationStats.originalStats.vertices.toLocaleString()} → {simplificationStats.newStats.vertices.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Faces:</span>
+                            <span>Triangles:</span>
                             <span>{simplificationStats.originalStats.faces.toLocaleString()} → {simplificationStats.newStats.faces.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Reduction:</span>
-                            <span className="text-green-400">{(simplificationStats.reductionAchieved! * 100).toFixed(1)}%</span>
+                            <span className="text-green-400 font-medium">{(simplificationStats.reductionAchieved! * 100).toFixed(1)}%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Time:</span>
+                            <span>Method:</span>
+                            <span className="text-blue-300 capitalize">{reductionMethod.replace('_', ' ')}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Processing:</span>
                             <span>{simplificationStats.processingTime}ms</span>
                           </div>
                         </div>
