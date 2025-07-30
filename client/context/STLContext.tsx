@@ -5,6 +5,7 @@ import { STLManipulator, STLToolMode, ToolOperationResult } from '../lib/stlMani
 import { TriangleExporter } from '../lib/triangleExporter';
 import { PolygonPartsExporter } from '../lib/polygonPartsExporter';
 import { PolygonGeometryBuilder } from '../lib/polygonGeometryBuilder';
+import { PolygonFaceReconstructor } from '../lib/polygonFaceReconstructor';
 
 interface ViewerSettings {
   randomColors: boolean;
