@@ -633,6 +633,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     viewerSettings,
     toolMode,
     isProcessingTool,
+    highlightedTriangle,
+    triangleStats,
     loadSTLFromFile,
     loadDefaultSTL,
     updateViewerSettings,
@@ -643,7 +645,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     addError,
     setToolMode,
     reducePoints,
-    getGeometryStats
+    getGeometryStats,
+    setHighlightedTriangle
   };
 
   return (
