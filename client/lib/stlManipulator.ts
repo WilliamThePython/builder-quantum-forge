@@ -217,21 +217,34 @@ export class STLManipulator {
           totalEdges += 3;
         } else if (faceType === 'quad') {
           totalEdges += 4;
+        } else if (faceType === 'polygon') {
+          totalEdges += 6; // Estimate for general polygon
         }
       });
 
-      // Convert to sorted breakdown
+      // Convert to sorted breakdown with proper naming
       const polygonBreakdown = Object.entries(faceTypeCounts)
-        .map(([type, count]) => ({ type, count }))
+        .map(([type, count]) => ({
+          type: type === 'triangle' ? 'triangle' :
+                type === 'quad' ? 'quad' :
+                type === 'polygon' ? 'polygon' : type,
+          count
+        }))
         .sort((a, b) => {
           // Sort by polygon complexity (triangles first, then quads, etc.)
           const order = { 'triangle': 1, 'quad': 2, 'polygon': 3 };
           return (order[a.type as keyof typeof order] || 4) - (order[b.type as keyof typeof order] || 4);
         });
 
+      // For closed polyhedra, estimate unique edges
+      // In a closed mesh, each edge is typically shared by exactly 2 faces
+      // Use Euler's formula: V - E + F = 2 for closed polyhedra
+      const eulerEdges = vertices + polygonFaces.length - 2;
+      const estimatedEdges = Math.max(Math.floor(totalEdges / 2), eulerEdges);
+
       return {
         vertices,
-        edges: Math.floor(totalEdges / 2), // Each edge is shared by 2 faces (approximately)
+        edges: estimatedEdges,
         polygonBreakdown,
         hasPolygonData: true,
         geometryType: polygonType || 'polygon-based'
