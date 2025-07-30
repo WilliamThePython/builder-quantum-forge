@@ -139,14 +139,19 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setGeometry(geometry);
       setFileName(file.name);
 
-      // Track STL upload analytics - temporarily disabled for debugging
-      // analytics.trackSTLUpload({
-      //   file_name: file.name,
-      //   file_size: file.size,
-      //   vertices: vertices,
-      //   triangles: triangles,
-      //   upload_time: uploadTime
-      // });
+      // Track STL upload analytics
+      try {
+        analytics.trackSTLUpload({
+          file_name: file.name,
+          file_size: file.size,
+          vertices: vertices,
+          triangles: triangles,
+          upload_time: uploadTime
+        });
+        console.log('STL upload tracked successfully');
+      } catch (error) {
+        console.warn('Failed to track STL upload:', error);
+      }
 
       console.log(`STL loaded successfully: ${file.name} (${triangles.toLocaleString()} triangles)`);
 

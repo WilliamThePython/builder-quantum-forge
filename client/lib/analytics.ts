@@ -319,16 +319,23 @@ class Analytics {
   // Get real-time analytics data (from your backend API)
   async getRealTimeData() {
     try {
-      // This would call your backend API that aggregates analytics data
+      console.log('Fetching real-time analytics data...');
       const response = await fetch('/api/analytics/realtime');
+
       if (response.ok) {
-        return await response.json();
+        const data = await response.json();
+        console.log('Real-time analytics data received:', data);
+        return data;
+      } else {
+        console.error('Analytics API error:', response.status, response.statusText);
+        throw new Error(`Analytics API error: ${response.status}`);
       }
     } catch (error) {
       console.error('Failed to fetch real-time analytics:', error);
     }
-    
+
     // Fallback to mock data if API is not available
+    console.log('Falling back to mock data');
     return this.getMockRealTimeData();
   }
 
@@ -349,20 +356,30 @@ class Analytics {
   // Get custom analytics data from any endpoint
   async getCustomData(endpoint: string) {
     try {
+      console.log(`Fetching analytics data from: ${endpoint}`);
       const response = await fetch(endpoint);
+
       if (response.ok) {
-        return await response.json();
+        const data = await response.json();
+        console.log(`Analytics data received from ${endpoint}:`, data);
+        return data;
+      } else {
+        console.error(`Analytics API error from ${endpoint}:`, response.status, response.statusText);
+        throw new Error(`Analytics API error: ${response.status}`);
       }
     } catch (error) {
       console.error(`Failed to fetch data from ${endpoint}:`, error);
     }
 
+    console.log(`Returning empty data for ${endpoint}`);
     return {};
   }
 
   private sendToCustomAnalytics(event: AnalyticsEvent) {
-    // Send to your own analytics endpoint with robust error handling
+    // Send to your own analytics endpoint with debug logging
     try {
+      console.log('Sending analytics event:', event.event_name, event);
+
       fetch('/api/analytics/track', {
         method: 'POST',
         headers: {
@@ -376,13 +393,24 @@ class Analytics {
           url: window.location.href,
           referrer: document.referrer
         })
-      }).catch(error => {
-        // Silent fail for analytics - don't log to console to avoid spam
-        // Analytics failures should not impact user experience
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log('Analytics event sent successfully:', event.event_name);
+          return response.json();
+        } else {
+          console.error('Analytics API error:', response.status, response.statusText);
+          throw new Error(`Analytics API error: ${response.status}`);
+        }
+      })
+      .then(data => {
+        console.log('Analytics response:', data);
+      })
+      .catch(error => {
+        console.error('Failed to send analytics event:', event.event_name, error);
       });
     } catch (error) {
-      // Silent fail for any synchronous errors
-      // Analytics failures should not impact user experience
+      console.error('Analytics tracking error:', error);
     }
   }
 
