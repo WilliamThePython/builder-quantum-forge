@@ -481,23 +481,7 @@ export default function STLWorkflowPanel({
                 )}
               </div>
 
-              {/* Active Tool Indicator */}
-              {activeToolMode !== STLToolMode.None && (
-                <div className="p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                  <div className="text-blue-300 text-xs font-medium">
-                    {activeToolMode === STLToolMode.Highlight && '✨ Hover over model to highlight polygon faces'}
-                    {activeToolMode === STLToolMode.Reduce && '⚙️ Configure settings above and apply'}
-                  </div>
-                  {activeToolMode === STLToolMode.Highlight && (
-                    <Button
-                      onClick={() => onToolModeChange(STLToolMode.None)}
-                      className="w-full mt-2 bg-white/10 hover:bg-white/20 text-white text-xs py-1 h-6"
-                    >
-                      Disable Highlighting
-                    </Button>
-                  )}
-                </div>
-              )}
+
             </div>
           )}
         </div>
