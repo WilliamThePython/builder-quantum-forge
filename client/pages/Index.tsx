@@ -12,9 +12,6 @@ import { STLToolMode } from '../lib/stlManipulator';
 
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const { user, isAuthenticated } = useAuth();
   const {
     toolMode,
     setToolMode,
