@@ -371,59 +371,56 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [geometry, fileName]);
 
   // STL Tool Methods
-  const reducePoints = useCallback(async (reductionAmount: number, method: 'random' | 'best' = 'random'): Promise<ToolOperationResult> => {
+  const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' = 'adaptive'): Promise<ToolOperationResult> => {
     if (!geometry) {
-      return { success: false, message: 'No model available for point reduction' };
+      return { success: false, message: 'No model available for mesh simplification' };
     }
 
     setIsProcessingTool(true);
-    const startTime = Date.now();
 
     try {
-      const originalStats = STLManipulator.getGeometryStats(geometry);
-      console.log('Starting point reduction...', originalStats);
+      console.log('Starting professional mesh simplification...', { method, reductionAmount });
 
-      const reducedGeometry = STLManipulator.reducePoints(geometry, reductionAmount, method);
-      const newStats = STLManipulator.getGeometryStats(reducedGeometry);
+      const result = await STLManipulator.reducePoints(geometry, reductionAmount, method);
 
       // Update the geometry
-      setGeometry(reducedGeometry);
+      setGeometry(result.geometry);
 
-      const processingTime = Date.now() - startTime;
-      const removedVertices = originalStats.vertices - newStats.vertices;
-      const actualReduction = ((removedVertices / originalStats.vertices) * 100).toFixed(1);
-
-      const message = `Point reduction (${method}) completed: Reduced from ${originalStats.vertices.toLocaleString()} to ${newStats.vertices.toLocaleString()} vertices (${actualReduction}% reduction)`;
+      const message = `Mesh simplification (${method}) completed: Reduced from ${result.originalStats.vertices.toLocaleString()} to ${result.newStats.vertices.toLocaleString()} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`;
 
       // Track tool usage
       try {
         analytics.trackEvent({
-          event_name: 'stl_reduce_points',
+          event_name: 'mesh_simplification',
           event_category: 'stl_tools',
           custom_parameters: {
-            original_vertices: originalStats.vertices,
-            new_vertices: newStats.vertices,
+            original_vertices: result.originalStats.vertices,
+            new_vertices: result.newStats.vertices,
+            original_faces: result.originalStats.faces,
+            new_faces: result.newStats.faces,
             target_reduction: reductionAmount,
-            actual_reduction: parseFloat(actualReduction),
+            actual_reduction: result.reductionAchieved,
             method: method,
-            processing_time: processingTime
+            processing_time: result.processingTime,
+            quality_preserved: result.reductionAchieved > 0
           }
         });
       } catch (analyticsError) {
-        console.warn('Failed to track reduction event:', analyticsError);
+        console.warn('Failed to track simplification event:', analyticsError);
       }
 
       return {
         success: true,
         message,
-        originalStats,
-        newStats,
-        processingTime
+        originalStats: result.originalStats,
+        newStats: result.newStats,
+        processingTime: result.processingTime
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to reduce points';
-      addError(`Point reduction failed: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to simplify mesh';
+      addError(`Mesh simplification failed: ${errorMessage}`);
+      console.error('Mesh simplification error:', error);
       return { success: false, message: errorMessage };
     } finally {
       setIsProcessingTool(false);
