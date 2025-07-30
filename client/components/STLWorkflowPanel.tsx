@@ -85,6 +85,14 @@ export default function STLWorkflowPanel({
     addTabs: true
   });
 
+  // Professional simplification settings
+  const [simplificationStats, setSimplificationStats] = useState<{
+    originalStats?: any;
+    newStats?: any;
+    reductionAchieved?: number;
+    processingTime?: number;
+  }>({});
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
