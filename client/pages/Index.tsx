@@ -80,6 +80,10 @@ export default function Index() {
         onReducePoints={handleReducePoints}
         isProcessing={isProcessingTool}
         geometryStats={getGeometryStats()}
+        randomColors={viewerSettings.randomColors}
+        wireframe={viewerSettings.wireframe}
+        onRandomColorsChange={handleRandomColorsChange}
+        onWireframeChange={handleWireframeChange}
       />
 
       {/* Top Right Navigation */}
