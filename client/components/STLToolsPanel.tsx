@@ -245,7 +245,7 @@ export default function STLToolsPanel({
         {activeToolMode !== STLToolMode.None && (
           <div className="mt-4 p-2 bg-blue-500/20 rounded-lg border border-blue-500/30">
             <div className="text-blue-300 text-xs font-medium">
-              {activeToolMode === STLToolMode.Highlight && 'Hover over model to highlight triangles'}
+              {activeToolMode === STLToolMode.Highlight && 'Hover over model to highlight polygon faces'}
               {activeToolMode === STLToolMode.Reduce && 'Adjust settings and click "Apply"'}
             </div>
             {activeToolMode === STLToolMode.Highlight && (
