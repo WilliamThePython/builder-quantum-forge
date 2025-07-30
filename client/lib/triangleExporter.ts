@@ -286,6 +286,247 @@ Visit: [Your Platform URL]
   }
 
   /**
+   * Calculate detailed information for a single triangle part
+   */
+  private static calculatePartInfo(
+    geometry: THREE.BufferGeometry,
+    triangleIndex: number,
+    thickness: number,
+    scale: number
+  ) {
+    const positions = geometry.attributes.position;
+    const i3 = triangleIndex * 3;
+
+    // Get triangle vertices
+    const v1 = new THREE.Vector3(
+      positions.getX(i3) * scale,
+      positions.getY(i3) * scale,
+      positions.getZ(i3) * scale
+    );
+    const v2 = new THREE.Vector3(
+      positions.getX(i3 + 1) * scale,
+      positions.getY(i3 + 1) * scale,
+      positions.getZ(i3 + 1) * scale
+    );
+    const v3 = new THREE.Vector3(
+      positions.getX(i3 + 2) * scale,
+      positions.getY(i3 + 2) * scale,
+      positions.getZ(i3 + 2) * scale
+    );
+
+    // Calculate triangle properties
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+    const edge3 = new THREE.Vector3().subVectors(v3, v2);
+
+    // Normal vector
+    const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+    if (normal.length() < 0.001) {
+      normal.set(0, 0, 1);
+    }
+
+    // Triangle area (2D)
+    const area = edge1.clone().cross(edge2).length() / 2;
+
+    // Perimeter
+    const perimeter = edge1.length() + edge2.length() + edge3.length();
+
+    // Volume (area * thickness)
+    const volume = area * thickness;
+
+    // Centroid
+    const centroid = new THREE.Vector3()
+      .addVectors(v1, v2)
+      .add(v3)
+      .divideScalar(3);
+
+    // Bounding box
+    const minX = Math.min(v1.x, v2.x, v3.x);
+    const maxX = Math.max(v1.x, v2.x, v3.x);
+    const minY = Math.min(v1.y, v2.y, v3.y);
+    const maxY = Math.max(v1.y, v2.y, v3.y);
+    const minZ = Math.min(v1.z, v2.z, v3.z);
+    const maxZ = Math.max(v1.z, v2.z, v3.z);
+
+    const bounds = {
+      min: new THREE.Vector3(minX, minY, minZ),
+      max: new THREE.Vector3(maxX, maxY, maxZ)
+    };
+
+    const dimensions = {
+      width: maxX - minX,
+      height: maxY - minY,
+      depth: (maxZ - minZ) + thickness // include extrusion thickness
+    };
+
+    // Surface area (including thickness)
+    const triangleArea = area;
+    const sideArea1 = edge1.length() * thickness;
+    const sideArea2 = edge2.length() * thickness;
+    const sideArea3 = edge3.length() * thickness;
+    const surfaceArea = (triangleArea * 2) + sideArea1 + sideArea2 + sideArea3;
+
+    // Print time estimation based on area and thickness
+    const baseTimePerMm2 = 0.5; // minutes per mm²
+    const thicknessFactor = Math.max(1, thickness / 2); // scale with thickness
+    const printTime = (area * baseTimePerMm2 * thicknessFactor);
+
+    // Material estimation (based on volume and PLA density ~1.24 g/cm³)
+    const materialDensity = 0.00124; // g/mm³ for PLA
+    const material = volume * materialDensity;
+
+    // Complexity score (based on aspect ratio and edge variation)
+    const aspectRatio = Math.max(dimensions.width, dimensions.height) / Math.min(dimensions.width, dimensions.height);
+    const edgeLengths = [edge1.length(), edge2.length(), edge3.length()];
+    const edgeVariation = (Math.max(...edgeLengths) - Math.min(...edgeLengths)) / Math.max(...edgeLengths);
+    const complexity = aspectRatio + (edgeVariation * 5); // weighted score
+
+    return {
+      area,
+      perimeter,
+      volume,
+      centroid,
+      normal,
+      bounds,
+      dimensions,
+      surfaceArea,
+      printTime,
+      material,
+      complexity
+    };
+  }
+
+  /**
+   * Generate Excel file with parts database
+   */
+  private static generatePartsDatabase(partData: any[], options: any): ArrayBuffer {
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Parts data worksheet
+    const partsSheet = XLSX.utils.json_to_sheet(partData);
+
+    // Set column widths for better readability
+    const colWidths = [
+      { wch: 12 }, // Part Number
+      { wch: 20 }, // File Name
+      { wch: 8 },  // Triangle Index
+      { wch: 12 }, // Thickness
+      { wch: 10 }, // Scale Factor
+      { wch: 12 }, // Area
+      { wch: 12 }, // Perimeter
+      { wch: 12 }, // Volume
+      { wch: 12 }, // Centroid X
+      { wch: 12 }, // Centroid Y
+      { wch: 12 }, // Centroid Z
+      { wch: 12 }, // Normal X
+      { wch: 12 }, // Normal Y
+      { wch: 12 }, // Normal Z
+      { wch: 12 }, // Min X
+      { wch: 12 }, // Min Y
+      { wch: 12 }, // Min Z
+      { wch: 12 }, // Max X
+      { wch: 12 }, // Max Y
+      { wch: 12 }, // Max Z
+      { wch: 12 }, // Width
+      { wch: 12 }, // Height
+      { wch: 12 }, // Depth
+      { wch: 15 }, // Print Time
+      { wch: 15 }, // Material
+      { wch: 15 }, // Surface Area
+      { wch: 12 }  // Complexity
+    ];
+
+    partsSheet['!cols'] = colWidths;
+    XLSX.utils.book_append_sheet(workbook, partsSheet, 'Parts Database');
+
+    // Summary worksheet
+    const summary = this.generateSummaryData(partData, options);
+    const summarySheet = XLSX.utils.json_to_sheet(summary);
+    summarySheet['!cols'] = [{ wch: 25 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Project Summary');
+
+    // Statistics worksheet
+    const stats = this.generateStatistics(partData);
+    const statsSheet = XLSX.utils.json_to_sheet(stats);
+    statsSheet['!cols'] = [{ wch: 25 }, { wch: 15 }];
+    XLSX.utils.book_append_sheet(workbook, statsSheet, 'Statistics');
+
+    // Convert to buffer
+    return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  }
+
+  /**
+   * Generate summary data for Excel
+   */
+  private static generateSummaryData(partData: any[], options: any) {
+    const date = new Date().toLocaleDateString();
+    const totalParts = partData.length;
+    const totalVolume = partData.reduce((sum, part) => sum + parseFloat(part['Volume (mm³)']), 0);
+    const totalArea = partData.reduce((sum, part) => sum + parseFloat(part['Area (mm²)']), 0);
+    const totalPrintTime = partData.reduce((sum, part) => sum + parseFloat(part['Estimated Print Time (min)']), 0);
+    const totalMaterial = partData.reduce((sum, part) => sum + parseFloat(part['Estimated Material (g)']), 0);
+    const avgComplexity = partData.reduce((sum, part) => sum + parseFloat(part['Complexity Score']), 0) / totalParts;
+
+    return [
+      { 'Property': 'Generation Date', 'Value': date },
+      { 'Property': 'Total Parts', 'Value': totalParts },
+      { 'Property': 'Part Thickness (mm)', 'Value': options.partThickness || 2 },
+      { 'Property': 'Scale Factor', 'Value': options.scale || 1 },
+      { 'Property': 'Total Volume (mm³)', 'Value': totalVolume.toFixed(2) },
+      { 'Property': 'Total Surface Area (mm²)', 'Value': totalArea.toFixed(2) },
+      { 'Property': 'Estimated Total Print Time (min)', 'Value': totalPrintTime.toFixed(1) },
+      { 'Property': 'Estimated Total Print Time (hours)', 'Value': (totalPrintTime / 60).toFixed(1) },
+      { 'Property': 'Estimated Total Material (g)', 'Value': totalMaterial.toFixed(2) },
+      { 'Property': 'Estimated Total Material (kg)', 'Value': (totalMaterial / 1000).toFixed(3) },
+      { 'Property': 'Average Complexity Score', 'Value': avgComplexity.toFixed(2) },
+      { 'Property': 'Assembly Time Estimate (hours)', 'Value': (totalParts * 3 / 60).toFixed(1) },
+      { 'Property': 'Generated By', 'Value': 'STL Viewer Platform' }
+    ];
+  }
+
+  /**
+   * Generate statistics for Excel
+   */
+  private static generateStatistics(partData: any[]) {
+    const volumes = partData.map(p => parseFloat(p['Volume (mm³)']));
+    const areas = partData.map(p => parseFloat(p['Area (mm²)']));
+    const printTimes = partData.map(p => parseFloat(p['Estimated Print Time (min)']));
+    const complexities = partData.map(p => parseFloat(p['Complexity Score']));
+
+    const stats = (arr: number[]) => ({
+      min: Math.min(...arr),
+      max: Math.max(...arr),
+      avg: arr.reduce((a, b) => a + b, 0) / arr.length,
+      median: arr.sort((a, b) => a - b)[Math.floor(arr.length / 2)]
+    });
+
+    const volumeStats = stats(volumes);
+    const areaStats = stats(areas);
+    const timeStats = stats(printTimes);
+    const complexityStats = stats(complexities);
+
+    return [
+      { 'Metric': 'Volume - Minimum (mm³)', 'Value': volumeStats.min.toFixed(2) },
+      { 'Metric': 'Volume - Maximum (mm³)', 'Value': volumeStats.max.toFixed(2) },
+      { 'Metric': 'Volume - Average (mm³)', 'Value': volumeStats.avg.toFixed(2) },
+      { 'Metric': 'Volume - Median (mm³)', 'Value': volumeStats.median.toFixed(2) },
+      { 'Metric': 'Area - Minimum (mm²)', 'Value': areaStats.min.toFixed(2) },
+      { 'Metric': 'Area - Maximum (mm²)', 'Value': areaStats.max.toFixed(2) },
+      { 'Metric': 'Area - Average (mm²)', 'Value': areaStats.avg.toFixed(2) },
+      { 'Metric': 'Area - Median (mm²)', 'Value': areaStats.median.toFixed(2) },
+      { 'Metric': 'Print Time - Minimum (min)', 'Value': timeStats.min.toFixed(1) },
+      { 'Metric': 'Print Time - Maximum (min)', 'Value': timeStats.max.toFixed(1) },
+      { 'Metric': 'Print Time - Average (min)', 'Value': timeStats.avg.toFixed(1) },
+      { 'Metric': 'Print Time - Median (min)', 'Value': timeStats.median.toFixed(1) },
+      { 'Metric': 'Complexity - Minimum', 'Value': complexityStats.min.toFixed(2) },
+      { 'Metric': 'Complexity - Maximum', 'Value': complexityStats.max.toFixed(2) },
+      { 'Metric': 'Complexity - Average', 'Value': complexityStats.avg.toFixed(2) },
+      { 'Metric': 'Complexity - Median', 'Value': complexityStats.median.toFixed(2) }
+    ];
+  }
+
+  /**
    * Get export statistics based on part thickness
    */
   static getExportStats(geometry: THREE.BufferGeometry, partThickness: number = 2): {
