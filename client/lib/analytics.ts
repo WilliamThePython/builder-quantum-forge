@@ -534,11 +534,40 @@ window.addEventListener('load', () => {
   analytics.trackPerformanceMetrics();
 });
 
-// Global error tracking
+// Global error tracking with analytics loop prevention
 window.addEventListener('error', (event) => {
-  analytics.trackError(new Error(event.message), 'global_error_handler');
+  // Don't track analytics-related errors to prevent infinite loops
+  if (event.message?.includes('Failed to fetch') &&
+      event.filename?.includes('analytics.ts')) {
+    console.warn('Skipping analytics error to prevent loop:', event.message);
+    return;
+  }
+
+  // Don't track errors from FullStory or other analytics services
+  if (event.filename?.includes('fullstory.com') ||
+      event.filename?.includes('fs.js') ||
+      event.message?.includes('fullstory')) {
+    return;
+  }
+
+  try {
+    analytics.trackError(new Error(event.message), 'global_error_handler');
+  } catch (error) {
+    console.warn('Failed to track error, skipping to prevent loop:', error);
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  analytics.trackError(new Error(event.reason), 'unhandled_promise_rejection');
+  // Don't track analytics-related promise rejections
+  if (event.reason?.message?.includes('Failed to fetch') ||
+      event.reason?.toString?.()?.includes('analytics')) {
+    console.warn('Skipping analytics promise rejection to prevent loop:', event.reason);
+    return;
+  }
+
+  try {
+    analytics.trackError(new Error(event.reason), 'unhandled_promise_rejection');
+  } catch (error) {
+    console.warn('Failed to track promise rejection, skipping to prevent loop:', error);
+  }
 });
