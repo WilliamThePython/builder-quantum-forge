@@ -178,7 +178,81 @@ export class STLManipulator {
   }
 
   /**
-   * Get geometry statistics for display
+   * Get detailed geometry analysis including polygon types
+   */
+  static getDetailedGeometryStats(geometry: THREE.BufferGeometry): {
+    vertices: number;
+    edges: number;
+    polygonBreakdown: { type: string; count: number }[];
+    hasPolygonData: boolean;
+    geometryType: string;
+  } {
+    if (!geometry) return {
+      vertices: 0,
+      edges: 0,
+      polygonBreakdown: [],
+      hasPolygonData: false,
+      geometryType: 'unknown'
+    };
+
+    const vertices = geometry.attributes.position.count;
+
+    // Check if geometry has polygon face data
+    const polygonFaces = (geometry as any).polygonFaces;
+    const polygonType = (geometry as any).polygonType;
+
+    if (polygonFaces && Array.isArray(polygonFaces)) {
+      // Analyze polygon face data
+      const faceTypeCounts: Record<string, number> = {};
+      let totalEdges = 0;
+
+      polygonFaces.forEach((face: any) => {
+        const faceType = face.type;
+        faceTypeCounts[faceType] = (faceTypeCounts[faceType] || 0) + 1;
+
+        // Count edges for this face
+        if (face.originalVertices) {
+          totalEdges += face.originalVertices.length;
+        } else if (faceType === 'triangle') {
+          totalEdges += 3;
+        } else if (faceType === 'quad') {
+          totalEdges += 4;
+        }
+      });
+
+      // Convert to sorted breakdown
+      const polygonBreakdown = Object.entries(faceTypeCounts)
+        .map(([type, count]) => ({ type, count }))
+        .sort((a, b) => {
+          // Sort by polygon complexity (triangles first, then quads, etc.)
+          const order = { 'triangle': 1, 'quad': 2, 'polygon': 3 };
+          return (order[a.type as keyof typeof order] || 4) - (order[b.type as keyof typeof order] || 4);
+        });
+
+      return {
+        vertices,
+        edges: Math.floor(totalEdges / 2), // Each edge is shared by 2 faces (approximately)
+        polygonBreakdown,
+        hasPolygonData: true,
+        geometryType: polygonType || 'polygon-based'
+      };
+    } else {
+      // Fallback to triangle analysis
+      const triangleCount = Math.floor(vertices / 3);
+      const edgeCount = triangleCount * 3; // Approximate edge count for triangulated mesh
+
+      return {
+        vertices,
+        edges: Math.floor(edgeCount / 2),
+        polygonBreakdown: [{ type: 'triangle', count: triangleCount }],
+        hasPolygonData: false,
+        geometryType: 'triangulated'
+      };
+    }
+  }
+
+  /**
+   * Get geometry statistics for display (legacy method for compatibility)
    */
   static getGeometryStats(geometry: THREE.BufferGeometry): {
     vertices: number;
