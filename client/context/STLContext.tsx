@@ -26,7 +26,6 @@ interface STLContextType {
   // STL Tools
   toolMode: STLToolMode;
   isProcessingTool: boolean;
-  highlightGeometry: THREE.BufferGeometry | null;
 
   loadSTLFromFile: (file: File) => Promise<void>;
   loadDefaultSTL: () => Promise<void>;
