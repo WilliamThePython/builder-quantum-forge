@@ -6,6 +6,7 @@ import { TriangleExporter } from '../lib/triangleExporter';
 import { PolygonPartsExporter } from '../lib/polygonPartsExporter';
 import { PolygonGeometryBuilder } from '../lib/polygonGeometryBuilder';
 import { PolygonFaceReconstructor } from '../lib/polygonFaceReconstructor';
+import { STLGeometryValidator, ValidationReport } from '../lib/stlGeometryValidator';
 
 interface ViewerSettings {
   randomColors: boolean;
