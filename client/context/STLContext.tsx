@@ -90,7 +90,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
   // STL Tools state
-  const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.None);
+  const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
 
   // Highlighting state
