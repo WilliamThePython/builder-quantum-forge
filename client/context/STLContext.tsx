@@ -321,64 +321,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [geometry, fileName]);
 
   // STL Tool Methods
-  const cleanupSTL = useCallback(async (): Promise<ToolOperationResult> => {
-    if (!geometry) {
-      return { success: false, message: 'No model available for cleanup' };
-    }
-
-    setIsProcessingTool(true);
-    const startTime = Date.now();
-
-    try {
-      const originalStats = STLManipulator.getGeometryStats(geometry);
-      console.log('Starting STL cleanup...', originalStats);
-
-      const cleanedGeometry = STLManipulator.cleanupGeometry(geometry);
-      const newStats = STLManipulator.getGeometryStats(cleanedGeometry);
-
-      // Update the geometry
-      setGeometry(cleanedGeometry);
-
-      const processingTime = Date.now() - startTime;
-      const removedVertices = originalStats.vertices - newStats.vertices;
-      const reductionPercent = ((removedVertices / originalStats.vertices) * 100).toFixed(1);
-
-      const message = `Cleanup completed: Removed ${removedVertices} duplicate vertices (${reductionPercent}% reduction)`;
-
-      // Track tool usage
-      try {
-        analytics.trackEvent({
-          event_name: 'stl_cleanup',
-          event_category: 'stl_tools',
-          custom_parameters: {
-            original_vertices: originalStats.vertices,
-            new_vertices: newStats.vertices,
-            reduction_percent: parseFloat(reductionPercent),
-            processing_time: processingTime
-          }
-        });
-      } catch (analyticsError) {
-        console.warn('Failed to track cleanup event:', analyticsError);
-      }
-
-      return {
-        success: true,
-        message,
-        originalStats,
-        newStats,
-        processingTime
-      };
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to cleanup STL';
-      addError(`Cleanup failed: ${errorMessage}`);
-      return { success: false, message: errorMessage };
-    } finally {
-      setIsProcessingTool(false);
-    }
-  }, [geometry]);
-
-  const reducePoints = useCallback(async (reductionAmount: number): Promise<ToolOperationResult> => {
+  const reducePoints = useCallback(async (reductionAmount: number, method: 'random' | 'best' = 'random'): Promise<ToolOperationResult> => {
     if (!geometry) {
       return { success: false, message: 'No model available for point reduction' };
     }
