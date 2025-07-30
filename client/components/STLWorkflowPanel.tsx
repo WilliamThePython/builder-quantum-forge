@@ -608,11 +608,31 @@ export default function STLWorkflowPanel({
                     {/* Export Stats Preview */}
                     {geometry && (
                       <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
-                        <div className="text-white text-xs font-medium mb-1">Assembly Kit Preview:</div>
+                        <div className="text-white text-xs font-medium mb-1">Polygon Parts Preview:</div>
                         <div className="text-xs text-white/70 space-y-1">
-                          <div>• {Math.floor(geometry.attributes.position.count / 3)} triangle pieces</div>
-                          <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                          <div>• Est. material: ~{Math.round((geometry.attributes.position.count / 3) * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                          {(() => {
+                            const polygonFaces = (geometry as any).polygonFaces;
+                            const polygonType = (geometry as any).polygonType;
+                            if (polygonFaces) {
+                              const faceTypes = [...new Set(polygonFaces.map((f: any) => f.type))];
+                              return (
+                                <>
+                                  <div>• {polygonFaces.length} polygon parts ({polygonType})</div>
+                                  <div>• Face types: {faceTypes.join(', ')}</div>
+                                  <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
+                                  <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  <div>• {Math.floor(geometry.attributes.position.count / 3)} triangle fallback</div>
+                                  <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
+                                  <div>• Est. material: ~{Math.round((geometry.attributes.position.count / 3) * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                </>
+                              );
+                            }
+                          })()}
                           <div>• Part thickness: {triangleOptions.partThickness}mm</div>
                         </div>
                       </div>
