@@ -1,7 +1,9 @@
 import * as THREE from 'three';
+import { FormatConverter } from './formatConverter';
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
+ * Now uses OBJ format internally for better manipulation capabilities
  */
 export class STLManipulator {
   
