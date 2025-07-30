@@ -647,7 +647,7 @@ export default function STLWorkflowPanel({
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 h-8"
                         disabled={isProcessing || !geometry}
                       >
-                        Generate Assembly Kit
+                        Generate Polygon Parts
                       </Button>
                       <Button
                         onClick={() => setShowTriangleSettings(false)}
