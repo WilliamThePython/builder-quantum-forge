@@ -222,9 +222,12 @@ export class STLExporter {
    * Download STL content as file
    */
   private static downloadSTL(content: string, filename: string): void {
-    // Ensure filename has .stl extension
-    if (!filename.toLowerCase().endsWith('.stl')) {
-      filename += '.stl';
+    // Ensure filename is a string and has .stl extension
+    const safeFilename = typeof filename === 'string' ? filename : 'exported_model.stl';
+    let finalFilename = safeFilename;
+
+    if (!finalFilename.toLowerCase().endsWith('.stl')) {
+      finalFilename += '.stl';
     }
 
     // Create blob and download
