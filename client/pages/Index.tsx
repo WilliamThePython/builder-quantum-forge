@@ -29,17 +29,8 @@ export default function Index() {
     setToolMode(mode);
   };
 
-  const handleCleanupSTL = async () => {
-    const result = await cleanupSTL();
-    if (result.success) {
-      // Success message will be shown in console logs
-    } else {
-      addError(result.message);
-    }
-  };
-
-  const handleReducePoints = async (reduction: number) => {
-    const result = await reducePoints(reduction);
+  const handleReducePoints = async (reduction: number, method: 'random' | 'best') => {
+    const result = await reducePoints(reduction, method);
     if (result.success) {
       // Success message will be shown in console logs
     } else {
