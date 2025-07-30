@@ -138,9 +138,11 @@ export default function Index() {
                 <p>🎯 Upload your own STL files</p>
                 <p>⚡ Real-time visualization controls</p>
                 <p>🛠️ Advanced manipulation tools</p>
+                <p>✨ Clean up & reduce STL models</p>
+                <p>🔍 Interactive facet highlighting</p>
               </div>
               <div className="mt-4 md:mt-6 text-xs text-white/40">
-                Use the controls on the left to get started
+                Use the tools panel on the left to manipulate STL models
               </div>
               <div className="mt-3 text-xs text-blue-400">
                 Click anywhere to start exploring →
