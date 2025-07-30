@@ -70,7 +70,6 @@ export default function Index() {
       <STLToolsPanel
         activeToolMode={toolMode}
         onToolModeChange={handleToolModeChange}
-        onCleanupSTL={handleCleanupSTL}
         onReducePoints={handleReducePoints}
         isProcessing={isProcessingTool}
         geometryStats={getGeometryStats()}
