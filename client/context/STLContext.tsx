@@ -47,6 +47,7 @@ interface STLContextType {
   setToolMode: (mode: STLToolMode) => void;
   reducePoints: (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random') => Promise<ToolOperationResult>;
   getGeometryStats: () => any;
+  getDetailedGeometryStats: () => any;
   setHighlightedTriangle: (triangleIndex: number | null) => void;
 }
 
