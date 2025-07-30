@@ -556,7 +556,7 @@ export default function STLWorkflowPanel({
                 {showTriangleSettings && (
                   <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
                     <div className="text-white text-sm font-medium mb-3">
-                      Assembly Kit Settings
+                      Polygon Parts Settings
                     </div>
 
                     {/* Thickness Setting */}
