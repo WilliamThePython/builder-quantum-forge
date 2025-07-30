@@ -503,7 +503,15 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
-                          onReducePoints(reductionAmount, reductionMethod);
+                          // Map new UI method names to existing backend methods
+                          const methodMapping: Record<string, string> = {
+                            'random_vertex': 'random',
+                            'quadric': 'quadric_edge_collapse',
+                            'grid_based': 'vertex_clustering',
+                            'triangle_collapse': 'adaptive'
+                          };
+                          const backendMethod = methodMapping[reductionMethod] || reductionMethod;
+                          onReducePoints(reductionAmount, backendMethod as any);
                         }}
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
                         disabled={isProcessing}
