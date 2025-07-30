@@ -194,19 +194,7 @@ export default function ViewerControls() {
                   </div>
                 </div>
 
-                {geometry && (
-                  <>
-                    <Separator className="bg-white/10" />
-                    <Button
-                      onClick={downloadSTL}
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      size="sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Export STL
-                    </Button>
-                  </>
-                )}
+
               </div>
             </PopoverContent>
           </Popover>
