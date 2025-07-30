@@ -47,19 +47,10 @@ export default function STLToolsPanel({
       activeColor: 'bg-blue-600'
     },
     {
-      id: STLToolMode.Cleanup,
-      name: 'Clean Up STL',
-      icon: Scissors,
-      description: 'Remove duplicate points and clean geometry',
-      color: 'bg-green-500 hover:bg-green-600',
-      activeColor: 'bg-green-600',
-      action: onCleanupSTL
-    },
-    {
       id: STLToolMode.Reduce,
       name: 'Reduce Points',
       icon: Minimize2,
-      description: 'Simplify model by reducing triangle count',
+      description: 'Reduce vertices using random or best methods',
       color: 'bg-orange-500 hover:bg-orange-600',
       activeColor: 'bg-orange-600',
       hasSettings: true
