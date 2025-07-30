@@ -613,6 +613,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return STLManipulator.getGeometryStats(geometry);
   }, [geometry]);
 
+  const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
+    setHighlightedTriangleState(triangleIndex);
+
+    if (triangleIndex !== null && geometry) {
+      const stats = STLManipulator.getTriangleStats(geometry, triangleIndex);
+      setTriangleStats(stats);
+    } else {
+      setTriangleStats(null);
+    }
+  }, [geometry]);
+
   const value: STLContextType = {
     geometry,
     fileName,
