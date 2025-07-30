@@ -11,10 +11,9 @@ function HighlightMesh() {
 }
 
 function STLMesh() {
-  const { geometry, viewerSettings, toolMode } = useSTL();
+  const { geometry, viewerSettings, toolMode, highlightedTriangle, setHighlightedTriangle } = useSTL();
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
-  const [highlightedTriangle, setHighlightedTriangle] = useState<number | null>(null);
 
   // Create materials based on settings
   const material = useMemo(() => {
