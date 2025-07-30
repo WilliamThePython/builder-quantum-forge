@@ -382,6 +382,45 @@ class Analytics {
     return this.getMockHistoricalData(timeRange);
   }
 
+  // Sanitize event data to prevent circular references and remove DOM elements
+  private sanitizeEventData(data: any, seen = new WeakSet()): any {
+    if (data === null || typeof data !== 'object') {
+      return data;
+    }
+
+    // Check for circular references
+    if (seen.has(data)) {
+      return '[Circular Reference]';
+    }
+    seen.add(data);
+
+    // Filter out DOM elements and React Fiber nodes
+    if (data instanceof HTMLElement ||
+        data instanceof Event ||
+        (data && typeof data === 'object' && data.constructor && data.constructor.name === 'FiberNode') ||
+        (data && typeof data === 'object' && data.__reactFiber) ||
+        (data && typeof data === 'object' && data.stateNode)) {
+      return '[DOM Element]';
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.sanitizeEventData(item, seen));
+    }
+
+    const sanitized: any = {};
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        try {
+          sanitized[key] = this.sanitizeEventData(data[key], seen);
+        } catch (error) {
+          sanitized[key] = '[Serialization Error]';
+        }
+      }
+    }
+
+    return sanitized;
+  }
+
   // Get custom analytics data from any endpoint
   async getCustomData(endpoint: string) {
     try {
