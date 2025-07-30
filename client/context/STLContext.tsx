@@ -593,7 +593,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     loadDefaultSTL,
     updateViewerSettings,
     exportSTL,
-    exportTriangles,
+    exportParts,
     clearError,
     clearErrorById,
     addError,
