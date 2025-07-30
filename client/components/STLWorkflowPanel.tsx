@@ -522,15 +522,24 @@ export default function STLWorkflowPanel({
                   Polygon Parts Export
                 </div>
 
-                <Button
-                  onClick={() => handleExportClick('parts')}
-                  disabled={!geometry}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
-                >
-                  <Package className="w-4 h-4 mr-2" />
-                  Export Polygon Parts
-                  <Wrench className="w-3 h-3 ml-2 opacity-70" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleExportClick('parts')}
+                    disabled={!geometry}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    Export Polygon Parts
+                  </Button>
+                  <Button
+                    onClick={() => setShowTriangleSettings(!showTriangleSettings)}
+                    disabled={!geometry}
+                    className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
+                    title="Configure parts settings"
+                  >
+                    <Wrench className="w-4 h-4" />
+                  </Button>
+                </div>
                 <p className="text-xs text-white/60 mt-1">
                   Download individual polygon parts in STL or OBJ format
                 </p>
