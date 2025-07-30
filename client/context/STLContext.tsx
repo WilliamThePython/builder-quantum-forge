@@ -199,195 +199,148 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      // Create hollow shell geometries - all models are shells with no internal geometry
-      const createCleanShell = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
-        // Ensure clean shell by removing duplicate vertices and computing proper normals
-        geometry.deleteAttribute('normal');
-        geometry.computeVertexNormals();
-        geometry.normalizeNormals();
-        return geometry;
-      };
-
+      // Create polygon-based geometries with higher-order faces
       const geometryOptions = [
+        // Cube with 6 quadrilateral faces
         {
-          geometry: createCleanShell(new THREE.BoxGeometry(20, 20, 20)),
-          name: 'cube-shell.stl'
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
+          ),
+          name: 'cube-polygon.stl'
+        },
+
+        // Irregular rectangular prisms with quadrilateral faces
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createBoxWithQuads(
+              5 + Math.random() * 30,   // width: 5-35
+              8 + Math.random() * 20,   // height: 8-28
+              12 + Math.random() * 25   // depth: 12-37
+            )
+          ),
+          name: 'irregular-prism-1.stl'
         },
         {
-          geometry: createCleanShell(new THREE.SphereGeometry(15, 32, 16)),
-          name: 'sphere-shell.stl'
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createBoxWithQuads(
+              15 + Math.random() * 15,  // width: 15-30
+              3 + Math.random() * 40,   // height: 3-43
+              6 + Math.random() * 18    // depth: 6-24
+            )
+          ),
+          name: 'irregular-prism-2.stl'
         },
         {
-          geometry: createCleanShell(new THREE.CylinderGeometry(12, 12, 25, 32)),
-          name: 'cylinder-shell.stl'
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createBoxWithQuads(
+              25 + Math.random() * 10,  // width: 25-35
+              20 + Math.random() * 5,   // height: 20-25
+              2 + Math.random() * 35    // depth: 2-37
+            )
+          ),
+          name: 'irregular-prism-3.stl'
+        },
+
+        // Triangular prisms with triangular ends and rectangular sides
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createTriangularPrism(12, 25)
+          ),
+          name: 'triangular-prism.stl'
         },
         {
-          geometry: createCleanShell(new THREE.TorusGeometry(15, 6, 16, 100)),
-          name: 'torus-shell.stl'
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createTriangularPrism(
+              8 + Math.random() * 12,   // radius: 8-20
+              15 + Math.random() * 20   // height: 15-35
+            )
+          ),
+          name: 'irregular-triangular-prism.stl'
+        },
+
+        // Cylinders with circular ends and rectangular sides
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8)
+          ),
+          name: 'octagonal-cylinder.stl'
         },
         {
-          geometry: createCleanShell(new THREE.ConeGeometry(15, 25, 32)),
-          name: 'cone-shell.stl'
-        },
-        {
-          geometry: createCleanShell(new THREE.OctahedronGeometry(18)),
-          name: 'octahedron-shell.stl'
-        },
-        // Irregular rectangular prism shells
-        {
-          geometry: createCleanShell(new THREE.BoxGeometry(
-            5 + Math.random() * 30,   // width: 5-35
-            8 + Math.random() * 20,   // height: 8-28
-            12 + Math.random() * 25   // depth: 12-37
-          )),
-          name: 'irregular-prism-shell-1.stl'
-        },
-        {
-          geometry: createCleanShell(new THREE.BoxGeometry(
-            15 + Math.random() * 15,  // width: 15-30
-            3 + Math.random() * 40,   // height: 3-43
-            6 + Math.random() * 18    // depth: 6-24
-          )),
-          name: 'irregular-prism-shell-2.stl'
-        },
-        {
-          geometry: createCleanShell(new THREE.BoxGeometry(
-            25 + Math.random() * 10,  // width: 25-35
-            20 + Math.random() * 5,   // height: 20-25
-            2 + Math.random() * 35    // depth: 2-37
-          )),
-          name: 'irregular-prism-shell-3.stl'
-        },
-        // Platonic solid shells
-        {
-          geometry: createCleanShell(new THREE.DodecahedronGeometry(15)),
-          name: 'dodecahedron-shell.stl'
-        },
-        {
-          geometry: createCleanShell(new THREE.IcosahedronGeometry(16)),
-          name: 'icosahedron-shell.stl'
-        },
-        {
-          geometry: createCleanShell(new THREE.TetrahedronGeometry(20)),
-          name: 'tetrahedron-shell.stl'
-        },
-        // Irregular cylinder shell
-        {
-          geometry: (() => {
-            const geom = new THREE.CylinderGeometry(
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCylinderWithPolygons(
               8 + Math.random() * 12,   // top radius: 8-20
               12 + Math.random() * 8,   // bottom radius: 12-20
               15 + Math.random() * 20,  // height: 15-35
-              Math.max(8, 16 + Math.floor(Math.random() * 16)) // segments: 16-32 (min 8 for clean shell)
-            );
-            return createCleanShell(geom);
-          })(),
-          name: 'irregular-cylinder-shell.stl'
+              6 + Math.floor(Math.random() * 10) // segments: 6-16
+            )
+          ),
+          name: 'irregular-cylinder.stl'
         },
-        // Capsule shell
+
+        // Cones with circular base and triangular sides
         {
-          geometry: createCleanShell(new THREE.CapsuleGeometry(8, 20, 4, 8)),
-          name: 'capsule-shell.stl'
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8)
+          ),
+          name: 'octagonal-cone.stl'
         },
-        // Torus shell with random parameters
         {
-          geometry: (() => {
-            const geom = new THREE.TorusGeometry(
-              10 + Math.random() * 15,  // tube radius: 10-25
-              3 + Math.random() * 8,    // tube thickness: 3-11
-              Math.max(8, 8 + Math.floor(Math.random() * 16)), // radial segments: 8-24
-              Math.max(20, 50 + Math.floor(Math.random() * 50))  // tubular segments: 50-100
-            );
-            return createCleanShell(geom);
-          })(),
-          name: 'random-torus-shell.stl'
-        },
-        // Random cone shell
-        {
-          geometry: (() => {
-            const geom = new THREE.ConeGeometry(
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createConeWithPolygons(
               8 + Math.random() * 15,   // radius: 8-23
               20 + Math.random() * 20,  // height: 20-40
-              Math.max(6, 6 + Math.floor(Math.random() * 26)) // segments: 6-32 (min 6)
-            );
-            return createCleanShell(geom);
-          })(),
-          name: 'random-cone-shell.stl'
+              6 + Math.floor(Math.random() * 10) // segments: 6-16
+            )
+          ),
+          name: 'irregular-cone.stl'
         },
-        // Spheroid shell (flattened/stretched sphere)
+
+        // Hexagonal prisms
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 20, 6)
+          ),
+          name: 'hexagonal-prism.stl'
+        },
+
+        // Pentagonal prisms
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 5)
+          ),
+          name: 'pentagonal-prism.stl'
+        },
+
+        // Truncated pyramids (frustums)
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCylinderWithPolygons(
+              5 + Math.random() * 8,    // top radius: 5-13
+              12 + Math.random() * 8,   // bottom radius: 12-20
+              15 + Math.random() * 15,  // height: 15-30
+              4 + Math.floor(Math.random() * 4) // segments: 4-8
+            )
+          ),
+          name: 'truncated-pyramid.stl'
+        },
+
+        // Rotated prisms for variety
         {
           geometry: (() => {
-            const geom = new THREE.SphereGeometry(15, 32, 16);
-            geom.scale(
-              0.5 + Math.random() * 1.5,  // x scale: 0.5-2.0
-              0.3 + Math.random() * 2.0,  // y scale: 0.3-2.3
-              0.7 + Math.random() * 1.0   // z scale: 0.7-1.7
+            const geom = PolygonGeometryBuilder.toBufferGeometry(
+              PolygonGeometryBuilder.createBoxWithQuads(
+                12 + Math.random() * 16,
+                18 + Math.random() * 12,
+                8 + Math.random() * 20
+              )
             );
-            return createCleanShell(geom);
-          })(),
-          name: 'spheroid-shell.stl'
-        },
-        // Rotated box shell (no longer "twisted" - just rotated for clean geometry)
-        {
-          geometry: (() => {
-            const geom = new THREE.BoxGeometry(
-              12 + Math.random() * 16,
-              18 + Math.random() * 12,
-              8 + Math.random() * 20
-            );
-            // Apply rotation to make it oriented differently
+            // Apply rotation
             geom.rotateX((Math.random() - 0.5) * Math.PI * 0.25);
             geom.rotateY((Math.random() - 0.5) * Math.PI * 0.25);
             geom.rotateZ((Math.random() - 0.5) * Math.PI * 0.25);
-            return createCleanShell(geom);
+            return geom;
           })(),
-          name: 'rotated-prism-shell.stl'
-        },
-        // Ring geometry (hollow donut-like shell)
-        {
-          geometry: (() => {
-            const geom = new THREE.RingGeometry(
-              8 + Math.random() * 10,   // inner radius: 8-18
-              15 + Math.random() * 10,  // outer radius: 15-25
-              Math.max(8, 8 + Math.floor(Math.random() * 24)) // segments: 8-32
-            );
-            return createCleanShell(geom);
-          })(),
-          name: 'ring-shell.stl'
-        },
-        // Plane-based shell (thin rectangular shell)
-        {
-          geometry: (() => {
-            const geom = new THREE.PlaneGeometry(
-              20 + Math.random() * 15,  // width: 20-35
-              15 + Math.random() * 10   // height: 15-25
-            );
-            // Make it slightly 3D by extruding a tiny bit
-            const positions = geom.attributes.position.array;
-            for (let i = 2; i < positions.length; i += 3) {
-              positions[i] += (Math.random() - 0.5) * 0.5; // tiny z variation
-            }
-            geom.attributes.position.needsUpdate = true;
-            return createCleanShell(geom);
-          })(),
-          name: 'thin-shell.stl'
-        },
-        // Wedge shell
-        {
-          geometry: (() => {
-            const geom = new THREE.CylinderGeometry(
-              0,                        // top radius: 0 (point)
-              12 + Math.random() * 8,   // bottom radius: 12-20
-              15 + Math.random() * 15,  // height: 15-30
-              Math.max(6, 6 + Math.floor(Math.random() * 10)), // segments: 6-16
-              1,                        // height segments
-              false,                    // open ended
-              0,                        // theta start
-              Math.PI + Math.random() * Math.PI // theta length: π to 2π (wedge)
-            );
-            return createCleanShell(geom);
-          })(),
-          name: 'wedge-shell.stl'
+          name: 'rotated-prism.stl'
         }
       ];
 
