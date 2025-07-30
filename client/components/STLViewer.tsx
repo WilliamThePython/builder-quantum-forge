@@ -78,17 +78,53 @@ function STLMesh() {
     // Reset all colors to original
     colors.set(originalColors.current);
 
-    // Highlight triangle in bright red
+    // Highlight polygon face in bright red
     if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
-      const triangleStart = highlightedTriangle * 9; // 3 vertices * 3 color components
+      const polygonFaces = (geometry as any).polygonFaces;
 
-      for (let i = 0; i < 9; i += 3) {
-        const idx = triangleStart + i;
-        if (idx < colors.length) {
-          // Set to bright red color
-          colors[idx] = 1.0;     // Red
-          colors[idx + 1] = 0.0; // Green
-          colors[idx + 2] = 0.0; // Blue
+      if (polygonFaces && Array.isArray(polygonFaces) && highlightedTriangle < polygonFaces.length) {
+        // Polygon-based highlighting: highlight entire polygon face
+        let triangleOffset = 0;
+
+        // Calculate which triangles belong to this polygon face
+        for (let faceIndex = 0; faceIndex < highlightedTriangle; faceIndex++) {
+          const face = polygonFaces[faceIndex];
+          triangleOffset += STLManipulator.getTriangleCountForPolygon ?
+            (STLManipulator as any).getTriangleCountForPolygon(face) :
+            this.getTriangleCountForPolygon(face);
+        }
+
+        const currentFace = polygonFaces[highlightedTriangle];
+        const triangleCount = STLManipulator.getTriangleCountForPolygon ?
+          (STLManipulator as any).getTriangleCountForPolygon(currentFace) :
+          this.getTriangleCountForPolygon(currentFace);
+
+        // Highlight all triangles in this polygon face
+        for (let t = 0; t < triangleCount; t++) {
+          const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
+
+          for (let i = 0; i < 9; i += 3) {
+            const idx = triangleStart + i;
+            if (idx < colors.length) {
+              // Set to bright red color
+              colors[idx] = 1.0;     // Red
+              colors[idx + 1] = 0.0; // Green
+              colors[idx + 2] = 0.0; // Blue
+            }
+          }
+        }
+      } else {
+        // Fallback: single triangle highlighting for non-polygon geometries
+        const triangleStart = highlightedTriangle * 9; // 3 vertices * 3 color components
+
+        for (let i = 0; i < 9; i += 3) {
+          const idx = triangleStart + i;
+          if (idx < colors.length) {
+            // Set to bright red color
+            colors[idx] = 1.0;     // Red
+            colors[idx + 1] = 0.0; // Green
+            colors[idx + 2] = 0.0; // Blue
+          }
         }
       }
     }
