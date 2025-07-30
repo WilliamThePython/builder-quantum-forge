@@ -320,9 +320,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [geometry, fileName]);
 
   const exportTriangles = useCallback(async (options: {
-    triangleThickness?: number;
+    partThickness?: number;
     scale?: number;
-    addTabs?: boolean;
   } = {}) => {
     if (!geometry) {
       addError('No model available for triangle export');
