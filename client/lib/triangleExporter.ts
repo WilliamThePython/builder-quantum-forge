@@ -33,17 +33,52 @@ export class TriangleExporter {
 
     // Create zip file
     const zip = new JSZip();
-    
+
     // Get triangle data
     const positions = geometry.attributes.position;
     const triangleCount = Math.floor(positions.count / 3);
-    
+
     console.log(`Processing ${triangleCount} triangles...`);
+
+    // Track part information for Excel database
+    const partDatabase: any[] = [];
 
     // Create individual STL files for each triangle
     for (let i = 0; i < triangleCount; i++) {
       const triangleSTL = this.createTriangleSTL(geometry, i, partThickness, scale);
       const triangleFilename = `part_${String(i + 1).padStart(4, '0')}.stl`;
+
+      // Calculate part geometry and metrics
+      const partInfo = this.calculatePartInfo(geometry, i, partThickness, scale);
+      partDatabase.push({
+        'Part Number': `part_${String(i + 1).padStart(4, '0')}`,
+        'File Name': triangleFilename,
+        'Triangle Index': i + 1,
+        'Thickness (mm)': partThickness,
+        'Scale Factor': scale,
+        'Area (mm²)': partInfo.area.toFixed(2),
+        'Perimeter (mm)': partInfo.perimeter.toFixed(2),
+        'Volume (mm³)': partInfo.volume.toFixed(2),
+        'Centroid X (mm)': partInfo.centroid.x.toFixed(3),
+        'Centroid Y (mm)': partInfo.centroid.y.toFixed(3),
+        'Centroid Z (mm)': partInfo.centroid.z.toFixed(3),
+        'Normal Vector X': partInfo.normal.x.toFixed(6),
+        'Normal Vector Y': partInfo.normal.y.toFixed(6),
+        'Normal Vector Z': partInfo.normal.z.toFixed(6),
+        'Min X (mm)': partInfo.bounds.min.x.toFixed(3),
+        'Min Y (mm)': partInfo.bounds.min.y.toFixed(3),
+        'Min Z (mm)': partInfo.bounds.min.z.toFixed(3),
+        'Max X (mm)': partInfo.bounds.max.x.toFixed(3),
+        'Max Y (mm)': partInfo.bounds.max.y.toFixed(3),
+        'Max Z (mm)': partInfo.bounds.max.z.toFixed(3),
+        'Width (mm)': partInfo.dimensions.width.toFixed(3),
+        'Height (mm)': partInfo.dimensions.height.toFixed(3),
+        'Depth (mm)': partInfo.dimensions.depth.toFixed(3),
+        'Estimated Print Time (min)': partInfo.printTime.toFixed(1),
+        'Estimated Material (g)': partInfo.material.toFixed(2),
+        'Surface Area (mm²)': partInfo.surfaceArea.toFixed(2),
+        'Complexity Score': partInfo.complexity.toFixed(2)
+      });
 
       // Add to zip
       zip.file(triangleFilename, triangleSTL);
@@ -53,6 +88,11 @@ export class TriangleExporter {
         console.log(`Processed triangle part ${i + 1}/${triangleCount}`);
       }
     }
+
+    // Generate Excel file with part database
+    console.log('Generating parts database...');
+    const excelBuffer = this.generatePartsDatabase(partDatabase, { ...options, partThickness });
+    zip.file('parts_database.xlsx', excelBuffer);
 
     // Add assembly instructions
     const instructions = this.generateAssemblyInstructions(triangleCount, { ...options, partThickness });
