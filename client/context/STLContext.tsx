@@ -88,6 +88,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.None);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
 
+  // Highlighting state
+  const [highlightedTriangle, setHighlightedTriangleState] = useState<number | null>(null);
+  const [triangleStats, setTriangleStats] = useState<any>(null);
+
   const loadSTLFromFile = useCallback(async (file: File) => {
     console.log('loadSTLFromFile called with:', file.name);
     setIsLoading(true);
