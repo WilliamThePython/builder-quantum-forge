@@ -278,7 +278,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
-      console.log('Starting STL export...', {
+      console.log('Starting standard STL export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -290,10 +290,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.stl') : 'exported_model.stl');
 
       console.log('Calling exportCurrentSTL with filename:', exportFilename);
+      console.log('Geometry details:', {
+        vertices: geometry.attributes.position.count,
+        hasNormals: !!geometry.attributes.normal,
+        boundingBox: geometry.boundingBox
+      });
 
       exportCurrentSTL(geometry, exportFilename);
 
-      console.log('STL export completed successfully');
+      console.log('Standard STL export completed successfully');
 
       // Track export event
       try {
