@@ -79,27 +79,17 @@ function STLMesh() {
     // Reset all colors to original
     colors.set(originalColors.current);
 
-    // Brighten highlighted triangle
+    // Highlight triangle in bright red
     if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
       const triangleStart = highlightedTriangle * 9; // 3 vertices * 3 color components
 
       for (let i = 0; i < 9; i += 3) {
         const idx = triangleStart + i;
         if (idx < colors.length) {
-          // Brighten the color by increasing lightness
-          const color = new THREE.Color(colors[idx], colors[idx + 1], colors[idx + 2]);
-          const hsl = { h: 0, s: 0, l: 0 };
-          color.getHSL(hsl);
-
-          // Make it much brighter
-          hsl.l = Math.min(1.0, hsl.l + 0.4);
-          hsl.s = Math.min(1.0, hsl.s + 0.3);
-
-          color.setHSL(hsl.h, hsl.s, hsl.l);
-
-          colors[idx] = color.r;
-          colors[idx + 1] = color.g;
-          colors[idx + 2] = color.b;
+          // Set to bright red color
+          colors[idx] = 1.0;     // Red
+          colors[idx + 1] = 0.0; // Green
+          colors[idx + 2] = 0.0; // Blue
         }
       }
     }
