@@ -356,9 +356,13 @@ export default function STLWorkflowPanel({
 
               {/* Reduction Settings */}
               <div className="p-4 bg-white/10 rounded-lg border border-white/20">
-                    <div className="text-white text-sm font-medium mb-3">
+                  <div className="text-white text-sm font-medium mb-2">
                       Model Reduction Settings
-                    </div>
+                  </div>
+                  <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
+                    🎯 <span className="font-medium">Goal:</span> Reduce complexity while preserving shape & topology.
+                    Uses vertex/triangle manipulation with automatic mesh repair.
+                  </div>
 
                     {/* Method Selection */}
                     <div className="mb-4">
