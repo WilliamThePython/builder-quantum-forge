@@ -16,6 +16,11 @@ interface STLToolsPanelProps {
     vertices: number;
     triangles: number;
   } | null;
+  // Visualization controls
+  randomColors: boolean;
+  wireframe: boolean;
+  onRandomColorsChange: (checked: boolean) => void;
+  onWireframeChange: (checked: boolean) => void;
 }
 
 export default function STLToolsPanel({
