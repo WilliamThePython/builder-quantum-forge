@@ -96,6 +96,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
+  // Dual format support state
+  const [processedModel, setProcessedModel] = useState<ProcessedModel | null>(null);
+  const [originalFormat, setOriginalFormat] = useState<'stl' | 'obj' | null>(null);
+  const [objString, setObjString] = useState<string | null>(null);
+  const [cleanupResults, setCleanupResults] = useState<any | null>(null);
+
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
