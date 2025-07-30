@@ -319,6 +319,57 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry, fileName]);
 
+  const exportTriangles = useCallback(async (options: {
+    triangleThickness?: number;
+    scale?: number;
+    addTabs?: boolean;
+  } = {}) => {
+    if (!geometry) {
+      addError('No model available for triangle export');
+      return;
+    }
+
+    try {
+      console.log('Starting triangle export...', {
+        fileName,
+        hasGeometry: !!geometry,
+        triangleCount: Math.floor(geometry.attributes.position.count / 3)
+      });
+
+      const exportFilename = fileName
+        ? fileName.replace(/\.[^/.]+$/, '_triangle_pieces.zip')
+        : 'triangle_pieces.zip';
+
+      await TriangleExporter.exportTrianglesAsZip(geometry, exportFilename, options);
+
+      console.log('Triangle export completed successfully');
+
+      // Track export event
+      try {
+        const stats = TriangleExporter.getExportStats(geometry);
+        analytics.trackEvent({
+          event_name: 'triangle_export',
+          event_category: '3d_interaction',
+          event_label: exportFilename,
+          custom_parameters: {
+            original_filename: fileName,
+            export_filename: exportFilename,
+            triangle_count: stats.triangleCount,
+            estimated_print_time: stats.estimatedPrintTime,
+            export_options: options
+          }
+        });
+      } catch (analyticsError) {
+        console.warn('Failed to track triangle export event:', analyticsError);
+      }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to export triangles';
+      addError(`Triangle export failed: ${errorMessage}`);
+      console.error('Triangle export error details:', error);
+    }
+  }, [geometry, fileName]);
+
   // STL Tool Methods
   const reducePoints = useCallback(async (reductionAmount: number, method: 'random' | 'best' = 'random'): Promise<ToolOperationResult> => {
     if (!geometry) {
