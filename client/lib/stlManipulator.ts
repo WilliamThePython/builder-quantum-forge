@@ -67,60 +67,7 @@ export class STLManipulator {
     };
   }
 
-  /**
-   * Random vertex reduction method
-   */
-  private static reducePointsRandom(originalCount: number, targetCount: number): number[] {
-    const indices = Array.from({ length: originalCount }, (_, i) => i);
 
-    // Shuffle and take first targetCount vertices
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-
-    return indices.slice(0, targetCount).sort((a, b) => a - b);
-  }
-
-  /**
-   * Best vertex reduction method - removes vertices that lie closely flat to the plane
-   */
-  private static reducePointsBest(geometry: THREE.BufferGeometry, targetCount: number): number[] {
-    const positions = geometry.attributes.position;
-    const vertexCount = positions.count;
-
-    // Calculate flatness score for each vertex
-    const flatnessScores: { index: number; score: number }[] = [];
-
-    for (let i = 0; i < vertexCount; i += 3) {
-      // For each triangle, calculate how flat it is
-      if (i + 2 < vertexCount) {
-        const v1 = new THREE.Vector3(positions.getX(i), positions.getY(i), positions.getZ(i));
-        const v2 = new THREE.Vector3(positions.getX(i + 1), positions.getY(i + 1), positions.getZ(i + 1));
-        const v3 = new THREE.Vector3(positions.getX(i + 2), positions.getY(i + 2), positions.getZ(i + 2));
-
-        // Calculate triangle area (smaller area = flatter)
-        const edge1 = v2.clone().sub(v1);
-        const edge2 = v3.clone().sub(v1);
-        const crossProduct = edge1.cross(edge2);
-        const area = crossProduct.length() / 2;
-
-        // Smaller area = higher chance of removal (lower score = removed first)
-        flatnessScores.push(
-          { index: i, score: area },
-          { index: i + 1, score: area },
-          { index: i + 2, score: area }
-        );
-      }
-    }
-
-    // Sort by flatness score (lowest first - these will be removed)
-    flatnessScores.sort((a, b) => a.score - b.score);
-
-    // Keep the vertices with highest scores (most important for shape)
-    const toKeep = flatnessScores.slice(-targetCount).map(item => item.index);
-    return toKeep.sort((a, b) => a - b);
-  }
   
 
   
