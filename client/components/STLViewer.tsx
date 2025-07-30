@@ -6,20 +6,8 @@ import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
 
 function HighlightMesh() {
-  const { highlightGeometry } = useSTL();
-
-  if (!highlightGeometry) return null;
-
-  const highlightMaterial = new THREE.MeshBasicMaterial({
-    color: 0xff4444,
-    transparent: true,
-    opacity: 0.7,
-    side: THREE.DoubleSide
-  });
-
-  return (
-    <mesh geometry={highlightGeometry} material={highlightMaterial} />
-  );
+  // No longer needed - highlighting is handled in the main mesh
+  return null;
 }
 
 function STLMesh() {
