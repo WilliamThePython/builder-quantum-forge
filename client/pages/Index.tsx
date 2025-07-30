@@ -18,6 +18,37 @@ export default function Index() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const { user, isAuthenticated } = useAuth();
+  const {
+    toolMode,
+    setToolMode,
+    cleanupSTL,
+    reducePoints,
+    isProcessingTool,
+    getGeometryStats,
+    addError
+  } = useSTL();
+
+  const handleToolModeChange = (mode: STLToolMode) => {
+    setToolMode(mode);
+  };
+
+  const handleCleanupSTL = async () => {
+    const result = await cleanupSTL();
+    if (result.success) {
+      // Success message will be shown in console logs
+    } else {
+      addError(result.message);
+    }
+  };
+
+  const handleReducePoints = async (reduction: number) => {
+    const result = await reducePoints(reduction);
+    if (result.success) {
+      // Success message will be shown in console logs
+    } else {
+      addError(result.message);
+    }
+  };
   return (
     // <AdManager page="home">
       <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
