@@ -663,6 +663,53 @@ export default function STLWorkflowPanel({
         )}
       </div>
 
+      {/* Export Format Selection Dialog */}
+      {showExportFormatDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-black/90 backdrop-blur-md border border-white/20 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-white text-lg font-semibold mb-4 text-center">
+              Choose Export Format
+            </h3>
+            <p className="text-white/70 text-sm mb-6 text-center">
+              {exportType === 'complete'
+                ? 'Select format for complete model export:'
+                : 'Select format for polygon parts export:'}
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleFormatSelection('stl')}
+                className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <Download className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">STL Format</div>
+                  <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleFormatSelection('obj')}
+                className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <Package className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">OBJ Format</div>
+                  <div className="text-sm text-blue-100">Better topology for editing and groups</div>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowExportFormatDialog(false)}
+              className="w-full mt-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
