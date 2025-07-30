@@ -245,29 +245,35 @@ Visit: [Your Platform URL]
   }
 
   /**
-   * Get export statistics
+   * Get export statistics based on part thickness
    */
-  static getExportStats(geometry: THREE.BufferGeometry): {
+  static getExportStats(geometry: THREE.BufferGeometry, partThickness: number = 2): {
     triangleCount: number;
     estimatedPrintTime: string;
     estimatedMaterial: string;
     estimatedAssemblyTime: string;
   } {
     const triangleCount = Math.floor(geometry.attributes.position.count / 3);
-    
-    // Rough estimates based on triangle count
-    const printTimePerTriangle = 15; // minutes per triangle
+
+    // Calculate estimates based on part thickness
+    // Base time is 10 minutes per triangle at 2mm thickness
+    const baseTimePerTriangle = 10; // minutes per triangle at 2mm
+    const thicknessMultiplier = partThickness / 2; // scale with thickness
+    const printTimePerTriangle = baseTimePerTriangle * thicknessMultiplier;
     const totalPrintMinutes = triangleCount * printTimePerTriangle;
     const printHours = Math.floor(totalPrintMinutes / 60);
     const printMinutes = totalPrintMinutes % 60;
-    
-    const materialPerTriangle = 2; // grams per triangle
-    const totalMaterial = triangleCount * materialPerTriangle;
-    
+
+    // Base material is 1.5g per triangle at 2mm thickness
+    const baseMaterialPerTriangle = 1.5; // grams per triangle at 2mm
+    const materialPerTriangle = baseMaterialPerTriangle * thicknessMultiplier;
+    const totalMaterial = Math.round(triangleCount * materialPerTriangle);
+
+    // Assembly time doesn't change with thickness
     const assemblyTimeMinutes = triangleCount * 3; // 3 minutes per triangle to assemble
     const assemblyHours = Math.floor(assemblyTimeMinutes / 60);
     const assemblyMins = assemblyTimeMinutes % 60;
-    
+
     return {
       triangleCount,
       estimatedPrintTime: `${printHours}h ${printMinutes}m`,
