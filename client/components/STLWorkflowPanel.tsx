@@ -357,59 +357,59 @@ export default function STLWorkflowPanel({
               {/* Reduction Settings */}
               <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                     <div className="text-white text-sm font-medium mb-3">
-                      Reduction Settings
+                      Model Reduction Settings
                     </div>
-                    
+
                     {/* Method Selection */}
-                    <div className="mb-3">
-                      <div className="text-white text-xs mb-2">Simplification Algorithm</div>
+                    <div className="mb-4">
+                      <div className="text-white text-xs mb-2">Simplification Method</div>
                       <div className="grid grid-cols-2 gap-1">
                         <Button
-                          onClick={() => setReductionMethod('adaptive')}
-                          className={`text-xs py-1 px-2 h-7 ${
-                            reductionMethod === 'adaptive'
+                          onClick={() => setReductionMethod('random_vertex')}
+                          className={`text-xs py-1 px-2 h-8 ${
+                            reductionMethod === 'random_vertex'
                               ? 'bg-orange-500 text-white'
                               : 'bg-white/20 hover:bg-white/30 text-white/80'
                           }`}
                         >
-                          Adaptive
+                          Random Vertex
                         </Button>
                         <Button
-                          onClick={() => setReductionMethod('quadric_edge_collapse')}
-                          className={`text-xs py-1 px-2 h-7 ${
-                            reductionMethod === 'quadric_edge_collapse'
+                          onClick={() => setReductionMethod('quadric')}
+                          className={`text-xs py-1 px-2 h-8 ${
+                            reductionMethod === 'quadric'
                               ? 'bg-orange-500 text-white'
                               : 'bg-white/20 hover:bg-white/30 text-white/80'
                           }`}
                         >
-                          Quadric
+                          Quadric ⭐
                         </Button>
                         <Button
-                          onClick={() => setReductionMethod('vertex_clustering')}
-                          className={`text-xs py-1 px-2 h-7 ${
-                            reductionMethod === 'vertex_clustering'
+                          onClick={() => setReductionMethod('grid_based')}
+                          className={`text-xs py-1 px-2 h-8 ${
+                            reductionMethod === 'grid_based'
                               ? 'bg-orange-500 text-white'
                               : 'bg-white/20 hover:bg-white/30 text-white/80'
                           }`}
                         >
-                          Clustering
+                          Grid-Based
                         </Button>
                         <Button
-                          onClick={() => setReductionMethod('random')}
-                          className={`text-xs py-1 px-2 h-7 ${
-                            reductionMethod === 'random'
+                          onClick={() => setReductionMethod('triangle_collapse')}
+                          className={`text-xs py-1 px-2 h-8 ${
+                            reductionMethod === 'triangle_collapse'
                               ? 'bg-orange-500 text-white'
                               : 'bg-white/20 hover:bg-white/30 text-white/80'
                           }`}
                         >
-                          Random
+                          Triangle Collapse
                         </Button>
                       </div>
-                      <div className="text-xs text-white/60 mt-1">
-                        {reductionMethod === 'adaptive' && 'Smart algorithm selection based on mesh complexity'}
-                        {reductionMethod === 'quadric_edge_collapse' && 'Industry-standard edge collapse with error minimization'}
-                        {reductionMethod === 'vertex_clustering' && 'Groups vertices spatially for fast reduction'}
-                        {reductionMethod === 'random' && 'Simple random vertex removal (fastest)'}
+                      <div className="text-xs text-white/60 mt-2 bg-white/5 rounded p-2">
+                        {reductionMethod === 'random_vertex' && '🧪 Experimental: Fast vertex removal with reconnection. Good for high-poly models.'}
+                        {reductionMethod === 'quadric' && '✅ Recommended: Shape-preserving decimation with minimal distortion. Best quality.'}
+                        {reductionMethod === 'grid_based' && '🧱 Voxel simplification. Works well for mechanical/architectural parts.'}
+                        {reductionMethod === 'triangle_collapse' && '🧩 Collapses triangles by curvature. Stable for medium-quality reductions.'}
                       </div>
                     </div>
 
