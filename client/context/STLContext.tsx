@@ -451,7 +451,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry, fileName]);
 
-  const exportTriangles = useCallback(async (options: {
+  const exportParts = useCallback(async (options: {
     partThickness?: number;
     scale?: number;
   } = {}) => {
