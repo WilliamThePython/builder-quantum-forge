@@ -206,7 +206,7 @@ ASSEMBLY TIPS:
 5. Work in small sections and allow adhesive to cure
 
 PIECE NAMING:
-- triangle_0001.stl through triangle_${String(triangleCount).padStart(4, '0')}.stl
+- part_0001.stl through part_${String(triangleCount).padStart(4, '0')}.stl
 - Numbers correspond to original triangle order in the model
 
 SAFETY:
