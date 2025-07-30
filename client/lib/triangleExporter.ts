@@ -76,8 +76,7 @@ export class TriangleExporter {
     originalGeometry: THREE.BufferGeometry,
     triangleIndex: number,
     thickness: number,
-    scale: number,
-    addTabs: boolean
+    scale: number
   ): string {
     const positions = originalGeometry.attributes.position;
     const i3 = triangleIndex * 3;
