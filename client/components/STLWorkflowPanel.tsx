@@ -323,25 +323,8 @@ export default function STLWorkflowPanel({
             <div className="mt-4 space-y-3">
 
 
-              {/* Reduce Points */}
-              <div>
-                <Button
-                  onClick={() => setShowToolSettings(!showToolSettings)}
-                  className="w-full justify-start text-left p-4 h-auto bg-orange-500 hover:bg-orange-600 text-white border-0 transition-all duration-200"
-                >
-                  <Minimize2 className="w-4 h-4 mr-3 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">Reduce Points</div>
-                    <div className="text-xs text-white/80 mt-1">
-                      Reduce vertices using random or best methods
-                    </div>
-                  </div>
-                  <Settings className="w-3 h-3 ml-2 opacity-70" />
-                </Button>
-
-                {/* Reduction Settings */}
-                {showToolSettings && (
-                  <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
+              {/* Reduction Settings */}
+              <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                     <div className="text-white text-sm font-medium mb-3">
                       Reduction Settings
                     </div>
@@ -461,10 +444,7 @@ export default function STLWorkflowPanel({
                       </Button>
 
                     </div>
-                  </div>
-                )}
               </div>
-
 
             </div>
           )}
