@@ -69,7 +69,7 @@ export default function STLWorkflowPanel({
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [showToolSettings, setShowToolSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
-  const [reductionMethod, setReductionMethod] = useState<'random' | 'best'>('random');
+  const [reductionMethod, setReductionMethod] = useState<'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random'>('adaptive');
   const [expandedSections, setExpandedSections] = useState({
     upload: true,
     visualization: true,
