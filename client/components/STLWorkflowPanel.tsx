@@ -200,12 +200,27 @@ export default function STLWorkflowPanel({
                     <Info className="w-4 h-4 text-blue-400" />
                     <span className="font-medium text-white text-sm">{fileName}</span>
                   </div>
-                  {geometryStats && (
-                    <div className="text-xs text-white/70 space-y-1">
-                      <div>Vertices: {geometryStats.vertices.toLocaleString()}</div>
-                      <div>Triangles: {geometryStats.triangles.toLocaleString()}</div>
-                    </div>
-                  )}
+                  {(() => {
+                    const detailedStats = getDetailedGeometryStats();
+                    if (!detailedStats) return null;
+
+                    return (
+                      <div className="text-xs text-white/70 space-y-1">
+                        <div>Vertices: {detailedStats.vertices.toLocaleString()}</div>
+                        <div>Edges: {detailedStats.edges.toLocaleString()}</div>
+                        {detailedStats.polygonBreakdown.map(({ type, count }) => (
+                          <div key={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}s: {count.toLocaleString()}
+                          </div>
+                        ))}
+                        {detailedStats.hasPolygonData && (
+                          <div className="text-xs text-white/50 mt-1 italic">
+                            Type: {detailedStats.geometryType}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
