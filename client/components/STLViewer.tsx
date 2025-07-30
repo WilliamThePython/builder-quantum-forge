@@ -178,6 +178,7 @@ function Scene() {
       <directionalLight position={[-10, -10, -5]} intensity={0.5} />
 
       <STLMesh />
+      <HighlightMesh />
 
       <OrbitControls
         enablePan={true}
