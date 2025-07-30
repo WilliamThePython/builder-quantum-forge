@@ -28,6 +28,10 @@ interface STLContextType {
   toolMode: STLToolMode;
   isProcessingTool: boolean;
 
+  // Highlighting
+  highlightedTriangle: number | null;
+  triangleStats: any;
+
   loadSTLFromFile: (file: File) => Promise<void>;
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
@@ -41,6 +45,7 @@ interface STLContextType {
   setToolMode: (mode: STLToolMode) => void;
   reducePoints: (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random') => Promise<ToolOperationResult>;
   getGeometryStats: () => any;
+  setHighlightedTriangle: (triangleIndex: number | null) => void;
 }
 
 const defaultViewerSettings: ViewerSettings = {
