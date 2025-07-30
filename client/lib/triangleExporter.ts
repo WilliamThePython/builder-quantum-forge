@@ -193,7 +193,7 @@ This kit contains ${triangleCount} individual triangle pieces that can be assemb
 to recreate the original 3D model.
 
 PIECE SPECIFICATIONS:
-- Triangle thickness: ${options.triangleThickness || 2}mm
+- Part thickness: ${options.partThickness || 2}mm
 - Material recommended: PLA or PETG plastic
 - Infill: 20-30% for structural strength
 - Layer height: 0.2mm recommended
