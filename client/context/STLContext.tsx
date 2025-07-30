@@ -333,7 +333,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const originalStats = STLManipulator.getGeometryStats(geometry);
       console.log('Starting point reduction...', originalStats);
 
-      const reducedGeometry = STLManipulator.reducePoints(geometry, reductionAmount);
+      const reducedGeometry = STLManipulator.reducePoints(geometry, reductionAmount, method);
       const newStats = STLManipulator.getGeometryStats(reducedGeometry);
 
       // Update the geometry
