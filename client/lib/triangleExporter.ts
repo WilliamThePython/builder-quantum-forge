@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import JSZip from 'jszip';
+import * as XLSX from 'xlsx';
 
 /**
  * Triangle-by-triangle STL exporter for real-world building
