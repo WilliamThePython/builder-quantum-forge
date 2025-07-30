@@ -84,33 +84,15 @@ export default function Index() {
 
       {/* Top Right Navigation */}
       <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50 flex gap-3">
-        {!isAuthenticated ? (
-          <>
-            <Button
-              onClick={() => {
-                setAuthMode('signin');
-                setShowAuthModal(true);
-              }}
-              className="bg-white/90 hover:bg-white text-black font-semibold hover:shadow-lg transition-all duration-200 border border-gray-300"
-              size="sm"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
-
-            <Button
-              onClick={() => {
-                setAuthMode('signup');
-                setShowAuthModal(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold hover:shadow-lg transition-all duration-200"
-              size="sm"
-            >
-              Sign Up
-            </Button>
-          </>
-        ) : (
-          <UserProfile />
+        {geometry && (
+          <Button
+            onClick={exportSTL}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold hover:shadow-lg transition-all duration-200"
+            size="sm"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export STL
+          </Button>
         )}
 
         <Link to="/about">
