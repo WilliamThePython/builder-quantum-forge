@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { analytics } from '../lib/analytics';
 import { STLManipulator, STLToolMode, ToolOperationResult } from '../lib/stlManipulator';
+import { TriangleExporter } from '../lib/triangleExporter';
 
 interface ViewerSettings {
   randomColors: boolean;
