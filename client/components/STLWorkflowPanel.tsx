@@ -77,6 +77,14 @@ export default function STLWorkflowPanel({
     export: true
   });
 
+  // Triangle export settings
+  const [showTriangleSettings, setShowTriangleSettings] = useState(false);
+  const [triangleOptions, setTriangleOptions] = useState({
+    triangleThickness: 2,
+    scale: 1,
+    addTabs: true
+  });
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
