@@ -641,7 +641,7 @@ export default function STLWorkflowPanel({
                     <div className="flex gap-2">
                       <Button
                         onClick={() => {
-                          exportTriangles(triangleOptions);
+                          exportParts(triangleOptions);
                           setShowTriangleSettings(false);
                         }}
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 h-8"
