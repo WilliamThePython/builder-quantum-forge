@@ -223,15 +223,20 @@ export class TriangleExporter {
    */
   private static generateAssemblyInstructions(triangleCount: number, options: any): string {
     const date = new Date().toLocaleDateString();
-    
+
     return `STL Triangle Assembly Kit
 Generated: ${date}
 
 ASSEMBLY INSTRUCTIONS:
 =====================
 
-This kit contains ${triangleCount} individual triangle pieces that can be assembled 
+This kit contains ${triangleCount} individual triangle pieces that can be assembled
 to recreate the original 3D model.
+
+INCLUDED FILES:
+- ${triangleCount} individual STL files (part_0001.stl through part_${String(triangleCount).padStart(4, '0')}.stl)
+- parts_database.xlsx - Comprehensive database with detailed part specifications
+- assembly_instructions.txt - This file
 
 PIECE SPECIFICATIONS:
 - Part thickness: ${options.partThickness || 2}mm
@@ -239,16 +244,27 @@ PIECE SPECIFICATIONS:
 - Infill: 20-30% for structural strength
 - Layer height: 0.2mm recommended
 
+PARTS DATABASE:
+The included Excel file (parts_database.xlsx) contains detailed information for each part:
+- Part numbers and file names
+- Geometric properties (area, volume, dimensions)
+- Position data (centroids, bounding boxes)
+- Print estimates (time, material usage)
+- Complexity scores for planning assembly order
+
 ASSEMBLY TIPS:
-1. Sort pieces by size before starting
-2. Use strong adhesive (CA glue or epoxy) for permanent assembly
-3. For temporary assembly, consider small magnets or clips
-4. Test fit pieces before applying adhesive
-5. Work in small sections and allow adhesive to cure
+1. Review the parts database to understand piece sizes and complexity
+2. Sort pieces by complexity score or size before starting
+3. Use strong adhesive (CA glue or epoxy) for permanent assembly
+4. For temporary assembly, consider small magnets or clips
+5. Test fit pieces before applying adhesive
+6. Work in small sections and allow adhesive to cure
+7. Use the centroid coordinates to help with piece positioning
 
 PIECE NAMING:
 - part_0001.stl through part_${String(triangleCount).padStart(4, '0')}.stl
 - Numbers correspond to original triangle order in the model
+- File names align with "Part Number" column in Excel database
 
 SAFETY:
 - Use appropriate ventilation when working with adhesives
@@ -259,6 +275,7 @@ TROUBLESHOOTING:
 - If pieces don't fit perfectly, light sanding may be needed
 - Check your 3D printer calibration if multiple pieces are oversized
 - For gaps, consider using filler material or adjusting print settings
+- Refer to the statistics sheet in Excel for part size variations
 
 Happy building!
 
