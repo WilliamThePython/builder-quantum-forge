@@ -490,17 +490,23 @@ export default function STLWorkflowPanel({
                       </div>
                     )}
 
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
                       <Button
                         onClick={() => {
                           onReducePoints(reductionAmount, reductionMethod);
                         }}
-                        className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-8"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
                         disabled={isProcessing}
                       >
-                        Apply Simplification
+                        🔧 Apply Model Reduction
                       </Button>
 
+                      <div className="text-xs text-white/60 bg-blue-500/10 border border-blue-500/20 rounded p-2">
+                        <div className="font-medium text-blue-200 mb-1">📋 Process:</div>
+                        <div>• Uses .OBJ format for better topology preservation</div>
+                        <div>• Includes automatic mesh stitching & cleanup</div>
+                        <div>• Validates manifold geometry post-reduction</div>
+                      </div>
                     </div>
               </div>
 
