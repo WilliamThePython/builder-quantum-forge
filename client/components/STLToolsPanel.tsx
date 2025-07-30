@@ -42,7 +42,7 @@ export default function STLToolsPanel({
       id: STLToolMode.Highlight,
       name: 'Highlight Facet',
       icon: MousePointer,
-      description: 'Hover over model to highlight triangles',
+      description: 'Hover over model to highlight polygon faces',
       color: 'bg-blue-500 hover:bg-blue-600',
       activeColor: 'bg-blue-600'
     },
