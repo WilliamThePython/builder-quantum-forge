@@ -122,31 +122,26 @@ export class TriangleExporter {
     const v3b = v3.clone().add(offset);
 
     // Generate STL content
-    let stlContent = `solid triangle_${triangleIndex + 1}\n`;
+    let stlContent = `solid part_${triangleIndex + 1}\n`;
 
-    // Front face (triangle)
+    // Front face (original triangle)
     stlContent += this.addTriangleToSTL(v1f, v2f, v3f, normal);
 
-    // Back face (triangle, flipped normal)
+    // Back face (extruded triangle, flipped normal)
     const backNormal = normal.clone().negate();
     stlContent += this.addTriangleToSTL(v1b, v3b, v2b, backNormal);
 
     // Side faces (rectangles made of triangles)
     // Side 1-2
     stlContent += this.addQuadToSTL(v1f, v2f, v2b, v1b);
-    
+
     // Side 2-3
     stlContent += this.addQuadToSTL(v2f, v3f, v3b, v2b);
-    
+
     // Side 3-1
     stlContent += this.addQuadToSTL(v3f, v1f, v1b, v3b);
 
-    // Add connection tabs if requested
-    if (addTabs) {
-      stlContent += this.addConnectionTabs(v1f, v2f, v3f, v1b, v2b, v3b, triangleIndex);
-    }
-
-    stlContent += 'endsolid triangle_' + (triangleIndex + 1) + '\n';
+    stlContent += 'endsolid part_' + (triangleIndex + 1) + '\n';
 
     return stlContent;
   }
