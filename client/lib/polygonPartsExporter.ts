@@ -376,7 +376,7 @@ export class PolygonPartsExporter {
     return Object.entries(faceTypeCounts).map(([type, count]) => ({
       'Face Type': type,
       'Count': count,
-      'Percentage': ((count / partData.length) * 100).toFixed(1) + '%'
+      'Percentage': ((Number(count) / partData.length) * 100).toFixed(1) + '%'
     }));
   }
 
