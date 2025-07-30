@@ -160,6 +160,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       geometry.computeVertexNormals();
 
+      // Reconstruct polygon faces from triangulated STL
+      console.log('Reconstructing polygon faces from uploaded STL...');
+      const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
+      if (reconstructedFaces.length > 0) {
+        PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
+        console.log(`Successfully reconstructed ${reconstructedFaces.length} polygon faces`);
+      }
+
       const uploadTime = Date.now() - uploadStartTime;
       const vertices = geometry.attributes.position?.count || 0;
       const triangles = Math.floor(vertices / 3);
