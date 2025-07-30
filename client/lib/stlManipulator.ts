@@ -144,40 +144,7 @@ export class STLManipulator {
     return toKeep.sort((a, b) => a - b);
   }
   
-  /**
-   * Create a highlighted version of a specific triangle (facet)
-   */
-  static createFacetHighlight(geometry: THREE.BufferGeometry, triangleIndex: number): THREE.BufferGeometry | null {
-    if (!geometry || !geometry.attributes.position) {
-      return null;
-    }
-    
-    const positions = geometry.attributes.position;
-    const triangleCount = Math.floor(positions.count / 3);
-    
-    if (triangleIndex < 0 || triangleIndex >= triangleCount) {
-      return null;
-    }
-    
-    // Create a new geometry with just the highlighted triangle
-    const highlightGeometry = new THREE.BufferGeometry();
-    
-    const i3 = triangleIndex * 3;
-    const highlightPositions = new Float32Array(9); // 3 vertices * 3 components
-    
-    // Copy triangle vertices
-    for (let i = 0; i < 3; i++) {
-      const vertexIndex = i3 + i;
-      highlightPositions[i * 3] = positions.getX(vertexIndex);
-      highlightPositions[i * 3 + 1] = positions.getY(vertexIndex);
-      highlightPositions[i * 3 + 2] = positions.getZ(vertexIndex);
-    }
-    
-    highlightGeometry.setAttribute('position', new THREE.BufferAttribute(highlightPositions, 3));
-    highlightGeometry.computeVertexNormals();
-    
-    return highlightGeometry;
-  }
+
   
   /**
    * Get triangle index from intersection point
