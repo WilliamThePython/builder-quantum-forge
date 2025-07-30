@@ -104,6 +104,36 @@ export default function STLWorkflowPanel({
     event.target.value = '';
   };
 
+  const handleExportClick = (type: 'complete' | 'parts') => {
+    setExportType(type);
+    setShowExportFormatDialog(true);
+  };
+
+  const handleFormatSelection = (format: 'stl' | 'obj') => {
+    setShowExportFormatDialog(false);
+
+    if (exportType === 'complete') {
+      // Export complete model
+      if (format === 'stl') {
+        exportSTL();
+      } else {
+        // For OBJ export, we'll need to add this functionality to the context
+        console.log('OBJ export selected - functionality to be implemented');
+        // For now, show a message
+        alert('OBJ export functionality coming soon!');
+      }
+    } else {
+      // Export parts
+      if (format === 'stl') {
+        exportParts(triangleOptions);
+      } else {
+        // For OBJ parts export
+        console.log('OBJ parts export selected - functionality to be implemented');
+        alert('OBJ parts export functionality coming soon!');
+      }
+    }
+  };
+
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
