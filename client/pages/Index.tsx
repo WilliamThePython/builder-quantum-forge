@@ -5,11 +5,8 @@ import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import ViewerControls from '../components/ViewerControls';
 import STLToolsPanel from '../components/STLToolsPanel';
-import AuthModal from '../components/auth/AuthModal';
-import UserProfile from '../components/auth/UserProfile';
 import AdManager from '../components/ads/AdManager';
 import { AdSenseBottomBanners } from '../components/GoogleAdSenseAds';
-import { useAuth } from '../context/AuthContext';
 import { useSTL } from '../context/STLContext';
 import { STLToolMode } from '../lib/stlManipulator';
 
