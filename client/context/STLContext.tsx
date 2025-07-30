@@ -389,6 +389,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       selected.geometry.computeVertexNormals();
 
+      // Validate the generated geometry
+      const validationReport = STLGeometryValidator.validateGeometry(selected.geometry);
+      if (!validationReport.isValid) {
+        console.warn('Generated geometry has validation issues:', validationReport);
+        // Still proceed but log the issues
+        validationReport.issues.forEach(issue => {
+          console.warn(`Generated geometry issue: ${issue.message}`);
+        });
+      }
+
       setGeometry(selected.geometry);
       setFileName(selected.name);
     } catch (err) {
