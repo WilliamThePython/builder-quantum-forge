@@ -106,6 +106,153 @@ export class STLManipulator {
   }
   
   /**
+   * Get polygon face from intersection point
+   */
+  static getPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
+    if (!intersection.face || intersection.face.a === undefined) {
+      return null;
+    }
+
+    const polygonFaces = (geometry as any).polygonFaces;
+    if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      // Fallback to triangle index for non-polygon geometries
+      return this.getTriangleIndexFromIntersection(geometry, intersection);
+    }
+
+    // Get the triangle index that was hit
+    const triangleIndex = !geometry.index ?
+      Math.floor(intersection.face.a / 3) :
+      this.findTriangleIndexFromFace(geometry, intersection.face);
+
+    if (triangleIndex === null) return null;
+
+    // Find which polygon face contains this triangle
+    let currentTriangleCount = 0;
+    for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+      const face = polygonFaces[faceIndex];
+      const faceTriangleCount = this.getTriangleCountForPolygon(face);
+
+      if (triangleIndex >= currentTriangleCount && triangleIndex < currentTriangleCount + faceTriangleCount) {
+        return faceIndex;
+      }
+
+      currentTriangleCount += faceTriangleCount;
+    }
+
+    return null;
+  }
+
+  /**
+   * Get number of triangles that make up a polygon face
+   */
+  private static getTriangleCountForPolygon(face: any): number {
+    if (!face.originalVertices) {
+      if (face.type === 'triangle') return 1;
+      if (face.type === 'quad') return 2;
+      return 3; // estimate for polygon
+    }
+
+    const vertexCount = face.originalVertices.length;
+    if (vertexCount === 3) return 1;
+    if (vertexCount === 4) return 2;
+    return vertexCount - 2; // fan triangulation
+  }
+
+  /**
+   * Find triangle index from face for indexed geometry
+   */
+  private static findTriangleIndexFromFace(geometry: THREE.BufferGeometry, face: THREE.Face): number | null {
+    if (!geometry.index) return null;
+
+    const indices = geometry.index.array;
+    const faceA = face.a;
+    const faceB = face.b;
+    const faceC = face.c;
+
+    for (let i = 0; i < indices.length; i += 3) {
+      if ((indices[i] === faceA && indices[i + 1] === faceB && indices[i + 2] === faceC) ||
+          (indices[i] === faceA && indices[i + 1] === faceC && indices[i + 2] === faceB) ||
+          (indices[i] === faceB && indices[i + 1] === faceA && indices[i + 2] === faceC) ||
+          (indices[i] === faceB && indices[i + 1] === faceC && indices[i + 2] === faceA) ||
+          (indices[i] === faceC && indices[i + 1] === faceA && indices[i + 2] === faceB) ||
+          (indices[i] === faceC && indices[i + 1] === faceB && indices[i + 2] === faceA)) {
+        return Math.floor(i / 3);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get detailed statistics for a specific polygon face
+   */
+  static getPolygonFaceStats(geometry: THREE.BufferGeometry, faceIndex: number): {
+    area: number;
+    perimeter: number;
+    width: number;
+    height: number;
+    centroid: THREE.Vector3;
+    vertices: THREE.Vector3[];
+    faceType: string;
+    vertexCount: number;
+  } | null {
+    const polygonFaces = (geometry as any).polygonFaces;
+
+    if (!polygonFaces || !Array.isArray(polygonFaces) || faceIndex < 0 || faceIndex >= polygonFaces.length) {
+      // Fallback to triangle stats for non-polygon geometries
+      return this.getTriangleStats(geometry, faceIndex);
+    }
+
+    const face = polygonFaces[faceIndex];
+    const vertices = face.originalVertices || [];
+
+    if (vertices.length < 3) return null;
+
+    // Calculate polygon properties
+    let area = 0;
+    let perimeter = 0;
+
+    // Calculate area using shoelace formula (for planar polygons)
+    for (let i = 0; i < vertices.length; i++) {
+      const next = (i + 1) % vertices.length;
+      area += vertices[i].x * vertices[next].y - vertices[next].x * vertices[i].y;
+    }
+    area = Math.abs(area) / 2;
+
+    // Calculate perimeter
+    for (let i = 0; i < vertices.length; i++) {
+      const next = (i + 1) % vertices.length;
+      const edge = new THREE.Vector3().subVectors(vertices[next], vertices[i]);
+      perimeter += edge.length();
+    }
+
+    // Calculate centroid
+    const centroid = new THREE.Vector3();
+    vertices.forEach((v: THREE.Vector3) => centroid.add(v));
+    centroid.divideScalar(vertices.length);
+
+    // Calculate bounding box dimensions
+    const minX = Math.min(...vertices.map((v: THREE.Vector3) => v.x));
+    const maxX = Math.max(...vertices.map((v: THREE.Vector3) => v.x));
+    const minY = Math.min(...vertices.map((v: THREE.Vector3) => v.y));
+    const maxY = Math.max(...vertices.map((v: THREE.Vector3) => v.y));
+
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    return {
+      area,
+      perimeter,
+      width,
+      height,
+      centroid,
+      vertices,
+      faceType: face.type || 'polygon',
+      vertexCount: vertices.length
+    };
+  }
+
+  /**
    * Get detailed statistics for a specific triangle
    */
   static getTriangleStats(geometry: THREE.BufferGeometry, triangleIndex: number): {
