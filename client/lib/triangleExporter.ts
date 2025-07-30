@@ -41,20 +41,20 @@ export class TriangleExporter {
 
     // Create individual STL files for each triangle
     for (let i = 0; i < triangleCount; i++) {
-      const triangleSTL = this.createTriangleSTL(geometry, i, triangleThickness, scale, addTabs);
-      const triangleFilename = `triangle_${String(i + 1).padStart(4, '0')}.stl`;
-      
+      const triangleSTL = this.createTriangleSTL(geometry, i, partThickness, scale);
+      const triangleFilename = `part_${String(i + 1).padStart(4, '0')}.stl`;
+
       // Add to zip
       zip.file(triangleFilename, triangleSTL);
-      
+
       // Progress logging
       if (i % 50 === 0 || i === triangleCount - 1) {
-        console.log(`Processed triangle ${i + 1}/${triangleCount}`);
+        console.log(`Processed triangle part ${i + 1}/${triangleCount}`);
       }
     }
 
     // Add assembly instructions
-    const instructions = this.generateAssemblyInstructions(triangleCount, options);
+    const instructions = this.generateAssemblyInstructions(triangleCount, { ...options, partThickness });
     zip.file('assembly_instructions.txt', instructions);
 
     // Generate and download zip
