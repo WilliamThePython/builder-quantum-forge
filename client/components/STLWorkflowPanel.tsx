@@ -80,9 +80,8 @@ export default function STLWorkflowPanel({
   // Triangle export settings
   const [showTriangleSettings, setShowTriangleSettings] = useState(false);
   const [triangleOptions, setTriangleOptions] = useState({
-    triangleThickness: 2,
-    scale: 1,
-    addTabs: true
+    partThickness: 2,
+    scale: 1
   });
 
   // Professional simplification settings
