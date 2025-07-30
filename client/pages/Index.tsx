@@ -49,11 +49,21 @@ export default function Index() {
   };
 
   const handleRandomColorsChange = (checked: boolean) => {
-    updateViewerSettings({ randomColors: checked });
+    if (checked) {
+      // Turn off wireframe when enabling random colors
+      updateViewerSettings({ randomColors: true, wireframe: false });
+    } else {
+      updateViewerSettings({ randomColors: false });
+    }
   };
 
   const handleWireframeChange = (checked: boolean) => {
-    updateViewerSettings({ wireframe: checked });
+    if (checked) {
+      // Turn off random colors when enabling wireframe
+      updateViewerSettings({ wireframe: true, randomColors: false });
+    } else {
+      updateViewerSettings({ wireframe: false });
+    }
   };
   return (
     // <AdManager page="home">
