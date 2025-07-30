@@ -212,12 +212,25 @@ export class STLManipulator {
     let area = 0;
     let perimeter = 0;
 
-    // Calculate area using shoelace formula (for planar polygons)
-    for (let i = 0; i < vertices.length; i++) {
-      const next = (i + 1) % vertices.length;
-      area += vertices[i].x * vertices[next].y - vertices[next].x * vertices[i].y;
+    // Calculate 3D polygon area using cross products (for planar polygons)
+    if (vertices.length === 3) {
+      // Triangle area
+      const edge1 = new THREE.Vector3().subVectors(vertices[1], vertices[0]);
+      const edge2 = new THREE.Vector3().subVectors(vertices[2], vertices[0]);
+      area = edge1.cross(edge2).length() / 2;
+    } else {
+      // For polygons, use fan triangulation from centroid
+      const centroid = new THREE.Vector3();
+      vertices.forEach((v: THREE.Vector3) => centroid.add(v));
+      centroid.divideScalar(vertices.length);
+
+      for (let i = 0; i < vertices.length; i++) {
+        const next = (i + 1) % vertices.length;
+        const edge1 = new THREE.Vector3().subVectors(vertices[i], centroid);
+        const edge2 = new THREE.Vector3().subVectors(vertices[next], centroid);
+        area += edge1.cross(edge2).length() / 2;
+      }
     }
-    area = Math.abs(area) / 2;
 
     // Calculate perimeter
     for (let i = 0; i < vertices.length; i++) {
