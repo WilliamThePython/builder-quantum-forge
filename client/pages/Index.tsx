@@ -4,6 +4,7 @@ import { Info, BarChart3 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import STLWorkflowPanel from '../components/STLWorkflowPanel';
+import TriangleStatsDisplay from '../components/TriangleStatsDisplay';
 import AdManager from '../components/ads/AdManager';
 import { AdSenseBottomBanners } from '../components/GoogleAdSenseAds';
 import { useSTL } from '../context/STLContext';
