@@ -7,6 +7,7 @@ import { PolygonPartsExporter } from '../lib/polygonPartsExporter';
 import { PolygonGeometryBuilder } from '../lib/polygonGeometryBuilder';
 import { PolygonFaceReconstructor } from '../lib/polygonFaceReconstructor';
 import { STLGeometryValidator, ValidationReport } from '../lib/stlGeometryValidator';
+import { ModelFileHandler, ProcessedModel } from '../lib/modelFileHandler';
 
 interface ViewerSettings {
   randomColors: boolean;
