@@ -124,9 +124,9 @@ function STLMesh() {
       if (intersects.length > 0) {
         const intersection = intersects[0];
         const triangleIndex = STLManipulator.getTriangleIndexFromIntersection(geometry!, intersection);
-        highlightTriangle(triangleIndex);
+        setHighlightedTriangle(triangleIndex);
       } else {
-        highlightTriangle(null);
+        setHighlightedTriangle(null);
       }
     };
 
