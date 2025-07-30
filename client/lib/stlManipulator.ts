@@ -239,10 +239,18 @@ export class STLManipulator {
       perimeter += edge.length();
     }
 
-    // Calculate centroid
-    const centroid = new THREE.Vector3();
-    vertices.forEach((v: THREE.Vector3) => centroid.add(v));
-    centroid.divideScalar(vertices.length);
+    // Calculate centroid (if not already calculated above)
+    let centroid: THREE.Vector3;
+    if (vertices.length === 3) {
+      centroid = new THREE.Vector3();
+      vertices.forEach((v: THREE.Vector3) => centroid.add(v));
+      centroid.divideScalar(vertices.length);
+    } else {
+      // Already calculated above for area calculation
+      centroid = new THREE.Vector3();
+      vertices.forEach((v: THREE.Vector3) => centroid.add(v));
+      centroid.divideScalar(vertices.length);
+    }
 
     // Calculate bounding box dimensions
     const minX = Math.min(...vertices.map((v: THREE.Vector3) => v.x));
