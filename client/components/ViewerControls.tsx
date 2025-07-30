@@ -166,41 +166,7 @@ export default function ViewerControls() {
               className="w-72 md:w-80 bg-black/90 backdrop-blur-md border-white/10 text-white"
             >
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Display Options</h3>
-                
-
-
-                {/* Random Colors */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4" />
-                    <Label htmlFor="colors" className="text-sm">Random Colors</Label>
-                  </div>
-                  <Switch
-                    id="colors"
-                    checked={viewerSettings.randomColors}
-                    onCheckedChange={(checked) => 
-                      updateViewerSettings({ randomColors: checked })
-                    }
-                  />
-                </div>
-
-                {/* Wireframe */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    <Label htmlFor="wireframe" className="text-sm">Wireframe Mode</Label>
-                  </div>
-                  <Switch
-                    id="wireframe"
-                    checked={viewerSettings.wireframe}
-                    onCheckedChange={(checked) => 
-                      updateViewerSettings({ wireframe: checked })
-                    }
-                  />
-                </div>
-
-                <Separator className="bg-white/10" />
+                <h3 className="font-semibold text-lg">Background Options</h3>
 
                 {/* Background Color */}
                 <div className="space-y-2">
