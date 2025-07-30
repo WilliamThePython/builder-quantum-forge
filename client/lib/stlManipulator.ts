@@ -145,7 +145,7 @@ export class STLManipulator {
   /**
    * Get number of triangles that make up a polygon face
    */
-  private static getTriangleCountForPolygon(face: any): number {
+  static getTriangleCountForPolygon(face: any): number {
     if (!face.originalVertices) {
       if (face.type === 'triangle') return 1;
       if (face.type === 'quad') return 2;
