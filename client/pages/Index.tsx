@@ -87,6 +87,9 @@ export default function Index() {
         </Link>
       </div>
       
+      {/* Triangle Stats Display */}
+      <TriangleStatsDisplay />
+
       {/* Brand Watermark */}
       <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-40">
         <div className="bg-black/60 backdrop-blur-sm text-white/70 px-3 py-2 md:px-4 rounded-lg border border-white/10">
