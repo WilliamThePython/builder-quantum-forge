@@ -23,6 +23,11 @@ interface STLContextType {
   errors: ErrorMessage[];
   viewerSettings: ViewerSettings;
 
+  // STL Tools
+  toolMode: STLToolMode;
+  isProcessingTool: boolean;
+  highlightGeometry: THREE.BufferGeometry | null;
+
   loadSTLFromFile: (file: File) => Promise<void>;
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
@@ -30,6 +35,13 @@ interface STLContextType {
   clearError: () => void;
   clearErrorById: (id: string) => void;
   addError: (message: string) => void;
+
+  // STL Tool Methods
+  setToolMode: (mode: STLToolMode) => void;
+  cleanupSTL: () => Promise<ToolOperationResult>;
+  reducePoints: (reductionAmount: number) => Promise<ToolOperationResult>;
+  highlightTriangle: (triangleIndex: number | null) => void;
+  getGeometryStats: () => any;
 }
 
 const defaultViewerSettings: ViewerSettings = {
