@@ -200,7 +200,14 @@ export class STLManipulator {
 
     if (!polygonFaces || !Array.isArray(polygonFaces) || faceIndex < 0 || faceIndex >= polygonFaces.length) {
       // Fallback to triangle stats for non-polygon geometries
-      return this.getTriangleStats(geometry, faceIndex);
+      const triangleStats = this.getTriangleStats(geometry, faceIndex);
+      if (!triangleStats) return null;
+
+      return {
+        ...triangleStats,
+        faceType: 'triangle',
+        vertexCount: 3
+      };
     }
 
     const face = polygonFaces[faceIndex];
