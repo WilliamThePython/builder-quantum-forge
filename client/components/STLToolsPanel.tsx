@@ -35,6 +35,7 @@ export default function STLToolsPanel({
 }: STLToolsPanelProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
+  const [reductionMethod, setReductionMethod] = useState<'random' | 'best'>('random');
 
   const tools = [
     {
