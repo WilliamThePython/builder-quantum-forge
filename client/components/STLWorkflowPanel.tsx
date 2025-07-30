@@ -82,6 +82,10 @@ export default function STLWorkflowPanel({
     scale: 1
   });
 
+  // Export format selection
+  const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
+  const [exportType, setExportType] = useState<'complete' | 'parts'>('complete');
+
   // Professional simplification settings
   const [simplificationStats, setSimplificationStats] = useState<{
     originalStats?: any;
