@@ -25,7 +25,6 @@ interface STLToolsPanelProps {
 export default function STLToolsPanel({
   activeToolMode,
   onToolModeChange,
-  onCleanupSTL,
   onReducePoints,
   isProcessing,
   geometryStats,
