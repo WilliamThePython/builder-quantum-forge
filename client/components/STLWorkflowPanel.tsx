@@ -605,36 +605,15 @@ export default function STLWorkflowPanel({
                       </div>
                     </div>
 
-                    {/* Connection Tabs Toggle */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between">
-                        <div className="text-white text-xs">Add Connection Tabs</div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={triangleOptions.addTabs}
-                            onChange={(e) => setTriangleOptions(prev => ({
-                              ...prev,
-                              addTabs: e.target.checked
-                            }))}
-                            className="sr-only peer"
-                          />
-                          <div className="w-9 h-5 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                      <p className="text-xs text-white/50 mt-1">
-                        Small connectors to help with assembly
-                      </p>
-                    </div>
-
                     {/* Export Stats Preview */}
                     {geometry && (
                       <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
                         <div className="text-white text-xs font-medium mb-1">Assembly Kit Preview:</div>
                         <div className="text-xs text-white/70 space-y-1">
                           <div>• {Math.floor(geometry.attributes.position.count / 3)} triangle pieces</div>
-                          <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 15 / 60)}h</div>
-                          <div>• Est. material: ~{Math.floor((geometry.attributes.position.count / 3) * 2)}g filament</div>
+                          <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
+                          <div>• Est. material: ~{Math.round((geometry.attributes.position.count / 3) * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                          <div>• Part thickness: {triangleOptions.partThickness}mm</div>
                         </div>
                       </div>
                     )}
