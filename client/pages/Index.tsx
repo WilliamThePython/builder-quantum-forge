@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Info, BarChart3, Download } from 'lucide-react';
+import { Info, BarChart3 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import STLViewer from '../components/STLViewer';
 import STLWorkflowPanel from '../components/STLWorkflowPanel';
