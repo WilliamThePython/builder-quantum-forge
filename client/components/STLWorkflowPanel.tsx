@@ -213,11 +213,6 @@ export default function STLWorkflowPanel({
                             {type.charAt(0).toUpperCase() + type.slice(1)}s: {count.toLocaleString()}
                           </div>
                         ))}
-                        {detailedStats.hasPolygonData && (
-                          <div className="text-xs text-white/50 mt-1 italic">
-                            Type: {detailedStats.geometryType}
-                          </div>
-                        )}
                       </div>
                     );
                   })()}
