@@ -463,7 +463,6 @@ export default function STLWorkflowPanel({
                       <Button
                         onClick={() => {
                           onReducePoints(reductionAmount, reductionMethod);
-                          setShowToolSettings(false);
                         }}
                         className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-8"
                         disabled={isProcessing}
