@@ -336,16 +336,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
 
       const exportFilename = fileName
-        ? fileName.replace(/\.[^/.]+$/, '_triangle_pieces.zip')
-        : 'triangle_pieces.zip';
+        ? fileName.replace(/\.[^/.]+$/, '_assembly_kit.zip')
+        : 'assembly_kit.zip';
 
       await TriangleExporter.exportTrianglesAsZip(geometry, exportFilename, options);
 
-      console.log('Triangle export completed successfully');
+      console.log('Assembly kit export completed successfully');
 
       // Track export event
       try {
-        const stats = TriangleExporter.getExportStats(geometry);
+        const stats = TriangleExporter.getExportStats(geometry, options.partThickness || 2);
         analytics.trackEvent({
           event_name: 'triangle_export',
           event_category: '3d_interaction',
