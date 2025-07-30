@@ -14,9 +14,8 @@ export class TriangleExporter {
     geometry: THREE.BufferGeometry,
     filename: string = 'triangle_pieces.zip',
     options: {
-      triangleThickness?: number; // mm thickness for each triangle piece
+      partThickness?: number; // mm thickness for each triangle piece
       scale?: number; // overall scale factor
-      addTabs?: boolean; // add connection tabs for assembly
     } = {}
   ): Promise<void> {
     if (!geometry || !geometry.attributes.position) {
@@ -24,9 +23,8 @@ export class TriangleExporter {
     }
 
     const {
-      triangleThickness = 2, // 2mm thick triangular pieces
-      scale = 1,
-      addTabs = true
+      partThickness = 2, // 2mm thick triangular pieces
+      scale = 1
     } = options;
 
     console.log('Starting triangle-by-triangle export...');
