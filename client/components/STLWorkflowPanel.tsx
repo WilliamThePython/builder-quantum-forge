@@ -355,11 +355,41 @@ export default function STLWorkflowPanel({
                     
                     {/* Method Selection */}
                     <div className="mb-3">
-                      <div className="text-white text-xs mb-2">Method</div>
-                      <div className="flex gap-1">
+                      <div className="text-white text-xs mb-2">Simplification Algorithm</div>
+                      <div className="grid grid-cols-2 gap-1">
+                        <Button
+                          onClick={() => setReductionMethod('adaptive')}
+                          className={`text-xs py-1 px-2 h-7 ${
+                            reductionMethod === 'adaptive'
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                          }`}
+                        >
+                          Adaptive
+                        </Button>
+                        <Button
+                          onClick={() => setReductionMethod('quadric_edge_collapse')}
+                          className={`text-xs py-1 px-2 h-7 ${
+                            reductionMethod === 'quadric_edge_collapse'
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                          }`}
+                        >
+                          Quadric
+                        </Button>
+                        <Button
+                          onClick={() => setReductionMethod('vertex_clustering')}
+                          className={`text-xs py-1 px-2 h-7 ${
+                            reductionMethod === 'vertex_clustering'
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                          }`}
+                        >
+                          Clustering
+                        </Button>
                         <Button
                           onClick={() => setReductionMethod('random')}
-                          className={`flex-1 text-xs py-1 px-2 h-7 ${
+                          className={`text-xs py-1 px-2 h-7 ${
                             reductionMethod === 'random'
                               ? 'bg-orange-500 text-white'
                               : 'bg-white/20 hover:bg-white/30 text-white/80'
@@ -367,22 +397,12 @@ export default function STLWorkflowPanel({
                         >
                           Random
                         </Button>
-                        <Button
-                          onClick={() => setReductionMethod('best')}
-                          className={`flex-1 text-xs py-1 px-2 h-7 ${
-                            reductionMethod === 'best'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          Best
-                        </Button>
                       </div>
                       <div className="text-xs text-white/60 mt-1">
-                        {reductionMethod === 'random' 
-                          ? 'Randomly removes vertices'
-                          : 'Removes vertices in flat areas'
-                        }
+                        {reductionMethod === 'adaptive' && 'Smart algorithm selection based on mesh complexity'}
+                        {reductionMethod === 'quadric_edge_collapse' && 'Industry-standard edge collapse with error minimization'}
+                        {reductionMethod === 'vertex_clustering' && 'Groups vertices spatially for fast reduction'}
+                        {reductionMethod === 'random' && 'Simple random vertex removal (fastest)'}
                       </div>
                     </div>
 
