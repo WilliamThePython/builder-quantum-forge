@@ -11,13 +11,19 @@ export class STLManipulator {
 
   
   /**
-   * Reduce the number of vertices in the geometry using OBJ format for better manipulation
+   * Professional mesh simplification using industry-standard algorithms
    */
-  static reducePoints(
+  static async reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
-    method: 'random' | 'best' = 'random'
-  ): THREE.BufferGeometry {
+    method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' = 'adaptive'
+  ): Promise<{
+    geometry: THREE.BufferGeometry;
+    originalStats: MeshStats;
+    newStats: MeshStats;
+    reductionAchieved: number;
+    processingTime: number;
+  }> {
     console.log(`Starting ${method} point reduction using OBJ processing...`);
     const startTime = Date.now();
 
