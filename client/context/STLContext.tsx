@@ -607,6 +607,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setToolMode,
     reducePoints,
     getGeometryStats,
+    getDetailedGeometryStats,
     setHighlightedTriangle
   };
 
