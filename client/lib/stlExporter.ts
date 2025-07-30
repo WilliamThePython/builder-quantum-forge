@@ -287,7 +287,10 @@ export function exportCurrentSTL(
 ): void {
   const defaultSize = { min: 50, max: 100 }; // 50-100mm default for 3D printing
   const exportSize = customSize || defaultSize;
-  const exportFilename = filename || 'solid_exported_model.stl';
+
+  // Ensure filename is a proper string
+  const safeFilename = typeof filename === 'string' && filename.trim() ? filename.trim() : 'solid_exported_model.stl';
+  const exportFilename = safeFilename;
 
   try {
     STLExporter.exportGeometry(geometry, exportFilename, exportSize);
