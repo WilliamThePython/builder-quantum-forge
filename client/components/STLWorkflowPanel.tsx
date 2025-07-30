@@ -451,26 +451,167 @@ export default function STLWorkflowPanel({
         {/* 4. EXPORT SECTION */}
         <div>
           <SectionHeader
-            title="4. EXPORT"
+            title="4. EXPORT OPTIONS"
             isExpanded={expandedSections.export}
             onToggle={() => toggleSection('export')}
             badge={geometry ? "Ready" : "No Model"}
           />
-          
+
           {expandedSections.export && (
-            <div className="mt-4">
-              <Button
-                onClick={exportSTL}
-                disabled={!geometry}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12"
-              >
-                <Download className="w-5 h-5 mr-3" />
-                Export STL File
-              </Button>
-              
+            <div className="mt-4 space-y-4">
+              {/* Standard STL Export */}
+              <div>
+                <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
+                  <Download className="w-3 h-3" />
+                  Standard Export
+                </div>
+                <Button
+                  onClick={exportSTL}
+                  disabled={!geometry}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Complete STL
+                </Button>
+                <p className="text-xs text-white/60 mt-1">
+                  Download the complete model as a single STL file
+                </p>
+              </div>
+
+              <Separator className="bg-white/20" />
+
+              {/* Triangle Export */}
+              <div>
+                <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
+                  <Package className="w-3 h-3" />
+                  Assembly Kit Export
+                </div>
+
+                <Button
+                  onClick={() => setShowTriangleSettings(!showTriangleSettings)}
+                  disabled={!geometry}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Export Triangle Pieces
+                  <Wrench className="w-3 h-3 ml-2 opacity-70" />
+                </Button>
+                <p className="text-xs text-white/60 mt-1">
+                  Download individual triangle pieces for real-world assembly
+                </p>
+
+                {/* Triangle Export Settings */}
+                {showTriangleSettings && (
+                  <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <div className="text-white text-sm font-medium mb-3">
+                      Assembly Kit Settings
+                    </div>
+
+                    {/* Thickness Setting */}
+                    <div className="mb-3">
+                      <div className="text-white text-xs mb-2">
+                        Triangle Thickness: {triangleOptions.triangleThickness}mm
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="0.5"
+                        value={triangleOptions.triangleThickness}
+                        onChange={(e) => setTriangleOptions(prev => ({
+                          ...prev,
+                          triangleThickness: parseFloat(e.target.value)
+                        }))}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-white/70 mt-1">
+                        <span>1mm</span>
+                        <span>10mm</span>
+                      </div>
+                    </div>
+
+                    {/* Scale Setting */}
+                    <div className="mb-3">
+                      <div className="text-white text-xs mb-2">
+                        Scale Factor: {triangleOptions.scale}x
+                      </div>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="3"
+                        step="0.1"
+                        value={triangleOptions.scale}
+                        onChange={(e) => setTriangleOptions(prev => ({
+                          ...prev,
+                          scale: parseFloat(e.target.value)
+                        }))}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-white/70 mt-1">
+                        <span>0.5x</span>
+                        <span>3x</span>
+                      </div>
+                    </div>
+
+                    {/* Connection Tabs Toggle */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="text-white text-xs">Add Connection Tabs</div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={triangleOptions.addTabs}
+                            onChange={(e) => setTriangleOptions(prev => ({
+                              ...prev,
+                              addTabs: e.target.checked
+                            }))}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-white/50 mt-1">
+                        Small connectors to help with assembly
+                      </p>
+                    </div>
+
+                    {/* Export Stats Preview */}
+                    {geometry && (
+                      <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
+                        <div className="text-white text-xs font-medium mb-1">Assembly Kit Preview:</div>
+                        <div className="text-xs text-white/70 space-y-1">
+                          <div>• {Math.floor(geometry.attributes.position.count / 3)} triangle pieces</div>
+                          <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 15 / 60)}h</div>
+                          <div>• Est. material: ~{Math.floor((geometry.attributes.position.count / 3) * 2)}g filament</div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          exportTriangles(triangleOptions);
+                          setShowTriangleSettings(false);
+                        }}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 h-8"
+                        disabled={isProcessing || !geometry}
+                      >
+                        Generate Assembly Kit
+                      </Button>
+                      <Button
+                        onClick={() => setShowTriangleSettings(false)}
+                        className="bg-white/20 hover:bg-white/30 text-white text-xs py-2 px-3 h-8"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {!geometry && (
-                <p className="text-xs text-white/50 mt-2 text-center">
-                  Upload or load a model first
+                <p className="text-xs text-white/50 text-center mt-4">
+                  Upload or load a model first to enable exports
                 </p>
               )}
             </div>
