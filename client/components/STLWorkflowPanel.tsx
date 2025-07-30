@@ -420,7 +420,7 @@ export default function STLWorkflowPanel({
                     {/* Reduction Amount */}
                     <div className="mb-3">
                       <div className="text-white text-xs mb-2">
-                        Reduction Amount
+                        Target Reduction Percentage
                       </div>
                       <div className="space-y-2">
                         <input
