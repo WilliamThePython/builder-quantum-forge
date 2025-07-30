@@ -9,8 +9,7 @@ import { STLToolMode } from '../lib/stlManipulator';
 interface STLToolsPanelProps {
   activeToolMode: STLToolMode;
   onToolModeChange: (mode: STLToolMode) => void;
-  onCleanupSTL: () => void;
-  onReducePoints: (reduction: number) => void;
+  onReducePoints: (reduction: number, method: 'random' | 'best') => void;
   isProcessing: boolean;
   geometryStats: {
     vertices: number;
