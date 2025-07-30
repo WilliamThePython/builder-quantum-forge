@@ -562,17 +562,17 @@ export default function STLWorkflowPanel({
                     {/* Thickness Setting */}
                     <div className="mb-3">
                       <div className="text-white text-xs mb-2">
-                        Triangle Thickness: {triangleOptions.triangleThickness}mm
+                        Part Thickness: {triangleOptions.partThickness}mm
                       </div>
                       <input
                         type="range"
                         min="1"
                         max="10"
                         step="0.5"
-                        value={triangleOptions.triangleThickness}
+                        value={triangleOptions.partThickness}
                         onChange={(e) => setTriangleOptions(prev => ({
                           ...prev,
-                          triangleThickness: parseFloat(e.target.value)
+                          partThickness: parseFloat(e.target.value)
                         }))}
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
