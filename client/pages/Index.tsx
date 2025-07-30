@@ -25,7 +25,11 @@ export default function Index() {
     reducePoints,
     isProcessingTool,
     getGeometryStats,
-    addError
+    addError,
+    viewerSettings,
+    updateViewerSettings,
+    exportSTL,
+    geometry
   } = useSTL();
 
   const handleToolModeChange = (mode: STLToolMode) => {
