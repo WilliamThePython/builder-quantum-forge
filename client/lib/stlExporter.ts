@@ -20,18 +20,18 @@ export class STLExporter {
 
     // Clone the geometry to avoid modifying the original
     const exportGeometry = geometry.clone();
-    
-    // Scale the geometry to target size (50-100mm)
-    const scaledGeometry = this.scaleGeometryToSize(exportGeometry, targetSize);
-    
+
+    // Prepare geometry for export without double-scaling
+    const preparedGeometry = this.prepareGeometryForExport(exportGeometry, targetSize);
+
     // Generate STL content
-    const stlContent = this.generateSTLContent(scaledGeometry);
-    
+    const stlContent = this.generateSTLContent(preparedGeometry);
+
     // Download the file
     this.downloadSTL(stlContent, filename);
-    
+
     // Clean up
-    scaledGeometry.dispose();
+    preparedGeometry.dispose();
   }
 
   /**
