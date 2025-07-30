@@ -438,6 +438,33 @@ export default function STLWorkflowPanel({
                       </div>
                     </div>
 
+                    {/* Additional Options */}
+                    <div className="mb-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-3 h-3 text-white/70" />
+                          <span className="text-white text-xs">Show Wireframe</span>
+                        </div>
+                        <Switch
+                          checked={wireframe}
+                          onCheckedChange={onWireframeChange}
+                        />
+                      </div>
+
+                      <Button
+                        onClick={() => {
+                          // Reset to original model
+                          console.log('Undo simplification - restore original model');
+                          // This would need to be implemented in the context
+                        }}
+                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white text-xs py-2 h-8"
+                        disabled={!geometry}
+                      >
+                        <RefreshCw className="w-3 h-3 mr-2" />
+                        Undo Simplification
+                      </Button>
+                    </div>
+
                     {/* Before/After Statistics */}
                     {simplificationStats.originalStats && simplificationStats.newStats && (
                       <div className="mb-3 p-2 bg-white/5 rounded border border-white/10">
