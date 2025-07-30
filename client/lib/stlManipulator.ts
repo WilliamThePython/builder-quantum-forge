@@ -24,82 +24,47 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`Starting ${method} point reduction using OBJ processing...`);
-    const startTime = Date.now();
+    console.log(`Starting professional mesh simplification using ${method}...`);
 
-    // Convert to OBJ for manipulation
-    const objContent = FormatConverter.createManipulationOBJ(geometry);
-    const manipulationGeometry = FormatConverter.objToGeometry(objContent);
+    // Convert to OBJ format for better manipulation if needed
+    let processingGeometry = geometry;
 
-    // Clone geometry to avoid modifying original
-    const reducedGeometry = geometry.clone();
-
-    const originalPositions = reducedGeometry.attributes.position;
-    const originalVertexCount = originalPositions.count;
-    const targetVertexCount = Math.floor(originalVertexCount * (1 - targetReduction));
-
-    console.log(`Original: ${originalVertexCount} vertices, target: ${targetVertexCount} vertices`);
-
-    let keptVertices: number[];
-
-    if (method === 'random') {
-      keptVertices = this.reducePointsRandom(originalVertexCount, targetVertexCount);
-    } else {
-      keptVertices = this.reducePointsBest(reducedGeometry, targetVertexCount);
-    }
-
-    // Create new position array with only kept vertices
-    const newPositions = new Float32Array(keptVertices.length * 3);
-    const vertexMapping = new Map<number, number>();
-
-    for (let i = 0; i < keptVertices.length; i++) {
-      const originalIndex = keptVertices[i];
-      vertexMapping.set(originalIndex, i);
-
-      newPositions[i * 3] = originalPositions.getX(originalIndex);
-      newPositions[i * 3 + 1] = originalPositions.getY(originalIndex);
-      newPositions[i * 3 + 2] = originalPositions.getZ(originalIndex);
-    }
-
-    // Update geometry with new positions
-    reducedGeometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
-
-    // Create new triangles that only use kept vertices
-    const originalTriangleCount = Math.floor(originalVertexCount / 3);
-    const newIndices: number[] = [];
-
-    for (let i = 0; i < originalTriangleCount; i++) {
-      const v1 = i * 3;
-      const v2 = i * 3 + 1;
-      const v3 = i * 3 + 2;
-
-      // Only keep triangle if all vertices are kept
-      if (vertexMapping.has(v1) && vertexMapping.has(v2) && vertexMapping.has(v3)) {
-        newIndices.push(
-          vertexMapping.get(v1)!,
-          vertexMapping.get(v2)!,
-          vertexMapping.get(v3)!
-        );
+    // For complex operations, convert through OBJ format for better topology handling
+    if (method === 'quadric_edge_collapse' || method === 'adaptive') {
+      try {
+        const objContent = FormatConverter.createManipulationOBJ(geometry);
+        processingGeometry = FormatConverter.objToGeometry(objContent);
+        console.log('Using OBJ format for enhanced topology processing');
+      } catch (error) {
+        console.warn('OBJ conversion failed, using original geometry:', error);
+        processingGeometry = geometry;
       }
     }
 
-    // Set new indices if we have any triangles left
-    if (newIndices.length > 0) {
-      reducedGeometry.setIndex(new THREE.BufferAttribute(new Uint32Array(newIndices), 1));
-    }
+    // Apply professional mesh simplification
+    const result = await MeshSimplifier.simplifyMesh(processingGeometry, {
+      method: method as any,
+      targetReduction,
+      preserveBoundaries: true,
+      preserveNormals: true,
+      qualityThreshold: 0.8
+    });
 
-    // Recompute normals and bounding box
-    reducedGeometry.computeVertexNormals();
-    reducedGeometry.computeBoundingBox();
+    console.log('Mesh simplification completed:', {
+      method,
+      originalVertices: result.originalStats.vertices,
+      newVertices: result.newStats.vertices,
+      reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
+      processingTime: `${result.processingTime}ms`
+    });
 
-    const endTime = Date.now();
-    const actualVertexCount = keptVertices.length;
-    const actualReduction = ((originalVertexCount - actualVertexCount) / originalVertexCount * 100).toFixed(1);
-
-    console.log(`${method} point reduction completed in ${endTime - startTime}ms`);
-    console.log(`Reduced from ${originalVertexCount} to ${actualVertexCount} vertices (${actualReduction}% reduction)`);
-
-    return reducedGeometry;
+    return {
+      geometry: result.simplifiedGeometry,
+      originalStats: result.originalStats,
+      newStats: result.newStats,
+      reductionAchieved: result.reductionAchieved,
+      processingTime: result.processingTime
+    };
   }
 
   /**
