@@ -172,7 +172,7 @@ export class STLExporter {
   }
 
   /**
-   * Calculate outward-facing normal for solid object
+   * Calculate outward-facing normal for solid object with robust fallback
    */
   private static calculateOutwardNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
     const edge1 = new THREE.Vector3().subVectors(v2, v1);
@@ -181,14 +181,17 @@ export class STLExporter {
     // Use right-hand rule: edge1 × edge2 gives outward normal
     const normal = new THREE.Vector3().crossVectors(edge1, edge2);
 
-    // Normalize the normal vector
-    normal.normalize();
+    // Check for degenerate triangle (zero area)
+    const normalLength = normal.length();
 
-    // Ensure we have a valid normal (not zero vector)
-    if (normal.length() === 0) {
-      // Fallback to a default normal if calculation fails
-      normal.set(0, 0, 1);
+    if (normalLength < 1e-10) {
+      // Degenerate triangle - use a safe fallback normal
+      console.warn('Degenerate triangle detected, using fallback normal');
+      return new THREE.Vector3(0, 0, 1);
     }
+
+    // Normalize the normal vector
+    normal.divideScalar(normalLength);
 
     return normal;
   }
