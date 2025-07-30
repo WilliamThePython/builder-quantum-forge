@@ -93,47 +93,45 @@ export class STLExporter {
   }
 
   /**
-   * Generate STL file content from geometry ensuring solid object
+   * Generate STL file content from geometry preserving original structure
    */
   private static generateSTLContent(geometry: THREE.BufferGeometry): string {
     const positions = geometry.attributes.position;
     const triangleCount = positions.count / 3;
 
-    // Ensure geometry has proper normals for solid object
-    const processedGeometry = this.ensureSolidGeometry(geometry);
-    const processedPositions = processedGeometry.attributes.position;
+    console.log(`Generating STL content for ${triangleCount} triangles`);
 
     // STL Header
     let stlContent = 'solid exported_solid\n';
 
-    // Process each triangle with proper winding and normals
+    // Process each triangle preserving original geometry
     for (let i = 0; i < triangleCount; i++) {
       const i3 = i * 3;
 
-      // Get triangle vertices
+      // Get triangle vertices directly from geometry
       const v1 = new THREE.Vector3(
-        processedPositions.getX(i3),
-        processedPositions.getY(i3),
-        processedPositions.getZ(i3)
+        positions.getX(i3),
+        positions.getY(i3),
+        positions.getZ(i3)
       );
       const v2 = new THREE.Vector3(
-        processedPositions.getX(i3 + 1),
-        processedPositions.getY(i3 + 1),
-        processedPositions.getZ(i3 + 1)
+        positions.getX(i3 + 1),
+        positions.getY(i3 + 1),
+        positions.getZ(i3 + 1)
       );
       const v3 = new THREE.Vector3(
-        processedPositions.getX(i3 + 2),
-        processedPositions.getY(i3 + 2),
-        processedPositions.getZ(i3 + 2)
+        positions.getX(i3 + 2),
+        positions.getY(i3 + 2),
+        positions.getZ(i3 + 2)
       );
 
-      // Calculate normal with proper outward orientation
+      // Calculate normal from the actual triangle vertices
       const normal = this.calculateOutwardNormal(v1, v2, v3);
 
-      // Ensure counter-clockwise winding (right-hand rule)
+      // Use original vertex order to preserve geometry
       const { vertex1, vertex2, vertex3 } = this.ensureCounterClockwiseWinding(v1, v2, v3, normal);
 
-      // Write facet with proper solid formatting
+      // Write facet with high precision to preserve geometry accuracy
       stlContent += `  facet normal ${normal.x.toFixed(6)} ${normal.y.toFixed(6)} ${normal.z.toFixed(6)}\n`;
       stlContent += `    outer loop\n`;
       stlContent += `      vertex ${vertex1.x.toFixed(6)} ${vertex1.y.toFixed(6)} ${vertex1.z.toFixed(6)}\n`;
@@ -145,11 +143,7 @@ export class STLExporter {
 
     stlContent += 'endsolid exported_solid\n';
 
-    // Clean up
-    if (processedGeometry !== geometry) {
-      processedGeometry.dispose();
-    }
-
+    console.log('STL content generation completed');
     return stlContent;
   }
 
