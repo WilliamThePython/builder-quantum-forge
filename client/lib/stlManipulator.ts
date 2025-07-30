@@ -353,6 +353,7 @@ export class STLManipulator {
       const faceTypeCounts: Record<string, number> = {};
       const uniqueVertices = new Set<string>();
       const edges = new Set<string>();
+      const tolerance = 0.001; // Tolerance for vertex uniqueness
 
       polygonFaces.forEach((face: any) => {
         const faceType = face.type;
@@ -363,7 +364,7 @@ export class STLManipulator {
 
           // Add unique vertices (using string representation for uniqueness)
           faceVertices.forEach((vertex: any) => {
-            const vertexKey = `${vertex.x.toFixed(6)},${vertex.y.toFixed(6)},${vertex.z.toFixed(6)}`;
+            const vertexKey = `${vertex.x.toFixed(3)},${vertex.y.toFixed(3)},${vertex.z.toFixed(3)}`;
             uniqueVertices.add(vertexKey);
           });
 
@@ -373,8 +374,8 @@ export class STLManipulator {
             const v2 = faceVertices[(i + 1) % faceVertices.length];
 
             // Create edge key (sorted to avoid duplicates like AB and BA)
-            const v1Key = `${v1.x.toFixed(6)},${v1.y.toFixed(6)},${v1.z.toFixed(6)}`;
-            const v2Key = `${v2.x.toFixed(6)},${v2.y.toFixed(6)},${v2.z.toFixed(6)}`;
+            const v1Key = `${v1.x.toFixed(3)},${v1.y.toFixed(3)},${v1.z.toFixed(3)}`;
+            const v2Key = `${v2.x.toFixed(3)},${v2.y.toFixed(3)},${v2.z.toFixed(3)}`;
             const edgeKey = v1Key < v2Key ? `${v1Key}|${v2Key}` : `${v2Key}|${v1Key}`;
             edges.add(edgeKey);
           }
