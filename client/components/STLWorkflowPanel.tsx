@@ -4,6 +4,7 @@ import {
   RefreshCw,
   Info,
   Download,
+  Settings,
   Palette,
   Eye,
   X,
