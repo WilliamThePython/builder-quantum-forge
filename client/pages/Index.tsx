@@ -60,6 +60,16 @@ export default function Index() {
       {/* Floating UI Controls */}
       <ViewerControls />
 
+      {/* STL Tools Panel */}
+      <STLToolsPanel
+        activeToolMode={toolMode}
+        onToolModeChange={handleToolModeChange}
+        onCleanupSTL={handleCleanupSTL}
+        onReducePoints={handleReducePoints}
+        isProcessing={isProcessingTool}
+        geometryStats={getGeometryStats()}
+      />
+
       {/* Top Right Navigation */}
       <div className="fixed top-4 right-4 md:top-6 md:right-6 z-50 flex gap-3">
         {!isAuthenticated ? (
