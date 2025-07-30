@@ -233,10 +233,10 @@ export class STLExporter {
     // Create blob and download
     const blob = new Blob([content], { type: 'application/sla' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
+    link.download = finalFilename;
     link.style.display = 'none';
     
     document.body.appendChild(link);
