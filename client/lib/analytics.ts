@@ -381,10 +381,58 @@ class Analytics {
     return {};
   }
 
+  private shouldSkipAnalytics(): boolean {
+    const now = Date.now();
+
+    // Check if we're in cooldown period
+    if (this.isInCooldown && (now - this.lastAnalyticsFailure) < this.cooldownPeriod) {
+      return true;
+    }
+
+    // Reset cooldown if enough time has passed
+    if (this.isInCooldown && (now - this.lastAnalyticsFailure) >= this.cooldownPeriod) {
+      this.isInCooldown = false;
+      this.analyticsFailureCount = 0;
+      console.log('Analytics circuit breaker reset - resuming tracking');
+    }
+
+    return false;
+  }
+
+  private handleAnalyticsFailure(error: any, eventName: string): void {
+    this.analyticsFailureCount++;
+    this.lastAnalyticsFailure = Date.now();
+
+    console.error(`Failed to send analytics event: ${eventName}`, error);
+
+    // Activate circuit breaker if too many failures
+    if (this.analyticsFailureCount >= this.maxFailures) {
+      this.isInCooldown = true;
+      console.warn(`Analytics circuit breaker activated after ${this.maxFailures} failures. Cooling down for ${this.cooldownPeriod / 1000}s`);
+    }
+  }
+
   private sendToCustomAnalytics(event: AnalyticsEvent) {
-    // Send to your own analytics endpoint with debug logging
+    // Check circuit breaker
+    if (this.shouldSkipAnalytics()) {
+      return;
+    }
+
+    // Don't track analytics errors to prevent infinite loops
+    if (event.event_name === 'javascript_error' && this.isTrackingAnalyticsErrors) {
+      return;
+    }
+
     try {
       console.log('Sending analytics event:', event.event_name, event);
+
+      // Set flag to prevent tracking analytics-related errors
+      if (event.event_name === 'javascript_error') {
+        this.isTrackingAnalyticsErrors = true;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
       fetch('/api/analytics/track', {
         method: 'POST',
@@ -398,14 +446,18 @@ class Analytics {
           user_id: this.userId,
           url: window.location.href,
           referrer: document.referrer
-        })
+        }),
+        signal: controller.signal
       })
       .then(response => {
+        clearTimeout(timeoutId);
+
         if (response.ok) {
           console.log('Analytics event sent successfully:', event.event_name);
+          // Reset failure count on success
+          this.analyticsFailureCount = 0;
           return response.json();
         } else {
-          console.error('Analytics API error:', response.status, response.statusText);
           throw new Error(`Analytics API error: ${response.status}`);
         }
       })
@@ -413,10 +465,20 @@ class Analytics {
         console.log('Analytics response:', data);
       })
       .catch(error => {
-        console.error('Failed to send analytics event:', event.event_name, error);
+        clearTimeout(timeoutId);
+        this.handleAnalyticsFailure(error, event.event_name);
+      })
+      .finally(() => {
+        // Reset flag after attempt
+        if (event.event_name === 'javascript_error') {
+          this.isTrackingAnalyticsErrors = false;
+        }
       });
     } catch (error) {
-      console.error('Analytics tracking error:', error);
+      this.handleAnalyticsFailure(error, event.event_name);
+      if (event.event_name === 'javascript_error') {
+        this.isTrackingAnalyticsErrors = false;
+      }
     }
   }
 
