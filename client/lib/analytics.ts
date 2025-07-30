@@ -306,20 +306,43 @@ class Analytics {
     });
   }
 
-  // Error tracking
+  // Error tracking with loop prevention
   trackError(error: Error, context?: string) {
-    this.trackEvent({
-      event_name: 'javascript_error',
-      event_category: 'error',
-      event_label: error.message,
-      custom_parameters: {
-        error_message: error.message,
-        error_stack: error.stack,
-        context: context || 'unknown',
-        user_agent: navigator.userAgent,
-        url: window.location.href
-      }
-    });
+    // Prevent tracking analytics-related errors to avoid infinite loops
+    if (error.message?.includes('Failed to fetch') && context?.includes('analytics')) {
+      console.warn('Skipping analytics-related error to prevent loop:', error.message);
+      return;
+    }
+
+    // Prevent tracking errors from analytics services
+    if (error.message?.includes('fullstory') ||
+        error.stack?.includes('fullstory') ||
+        error.stack?.includes('fs.js')) {
+      return;
+    }
+
+    // Skip if we're already in analytics cooldown
+    if (this.shouldSkipAnalytics()) {
+      console.warn('Skipping error tracking due to analytics circuit breaker');
+      return;
+    }
+
+    try {
+      this.trackEvent({
+        event_name: 'javascript_error',
+        event_category: 'error',
+        event_label: error.message,
+        custom_parameters: {
+          error_message: error.message,
+          error_stack: error.stack,
+          context: context || 'unknown',
+          user_agent: navigator.userAgent,
+          url: window.location.href
+        }
+      });
+    } catch (trackingError) {
+      console.warn('Failed to track error, preventing loop:', trackingError);
+    }
   }
 
   // Get real-time analytics data (from your backend API)
