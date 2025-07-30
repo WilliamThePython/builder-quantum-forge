@@ -569,6 +569,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return STLManipulator.getGeometryStats(geometry);
   }, [geometry]);
 
+  const getDetailedGeometryStats = useCallback(() => {
+    if (!geometry) return null;
+    return STLManipulator.getDetailedGeometryStats(geometry);
+  }, [geometry]);
+
   const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
     setHighlightedTriangleState(triangleIndex);
 
