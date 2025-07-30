@@ -154,31 +154,72 @@ export default function STLToolsPanel({
                 {/* Reduction Settings */}
                 {tool.id === STLToolMode.Reduce && showSettings && (
                   <div className="mt-2 p-3 bg-white/10 rounded-lg border border-white/20">
-                    <div className="text-white text-xs font-medium mb-2">
-                      Reduction Amount
+                    <div className="text-white text-xs font-medium mb-3">
+                      Reduction Settings
                     </div>
-                    <div className="space-y-2">
-                      <input
-                        type="range"
-                        min="0.1"
-                        max="0.9"
-                        step="0.1"
-                        value={reductionAmount}
-                        onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
-                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                      />
-                      <div className="flex justify-between text-xs text-white/70">
-                        <span>10%</span>
-                        <span className="font-medium text-white">
-                          {Math.round(reductionAmount * 100)}%
-                        </span>
-                        <span>90%</span>
+
+                    {/* Method Selection */}
+                    <div className="mb-3">
+                      <div className="text-white text-xs mb-2">Method</div>
+                      <div className="flex gap-1">
+                        <Button
+                          onClick={() => setReductionMethod('random')}
+                          className={`flex-1 text-xs py-1 px-2 h-6 ${
+                            reductionMethod === 'random'
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                          }`}
+                        >
+                          Random
+                        </Button>
+                        <Button
+                          onClick={() => setReductionMethod('best')}
+                          className={`flex-1 text-xs py-1 px-2 h-6 ${
+                            reductionMethod === 'best'
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                          }`}
+                        >
+                          Best
+                        </Button>
+                      </div>
+                      <div className="text-xs text-white/60 mt-1">
+                        {reductionMethod === 'random'
+                          ? 'Randomly removes vertices'
+                          : 'Removes vertices in flat areas'
+                        }
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-3">
+
+                    {/* Reduction Amount */}
+                    <div className="mb-3">
+                      <div className="text-white text-xs mb-2">
+                        Reduction Amount
+                      </div>
+                      <div className="space-y-2">
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="0.9"
+                          step="0.1"
+                          value={reductionAmount}
+                          onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
+                          className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="flex justify-between text-xs text-white/70">
+                          <span>10%</span>
+                          <span className="font-medium text-white">
+                            {Math.round(reductionAmount * 100)}%
+                          </span>
+                          <span>90%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
                       <Button
                         onClick={() => {
-                          onReducePoints(reductionAmount);
+                          onReducePoints(reductionAmount, reductionMethod);
                           setShowSettings(false);
                         }}
                         className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1 px-2 h-7"
