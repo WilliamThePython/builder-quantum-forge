@@ -162,11 +162,11 @@ export default function STLWorkflowPanel({
               <div className="relative">
                 <input
                   type="file"
-                  accept=".stl"
+                  accept=".stl,.obj"
                   onChange={handleFileUpload}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   disabled={isLoading}
-                  title="Upload STL file (max 50MB)"
+                  title="Upload STL or OBJ file (max 50MB)"
                 />
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 relative z-0 h-12"
