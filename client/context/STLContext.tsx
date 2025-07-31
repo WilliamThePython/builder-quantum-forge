@@ -306,12 +306,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Ensure solid object appearance with proper face normals
       ensureSolidObjectDisplay(geometry);
 
-      // Reconstruct polygon faces from triangulated STL
-      console.log('Reconstructing polygon faces from uploaded STL...');
-      const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
-      if (reconstructedFaces.length > 0) {
-        PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
-        console.log(`Successfully reconstructed ${reconstructedFaces.length} polygon faces`);
+      // Conditional polygon reconstruction based on model complexity
+      if (vertexCount < 100000) { // Only for models under 100K vertices
+        console.log('🔍 Reconstructing polygon faces from uploaded STL...');
+        try {
+          const reconstructionStart = Date.now();
+          const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
+          const reconstructionTime = Date.now() - reconstructionStart;
+
+          if (reconstructedFaces.length > 0) {
+            PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
+            console.log(`✅ Reconstructed ${reconstructedFaces.length} polygon faces in ${reconstructionTime}ms`);
+          }
+        } catch (reconstructionError) {
+          console.warn('⚠️ Polygon reconstruction failed, using triangulated mesh:', reconstructionError);
+          // Continue without polygon reconstruction
+        }
+      } else {
+        console.log('⏭️ Skipping polygon reconstruction for high-poly model (performance optimization)');
+        addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
       }
 
       // Validate geometry for printing accuracy issues
