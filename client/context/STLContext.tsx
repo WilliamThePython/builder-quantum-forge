@@ -58,6 +58,11 @@ interface STLContextType {
   getGeometryStats: () => any;
   getDetailedGeometryStats: () => any;
   setHighlightedTriangle: (triangleIndex: number | null) => void;
+
+  // Backup and restore functionality
+  hasBackup: boolean;
+  createBackup: () => void;
+  restoreFromBackup: () => void;
 }
 
 const defaultViewerSettings: ViewerSettings = {
