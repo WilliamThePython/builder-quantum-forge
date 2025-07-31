@@ -261,6 +261,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         throw new Error('STL file contains no valid geometry data');
       }
 
+      // Check vertex count for performance implications
+      const vertexCount = geometry.attributes.position.count;
+      const triangleCount = Math.floor(vertexCount / 3);
+
+      console.log(`📊 Model stats: ${vertexCount.toLocaleString()} vertices, ${triangleCount.toLocaleString()} triangles`);
+
+      // Handle extremely high-poly models
+      const maxRecommendedVertices = 500000; // 500K vertices for smooth performance
+      const maxAbsoluteVertices = 2000000; // 2M vertices absolute limit
+
+      if (vertexCount > maxAbsoluteVertices) {
+        throw new Error(`Model too complex (${vertexCount.toLocaleString()} vertices). Maximum supported: ${maxAbsoluteVertices.toLocaleString()} vertices. Please use a mesh decimation tool to reduce complexity.`);
+      }
+
+      if (vertexCount > maxRecommendedVertices) {
+        console.warn(`⚠️ High-poly model detected (${vertexCount.toLocaleString()} vertices). Consider reducing complexity for better performance.`);
+        addError(`High-poly model (${(vertexCount / 1000).toFixed(0)}K vertices). Performance may be impacted. Use "3. REDUCE MODEL" after loading for better performance.`);
+
+        // Add a short delay to prevent UI freezing during processing
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
       // Center and scale the geometry
       geometry.computeBoundingBox();
 
