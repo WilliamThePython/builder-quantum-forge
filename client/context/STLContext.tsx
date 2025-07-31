@@ -703,6 +703,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setIsProcessingTool(true);
 
     try {
+      // Create backup before simplification
+      createBackup();
+
       console.log('Starting professional mesh simplification...', { method, reductionAmount });
 
       const result = await STLManipulator.reducePoints(geometry, reductionAmount, method);
