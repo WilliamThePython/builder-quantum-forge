@@ -47,7 +47,7 @@ export class OBJConverter {
     let hasQuads = false;
     let hasPolygons = false;
     
-    if (indices) {
+    if (indices && indices.length > 0) {
       // Indexed geometry
       for (let i = 0; i < indices.length; i += 3) {
         // OBJ uses 1-based indexing
