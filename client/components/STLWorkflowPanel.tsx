@@ -56,7 +56,7 @@ export default function STLWorkflowPanel({
     fileName,
     isLoading,
     geometry,
-    loadSTLFromFile,
+    loadModelFromFile,
     loadDefaultSTL,
     exportSTL,
     exportParts,
