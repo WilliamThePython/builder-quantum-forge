@@ -268,6 +268,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const arrayBuffer = await file.arrayBuffer();
       console.log('Array buffer size:', arrayBuffer.byteLength);
 
+      updateProgress(35, 'Parsing', 'Processing STL geometry...');
       let geometry: THREE.BufferGeometry;
       try {
         console.log('Parsing STL with Three.js STLLoader...');
