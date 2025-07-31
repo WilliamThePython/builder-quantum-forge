@@ -198,6 +198,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [objString, setObjString] = useState<string | null>(null);
   const [cleanupResults, setCleanupResults] = useState<any | null>(null);
 
+  // Backup state for undo functionality
+  const [backupGeometry, setBackupGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [backupProcessedModel, setBackupProcessedModel] = useState<ProcessedModel | null>(null);
+  const [hasBackup, setHasBackup] = useState(false);
+
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
