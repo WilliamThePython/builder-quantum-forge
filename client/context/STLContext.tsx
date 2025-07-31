@@ -839,16 +839,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
       }
 
-      console.log('Assembly kit export completed successfully');
+      console.log(`${format.toUpperCase()} assembly kit export completed successfully`);
 
       // Track export event
       try {
         const stats = TriangleExporter.getExportStats(geometry, options.partThickness || 2);
         analytics.trackEvent({
-          event_name: 'assembly_kit_export',
+          event_name: `assembly_kit_export_${format}`,
           event_category: '3d_interaction',
           event_label: exportFilename,
           custom_parameters: {
+            format: format,
             original_filename: fileName,
             export_filename: exportFilename,
             part_count: stats.triangleCount,
