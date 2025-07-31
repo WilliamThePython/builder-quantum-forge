@@ -549,7 +549,8 @@ class Analytics {
 
         // Don't call handleAnalyticsFailure to prevent error loops
         if (this.analyticsFailureCount > 10) {
-          console.warn('🚫 Analytics disabled after 10 failures');
+          console.warn('🚫 Analytics permanently disabled after 10 failures');
+          this.globallyDisabled = true;
         }
       })
       .finally(() => {
