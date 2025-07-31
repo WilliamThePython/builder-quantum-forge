@@ -230,17 +230,25 @@ export class PolygonGeometryBuilder {
     // Add all vertices
     vertices.push(apex, ...baseVertices);
 
-    // Base face (polygon) - correct winding for outward normal (bottom-up view)
-    faces.push(this.createFace([...baseVertices], 'polygon'));
+    // Calculate geometry center for outward normal validation
+    const geometryCenter = new THREE.Vector3(0, 0, 0);
 
-    // Side faces (triangles) - correct winding for outward normals
+    // Base face (polygon) - ensure outward normal
+    let baseFace = this.createFace([...baseVertices], 'polygon');
+    baseFace = this.ensureOutwardFaceWinding(baseFace, geometryCenter);
+    faces.push(baseFace);
+
+    // Side faces (triangles) - ensure outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      faces.push(this.createFace([
+      let sideFace = this.createFace([
         apex,
         baseVertices[next],
         baseVertices[i]
-      ], 'triangle'));
+      ], 'triangle');
+
+      sideFace = this.ensureOutwardFaceWinding(sideFace, geometryCenter);
+      faces.push(sideFace);
     }
 
     return { vertices, faces, type: 'cone' };
