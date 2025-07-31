@@ -55,6 +55,7 @@ export default function STLWorkflowPanel({
   const {
     fileName,
     isLoading,
+    loadingProgress,
     geometry,
     loadModelFromFile,
     loadDefaultSTL,
