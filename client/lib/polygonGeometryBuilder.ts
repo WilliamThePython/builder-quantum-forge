@@ -48,14 +48,14 @@ export class PolygonGeometryBuilder {
       new THREE.Vector3(-w, h, d)    // 7
     ];
 
-    // 6 quadrilateral faces
+    // 6 quadrilateral faces - consistent counter-clockwise winding for outward normals
     const faces = [
       this.createFace([vertices[0], vertices[1], vertices[2], vertices[3]], 'quad'), // front
       this.createFace([vertices[5], vertices[4], vertices[7], vertices[6]], 'quad'), // back
       this.createFace([vertices[4], vertices[0], vertices[3], vertices[7]], 'quad'), // left
       this.createFace([vertices[1], vertices[5], vertices[6], vertices[2]], 'quad'), // right
       this.createFace([vertices[3], vertices[2], vertices[6], vertices[7]], 'quad'), // top
-      this.createFace([vertices[4], vertices[5], vertices[1], vertices[0]], 'quad')  // bottom
+      this.createFace([vertices[0], vertices[4], vertices[5], vertices[1]], 'quad')  // bottom - fixed winding
     ];
 
     return { vertices, faces, type: 'box' };
