@@ -59,7 +59,39 @@ function STLMesh() {
     });
   }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
+  // Trigger spinning animation when a new model loads
+  useEffect(() => {
+    if (geometry) {
+      console.log('🌀 Starting initial model spin animation');
+      spinState.current = {
+        ...spinState.current,
+        isSpinning: true,
+        startTime: Date.now()
+      };
+    }
+  }, [geometry]);
 
+  // Spinning animation frame loop
+  useFrame(() => {
+    if (!meshRef.current || !spinState.current.isSpinning) return;
+
+    const elapsed = Date.now() - spinState.current.startTime;
+    const progress = Math.min(elapsed / spinState.current.duration, 1);
+
+    // Easing function for smooth deceleration (cubic ease-out)
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const currentSpeed = spinState.current.initialSpeed * (1 - easeOut);
+
+    if (progress >= 1) {
+      // Animation complete, stop spinning
+      spinState.current.isSpinning = false;
+      console.log('✅ Model spin animation completed');
+    } else {
+      // Continue spinning with decreasing speed
+      meshRef.current.rotation.y += currentSpeed * 0.016; // 60fps approximation
+      meshRef.current.rotation.x += currentSpeed * 0.3 * 0.016; // Slight X rotation for 3D effect
+    }
+  });
 
   // Store original colors for highlighting
   const originalColors = useRef<Float32Array | null>(null);
