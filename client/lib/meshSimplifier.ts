@@ -32,11 +32,38 @@ export class MeshSimplifier {
 
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
-    
-    // Calculate target parts based on reduction
+
+    // CRITICAL SAFETY CHECKS to prevent model deletion
+    if (originalStats.vertices === 0 || originalStats.faces === 0) {
+      console.error('❌ Invalid geometry - no vertices or faces');
+      throw new Error('Cannot simplify empty geometry');
+    }
+
+    const minimumTriangles = 12; // Absolute minimum for any shape
     const currentTriangles = originalStats.faces;
-    const targetParts = options.targetParts || Math.max(10, Math.floor(currentTriangles * (1 - options.targetReduction)));
+
+    // Calculate safe target parts
+    let targetParts = options.targetParts || Math.floor(currentTriangles * (1 - options.targetReduction));
+    targetParts = Math.max(minimumTriangles, targetParts); // Never go below minimum
+
+    // If target is already larger than current, just clean and return
+    if (targetParts >= currentTriangles) {
+      console.log('🛡️ Target larger than current, just cleaning geometry');
+      const cleaned = this.cleanMesh(geometry.clone());
+      const cleanedStats = this.getMeshStats(cleaned);
+      return {
+        simplifiedGeometry: cleaned,
+        originalStats,
+        newStats: cleanedStats,
+        triangleParts: this.extractTriangleParts(cleaned),
+        mergedParts: this.mergeCoplanarFaces(cleaned, options.angleTolerance || 1.0),
+        reductionAchieved: 0,
+        processingTime: Date.now() - startTime
+      };
+    }
+
     const angleTolerance = options.angleTolerance || 1.0;
+    console.log(`🎯 Safe targets: ${currentTriangles} → ${targetParts} triangles (min: ${minimumTriangles})`);
 
     try {
       // Step 1: Clean mesh (like Python clean_mesh function)
