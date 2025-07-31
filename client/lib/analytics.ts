@@ -534,7 +534,9 @@ class Analytics {
           this.analyticsFailureCount = 0;
           return response.json();
         } else {
-          throw new Error(`HTTP ${response.status}`);
+          // Don't throw, just increment failure count
+          this.analyticsFailureCount++;
+          return null;
         }
       })
       .then(data => {
