@@ -285,8 +285,8 @@ export default function STLViewer() {
     >
       <Canvas
         camera={{
-          position: [50, 50, 50],
-          fov: 50,
+          position: [0, 30, 80],
+          fov: 45,
           near: 0.1,
           far: 1000
         }}
