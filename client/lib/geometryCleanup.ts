@@ -26,6 +26,14 @@ export class GeometryCleanup {
    */
   static cleanGeometry(geometry: THREE.BufferGeometry): CleanupResults {
     console.log('🧹 Starting mandatory geometry cleanup...');
+
+    // Check if this is a procedurally generated geometry (already clean)
+    const isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated === true;
+
+    if (isProcedurallyGenerated) {
+      console.log('ℹ️ Skipping aggressive cleanup for procedurally generated geometry');
+      return this.lightweightCleanup(geometry);
+    }
     
     const results: CleanupResults = {
       duplicateVerticesRemoved: 0,
