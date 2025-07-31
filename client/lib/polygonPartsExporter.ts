@@ -15,6 +15,7 @@ export class PolygonPartsExporter {
     geometry: THREE.BufferGeometry,
     filename: string = 'polygon_parts.zip',
     options: {
+      format?: 'stl' | 'obj'; // export format
       partThickness?: number; // mm thickness for each polygon piece
       scale?: number; // overall scale factor
     } = {}
