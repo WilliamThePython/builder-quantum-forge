@@ -50,11 +50,14 @@ export class PolygonPartsExporter {
     // Track part information for Excel database
     const partDatabase: any[] = [];
 
-    // Create individual STL files for each polygon face
+    // Create individual files for each polygon face
     for (let i = 0; i < polygonFaces.length; i++) {
       const faceInfo = polygonFaces[i];
-      const polygonSTL = this.createPolygonSTL(faceInfo, i, partThickness, scale);
-      const partFilename = `part_${String(i + 1).padStart(4, '0')}_${faceInfo.type}.stl`;
+      const fileExtension = format === 'obj' ? 'obj' : 'stl';
+      const partContent = format === 'obj'
+        ? this.createPolygonOBJ(faceInfo, i, partThickness, scale)
+        : this.createPolygonSTL(faceInfo, i, partThickness, scale);
+      const partFilename = `part_${String(i + 1).padStart(4, '0')}_${faceInfo.type}.${fileExtension}`;
 
       // Calculate part geometry and metrics
       const partInfo = this.calculatePolygonPartInfo(faceInfo, partThickness, scale);
