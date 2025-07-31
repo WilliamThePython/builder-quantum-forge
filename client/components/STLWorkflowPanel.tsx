@@ -1138,7 +1138,7 @@ function MobileWorkflowContent(props: any) {
         )}
       </div>
 
-      <Separator className="bg-white/20" />
+      <Separator className="bg-white/20 my-0.5" />
 
       {/* 2. VISUALIZATION SECTION */}
       <div>
