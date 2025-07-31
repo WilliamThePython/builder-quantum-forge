@@ -11,8 +11,8 @@ export class STLManipulator {
 
   
   /**
-   * Professional mesh simplification using improved algorithm based on Python implementation
-   * Focuses on proper cleaning, coplanar face merging, and boundary preservation
+   * Mesh simplification using direct Python implementation
+   * Prevents internal triangles and model deletion
    */
   static async reducePoints(
     geometry: THREE.BufferGeometry,
@@ -25,67 +25,34 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`Starting improved mesh simplification using ${method}...`);
+    console.log(`🔄 Starting Python-style mesh reduction (${method}, ${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
-    // Calculate target parts based on current geometry and reduction
-    const currentFaces = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
-    const targetParts = Math.max(10, Math.floor(currentFaces * (1 - targetReduction)));
+    // Use the direct Python implementation
+    const result = await MeshSimplifier.simplifyMesh(geometry, {
+      method,
+      targetReduction,
+      angleTolerance: 1.0 // 1 degree tolerance for coplanar face detection
+    });
 
-    try {
-      // Use the improved simplifier based on Python implementation
-      const result = await ImprovedMeshSimplifier.simplifyAndMerge(geometry, {
-        targetParts,
-        angleTolerance: 1.0, // 1 degree tolerance for coplanar face detection
-        preserveBoundaries: true,
-        method: method === 'quadric_edge_collapse' ? 'quadric' :
-                method === 'vertex_clustering' ? 'clustering' : 'edge_collapse'
-      });
+    console.log('✅ Python-style mesh reduction completed:', {
+      method,
+      originalVertices: result.originalStats.vertices,
+      newVertices: result.newStats.vertices,
+      originalFaces: result.originalStats.faces,
+      newFaces: result.newStats.faces,
+      reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
+      triangleParts: result.triangleParts.length,
+      mergedParts: result.mergedParts.length,
+      processingTime: `${result.processingTime}ms`
+    });
 
-      // Calculate reduction achieved
-      const originalStats = MeshSimplifier.getMeshStats(geometry);
-      const newStats = MeshSimplifier.getMeshStats(result.simplifiedGeometry);
-      const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
-
-      console.log('Improved mesh simplification completed:', {
-        method,
-        originalVertices: originalStats.vertices,
-        newVertices: newStats.vertices,
-        originalFaces: originalStats.faces,
-        newFaces: newStats.faces,
-        reductionAchieved: `${(reductionAchieved * 100).toFixed(1)}%`,
-        triangleParts: result.triangleParts.length,
-        mergedParts: result.mergedParts.length,
-        processingTime: `${result.stats.processingTime}ms`
-      });
-
-      return {
-        geometry: result.simplifiedGeometry,
-        originalStats,
-        newStats,
-        reductionAchieved,
-        processingTime: result.stats.processingTime
-      };
-
-    } catch (error) {
-      console.warn('Improved simplifier failed, falling back to original method:', error);
-
-      // Fallback to original method
-      const result = await MeshSimplifier.simplifyMesh(geometry, {
-        method: method as any,
-        targetReduction,
-        preserveBoundaries: true,
-        preserveNormals: true,
-        qualityThreshold: 0.8
-      });
-
-      return {
-        geometry: result.simplifiedGeometry,
-        originalStats: result.originalStats,
-        newStats: result.newStats,
-        reductionAchieved: result.reductionAchieved,
-        processingTime: result.processingTime
-      };
-    }
+    return {
+      geometry: result.simplifiedGeometry,
+      originalStats: result.originalStats,
+      newStats: result.newStats,
+      reductionAchieved: result.reductionAchieved,
+      processingTime: result.processingTime
+    };
   }
 
 
