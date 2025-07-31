@@ -835,12 +835,20 @@ export class PolygonGeometryBuilder {
    * Convert PolygonGeometry to Three.js BufferGeometry by triangulating
    */
   static toBufferGeometry(polygonGeometry: PolygonGeometry): THREE.BufferGeometry {
+    console.log(`🔧 Converting ${polygonGeometry.type} to BufferGeometry...`);
+    console.log(`   Input: ${polygonGeometry.faces.length} faces, ${polygonGeometry.vertices.length} vertices`);
+
     const positions: number[] = [];
     const normals: number[] = [];
     const faceData: FaceInfo[] = [];
 
-    for (const face of polygonGeometry.faces) {
+    for (let i = 0; i < polygonGeometry.faces.length; i++) {
+      const face = polygonGeometry.faces[i];
+      console.log(`   Processing face ${i}: ${face.faceType} with ${face.vertices.length} vertices`);
+
       const triangulatedVertices = this.triangulateFace(face);
+      console.log(`   Triangulated to ${triangulatedVertices.length} vertices (${triangulatedVertices.length / 3} triangles)`);
+
       const startIndex = positions.length / 3;
 
       for (const vertex of triangulatedVertices) {
@@ -857,6 +865,8 @@ export class PolygonGeometryBuilder {
         normal: face.normal
       });
     }
+
+    console.log(`✅ Final geometry: ${positions.length / 3} vertices, ${positions.length / 9} triangles`);
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
