@@ -570,8 +570,9 @@ class Analytics {
         this.isTrackingAnalyticsErrors = false;
       }
 
-      // Disable if too many synchronous failures
-      if (this.analyticsFailureCount > 10) {
+      // Disable if too many synchronous failures (more forgiving in development)
+      const maxFailures = isDevelopment ? 50 : 10;
+      if (this.analyticsFailureCount > maxFailures) {
         this.globallyDisabled = true;
       }
     }
