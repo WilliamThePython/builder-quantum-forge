@@ -10,6 +10,7 @@ import { STLGeometryValidator, ValidationReport } from '../lib/stlGeometryValida
 import { ModelFileHandler, ProcessedModel } from '../lib/modelFileHandler';
 import { ModelCache } from '../lib/modelCache';
 import { getTestFileSizeData } from '../lib/fileSizeEstimator';
+import { OBJConverter } from '../lib/objConverter';
 
 interface ViewerSettings {
   randomColors: boolean;
