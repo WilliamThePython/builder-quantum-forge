@@ -125,11 +125,11 @@ export class ModelCache {
   }
 
   /**
-   * Define all the random models to cache
+   * Define all the random models to cache (starting with simple working shapes)
    */
   private static getModelDefinitions() {
     return [
-      // Basic geometric shapes
+      // Basic geometric shapes (these should work)
       {
         name: 'cube-polygon.stl',
         generator: () => PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
@@ -143,15 +143,11 @@ export class ModelCache {
         generator: () => PolygonGeometryBuilder.createOctahedron(15)
       },
       {
-        name: 'dodecahedron.stl',
-        generator: () => PolygonGeometryBuilder.createDodecahedron(12)
-      },
-      {
         name: 'icosahedron.stl',
         generator: () => PolygonGeometryBuilder.createIcosahedron(16)
       },
-      
-      // Prisms and cylinders
+
+      // Simple prisms and cylinders (these should work)
       {
         name: 'triangular-prism.stl',
         generator: () => PolygonGeometryBuilder.createTriangularPrism(12, 25)
@@ -168,8 +164,8 @@ export class ModelCache {
         name: 'octagonal-cylinder.stl',
         generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8)
       },
-      
-      // Cones
+
+      // Simple cones (these should work)
       {
         name: 'octagonal-cone.stl',
         generator: () => PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8)
@@ -178,8 +174,40 @@ export class ModelCache {
         name: 'irregular-cone.stl',
         generator: () => PolygonGeometryBuilder.createConeWithPolygons(12, 25, 10)
       },
-      
-      // Complex shapes
+
+      // Irregular variants (simple boxes should work)
+      {
+        name: 'irregular-prism-1.stl',
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(25, 15, 20)
+      },
+      {
+        name: 'irregular-prism-2.stl',
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 25, 12)
+      },
+      {
+        name: 'irregular-prism-3.stl',
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(18, 22, 25)
+      },
+      {
+        name: 'irregular-triangular-prism.stl',
+        generator: () => PolygonGeometryBuilder.createTriangularPrism(15, 28)
+      },
+      {
+        name: 'irregular-cylinder.stl',
+        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(14, 16, 22, 12)
+      },
+      {
+        name: 'truncated-pyramid.stl',
+        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(8, 18, 20, 6)
+      },
+
+      // Complex shapes (temporarily disabled while debugging)
+      // These will be re-enabled once we fix the triangulation issues
+      /*
+      {
+        name: 'dodecahedron.stl',
+        generator: () => PolygonGeometryBuilder.createDodecahedron(12)
+      },
       {
         name: 'stepped-pyramid.stl',
         generator: () => PolygonGeometryBuilder.createSteppedPyramid(25, 4, 20)
@@ -215,33 +243,8 @@ export class ModelCache {
       {
         name: 'ellipsoid.stl',
         generator: () => PolygonGeometryBuilder.createEllipsoid(12, 18, 15, 10)
-      },
-      
-      // Irregular variants
-      {
-        name: 'irregular-prism-1.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(25, 15, 20)
-      },
-      {
-        name: 'irregular-prism-2.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 25, 12)
-      },
-      {
-        name: 'irregular-prism-3.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(18, 22, 25)
-      },
-      {
-        name: 'irregular-triangular-prism.stl',
-        generator: () => PolygonGeometryBuilder.createTriangularPrism(15, 28)
-      },
-      {
-        name: 'irregular-cylinder.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(14, 16, 22, 12)
-      },
-      {
-        name: 'truncated-pyramid.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(8, 18, 20, 6)
       }
+      */
     ];
   }
 }
