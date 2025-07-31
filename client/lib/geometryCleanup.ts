@@ -245,6 +245,32 @@ export class GeometryCleanup {
   }
 
   /**
+   * Lightweight cleanup for procedurally generated geometries
+   * Only performs essential operations without aggressive triangle removal
+   */
+  private static lightweightCleanup(geometry: THREE.BufferGeometry): CleanupResults {
+    const results: CleanupResults = {
+      duplicateVerticesRemoved: 0,
+      zeroAreaTrianglesRemoved: 0,
+      degenerateVerticesRemoved: 0,
+      windingCorrected: false,
+      manifoldIssuesFixed: 0,
+      originalVertexCount: geometry.attributes.position.count,
+      finalVertexCount: geometry.attributes.position.count,
+      originalFaceCount: geometry.attributes.position.count / 3,
+      finalFaceCount: geometry.attributes.position.count / 3
+    };
+
+    // Only recompute normals and bounds for procedural geometries
+    // Skip aggressive vertex deduplication and triangle removal
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+
+    console.log('✅ Lightweight cleanup completed for procedural geometry');
+    return results;
+  }
+
+  /**
    * Generate cleanup summary for logging/display
    */
   static generateCleanupSummary(results: CleanupResults): string {
