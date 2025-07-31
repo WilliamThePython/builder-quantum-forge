@@ -37,12 +37,60 @@ function STLMesh() {
     return vertexCount - 2; // fan triangulation
   };
 
+  // Create polygon-aware wireframe geometry
+  const wireframeGeometry = useMemo(() => {
+    if (!viewerSettings.wireframe || !geometry) return null;
+
+    const polygonFaces = (geometry as any).polygonFaces;
+
+    if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      // Fallback to standard wireframe for non-polygon geometries
+      return null;
+    }
+
+    console.log('🔗 Creating polygon-aware wireframe');
+
+    const wireframePositions: number[] = [];
+
+    // Create wireframe based on original polygon edges, not triangulated edges
+    for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+      const face = polygonFaces[faceIndex];
+
+      if (face.originalVertices && face.originalVertices.length >= 3) {
+        // Draw edges around the original polygon perimeter
+        const vertices = face.originalVertices;
+
+        for (let i = 0; i < vertices.length; i++) {
+          const currentVertex = vertices[i];
+          const nextVertex = vertices[(i + 1) % vertices.length];
+
+          // Add line segment (2 vertices per line)
+          wireframePositions.push(
+            currentVertex.x, currentVertex.y, currentVertex.z,
+            nextVertex.x, nextVertex.y, nextVertex.z
+          );
+        }
+      } else {
+        // Fallback: if no original vertices, try to reconstruct from face type
+        console.warn('⚠️ Face missing original vertices, using fallback for face:', faceIndex);
+      }
+    }
+
+    const wireGeometry = new THREE.BufferGeometry();
+    wireGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wireframePositions, 3));
+
+    console.log(`✅ Created polygon wireframe with ${wireframePositions.length / 6} edge segments`);
+    return wireGeometry;
+  }, [geometry, viewerSettings.wireframe]);
+
   // Create materials based on settings
   const material = useMemo(() => {
     if (viewerSettings.wireframe) {
       return new THREE.MeshBasicMaterial({
-        wireframe: true,
-        color: 0x00ff88
+        wireframe: false, // We'll handle wireframe with LineSegments
+        color: 0x404040,
+        transparent: true,
+        opacity: 0.1
       });
     }
 
