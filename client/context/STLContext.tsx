@@ -885,24 +885,48 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Backup and restore functions
   const createBackup = useCallback(() => {
     if (geometry) {
-      console.log('🔄 Creating backup of current model...');
+      console.log('🔄 Creating backup of current model with polygon structure...');
       // Clone the geometry to avoid reference issues
       const backup = geometry.clone();
+
+      // Preserve any polygon/face metadata that might be attached
+      if ((geometry as any).polygonFaces) {
+        (backup as any).polygonFaces = JSON.parse(JSON.stringify((geometry as any).polygonFaces));
+      }
+      if ((geometry as any).originalPolygons) {
+        (backup as any).originalPolygons = JSON.parse(JSON.stringify((geometry as any).originalPolygons));
+      }
+      if ((geometry as any).reconstructedFaces) {
+        (backup as any).reconstructedFaces = JSON.parse(JSON.stringify((geometry as any).reconstructedFaces));
+      }
+
       setBackupGeometry(backup);
       setBackupProcessedModel(processedModel);
       setHasBackup(true);
-      console.log('✅ Backup created successfully');
+      console.log('✅ Backup created successfully with polygon structure preserved');
     }
   }, [geometry, processedModel]);
 
   const restoreFromBackup = useCallback(() => {
     if (backupGeometry && hasBackup) {
-      console.log('🔄 Restoring model from backup...');
+      console.log('🔄 Restoring model from backup with polygon structure...');
       // Clone the backup to avoid reference issues
       const restored = backupGeometry.clone();
+
+      // Restore polygon/face metadata
+      if ((backupGeometry as any).polygonFaces) {
+        (restored as any).polygonFaces = JSON.parse(JSON.stringify((backupGeometry as any).polygonFaces));
+      }
+      if ((backupGeometry as any).originalPolygons) {
+        (restored as any).originalPolygons = JSON.parse(JSON.stringify((backupGeometry as any).originalPolygons));
+      }
+      if ((backupGeometry as any).reconstructedFaces) {
+        (restored as any).reconstructedFaces = JSON.parse(JSON.stringify((backupGeometry as any).reconstructedFaces));
+      }
+
       setGeometry(restored);
       setProcessedModel(backupProcessedModel);
-      console.log('✅ Model restored from backup');
+      console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
       console.warn('⚠️ No backup available to restore from');
     }
