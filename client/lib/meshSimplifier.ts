@@ -77,26 +77,26 @@ export class MeshSimplifier {
         throw new Error('Cleaning failed');
       }
 
-      // Step 2: ULTRA CONSERVATIVE - only reduce if we have A LOT of triangles
+      // Step 2: EXTREMELY CONSERVATIVE - only reduce if we have MASSIVE amounts of triangles
       let finalGeometry = cleanedGeometry;
-      if (currentTriangles > 1000 && options.targetReduction > 0.1) {
-        console.log('🔧 Attempting gentle reduction (only for high-poly models)...');
+      if (currentTriangles > 10000 && options.targetReduction > 0.2 && options.targetReduction < 0.7) {
+        console.log('🔧 Attempting minimal reduction (only for very high-poly models)...');
         try {
-          const reducedGeometry = await this.ultraConservativeReduction(cleanedGeometry, targetParts);
+          const reducedGeometry = await this.minimalReduction(cleanedGeometry, currentTriangles);
           const reducedStats = this.getMeshStats(reducedGeometry);
 
-          // Only use reduced geometry if it's still valid
-          if (reducedStats.vertices > 0 && reducedStats.faces > 0) {
+          // Only use reduced geometry if it actually has MORE than 50% of original
+          if (reducedStats.vertices > originalStats.vertices * 0.5 && reducedStats.faces > originalStats.faces * 0.5) {
             finalGeometry = reducedGeometry;
-            console.log('✅ Gentle reduction successful');
+            console.log(`✅ Minimal reduction successful: ${originalStats.vertices} → ${reducedStats.vertices} vertices`);
           } else {
-            console.warn('⚠️ Reduction failed validation, using cleaned original');
+            console.warn('⚠️ Reduction too aggressive, using cleaned original');
           }
         } catch (reductionError) {
           console.warn('⚠️ Reduction failed, using cleaned original:', reductionError);
         }
       } else {
-        console.log('🛡️ Model too small or reduction too aggressive, skipping reduction');
+        console.log(`🛡️ Skipping reduction - triangles: ${currentTriangles}, reduction: ${options.targetReduction}`);
       }
 
       // Step 3: Extract triangle parts and merge coplanar faces (this is safe)
