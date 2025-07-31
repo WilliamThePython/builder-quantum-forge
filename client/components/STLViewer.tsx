@@ -254,9 +254,12 @@ function Scene() {
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={10}
-        maxDistance={200}
+        minDistance={15}
+        maxDistance={150}
         target={[0, 0, 0]}
+        autoRotate={false}
+        enableDamping={true}
+        dampingFactor={0.05}
       />
 
       <Environment preset="city" />
