@@ -934,7 +934,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     loadModelFromFile: loadSTLFromFile, // TODO: Update to use new unified loader
     loadDefaultSTL,
     updateViewerSettings,
-    exportModel: exportSTL, // TODO: Update to support format selection
+    exportSTL,
     exportParts,
     clearError,
     clearErrorById,
