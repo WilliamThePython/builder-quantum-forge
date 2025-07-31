@@ -496,6 +496,9 @@ class Analytics {
       return; // Silent skip
     }
 
+    // In development, be more lenient with analytics failures
+    const isDevelopment = import.meta.env?.DEV || window.location.hostname === 'localhost';
+
     try {
       // Set flag to prevent tracking analytics-related errors
       if (event.event_name === 'javascript_error') {
