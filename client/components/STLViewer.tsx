@@ -68,9 +68,7 @@ function STLMesh() {
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
-          const triangleCount = STLManipulator.getTriangleCountForPolygon ?
-            STLManipulator.getTriangleCountForPolygon(face) :
-            (face.vertices?.length > 2 ? face.vertices.length - 2 : 1);
+          const triangleCount = getTriangleCountForPolygon(face);
 
           // Generate one color per polygon face
           const color = new THREE.Color();
