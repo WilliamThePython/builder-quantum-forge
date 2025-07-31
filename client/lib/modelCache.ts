@@ -98,7 +98,32 @@ export class ModelCache {
   static getAvailableModels(): string[] {
     return Array.from(this.cache.keys());
   }
-  
+
+  /**
+   * Create simple fallback models if complex models fail
+   */
+  private static createFallbackModels(): void {
+    console.log('🔄 Creating fallback models...');
+
+    try {
+      // Simple cube - this should always work
+      const cubeGeometry = PolygonGeometryBuilder.toBufferGeometry(
+        PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
+      );
+
+      if (cubeGeometry.attributes.position && cubeGeometry.attributes.position.count > 0) {
+        const objResult = OBJConverter.geometryToOBJ(cubeGeometry, 'fallback-cube.stl');
+        this.cache.set('fallback-cube.stl', {
+          objString: objResult.objString,
+          geometry: cubeGeometry.clone()
+        });
+        console.log('✅ Created fallback cube model');
+      }
+    } catch (error) {
+      console.error('❌ Even fallback models failed:', error);
+    }
+  }
+
   /**
    * Define all the random models to cache
    */
