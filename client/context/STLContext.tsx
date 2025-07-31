@@ -354,6 +354,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
       }
 
+      updateProgress(85, 'Validating', 'Checking geometry quality...');
       // Optimized validation for large models
       let validationReport;
       if (vertexCount < 200000) {
