@@ -981,6 +981,38 @@ export default function STLWorkflowPanel({
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
       `}</style>
+
+      {/* Epilepsy Warning Dialog */}
+      <AlertDialog open={showEpilepsyWarning} onOpenChange={setShowEpilepsyWarning}>
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              Just a friendly heads up! 🌈
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300">
+              The colors feature uses vibrant, changing colors that might flash or change rapidly.
+              If you're sensitive to flashing lights or have photosensitive epilepsy, you might want to skip this one.
+              <br /><br />
+              No worries either way - just want to make sure you have a comfortable experience! ✨
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={handleEpilepsyWarningCancel}
+              className="bg-slate-700 text-white hover:bg-slate-600 border-slate-600"
+            >
+              No thanks, I'll skip it
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEpilepsyWarningAccept}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              I'm good, let's see those colors! 🎨
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
