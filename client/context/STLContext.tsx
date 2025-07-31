@@ -257,12 +257,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Enhanced warnings for large files
       if (file.size > 15 * 1024 * 1024) {
-        updateProgress(8, 'Warning', 'Large file detected - this may take longer...');
+        await updateProgress(8, 'Warning', 'Large file detected - this may take longer...');
         console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
         addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below. Consider using model reduction after loading.`);
 
         // Give UI time to update progress bar before heavy processing
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
 
       updateProgress(15, 'Loading', 'Preparing STL loader...');
