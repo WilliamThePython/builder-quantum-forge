@@ -1052,15 +1052,15 @@ function MobileWorkflowContent(props: any) {
       if (format === 'stl') {
         exportSTL();
       } else {
-        console.log('OBJ export selected - functionality to be implemented');
-        alert('OBJ export functionality coming soon!');
+        // Export complete model as OBJ
+        exportOBJ();
       }
     } else {
       if (format === 'stl') {
         exportParts(triangleOptions);
       } else {
-        console.log('OBJ parts export selected - functionality to be implemented');
-        alert('OBJ parts export functionality coming soon!');
+        // Export parts as OBJ
+        exportParts({ ...triangleOptions, format: 'obj' });
       }
     }
   };
