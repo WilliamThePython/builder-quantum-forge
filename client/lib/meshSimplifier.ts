@@ -143,20 +143,80 @@ export class MeshSimplifier {
    */
   private static cleanMesh(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
     console.log('🧹 Cleaning mesh (Python style)...');
-    
+
     // Use existing geometry cleanup
     GeometryCleanup.cleanGeometry(geometry);
-    
+
     // Compute vertex normals (like Python mesh.compute_vertex_normals())
     geometry.computeVertexNormals();
-    
+
     // Additional cleaning steps from Python:
     // - remove_duplicated_vertices (handled by GeometryCleanup)
-    // - remove_degenerate_triangles (handled by GeometryCleanup) 
+    // - remove_degenerate_triangles (handled by GeometryCleanup)
     // - remove_duplicated_triangles (handled by GeometryCleanup)
     // - remove_non_manifold_edges (simplified implementation)
-    
+
     return geometry;
+  }
+
+  /**
+   * Ultra-gentle mesh cleaning that preserves everything possible
+   */
+  private static gentleCleanMesh(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log('🧹 Gentle mesh cleaning (preserving everything possible)...');
+
+    // Only do essential operations that won't remove geometry
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+
+    // Skip aggressive cleanup that might remove vertices
+    console.log('✅ Gentle cleaning complete - no geometry removed');
+    return geometry;
+  }
+
+  /**
+   * Ultra-conservative reduction that barely touches the geometry
+   */
+  private static async ultraConservativeReduction(
+    geometry: THREE.BufferGeometry,
+    targetTriangles: number
+  ): Promise<THREE.BufferGeometry> {
+    const currentTriangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+
+    // Only attempt reduction if we have way more triangles than target
+    if (currentTriangles < targetTriangles * 2) {
+      console.log('🛡️ Not enough triangles to safely reduce');
+      return geometry;
+    }
+
+    // Use very conservative target - never reduce by more than 20%
+    const ultraSafeTarget = Math.max(targetTriangles, Math.floor(currentTriangles * 0.8));
+
+    console.log(`🔧 Ultra-conservative reduction: ${currentTriangles} → ${ultraSafeTarget} (max 20% reduction)`);
+
+    try {
+      // Try Three.js SimplifyModifier with very conservative settings
+      const { SimplifyModifier } = await import('three/examples/jsm/modifiers/SimplifyModifier.js');
+
+      const modifier = new SimplifyModifier();
+      const simplified = modifier.modify(geometry, ultraSafeTarget);
+
+      // Validate result
+      const resultTriangles = simplified.index ? simplified.index.count / 3 : simplified.attributes.position.count / 3;
+
+      if (resultTriangles > 10) { // Minimum sanity check
+        simplified.computeVertexNormals();
+        console.log(`✅ Conservative SimplifyModifier successful: ${resultTriangles} triangles`);
+        return simplified;
+      } else {
+        console.warn('⚠️ SimplifyModifier result too small, using original');
+        return geometry;
+      }
+
+    } catch (error) {
+      console.warn('⚠️ SimplifyModifier failed, using original geometry:', error);
+      return geometry;
+    }
   }
 
   /**
