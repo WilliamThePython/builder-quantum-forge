@@ -268,7 +268,13 @@ export class OBJConverter {
   static geometryToOBJWithParts(geometry: THREE.BufferGeometry, parts?: any[]): string {
     let objString = '# Enhanced OBJ export with parts/groups\n';
     objString += `# Generated on ${new Date().toISOString()}\n\n`;
-    
+
+    // Validate geometry and position attributes
+    if (!geometry || !geometry.attributes || !geometry.attributes.position || !geometry.attributes.position.array) {
+      console.error('❌ Invalid geometry provided to geometryToOBJWithParts');
+      return '# Error: Invalid geometry - cannot export to OBJ\n';
+    }
+
     const positions = geometry.attributes.position.array as Float32Array;
     
     // Write all vertices first
