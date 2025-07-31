@@ -53,7 +53,7 @@ interface STLContextType {
   loadModelFromFile: (file: File) => Promise<void>; // Renamed to support both formats
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
-  exportModel: (format: 'stl' | 'obj', customFilename?: string) => void; // Enhanced export
+  exportSTL: (customFilename?: string) => void;
   exportParts: (format: 'stl' | 'obj', options?: any) => Promise<void>; // Enhanced parts export
   clearError: () => void;
   clearErrorById: (id: string) => void;
