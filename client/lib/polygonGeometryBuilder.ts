@@ -299,11 +299,11 @@ export class PolygonGeometryBuilder {
       this.createFace([vertices[0], vertices[2], vertices[5]], 'triangle'),
       this.createFace([vertices[0], vertices[5], vertices[3]], 'triangle'),
       this.createFace([vertices[0], vertices[3], vertices[4]], 'triangle'),
-      // Bottom pyramid faces - fixed winding for outward normals
-      this.createFace([vertices[1], vertices[4], vertices[2]], 'triangle'),
-      this.createFace([vertices[1], vertices[2], vertices[5]], 'triangle'),
-      this.createFace([vertices[1], vertices[5], vertices[3]], 'triangle'),
-      this.createFace([vertices[1], vertices[3], vertices[4]], 'triangle')
+      // Bottom pyramid faces - reversed winding for outward normals
+      this.createFace([vertices[1], vertices[2], vertices[4]], 'triangle'),
+      this.createFace([vertices[1], vertices[5], vertices[2]], 'triangle'),
+      this.createFace([vertices[1], vertices[3], vertices[5]], 'triangle'),
+      this.createFace([vertices[1], vertices[4], vertices[3]], 'triangle')
     ];
 
     return { vertices, faces, type: 'octahedron' };
