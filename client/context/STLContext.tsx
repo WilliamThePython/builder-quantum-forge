@@ -597,6 +597,156 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             return geom;
           })(),
           name: 'rotated-prism.stl'
+        },
+
+        // BASIC SHAPES
+        // Tetrahedron - simplest 3D shape with 4 triangular faces
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createTetrahedron(15 + Math.random() * 10)
+          ),
+          name: 'tetrahedron.stl'
+        },
+
+        // Octahedron - diamond shape with 8 triangular faces
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createOctahedron(12 + Math.random() * 8)
+          ),
+          name: 'octahedron.stl'
+        },
+
+        // Dodecahedron - complex shape with 12 pentagonal faces
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createDodecahedron(10 + Math.random() * 6)
+          ),
+          name: 'dodecahedron.stl'
+        },
+
+        // Icosahedron - sphere-like with 20 triangular faces
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createIcosahedron(14 + Math.random() * 8)
+          ),
+          name: 'icosahedron.stl'
+        },
+
+        // ARCHITECTURAL/FUNCTIONAL SHAPES
+        // Stepped pyramid with multiple levels
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createSteppedPyramid(
+              20 + Math.random() * 10,  // base size: 20-30
+              2 + Math.floor(Math.random() * 4),  // levels: 2-5
+              15 + Math.random() * 10   // height: 15-25
+            )
+          ),
+          name: 'stepped-pyramid.stl'
+        },
+
+        // L-bracket - common mechanical part
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createLBracket(
+              20 + Math.random() * 10,  // width: 20-30
+              15 + Math.random() * 10,  // height: 15-25
+              8 + Math.random() * 6,    // depth: 8-14
+              3 + Math.random() * 2     // thickness: 3-5
+            )
+          ),
+          name: 'l-bracket.stl'
+        },
+
+        // Washer/ring - torus-like shape
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createWasher(
+              12 + Math.random() * 8,   // outer radius: 12-20
+              6 + Math.random() * 4,    // inner radius: 6-10
+              3 + Math.random() * 4,    // height: 3-7
+              12 + Math.floor(Math.random() * 8) // segments: 12-20
+            )
+          ),
+          name: 'washer-ring.stl'
+        },
+
+        // Simple house - cube base with triangular roof
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createSimpleHouse(
+              16 + Math.random() * 8,   // width: 16-24
+              12 + Math.random() * 6,   // height: 12-18
+              20 + Math.random() * 10,  // depth: 20-30
+              8 + Math.random() * 6     // roof height: 8-14
+            )
+          ),
+          name: 'simple-house.stl'
+        },
+
+        // Gear wheel - circle with teeth around edge
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createGearWheel(
+              8 + Math.random() * 4,    // inner radius: 8-12
+              14 + Math.random() * 6,   // outer radius: 14-20
+              4 + Math.random() * 3,    // height: 4-7
+              8 + Math.floor(Math.random() * 8) // teeth: 8-16
+            )
+          ),
+          name: 'gear-wheel.stl'
+        },
+
+        // ORGANIC/COMPLEX SHAPES
+        // Ellipsoid - stretched sphere
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createEllipsoid(
+              10 + Math.random() * 8,   // radius X: 10-18
+              15 + Math.random() * 5,   // radius Y: 15-20
+              12 + Math.random() * 6,   // radius Z: 12-18
+              8 + Math.floor(Math.random() * 4) // segments: 8-12
+            )
+          ),
+          name: 'ellipsoid.stl'
+        },
+
+        // Wedge - half cylinder cut diagonally
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createWedge(
+              12 + Math.random() * 8,   // radius: 12-20
+              10 + Math.random() * 10,  // height: 10-20
+              8 + Math.floor(Math.random() * 6) // segments: 8-14
+            )
+          ),
+          name: 'wedge.stl'
+        },
+
+        // Star shape - extruded star polygon
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createStarShape(
+              15 + Math.random() * 5,   // outer radius: 15-20
+              8 + Math.random() * 4,    // inner radius: 8-12
+              6 + Math.random() * 6,    // height: 6-12
+              5 + Math.floor(Math.random() * 3) // points: 5-7
+            )
+          ),
+          name: 'star-shape.stl'
+        },
+
+        // Cross shape - plus sign extruded
+        {
+          geometry: PolygonGeometryBuilder.toBufferGeometry(
+            PolygonGeometryBuilder.createCrossShape(
+              12 + Math.random() * 8,   // width: 12-20
+              16 + Math.random() * 8,   // length: 16-24
+              4 + Math.random() * 3,    // thickness: 4-7
+              8 + Math.random() * 6     // height: 8-14
+            )
+          ),
+          name: 'cross-shape.stl'
         }
       ];
 
