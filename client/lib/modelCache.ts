@@ -14,31 +14,47 @@ export class ModelCache {
    */
   static initializeCache(): void {
     console.log('🏗️ Pre-generating and caching random models...');
-    
+
     const models = this.getModelDefinitions();
-    
+    let successCount = 0;
+    let failureCount = 0;
+
     models.forEach(model => {
       try {
         // Generate geometry
         const polygonGeometry = model.generator();
         const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
-        
+
+        // Validate geometry before conversion
+        if (!bufferGeometry.attributes.position || bufferGeometry.attributes.position.count === 0) {
+          throw new Error(`Generated geometry has no vertices`);
+        }
+
         // Convert to OBJ to preserve polygon structure
-        const objString = OBJConverter.geometryToOBJ(bufferGeometry, model.name);
-        
+        const objResult = OBJConverter.geometryToOBJ(bufferGeometry, model.name);
+
         // Cache both OBJ string and geometry
         this.cache.set(model.name, {
-          objString,
+          objString: objResult.objString,
           geometry: bufferGeometry.clone()
         });
-        
+
+        successCount++;
         console.log(`✅ Cached ${model.name} (${bufferGeometry.attributes.position.count} vertices)`);
       } catch (error) {
+        failureCount++;
         console.error(`❌ Failed to cache ${model.name}:`, error);
+        // Continue with other models instead of failing completely
       }
     });
-    
-    console.log(`🎉 Model cache initialized with ${this.cache.size} models`);
+
+    console.log(`🎉 Model cache initialized: ${successCount} successful, ${failureCount} failed, ${this.cache.size} total cached`);
+
+    // If no models cached successfully, fall back to simple shapes
+    if (this.cache.size === 0) {
+      console.warn('⚠️ No models cached successfully, creating fallback models');
+      this.createFallbackModels();
+    }
   }
   
   /**
