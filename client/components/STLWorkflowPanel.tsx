@@ -67,6 +67,7 @@ export default function STLWorkflowPanel({
     loadModelFromFile,
     loadDefaultSTL,
     exportSTL,
+    exportOBJ,
     exportParts,
     viewerSettings,
     updateViewerSettings,
