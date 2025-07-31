@@ -567,27 +567,21 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
-                          // Map new UI method names to existing backend methods
-                          const methodMapping: Record<string, string> = {
-                            'random_vertex': 'random',
-                            'quadric': 'quadric_edge_collapse',
-                            'grid_based': 'vertex_clustering',
-                            'triangle_collapse': 'adaptive'
-                          };
-                          const backendMethod = methodMapping[reductionMethod] || reductionMethod;
-                          onReducePoints(reductionAmount, backendMethod as any);
+                          // Use Python-style quadric edge collapse
+                          onReducePoints(reductionAmount, 'quadric_edge_collapse');
                         }}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
                         disabled={isProcessing}
                       >
-                        🔧 Apply Model Reduction
+                        🐍 Apply Python Reduction
                       </Button>
 
                       <div className="text-xs text-white/60 bg-blue-500/10 border border-blue-500/20 rounded p-2">
-                        <div className="font-medium text-blue-200 mb-1">📋 Process:</div>
-                        <div>• Uses .OBJ format for better topology preservation</div>
-                        <div>• Includes automatic mesh stitching & cleanup</div>
-                        <div>• Validates manifold geometry post-reduction</div>
+                        <div className="font-medium text-blue-200 mb-1">🐍 Python Process:</div>
+                        <div>• Clean mesh (remove duplicates, degenerate triangles)</div>
+                        <div>• Apply quadric decimation with conservative fallbacks</div>
+                        <div>• Merge coplanar faces (eliminate internal triangles)</div>
+                        <div>• Never delete entire model (safe minimum limits)</div>
                       </div>
                     </div>
               </div>
@@ -729,7 +723,7 @@ export default function STLWorkflowPanel({
                                   <div>• Face types: {faceTypes.join(', ')}</div>
                                   <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
                                   <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>��� Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
                                 </>
                               );
                             } else {
