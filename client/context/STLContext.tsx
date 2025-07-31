@@ -9,6 +9,7 @@ import { PolygonFaceReconstructor } from '../lib/polygonFaceReconstructor';
 import { STLGeometryValidator, ValidationReport } from '../lib/stlGeometryValidator';
 import { ModelFileHandler, ProcessedModel } from '../lib/modelFileHandler';
 import { ModelCache } from '../lib/modelCache';
+import { getTestFileSizeData } from '../lib/fileSizeEstimator';
 
 interface ViewerSettings {
   randomColors: boolean;
