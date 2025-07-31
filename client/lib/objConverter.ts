@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 
 export interface OBJConversionResult {
+  success?: boolean;
+  error?: string;
   objString: string;
+  objContent?: string;
+  stats?: any;
   vertexCount: number;
   faceCount: number;
   hasQuads: boolean;
@@ -22,8 +26,13 @@ export class OBJConverter {
       return {
         success: false,
         error: 'No geometry provided - cannot convert to OBJ',
+        objString: '',
         objContent: '',
-        stats: null
+        stats: null,
+        vertexCount: 0,
+        faceCount: 0,
+        hasQuads: false,
+        hasPolygons: false
       };
     }
 
@@ -33,8 +42,13 @@ export class OBJConverter {
       return {
         success: false,
         error: 'Geometry is missing attributes - cannot convert to OBJ',
+        objString: '',
         objContent: '',
-        stats: null
+        stats: null,
+        vertexCount: 0,
+        faceCount: 0,
+        hasQuads: false,
+        hasPolygons: false
       };
     }
 
@@ -44,8 +58,13 @@ export class OBJConverter {
       return {
         success: false,
         error: 'Geometry is missing position attribute - cannot convert to OBJ',
+        objString: '',
         objContent: '',
-        stats: null
+        stats: null,
+        vertexCount: 0,
+        faceCount: 0,
+        hasQuads: false,
+        hasPolygons: false
       };
     }
 
@@ -55,8 +74,13 @@ export class OBJConverter {
       return {
         success: false,
         error: 'Position attribute is missing array data - cannot convert to OBJ',
+        objString: '',
         objContent: '',
-        stats: null
+        stats: null,
+        vertexCount: 0,
+        faceCount: 0,
+        hasQuads: false,
+        hasPolygons: false
       };
     }
 
@@ -69,8 +93,13 @@ export class OBJConverter {
       return {
         success: false,
         error: 'Geometry has no vertices - cannot convert to OBJ',
+        objString: '',
         objContent: '',
-        stats: null
+        stats: null,
+        vertexCount: 0,
+        faceCount: 0,
+        hasQuads: false,
+        hasPolygons: false
       };
     }
     
@@ -93,12 +122,15 @@ export class OBJConverter {
     if (indices && indices.length > 0) {
       // Indexed geometry
       for (let i = 0; i < indices.length; i += 3) {
-        // OBJ uses 1-based indexing
-        const v1 = indices[i] + 1;
-        const v2 = indices[i + 1] + 1;
-        const v3 = indices[i + 2] + 1;
-        objString += `f ${v1} ${v2} ${v3}\n`;
-        faceCount++;
+        // Ensure we have enough indices for a complete triangle
+        if (i + 2 < indices.length) {
+          // OBJ uses 1-based indexing
+          const v1 = indices[i] + 1;
+          const v2 = indices[i + 1] + 1;
+          const v3 = indices[i + 2] + 1;
+          objString += `f ${v1} ${v2} ${v3}\n`;
+          faceCount++;
+        }
       }
     } else {
       // Non-indexed geometry
@@ -131,8 +163,9 @@ export class OBJConverter {
     }
     
     console.log(`✅ OBJ conversion completed: ${vertexCount} vertices, ${faceCount} faces`);
-    
+
     return {
+      success: true,
       objString,
       vertexCount,
       faceCount,
