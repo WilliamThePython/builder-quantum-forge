@@ -3,6 +3,7 @@ import { useSTL } from '../context/STLContext';
 import { useIsMobile } from '../hooks/use-mobile';
 
 export default function TriangleStatsDisplay() {
+  const isMobile = useIsMobile();
   const { highlightedTriangle, triangleStats, viewerSettings } = useSTL();
 
   if (highlightedTriangle === null || !triangleStats) {
@@ -32,6 +33,50 @@ export default function TriangleStatsDisplay() {
     `${triangleStats.faceType.charAt(0).toUpperCase() + triangleStats.faceType.slice(1)} Face #${highlightedTriangle + 1}` :
     `Triangle #${highlightedTriangle + 1}`;
 
+  if (isMobile) {
+    return (
+      <div
+        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/20 max-w-[90vw]"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          color: textColor,
+          fontSize: '11px',
+          fontFamily: 'monospace'
+        }}
+      >
+        <div className="flex flex-col gap-1 items-center text-center">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-2 h-2 rounded-sm"
+              style={{ backgroundColor: '#ff0000' }}
+              title="Highlighted face color"
+            />
+            <span className="text-white/80 text-xs">{faceLabel}</span>
+            {isPolygonFace && (
+              <span className="text-white/60 text-xs">({triangleStats.vertexCount}v)</span>
+            )}
+          </div>
+
+          <div className="flex gap-3 text-xs flex-wrap justify-center">
+            <span>
+              <span className="text-white/60">A:</span> {triangleStats.area.toFixed(1)} mm²
+            </span>
+            <span>
+              <span className="text-white/60">P:</span> {triangleStats.perimeter.toFixed(1)} mm
+            </span>
+            <span>
+              <span className="text-white/60">W:</span> {triangleStats.width.toFixed(1)} mm
+            </span>
+            <span>
+              <span className="text-white/60">H:</span> {triangleStats.height.toFixed(1)} mm
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div
       className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20"
