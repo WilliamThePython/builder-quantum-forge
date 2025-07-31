@@ -41,4 +41,12 @@ const App = () => (
   </QueryClientProvider>
 );
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Ensure createRoot is only called once to prevent double mounting warnings
+const rootElement = document.getElementById("root")!;
+if (!rootElement._reactRoot) {
+  const root = createRoot(rootElement);
+  rootElement._reactRoot = root;
+  root.render(<App />);
+} else {
+  rootElement._reactRoot.render(<App />);
+}
