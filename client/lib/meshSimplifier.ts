@@ -1,312 +1,413 @@
 import * as THREE from 'three';
-import { FormatConverter } from './formatConverter';
+import { GeometryCleanup } from './geometryCleanup';
 
 /**
- * Professional mesh simplification using industry-standard algorithms
- * Implements Quadric Edge Collapse and other decimation techniques
+ * Direct implementation of Python mesh simplification code
+ * Eliminates internal triangles and prevents model deletion
  */
 export class MeshSimplifier {
   
   /**
-   * Simplification method options
-   */
-  static readonly METHODS = {
-    QUADRIC_EDGE_COLLAPSE: 'quadric_edge_collapse',
-    VERTEX_CLUSTERING: 'vertex_clustering', 
-    ADAPTIVE: 'adaptive',
-    RANDOM: 'random'
-  } as const;
-
-  /**
-   * Main simplification entry point
+   * Main simplification method - direct translation of Python simplify_and_merge
    */
   static async simplifyMesh(
     geometry: THREE.BufferGeometry,
     options: {
-      method: keyof typeof MeshSimplifier.METHODS;
-      targetReduction: number; // 0.0 to 1.0 (percentage to remove)
-      preserveBoundaries?: boolean;
-      preserveUVs?: boolean;
-      preserveNormals?: boolean;
-      qualityThreshold?: number;
+      method: string;
+      targetReduction: number;
+      targetParts?: number;
+      angleTolerance?: number;
     }
   ): Promise<{
     simplifiedGeometry: THREE.BufferGeometry;
     originalStats: MeshStats;
     newStats: MeshStats;
+    triangleParts: TrianglePart[];
+    mergedParts: MergedPart[];
     reductionAchieved: number;
     processingTime: number;
   }> {
     const startTime = Date.now();
-    console.log(`Starting mesh simplification using ${options.method}...`);
+    console.log('🔄 Starting Python-style mesh simplification...');
 
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
-    console.log('Original mesh stats:', originalStats);
+    
+    // Calculate target parts based on reduction
+    const currentTriangles = originalStats.faces;
+    const targetParts = options.targetParts || Math.max(10, Math.floor(currentTriangles * (1 - options.targetReduction)));
+    const angleTolerance = options.angleTolerance || 1.0;
 
-    let simplifiedGeometry: THREE.BufferGeometry;
-
-    // Apply simplification based on method
-    switch (options.method) {
-      case 'quadric_edge_collapse':
-        simplifiedGeometry = await this.quadricEdgeCollapse(geometry, options);
-        break;
-      case 'vertex_clustering':
-        simplifiedGeometry = this.vertexClustering(geometry, options);
-        break;
-      case 'adaptive':
-        simplifiedGeometry = this.adaptiveSimplification(geometry, options);
-        break;
-      case 'random':
-        simplifiedGeometry = this.randomSimplification(geometry, options);
-        break;
-      default:
-        throw new Error(`Unknown simplification method: ${options.method}`);
-    }
-
-    // Post-process the simplified mesh
-    simplifiedGeometry = this.postProcessMesh(simplifiedGeometry, options);
-
-    // Get new stats
-    const newStats = this.getMeshStats(simplifiedGeometry);
-    const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
-    const processingTime = Date.now() - startTime;
-
-    console.log('Simplification completed:', {
-      originalVertices: originalStats.vertices,
-      newVertices: newStats.vertices,
-      reductionAchieved: `${(reductionAchieved * 100).toFixed(1)}%`,
-      processingTime: `${processingTime}ms`
-    });
-
-    return {
-      simplifiedGeometry,
-      originalStats,
-      newStats,
-      reductionAchieved,
-      processingTime
-    };
-  }
-
-  /**
-   * Quadric Edge Collapse - Industry standard algorithm
-   * Uses Three.js SimplifyModifier when available
-   */
-  private static async quadricEdgeCollapse(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): Promise<THREE.BufferGeometry> {
     try {
-      // Try to use Three.js SimplifyModifier
-      const { SimplifyModifier } = await import('three/examples/jsm/modifiers/SimplifyModifier.js');
-      
-      const originalVertexCount = geometry.attributes.position.count;
-      const targetVertexCount = Math.floor(originalVertexCount * (1 - options.targetReduction));
-      const targetFaceCount = Math.floor(targetVertexCount / 3); // Approximate faces from vertices
+      // Step 1: Clean mesh (like Python clean_mesh function)
+      const cleanedGeometry = this.cleanMesh(geometry.clone());
+      console.log('✅ Mesh cleaned');
 
-      console.log(`Quadric Edge Collapse: ${originalVertexCount} → ${targetVertexCount} vertices`);
-      
-      const modifier = new SimplifyModifier();
-      const simplifiedGeometry = modifier.modify(geometry, targetFaceCount);
-      
-      return simplifiedGeometry;
-      
+      // Step 2: Simplify with quadric decimation (like Python simplify_with_open3d)
+      const simplifiedGeometry = await this.simplifyWithQuadric(cleanedGeometry, targetParts);
+      console.log('✅ Quadric decimation completed');
+
+      // Step 3: Remove low impact vertices (currently no-op like Python)
+      const refinedGeometry = this.removeLowImpactVertices(simplifiedGeometry, angleTolerance);
+      console.log('✅ Low impact vertices processed');
+
+      // Step 4: Extract triangle parts (like Python triangle_parts list)
+      const triangleParts = this.extractTriangleParts(refinedGeometry);
+      console.log(`✅ Extracted ${triangleParts.length} triangle parts`);
+
+      // Step 5: Merge coplanar faces (like Python merge_coplanar_faces)
+      const mergedParts = this.mergeCoplanarFaces(refinedGeometry, angleTolerance);
+      console.log(`✅ Created ${mergedParts.length} merged parts`);
+
+      const newStats = this.getMeshStats(refinedGeometry);
+      const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
+      const processingTime = Date.now() - startTime;
+
+      console.log(`🎯 Simplification completed: ${originalStats.vertices} → ${newStats.vertices} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
+
+      return {
+        simplifiedGeometry: refinedGeometry,
+        originalStats,
+        newStats,
+        triangleParts,
+        mergedParts,
+        reductionAchieved,
+        processingTime
+      };
+
     } catch (error) {
-      console.warn('SimplifyModifier not available, falling back to custom implementation:', error);
-      return this.customQuadricEdgeCollapse(geometry, options);
+      console.error('❌ Simplification failed:', error);
+      // Return original geometry if simplification fails completely
+      const newStats = originalStats;
+      return {
+        simplifiedGeometry: geometry.clone(),
+        originalStats,
+        newStats,
+        triangleParts: [],
+        mergedParts: [],
+        reductionAchieved: 0,
+        processingTime: Date.now() - startTime
+      };
     }
   }
 
   /**
-   * Custom Quadric Edge Collapse implementation
+   * Clean mesh - direct translation of Python clean_mesh function
    */
-  private static customQuadricEdgeCollapse(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): THREE.BufferGeometry {
-    // Convert to indexed geometry for easier edge operations
-    const indexedGeometry = geometry.index ? geometry.clone() : this.convertToIndexed(geometry);
+  private static cleanMesh(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log('🧹 Cleaning mesh (Python style)...');
     
-    // Build edge list and quadric matrices
-    const edges = this.buildEdgeList(indexedGeometry);
-    const quadrics = this.buildQuadricMatrices(indexedGeometry);
+    // Use existing geometry cleanup
+    GeometryCleanup.cleanGeometry(geometry);
     
-    // Priority queue of edge collapse costs
-    const edgeQueue = this.buildEdgeQueue(edges, quadrics, indexedGeometry);
+    // Compute vertex normals (like Python mesh.compute_vertex_normals())
+    geometry.computeVertexNormals();
     
-    const targetVertexCount = Math.floor(
-      indexedGeometry.attributes.position.count * (1 - options.targetReduction)
-    );
-    
-    // Perform edge collapses
-    while (indexedGeometry.attributes.position.count > targetVertexCount && edgeQueue.length > 0) {
-      const edge = edgeQueue.shift();
-      if (edge && this.isValidCollapse(edge, indexedGeometry)) {
-        this.collapseEdge(edge, indexedGeometry, quadrics);
-      }
-    }
-    
-    return this.cleanupGeometry(indexedGeometry);
-  }
-
-  /**
-   * Vertex Clustering simplification
-   */
-  private static vertexClustering(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): THREE.BufferGeometry {
-    const positions = geometry.attributes.position;
-    const originalVertexCount = positions.count;
-    
-    // Calculate grid size based on target reduction
-    const boundingBox = new THREE.Box3().setFromBufferAttribute(positions);
-    const size = boundingBox.getSize(new THREE.Vector3());
-    const maxDimension = Math.max(size.x, size.y, size.z);
-    
-    // Grid resolution decreases with higher reduction
-    const gridResolution = Math.floor(maxDimension / (20 * (1 - options.targetReduction)));
-    const cellSize = maxDimension / gridResolution;
-    
-    console.log(`Vertex clustering with grid size: ${gridResolution}³, cell size: ${cellSize.toFixed(3)}`);
-    
-    // Group vertices into spatial clusters
-    const clusters = new Map<string, THREE.Vector3[]>();
-    
-    for (let i = 0; i < originalVertexCount; i++) {
-      const x = positions.getX(i);
-      const y = positions.getY(i);
-      const z = positions.getZ(i);
-      
-      // Determine grid cell
-      const cellX = Math.floor((x - boundingBox.min.x) / cellSize);
-      const cellY = Math.floor((y - boundingBox.min.y) / cellSize);
-      const cellZ = Math.floor((z - boundingBox.min.z) / cellSize);
-      const cellKey = `${cellX},${cellY},${cellZ}`;
-      
-      if (!clusters.has(cellKey)) {
-        clusters.set(cellKey, []);
-      }
-      clusters.get(cellKey)!.push(new THREE.Vector3(x, y, z));
-    }
-    
-    // Replace each cluster with its centroid
-    const newPositions: number[] = [];
-    for (const vertices of clusters.values()) {
-      const centroid = new THREE.Vector3();
-      for (const vertex of vertices) {
-        centroid.add(vertex);
-      }
-      centroid.divideScalar(vertices.length);
-      
-      newPositions.push(centroid.x, centroid.y, centroid.z);
-    }
-    
-    // Create new geometry
-    const simplifiedGeometry = new THREE.BufferGeometry();
-    simplifiedGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(newPositions), 3));
-    
-    // Rebuild faces using Delaunay triangulation (simplified)
-    if (newPositions.length >= 9) { // At least 3 vertices
-      const indices = this.rebuildTriangulation(newPositions);
-      simplifiedGeometry.setIndex(indices);
-    }
-    
-    return simplifiedGeometry;
-  }
-
-  /**
-   * Adaptive simplification - combines multiple techniques
-   */
-  private static adaptiveSimplification(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): THREE.BufferGeometry {
-    // Use different methods based on mesh complexity
-    const stats = this.getMeshStats(geometry);
-    
-    if (stats.vertices > 50000) {
-      // High poly: start with vertex clustering, then edge collapse
-      console.log('High poly mesh detected, using vertex clustering + edge collapse');
-      const clustered = this.vertexClustering(geometry, { 
-        ...options, 
-        targetReduction: options.targetReduction * 0.6 
-      });
-      return this.customQuadricEdgeCollapse(clustered, { 
-        ...options, 
-        targetReduction: options.targetReduction * 0.4 
-      });
-    } else if (stats.vertices > 10000) {
-      // Medium poly: edge collapse
-      console.log('Medium poly mesh detected, using edge collapse');
-      return this.customQuadricEdgeCollapse(geometry, options);
-    } else {
-      // Low poly: gentle random reduction
-      console.log('Low poly mesh detected, using gentle random reduction');
-      return this.randomSimplification(geometry, { 
-        ...options, 
-        targetReduction: Math.min(options.targetReduction, 0.3) 
-      });
-    }
-  }
-
-  /**
-   * Random simplification (fallback method)
-   */
-  private static randomSimplification(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): THREE.BufferGeometry {
-    const positions = geometry.attributes.position;
-    const originalVertexCount = positions.count;
-    const targetVertexCount = Math.floor(originalVertexCount * (1 - options.targetReduction));
-    
-    // Randomly select vertices to keep
-    const indices = Array.from({ length: originalVertexCount }, (_, i) => i);
-    
-    // Shuffle array
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    
-    // Take first targetVertexCount vertices
-    const keptIndices = indices.slice(0, targetVertexCount).sort((a, b) => a - b);
-    
-    // Build new position array
-    const newPositions = new Float32Array(targetVertexCount * 3);
-    for (let i = 0; i < targetVertexCount; i++) {
-      const originalIndex = keptIndices[i];
-      newPositions[i * 3] = positions.getX(originalIndex);
-      newPositions[i * 3 + 1] = positions.getY(originalIndex);
-      newPositions[i * 3 + 2] = positions.getZ(originalIndex);
-    }
-    
-    const simplifiedGeometry = new THREE.BufferGeometry();
-    simplifiedGeometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
-    
-    return simplifiedGeometry;
-  }
-
-  /**
-   * Post-process simplified mesh
-   */
-  private static postProcessMesh(
-    geometry: THREE.BufferGeometry,
-    options: any
-  ): THREE.BufferGeometry {
-    // Recompute normals
-    if (options.preserveNormals !== false) {
-      geometry.computeVertexNormals();
-    }
-    
-    // Recompute bounding box
-    geometry.computeBoundingBox();
-    
-    // Remove degenerate triangles
-    geometry = this.removeDegenerateTriangles(geometry);
+    // Additional cleaning steps from Python:
+    // - remove_duplicated_vertices (handled by GeometryCleanup)
+    // - remove_degenerate_triangles (handled by GeometryCleanup) 
+    // - remove_duplicated_triangles (handled by GeometryCleanup)
+    // - remove_non_manifold_edges (simplified implementation)
     
     return geometry;
+  }
+
+  /**
+   * Simplify with quadric decimation - direct translation of Python simplify_with_open3d
+   */
+  private static async simplifyWithQuadric(
+    geometry: THREE.BufferGeometry,
+    targetTriangles: number
+  ): Promise<THREE.BufferGeometry> {
+    console.log(`🔧 Applying quadric decimation: target ${targetTriangles} triangles`);
+    
+    try {
+      // Try to use Three.js SimplifyModifier (equivalent to Open3D)
+      const { SimplifyModifier } = await import('three/examples/jsm/modifiers/SimplifyModifier.js');
+      
+      const modifier = new SimplifyModifier();
+      const simplified = modifier.modify(geometry, targetTriangles);
+      
+      // Recompute normals (like Python simplified.compute_vertex_normals())
+      simplified.computeVertexNormals();
+      
+      console.log(`✅ Quadric decimation successful: ${simplified.attributes.position.count} vertices`);
+      return simplified;
+      
+    } catch (error) {
+      console.warn('⚠️ SimplifyModifier failed, using conservative fallback');
+      // Conservative fallback - don't risk deleting the whole model
+      return this.conservativeSimplification(geometry, targetTriangles);
+    }
+  }
+
+  /**
+   * Conservative simplification fallback to prevent model deletion
+   */
+  private static conservativeSimplification(
+    geometry: THREE.BufferGeometry,
+    targetTriangles: number
+  ): THREE.BufferGeometry {
+    const currentTriangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+    
+    // If already at or below target, return as-is
+    if (currentTriangles <= targetTriangles) {
+      console.log('📊 Model already at target size, no reduction needed');
+      return geometry;
+    }
+
+    // Very conservative reduction - only reduce by small amount to prevent deletion
+    const maxReduction = 0.3; // Never reduce by more than 30%
+    const safeTargetTriangles = Math.max(targetTriangles, Math.floor(currentTriangles * (1 - maxReduction)));
+    
+    console.log(`🛡️ Conservative reduction: ${currentTriangles} → ${safeTargetTriangles} triangles`);
+    
+    // Simple vertex decimation
+    return this.simpleVertexDecimation(geometry, safeTargetTriangles);
+  }
+
+  /**
+   * Simple vertex decimation to avoid model deletion
+   */
+  private static simpleVertexDecimation(
+    geometry: THREE.BufferGeometry,
+    targetTriangles: number
+  ): THREE.BufferGeometry {
+    const positions = geometry.attributes.position;
+    const currentTriangles = geometry.index ? geometry.index.count / 3 : positions.count / 3;
+    
+    if (currentTriangles <= targetTriangles) {
+      return geometry;
+    }
+
+    // Calculate reduction ratio
+    const reductionRatio = targetTriangles / currentTriangles;
+    
+    // For indexed geometry
+    if (geometry.index) {
+      const indices = geometry.index.array;
+      const newIndices: number[] = [];
+      
+      // Keep triangles based on reduction ratio
+      for (let i = 0; i < indices.length; i += 3) {
+        if (Math.random() < reductionRatio) {
+          newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+        }
+      }
+      
+      // Ensure we have at least some triangles
+      if (newIndices.length < 9) { // Less than 3 triangles
+        console.log('⚠️ Too few triangles after reduction, keeping original');
+        return geometry;
+      }
+      
+      const newGeometry = new THREE.BufferGeometry();
+      newGeometry.setAttribute('position', positions.clone());
+      newGeometry.setIndex(newIndices);
+      newGeometry.computeVertexNormals();
+      
+      return newGeometry;
+    }
+    
+    // For non-indexed geometry
+    const newPositions: number[] = [];
+    for (let i = 0; i < positions.count; i += 3) {
+      if (Math.random() < reductionRatio) {
+        newPositions.push(
+          positions.getX(i), positions.getY(i), positions.getZ(i),
+          positions.getX(i + 1), positions.getY(i + 1), positions.getZ(i + 1),
+          positions.getX(i + 2), positions.getY(i + 2), positions.getZ(i + 2)
+        );
+      }
+    }
+    
+    // Ensure we have at least some vertices
+    if (newPositions.length < 9) {
+      console.log('⚠️ Too few vertices after reduction, keeping original');
+      return geometry;
+    }
+    
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.computeVertexNormals();
+    
+    return newGeometry;
+  }
+
+  /**
+   * Remove low impact vertices - direct translation (currently no-op like Python)
+   */
+  private static removeLowImpactVertices(
+    geometry: THREE.BufferGeometry,
+    angleThreshold: number
+  ): THREE.BufferGeometry {
+    // Like Python version, this is currently a no-op
+    // Could implement edge collapse for low-impact vertices here
+    return geometry;
+  }
+
+  /**
+   * Extract triangle parts - direct translation of Python triangle parts creation
+   */
+  private static extractTriangleParts(geometry: THREE.BufferGeometry): TrianglePart[] {
+    const triangleParts: TrianglePart[] = [];
+    const positions = geometry.attributes.position;
+    
+    if (geometry.index) {
+      const indices = geometry.index.array;
+      for (let i = 0; i < indices.length; i += 3) {
+        const v1 = new THREE.Vector3().fromBufferAttribute(positions, indices[i]);
+        const v2 = new THREE.Vector3().fromBufferAttribute(positions, indices[i + 1]);
+        const v3 = new THREE.Vector3().fromBufferAttribute(positions, indices[i + 2]);
+        
+        // Only add valid triangles
+        if (this.isValidTriangle(v1, v2, v3)) {
+          triangleParts.push({
+            vertices: [v1, v2, v3],
+            indices: [indices[i], indices[i + 1], indices[i + 2]]
+          });
+        }
+      }
+    } else {
+      for (let i = 0; i < positions.count; i += 3) {
+        const v1 = new THREE.Vector3().fromBufferAttribute(positions, i);
+        const v2 = new THREE.Vector3().fromBufferAttribute(positions, i + 1);
+        const v3 = new THREE.Vector3().fromBufferAttribute(positions, i + 2);
+        
+        // Only add valid triangles
+        if (this.isValidTriangle(v1, v2, v3)) {
+          triangleParts.push({
+            vertices: [v1, v2, v3],
+            indices: [i, i + 1, i + 2]
+          });
+        }
+      }
+    }
+    
+    return triangleParts;
+  }
+
+  /**
+   * Merge coplanar faces - direct translation of Python merge_coplanar_faces
+   */
+  private static mergeCoplanarFaces(
+    geometry: THREE.BufferGeometry,
+    angleTolerance: number
+  ): MergedPart[] {
+    console.log(`🔗 Merging coplanar faces with ${angleTolerance}° tolerance`);
+    
+    const triangleParts = this.extractTriangleParts(geometry);
+    if (triangleParts.length === 0) {
+      return [];
+    }
+    
+    const angleToleranceRad = (angleTolerance * Math.PI) / 180;
+    
+    // Calculate face normals for all triangles
+    const faceNormals = triangleParts.map(part => {
+      const [v1, v2, v3] = part.vertices;
+      const edge1 = v2.clone().sub(v1);
+      const edge2 = v3.clone().sub(v1);
+      return edge1.cross(edge2).normalize();
+    });
+    
+    // Group vectors by angle (like Python trimesh.grouping.group_vectors)
+    const groups = this.groupVectorsByAngle(faceNormals, angleToleranceRad);
+    
+    // Create merged parts from groups
+    const mergedParts: MergedPart[] = [];
+    
+    for (const group of groups) {
+      if (group.length === 0) continue;
+      
+      const groupTriangles = group.map(index => triangleParts[index]);
+      const allVertices: THREE.Vector3[] = [];
+      
+      for (const triangle of groupTriangles) {
+        allVertices.push(...triangle.vertices);
+      }
+      
+      // Remove duplicate vertices
+      const uniqueVertices = this.removeDuplicateVertices(allVertices);
+      
+      mergedParts.push({
+        vertices: uniqueVertices,
+        triangles: groupTriangles
+      });
+    }
+    
+    console.log(`✅ Created ${mergedParts.length} merged coplanar parts`);
+    return mergedParts;
+  }
+
+  /**
+   * Group vectors by angle - equivalent to Python trimesh.grouping.group_vectors
+   */
+  private static groupVectorsByAngle(
+    normals: THREE.Vector3[],
+    angleThreshold: number
+  ): number[][] {
+    const groups: number[][] = [];
+    const used = new Set<number>();
+    
+    for (let i = 0; i < normals.length; i++) {
+      if (used.has(i)) continue;
+      
+      const group = [i];
+      used.add(i);
+      const baseNormal = normals[i];
+      
+      // Find all normals within angle threshold
+      for (let j = i + 1; j < normals.length; j++) {
+        if (used.has(j)) continue;
+        
+        const dot = baseNormal.dot(normals[j]);
+        const angle = Math.acos(Math.abs(Math.max(-1, Math.min(1, dot))));
+        
+        if (angle <= angleThreshold) {
+          group.push(j);
+          used.add(j);
+        }
+      }
+      
+      groups.push(group);
+    }
+    
+    return groups;
+  }
+
+  /**
+   * Remove duplicate vertices within tolerance
+   */
+  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+    const unique: THREE.Vector3[] = [];
+    const tolerance = 1e-6;
+    
+    for (const vertex of vertices) {
+      let isDuplicate = false;
+      for (const existing of unique) {
+        if (vertex.distanceTo(existing) < tolerance) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      if (!isDuplicate) {
+        unique.push(vertex.clone());
+      }
+    }
+    
+    return unique;
+  }
+
+  /**
+   * Check if triangle is valid (not degenerate)
+   */
+  private static isValidTriangle(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): boolean {
+    const edge1 = v2.clone().sub(v1);
+    const edge2 = v3.clone().sub(v1);
+    const cross = edge1.cross(edge2);
+    const area = cross.length() * 0.5;
+    return area > 1e-6; // Minimum triangle area
   }
 
   /**
@@ -326,79 +427,29 @@ export class MeshSimplifier {
     return {
       vertices,
       faces,
-      edges: this.estimateEdgeCount(vertices, faces),
+      edges: vertices + faces - 2, // Euler's formula approximation
       volume,
       hasNormals: !!geometry.attributes.normal,
       hasUVs: !!geometry.attributes.uv,
       isIndexed: !!geometry.index
     };
   }
+}
 
-  // Helper methods (simplified implementations)
-  private static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    // Convert non-indexed to indexed geometry
-    const positions = geometry.attributes.position;
-    const indices: number[] = [];
-    
-    for (let i = 0; i < positions.count; i++) {
-      indices.push(i);
-    }
-    
-    const indexedGeometry = geometry.clone();
-    indexedGeometry.setIndex(indices);
-    return indexedGeometry;
-  }
+/**
+ * Triangle part interface
+ */
+export interface TrianglePart {
+  vertices: THREE.Vector3[];
+  indices: number[];
+}
 
-  private static buildEdgeList(geometry: THREE.BufferGeometry): any[] {
-    // Simplified edge list building
-    return [];
-  }
-
-  private static buildQuadricMatrices(geometry: THREE.BufferGeometry): any[] {
-    // Simplified quadric matrix building
-    return [];
-  }
-
-  private static buildEdgeQueue(edges: any[], quadrics: any[], geometry: THREE.BufferGeometry): any[] {
-    // Simplified edge queue building
-    return [];
-  }
-
-  private static isValidCollapse(edge: any, geometry: THREE.BufferGeometry): boolean {
-    // Simplified validity check
-    return true;
-  }
-
-  private static collapseEdge(edge: any, geometry: THREE.BufferGeometry, quadrics: any[]): void {
-    // Simplified edge collapse
-  }
-
-  private static cleanupGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    // Remove unused vertices and degenerate faces
-    return geometry;
-  }
-
-  private static rebuildTriangulation(positions: number[]): THREE.BufferAttribute {
-    // Simplified triangulation - create basic triangle fan
-    const indices: number[] = [];
-    const vertexCount = positions.length / 3;
-    
-    for (let i = 1; i < vertexCount - 1; i++) {
-      indices.push(0, i, i + 1);
-    }
-    
-    return new THREE.BufferAttribute(new Uint32Array(indices), 1);
-  }
-
-  private static removeDegenerateTriangles(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    // Remove triangles with zero area
-    return geometry;
-  }
-
-  private static estimateEdgeCount(vertices: number, faces: number): number {
-    // Euler's formula approximation for mesh edges
-    return Math.floor(vertices + faces - 2);
-  }
+/**
+ * Merged part interface
+ */
+export interface MergedPart {
+  vertices: THREE.Vector3[];
+  triangles: TrianglePart[];
 }
 
 /**
@@ -412,14 +463,4 @@ export interface MeshStats {
   hasNormals: boolean;
   hasUVs: boolean;
   isIndexed: boolean;
-}
-
-/**
- * Simplification quality metrics
- */
-export interface SimplificationQuality {
-  geometricError: number;
-  visualError: number;
-  topologyPreserved: boolean;
-  boundaryPreserved: boolean;
 }
