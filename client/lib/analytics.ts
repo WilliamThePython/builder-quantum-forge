@@ -618,23 +618,30 @@ window.addEventListener('load', () => {
 // Global error tracking with analytics loop prevention
 window.addEventListener('error', (event) => {
   // Don't track analytics-related errors to prevent infinite loops
-  if (event.message?.includes('Failed to fetch') &&
-      event.filename?.includes('analytics.ts')) {
-    console.warn('Skipping analytics error to prevent loop:', event.message);
+  if ((event.message?.includes('Failed to fetch') &&
+       (event.filename?.includes('analytics.ts') || event.filename?.includes('/api/analytics/'))) ||
+      event.message?.includes('sendToCustomAnalytics')) {
+    console.warn('🔄 Skipping analytics fetch error to prevent loop');
     return;
   }
 
-  // Don't track errors from FullStory or other analytics services
+  // Don't track errors from FullStory or other third-party analytics services
   if (event.filename?.includes('fullstory.com') ||
       event.filename?.includes('fs.js') ||
+      event.filename?.includes('edge.fullstory.com') ||
       event.message?.includes('fullstory')) {
+    return;
+  }
+
+  // Skip if analytics is already failing too much
+  if (analytics?.analyticsFailureCount > 5) {
     return;
   }
 
   try {
     analytics.trackError(new Error(event.message), 'global_error_handler');
   } catch (error) {
-    console.warn('Failed to track error, skipping to prevent loop:', error);
+    // Completely silent to prevent any cascading issues
   }
 });
 
