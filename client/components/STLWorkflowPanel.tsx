@@ -921,8 +921,18 @@ export default function STLWorkflowPanel({
                             )}
                             {exportType === 'parts' && partsEstimate && (
                               <>
-                                <div className="text-center text-blue-200 font-medium">OBJ parts export coming soon!</div>
-                                <div className="text-center text-xs text-blue-300/70">Use STL format for parts export</div>
+                                <div className="flex justify-between">
+                                  <span>📦 Total download:</span>
+                                  <span className="font-mono">{partsEstimate.totalFormatted}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>📄 Per part average:</span>
+                                  <span className="font-mono">{partsEstimate.averageFormatted}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>🔢 Number of files:</span>
+                                  <span className="font-mono">{partsEstimate.partCount}</span>
+                                </div>
                               </>
                             )}
                           </div>
