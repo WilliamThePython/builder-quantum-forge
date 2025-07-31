@@ -235,6 +235,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     updateProgress(0, 'Starting', 'Initializing upload...');
 
     try {
+      updateProgress(5, 'Validating', 'Checking file format...');
+
       // Basic file validation first
       if (!file.name.toLowerCase().endsWith('.stl')) {
         addError('Please select a valid STL file');
