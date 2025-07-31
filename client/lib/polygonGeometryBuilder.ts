@@ -240,43 +240,58 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Create a dodecahedron with 12 pentagonal faces
+   * Create a simplified dodecahedron-like shape with pentagonal faces
+   * Using a more stable approach than full dodecahedron geometry
    */
   static createDodecahedron(size: number): PolygonGeometry {
-    const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
-    const s = size / 4;
+    // Create a simplified 12-sided shape that's more stable than full dodecahedron
+    // Use two pentagonal caps connected by rectangular faces
+    const s = size / 2;
+    const h = s * 0.8; // Height between caps
 
-    // Create the 20 vertices of a dodecahedron
-    const vertices = [
-      // Cube vertices
-      new THREE.Vector3(s, s, s), new THREE.Vector3(s, s, -s), new THREE.Vector3(s, -s, s), new THREE.Vector3(s, -s, -s),
-      new THREE.Vector3(-s, s, s), new THREE.Vector3(-s, s, -s), new THREE.Vector3(-s, -s, s), new THREE.Vector3(-s, -s, -s),
-      // Golden ratio rectangles in XY plane
-      new THREE.Vector3(0, s * phi, s / phi), new THREE.Vector3(0, s * phi, -s / phi),
-      new THREE.Vector3(0, -s * phi, s / phi), new THREE.Vector3(0, -s * phi, -s / phi),
-      // Golden ratio rectangles in YZ plane
-      new THREE.Vector3(s / phi, 0, s * phi), new THREE.Vector3(-s / phi, 0, s * phi),
-      new THREE.Vector3(s / phi, 0, -s * phi), new THREE.Vector3(-s / phi, 0, -s * phi),
-      // Golden ratio rectangles in XZ plane
-      new THREE.Vector3(s * phi, s / phi, 0), new THREE.Vector3(s * phi, -s / phi, 0),
-      new THREE.Vector3(-s * phi, s / phi, 0), new THREE.Vector3(-s * phi, -s / phi, 0)
-    ];
+    const vertices: THREE.Vector3[] = [];
+    const faces: PolygonFace[] = [];
 
-    // Create 12 pentagonal faces (simplified version)
-    const faces = [
-      this.createFace([vertices[0], vertices[16], vertices[8], vertices[4], vertices[12]], 'polygon'),
-      this.createFace([vertices[1], vertices[9], vertices[5], vertices[18], vertices[16]], 'polygon'),
-      this.createFace([vertices[2], vertices[12], vertices[6], vertices[19], vertices[17]], 'polygon'),
-      this.createFace([vertices[3], vertices[17], vertices[19], vertices[7], vertices[11]], 'polygon'),
-      this.createFace([vertices[4], vertices[8], vertices[9], vertices[1], vertices[16]], 'polygon'),
-      this.createFace([vertices[5], vertices[15], vertices[14], vertices[3], vertices[11]], 'polygon'),
-      this.createFace([vertices[6], vertices[12], vertices[13], vertices[10], vertices[7]], 'polygon'),
-      this.createFace([vertices[8], vertices[16], vertices[0], vertices[2], vertices[17]], 'polygon'),
-      this.createFace([vertices[9], vertices[15], vertices[5], vertices[1], vertices[14]], 'polygon'),
-      this.createFace([vertices[10], vertices[13], vertices[4], vertices[0], vertices[12]], 'polygon'),
-      this.createFace([vertices[11], vertices[7], vertices[19], vertices[6], vertices[13]], 'polygon'),
-      this.createFace([vertices[14], vertices[15], vertices[18], vertices[17], vertices[3]], 'polygon')
-    ];
+    // Top pentagon vertices
+    const topVertices: THREE.Vector3[] = [];
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const x = s * Math.cos(angle);
+      const z = s * Math.sin(angle);
+      topVertices.push(new THREE.Vector3(x, h, z));
+    }
+
+    // Bottom pentagon vertices (rotated for better shape)
+    const bottomVertices: THREE.Vector3[] = [];
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2 + Math.PI / 5; // Offset by 36 degrees
+      const x = s * 0.8 * Math.cos(angle);
+      const z = s * 0.8 * Math.sin(angle);
+      bottomVertices.push(new THREE.Vector3(x, -h, z));
+    }
+
+    vertices.push(...topVertices, ...bottomVertices);
+
+    // Top pentagon face
+    faces.push(this.createFace([...topVertices], 'polygon'));
+
+    // Bottom pentagon face
+    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+
+    // Side faces - create pentagons by connecting top and bottom
+    for (let i = 0; i < 5; i++) {
+      const next = (i + 1) % 5;
+      const nextNext = (i + 2) % 5;
+
+      // Create pentagonal side faces
+      faces.push(this.createFace([
+        topVertices[i],
+        topVertices[next],
+        bottomVertices[next],
+        bottomVertices[i],
+        bottomVertices[(i + 4) % 5] // Previous bottom vertex for pentagon shape
+      ], 'polygon'));
+    }
 
     return { vertices, faces, type: 'dodecahedron' };
   }
