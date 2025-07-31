@@ -1271,7 +1271,7 @@ function MobileWorkflowContent(props: any) {
               <Switch
                 id="colors-mobile"
                 checked={randomColors}
-                onCheckedChange={onRandomColorsChange}
+                onCheckedChange={handleColorsChange}
               />
             </div>
 
