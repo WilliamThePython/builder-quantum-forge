@@ -238,15 +238,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     updateProgress(0, 'Starting', 'Initializing upload...');
 
     try {
-      updateProgress(5, 'Validating', 'Checking file format...');
+      await updateProgress(5, 'Validating', `Checking ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)...`);
 
       // Basic file validation first
       if (!file.name.toLowerCase().endsWith('.stl')) {
-        addError('Please select a valid STL file');
+        addError(`Invalid file format: "${file.name}". Please select a valid STL file.`);
         return;
       }
 
-      updateProgress(5, 'Validating', `Checking ${(file.size / 1024 / 1024).toFixed(1)}MB file...`);
+      await updateProgress(10, 'Validating', 'File format validated successfully...');
 
       // Smart file size limits - more generous for better user experience
       const maxSize = 40 * 1024 * 1024; // Increased to 40MB to handle larger models
