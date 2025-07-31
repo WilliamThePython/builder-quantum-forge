@@ -192,6 +192,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
   const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
 
+  // Loading progress state
+  const [loadingProgress, setLoadingProgress] = useState({
+    percentage: 0,
+    stage: '',
+    details: ''
+  });
+
   // Dual format support state
   const [processedModel, setProcessedModel] = useState<ProcessedModel | null>(null);
   const [originalFormat, setOriginalFormat] = useState<'stl' | 'obj' | null>(null);
@@ -347,7 +354,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Display validation results
       if (!validationReport.isValid || validationReport.warnings.length > 0) {
         const summary = STLGeometryValidator.generateValidationSummary(validationReport);
-        console.log('📋 Validation Report:\n', summary);
+        console.log('�� Validation Report:\n', summary);
 
         // Show critical issues as errors
         if (!validationReport.isValid) {
