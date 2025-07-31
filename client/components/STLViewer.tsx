@@ -15,6 +15,14 @@ function STLMesh() {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
+  // Spinning animation state
+  const spinState = useRef({
+    isSpinning: false,
+    startTime: 0,
+    initialSpeed: 2.5, // radians per second
+    duration: 3000, // 3 seconds to die down
+  });
+
   // Helper method for triangle counting
   const getTriangleCountForPolygon = (face: any): number => {
     if (!face.originalVertices) {
