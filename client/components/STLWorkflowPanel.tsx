@@ -786,35 +786,63 @@ export default function STLWorkflowPanel({
                       </div>
                     </div>
 
-                    {/* Export Stats Preview */}
+                    {/* Enhanced Export Stats Preview with File Size */}
                     {geometry && (
                       <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
-                        <div className="text-white text-xs font-medium mb-1">Polygon Parts Preview:</div>
+                        <div className="text-white text-xs font-medium mb-1">Parts Export Preview:</div>
                         <div className="text-xs text-white/70 space-y-1">
                           {(() => {
                             const polygonFaces = (geometry as any).polygonFaces;
                             const polygonType = (geometry as any).polygonType;
+                            const partsEstimate = estimatePartsFileSize(geometry, triangleOptions.partThickness, triangleOptions.scale);
+
                             if (polygonFaces) {
                               const faceTypes = [...new Set(polygonFaces.map((f: any) => f.type))];
                               return (
                                 <>
                                   <div>• {polygonFaces.length} polygon parts ({polygonType})</div>
                                   <div>• Face types: {faceTypes.join(', ')}</div>
-                                  <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
+                                  {partsEstimate && (
+                                    <>
+                                      <div className="border-t border-white/10 pt-1 mt-1">
+                                        <div className="font-medium text-white/80">📦 File Size Estimates:</div>
+                                      </div>
+                                      <div>• Total download: <span className="text-white font-mono">{partsEstimate.totalFormatted}</span></div>
+                                      <div>• Average per part: <span className="text-white font-mono">{partsEstimate.averageFormatted}</span></div>
+                                      <div>• {partsEstimate.partCount} files total</div>
+                                    </>
+                                  )}
+                                  <div className="border-t border-white/10 pt-1 mt-1">
+                                    <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
+                                    <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  </div>
                                 </>
                               );
                             } else {
+                              const triangleCount = Math.floor(geometry.attributes.position.count / 3);
                               return (
                                 <>
-                                  <div>• {Math.floor(geometry.attributes.position.count / 3)} triangle fallback</div>
-                                  <div>• Est. print time: ~{Math.floor((geometry.attributes.position.count / 3) * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>• Est. material: ~{Math.round((geometry.attributes.position.count / 3) * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>• {triangleCount} triangle parts (fallback)</div>
+                                  <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
+                                  {partsEstimate && (
+                                    <>
+                                      <div className="border-t border-white/10 pt-1 mt-1">
+                                        <div className="font-medium text-white/80">📦 File Size Estimates:</div>
+                                      </div>
+                                      <div>• Total download: <span className="text-white font-mono">{partsEstimate.totalFormatted}</span></div>
+                                      <div>• Average per part: <span className="text-white font-mono">{partsEstimate.averageFormatted}</span></div>
+                                      <div>• {partsEstimate.partCount} files total</div>
+                                    </>
+                                  )}
+                                  <div className="border-t border-white/10 pt-1 mt-1">
+                                    <div>• Est. print time: ~{Math.floor(triangleCount * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
+                                    <div>• Est. material: ~{Math.round(triangleCount * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  </div>
                                 </>
                               );
                             }
                           })()}
-                          <div>• Part thickness: {triangleOptions.partThickness}mm</div>
                         </div>
                       </div>
                     )}
