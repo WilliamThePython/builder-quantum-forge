@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Upload,
   RefreshCw,
@@ -13,7 +14,8 @@ import {
   Package,
   Wrench,
   Menu,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle
 } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 import { Button } from './ui/button';
