@@ -242,9 +242,10 @@ function Scene() {
       ) : (
         <GradientBackground />
       )}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-      <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 15, 10]} intensity={0.8} castShadow />
+      <directionalLight position={[-5, 5, 5]} intensity={0.4} />
+      <pointLight position={[0, 0, 50]} intensity={0.3} color="#ffffff" />
 
       <STLMesh />
       <HighlightMesh />
