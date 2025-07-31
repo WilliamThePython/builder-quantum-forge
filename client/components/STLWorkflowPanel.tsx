@@ -461,12 +461,16 @@ export default function STLWorkflowPanel({
                         onClick={() => {
                           restoreFromBackup();
                         }}
-                        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white text-xs py-2 h-8"
+                        className={`w-full text-white text-xs py-2 h-8 ${
+                          hasBackup
+                            ? 'bg-yellow-600 hover:bg-yellow-700'
+                            : 'bg-gray-600 cursor-not-allowed opacity-50'
+                        }`}
                         disabled={!hasBackup}
                         title={hasBackup ? "Restore model to state before last simplification" : "No backup available - perform a simplification first"}
                       >
                         <RefreshCw className="w-3 h-3 mr-2" />
-                        Undo Simplification
+                        {hasBackup ? '🔄 Undo Simplification' : '⚪ No Backup Available'}
                       </Button>
                     </div>
 
