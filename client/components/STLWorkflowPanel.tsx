@@ -204,30 +204,15 @@ export default function STLWorkflowPanel({
           {/* Mobile Content with compact sections */}
           <div className="p-2">
             <MobileWorkflowContent
-              {...{
-                fileName,
-                isLoading,
-                loadingProgress,
-                geometry,
-                loadModelFromFile,
-                loadDefaultSTL,
-                exportSTL,
-                exportParts,
-                viewerSettings,
-                updateViewerSettings,
-                getDetailedGeometryStats,
-                hasBackup,
-                restoreFromBackup,
-                activeToolMode,
-                onToolModeChange,
-                onReducePoints,
-                isProcessing,
-                geometryStats,
-                randomColors,
-                wireframe,
-                onRandomColorsChange,
-                onWireframeChange
-              }}
+              activeToolMode={activeToolMode}
+              onToolModeChange={onToolModeChange}
+              onReducePoints={onReducePoints}
+              isProcessing={isProcessing}
+              geometryStats={geometryStats}
+              randomColors={randomColors}
+              wireframe={wireframe}
+              onRandomColorsChange={onRandomColorsChange}
+              onWireframeChange={onWireframeChange}
             />
           </div>
         </div>
