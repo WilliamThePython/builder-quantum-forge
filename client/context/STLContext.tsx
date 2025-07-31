@@ -25,6 +25,11 @@ interface STLContextType {
   geometry: THREE.BufferGeometry | null;
   fileName: string | null;
   isLoading: boolean;
+  loadingProgress: {
+    percentage: number;
+    stage: string;
+    details: string;
+  };
   error: string | null;
   errors: ErrorMessage[];
   viewerSettings: ViewerSettings;
@@ -354,7 +359,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Display validation results
       if (!validationReport.isValid || validationReport.warnings.length > 0) {
         const summary = STLGeometryValidator.generateValidationSummary(validationReport);
-        console.log('�� Validation Report:\n', summary);
+        console.log('📋 Validation Report:\n', summary);
 
         // Show critical issues as errors
         if (!validationReport.isValid) {
