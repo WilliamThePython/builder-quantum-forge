@@ -125,126 +125,15 @@ export class ModelCache {
   }
 
   /**
-   * Define all the random models to cache (starting with simple working shapes)
+   * Define all the random models to cache (testing with just cube first)
    */
   private static getModelDefinitions() {
     return [
-      // Basic geometric shapes (these should work)
+      // Just test with the absolute simplest case first
       {
         name: 'cube-polygon.stl',
         generator: () => PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
-      },
-      {
-        name: 'tetrahedron.stl',
-        generator: () => PolygonGeometryBuilder.createTetrahedron(18)
-      },
-      {
-        name: 'octahedron.stl',
-        generator: () => PolygonGeometryBuilder.createOctahedron(15)
-      },
-      {
-        name: 'icosahedron.stl',
-        generator: () => PolygonGeometryBuilder.createIcosahedron(16)
-      },
-
-      // Simple prisms and cylinders (these should work)
-      {
-        name: 'triangular-prism.stl',
-        generator: () => PolygonGeometryBuilder.createTriangularPrism(12, 25)
-      },
-      {
-        name: 'hexagonal-prism.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 20, 6)
-      },
-      {
-        name: 'pentagonal-prism.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 5)
-      },
-      {
-        name: 'octagonal-cylinder.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8)
-      },
-
-      // Simple cones (these should work)
-      {
-        name: 'octagonal-cone.stl',
-        generator: () => PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8)
-      },
-      {
-        name: 'irregular-cone.stl',
-        generator: () => PolygonGeometryBuilder.createConeWithPolygons(12, 25, 10)
-      },
-
-      // Irregular variants (simple boxes should work)
-      {
-        name: 'irregular-prism-1.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(25, 15, 20)
-      },
-      {
-        name: 'irregular-prism-2.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 25, 12)
-      },
-      {
-        name: 'irregular-prism-3.stl',
-        generator: () => PolygonGeometryBuilder.createBoxWithQuads(18, 22, 25)
-      },
-      {
-        name: 'irregular-triangular-prism.stl',
-        generator: () => PolygonGeometryBuilder.createTriangularPrism(15, 28)
-      },
-      {
-        name: 'irregular-cylinder.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(14, 16, 22, 12)
-      },
-      {
-        name: 'truncated-pyramid.stl',
-        generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(8, 18, 20, 6)
-      },
-
-      // Complex shapes (temporarily disabled while debugging)
-      // These will be re-enabled once we fix the triangulation issues
-      /*
-      {
-        name: 'dodecahedron.stl',
-        generator: () => PolygonGeometryBuilder.createDodecahedron(12)
-      },
-      {
-        name: 'stepped-pyramid.stl',
-        generator: () => PolygonGeometryBuilder.createSteppedPyramid(25, 4, 20)
-      },
-      {
-        name: 'l-bracket.stl',
-        generator: () => PolygonGeometryBuilder.createLBracket(25, 20, 10, 4)
-      },
-      {
-        name: 'washer-ring.stl',
-        generator: () => PolygonGeometryBuilder.createWasher(15, 8, 5, 16)
-      },
-      {
-        name: 'simple-house.stl',
-        generator: () => PolygonGeometryBuilder.createSimpleHouse(20, 15, 25, 10)
-      },
-      {
-        name: 'gear-wheel.stl',
-        generator: () => PolygonGeometryBuilder.createGearWheel(10, 16, 6, 12)
-      },
-      {
-        name: 'wedge.stl',
-        generator: () => PolygonGeometryBuilder.createWedge(15, 15, 10)
-      },
-      {
-        name: 'star-shape.stl',
-        generator: () => PolygonGeometryBuilder.createStarShape(18, 10, 8, 6)
-      },
-      {
-        name: 'cross-shape.stl',
-        generator: () => PolygonGeometryBuilder.createCrossShape(16, 20, 6, 10)
-      },
-      {
-        name: 'ellipsoid.stl',
-        generator: () => PolygonGeometryBuilder.createEllipsoid(12, 18, 15, 10)
       }
-      */
     ];
   }
 }
