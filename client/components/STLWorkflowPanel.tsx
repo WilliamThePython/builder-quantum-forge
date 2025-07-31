@@ -28,6 +28,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from './ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 import { STLToolMode } from '../lib/stlManipulator';
 import { useSTL } from '../context/STLContext';
 import { estimateModelFileSize, estimatePartsFileSize, getTestFileSizeData } from '../lib/fileSizeEstimator';
