@@ -181,6 +181,19 @@ export default function STLWorkflowPanel({
         <div className="text-center mb-6">
           <h2 className="text-white font-bold text-xl mb-1">STL Workflow</h2>
           <p className="text-white/60 text-sm">Upload → Modify → Export</p>
+
+          {/* Loading Progress for Large Files */}
+          {isLoading && (
+            <div className="mt-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-300">
+                <div className="w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-medium">Processing Model...</span>
+              </div>
+              <div className="text-xs text-blue-200/80 mt-1">
+                Large files may take longer to process. Please wait...
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 1. UPLOAD SECTION */}
