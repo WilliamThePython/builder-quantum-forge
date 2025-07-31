@@ -1020,18 +1020,18 @@ function MobileWorkflowContent(props: any) {
   }) => (
     <button
       onClick={onToggle}
-      className="flex items-center justify-between w-full text-white text-sm font-semibold py-3 hover:text-white/80 transition-colors"
+      className="flex items-center justify-between w-full text-white text-xs font-semibold py-2 px-2 hover:bg-white/10 rounded-lg transition-colors"
     >
       <div className="flex items-center gap-2">
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-3 h-3" />
         ) : (
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3 h-3" />
         )}
-        <span>{title}</span>
+        <span className="text-xs">{title}</span>
       </div>
       {badge && (
-        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0">
           {badge}
         </Badge>
       )}
