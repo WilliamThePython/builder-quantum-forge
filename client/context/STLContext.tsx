@@ -807,26 +807,37 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [geometry, fileName]);
 
   const exportParts = useCallback(async (options: {
+    format?: 'stl' | 'obj';
     partThickness?: number;
     scale?: number;
   } = {}) => {
     if (!geometry) {
-      addError('No model available for triangle export');
+      addError('No model available for parts export');
       return;
     }
 
+    const format = options.format || 'stl';
+
     try {
-      console.log('Starting triangle export...', {
+      console.log('Starting parts export...', {
+        format,
         fileName,
         hasGeometry: !!geometry,
         triangleCount: Math.floor(geometry.attributes.position.count / 3)
       });
 
+      const fileExtension = format === 'obj' ? 'obj' : 'stl';
       const exportFilename = fileName
-        ? fileName.replace(/\.[^/.]+$/, '_assembly_kit.zip')
-        : 'assembly_kit.zip';
+        ? fileName.replace(/\.[^/.]+$/, `_assembly_kit_${format}.zip`)
+        : `assembly_kit_${format}.zip`;
 
-      await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
+      if (format === 'obj') {
+        // Export as OBJ parts
+        await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, { ...options, format: 'obj' });
+      } else {
+        // Export as STL parts (default)
+        await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
+      }
 
       console.log('Assembly kit export completed successfully');
 
