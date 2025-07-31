@@ -399,10 +399,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const vertices = geometry.attributes.position?.count || 0;
       const triangles = Math.floor(vertices / 3);
 
+      updateProgress(95, 'Finalizing', 'Setting up model for viewing...');
       // Set the new geometry and filename
       setGeometry(geometry);
       setFileName(file.name);
 
+      updateProgress(100, 'Complete', 'Model loaded successfully!');
       // Track STL upload analytics
       try {
         analytics.trackSTLUpload({
