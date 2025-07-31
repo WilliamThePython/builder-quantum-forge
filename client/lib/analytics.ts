@@ -546,12 +546,13 @@ class Analytics {
         this.analyticsFailureCount++;
 
         // Only log if we're having persistent issues
-        if (this.analyticsFailureCount === 5) {
+        if (this.analyticsFailureCount === 5 && !isDevelopment) {
           console.warn('Analytics having connection issues, continuing silently...');
         }
 
-        // Disable after too many failures
-        if (this.analyticsFailureCount > 10) {
+        // In development, be more forgiving; in production, disable after failures
+        const maxFailures = isDevelopment ? 50 : 10;
+        if (this.analyticsFailureCount > maxFailures) {
           this.globallyDisabled = true;
         }
       })
