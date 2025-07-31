@@ -183,15 +183,51 @@ export default function STLWorkflowPanel({
           <h2 className="text-white font-bold text-xl mb-1">STL Workflow</h2>
           <p className="text-white/60 text-sm">Upload → Modify → Export</p>
 
-          {/* Loading Progress for Large Files */}
+          {/* Enhanced Loading Progress Bar */}
           {isLoading && (
-            <div className="mt-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-300">
-                <div className="w-4 h-4 border-2 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm font-medium">Processing Model...</span>
+            <div className="mt-3 p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-blue-200">
+                    {loadingProgress.stage || 'Processing'}
+                  </div>
+                  <div className="text-xs text-blue-300/80">
+                    {loadingProgress.details || 'Please wait...'}
+                  </div>
+                </div>
+                <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-2 py-1 rounded">
+                  {loadingProgress.percentage}%
+                </div>
               </div>
-              <div className="text-xs text-blue-200/80 mt-1">
-                Large files may take longer to process. Please wait...
+
+              {/* Progress Bar */}
+              <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${loadingProgress.percentage}%` }}
+                >
+                  <div className="h-full bg-white/20 animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Stage Indicators */}
+              <div className="flex justify-between mt-2 text-xs">
+                <div className={`px-1 ${loadingProgress.percentage >= 10 ? 'text-green-400' : 'text-white/50'}`}>
+                  Validate
+                </div>
+                <div className={`px-1 ${loadingProgress.percentage >= 35 ? 'text-green-400' : 'text-white/50'}`}>
+                  Parse
+                </div>
+                <div className={`px-1 ${loadingProgress.percentage >= 60 ? 'text-green-400' : 'text-white/50'}`}>
+                  Process
+                </div>
+                <div className={`px-1 ${loadingProgress.percentage >= 85 ? 'text-green-400' : 'text-white/50'}`}>
+                  Validate
+                </div>
+                <div className={`px-1 ${loadingProgress.percentage >= 100 ? 'text-green-400' : 'text-white/50'}`}>
+                  Complete
+                </div>
               </div>
             </div>
           )}
