@@ -56,20 +56,54 @@ function STLMesh() {
   // Store original colors for highlighting
   const originalColors = useRef<Float32Array | null>(null);
 
-  // Add random colors to geometry if enabled
+  // Add random colors to geometry if enabled - now works with polygon faces
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
       const colors = new Float32Array(geometry.attributes.position.count * 3);
-      const color = new THREE.Color();
+      const polygonFaces = (geometry as any).polygonFaces;
 
-      for (let i = 0; i < colors.length; i += 9) { // 9 values per triangle (3 vertices * 3 color components)
-        color.setHSL(Math.random(), 0.7, 0.6);
+      if (polygonFaces && Array.isArray(polygonFaces)) {
+        // Color each polygon face with a unique color
+        let triangleOffset = 0;
 
-        // Apply same color to all 3 vertices of the triangle
-        for (let j = 0; j < 9; j += 3) {
-          colors[i + j] = color.r;
-          colors[i + j + 1] = color.g;
-          colors[i + j + 2] = color.b;
+        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+          const face = polygonFaces[faceIndex];
+          const triangleCount = STLManipulator.getTriangleCountForPolygon ?
+            STLManipulator.getTriangleCountForPolygon(face) :
+            (face.vertices?.length > 2 ? face.vertices.length - 2 : 1);
+
+          // Generate one color per polygon face
+          const color = new THREE.Color();
+          color.setHSL(Math.random(), 0.8, 0.6);
+
+          // Apply this color to all triangles that make up this polygon face
+          for (let t = 0; t < triangleCount; t++) {
+            const triangleStart = (triangleOffset + t) * 9; // 9 values per triangle (3 vertices * 3 color components)
+
+            // Apply same color to all 3 vertices of the triangle
+            for (let v = 0; v < 9; v += 3) {
+              if (triangleStart + v + 2 < colors.length) {
+                colors[triangleStart + v] = color.r;
+                colors[triangleStart + v + 1] = color.g;
+                colors[triangleStart + v + 2] = color.b;
+              }
+            }
+          }
+
+          triangleOffset += triangleCount;
+        }
+      } else {
+        // Fallback to triangle-based coloring if no polygon face data
+        console.log('No polygon faces found, using triangle-based coloring');
+        const color = new THREE.Color();
+        for (let i = 0; i < colors.length; i += 9) {
+          color.setHSL(Math.random(), 0.7, 0.6);
+
+          for (let j = 0; j < 9; j += 3) {
+            colors[i + j] = color.r;
+            colors[i + j + 1] = color.g;
+            colors[i + j + 2] = color.b;
+          }
         }
       }
 
