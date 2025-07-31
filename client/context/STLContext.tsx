@@ -468,7 +468,24 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Get a random model from cache (already as OBJ for polygon preservation)
       const cachedModel = ModelCache.getRandomModel();
       if (!cachedModel) {
-        throw new Error('No cached models available');
+        // Fallback to simple cube generation if cache failed
+        console.warn('⚠️ No cached models available, creating simple cube');
+        setLoadingProgress({ percentage: 60, stage: 'Creating fallback...', details: 'Generating simple model' });
+
+        const simpleGeometry = PolygonGeometryBuilder.toBufferGeometry(
+          PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
+        );
+
+        // Ensure solid object display
+        ensureSolidObjectDisplay(simpleGeometry);
+
+        setGeometry(simpleGeometry);
+        setFileName('simple-cube.stl');
+        setOriginalFormat('stl'); // Keep as STL for simple fallback
+
+        setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Fallback model loaded' });
+        console.log('✅ Loaded fallback simple cube');
+        return;
       }
 
       setLoadingProgress({ percentage: 70, stage: 'Processing model...', details: 'Applying final touches' });
