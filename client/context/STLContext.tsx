@@ -263,7 +263,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
 
-      geometry.computeVertexNormals();
+      // Ensure solid object appearance with proper face normals
+      ensureSolidObjectDisplay(geometry);
 
       // Reconstruct polygon faces from triangulated STL
       console.log('Reconstructing polygon faces from uploaded STL...');
