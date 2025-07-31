@@ -109,36 +109,36 @@ export class PolygonGeometryBuilder {
 
     for (let i = 0; i < segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
-      
-      // Top circle
+
+      // Top circle - Y is up
       const topX = radiusTop * Math.cos(angle);
-      const topY = radiusTop * Math.sin(angle);
-      const topVertex = new THREE.Vector3(topX, topY, h);
+      const topZ = radiusTop * Math.sin(angle);
+      const topVertex = new THREE.Vector3(topX, h, topZ);
       topVertices.push(topVertex);
-      vertices.push(topVertex);
-      
-      // Bottom circle
+
+      // Bottom circle - Y is up
       const bottomX = radiusBottom * Math.cos(angle);
-      const bottomY = radiusBottom * Math.sin(angle);
-      const bottomVertex = new THREE.Vector3(bottomX, bottomY, -h);
+      const bottomZ = radiusBottom * Math.sin(angle);
+      const bottomVertex = new THREE.Vector3(bottomX, -h, bottomZ);
       bottomVertices.push(bottomVertex);
-      vertices.push(bottomVertex);
     }
 
-    // Top and bottom faces (polygons)
+    // Add all vertices to main array
+    vertices.push(...topVertices, ...bottomVertices);
+
+    // Top and bottom faces (polygons) - ensure correct winding
     faces.push(this.createFace([...topVertices], 'polygon'));
     faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
 
-    // Side faces (rectangles)
+    // Side faces (rectangles) - ensure correct winding for outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      const sideQuad = [
+      faces.push(this.createFace([
         bottomVertices[i],
         bottomVertices[next],
         topVertices[next],
         topVertices[i]
-      ];
-      faces.push(this.createFace(sideQuad, 'quad'));
+      ], 'quad'));
     }
 
     return { vertices, faces, type: 'cylinder' };
