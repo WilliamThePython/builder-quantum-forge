@@ -34,6 +34,7 @@ class Analytics {
   private cooldownPeriod: number = 5 * 60 * 1000; // 5 minutes
   private isInCooldown: boolean = false;
   private isTrackingAnalyticsErrors: boolean = false;
+  private globallyDisabled: boolean = false;
 
   constructor() {
     this.sessionId = this.generateSessionId();
