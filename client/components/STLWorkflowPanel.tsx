@@ -957,51 +957,544 @@ export default function STLWorkflowPanel({
 }
 
 // Mobile Content Component
-function MobileWorkflowContent({
-  fileName,
-  isLoading,
-  loadingProgress,
-  geometry,
-  loadModelFromFile,
-  loadDefaultSTL,
-  exportSTL,
-  exportParts,
-  viewerSettings,
-  updateViewerSettings,
-  getDetailedGeometryStats,
-  hasBackup,
-  restoreFromBackup,
-  activeToolMode,
-  onToolModeChange,
-  onReducePoints,
-  isProcessing,
-  geometryStats,
-  randomColors,
-  wireframe,
-  onRandomColorsChange,
-  onWireframeChange,
-  handleFileUpload,
-  handleExportClick,
-  handleFormatSelection,
-  toggleSection,
-  SectionHeader,
-  showBackgroundSettings,
-  setShowBackgroundSettings,
-  reductionAmount,
-  setReductionAmount,
-  reductionMethod,
-  setReductionMethod,
-  expandedSections,
-  setExpandedSections,
-  showTriangleSettings,
-  setShowTriangleSettings,
-  triangleOptions,
-  setTriangleOptions,
-  showExportFormatDialog,
-  setShowExportFormatDialog,
-  exportType,
-  setExportType,
-  simplificationStats,
-  setSimplificationStats
-}: any) {
+function MobileWorkflowContent(props: any) {
+  const {
+    fileName,
+    isLoading,
+    loadingProgress,
+    geometry,
+    loadModelFromFile,
+    loadDefaultSTL,
+    exportSTL,
+    exportParts,
+    viewerSettings,
+    updateViewerSettings,
+    getDetailedGeometryStats,
+    hasBackup,
+    restoreFromBackup,
+    activeToolMode,
+    onToolModeChange,
+    onReducePoints,
+    isProcessing,
+    geometryStats,
+    randomColors,
+    wireframe,
+    onRandomColorsChange,
+    onWireframeChange
+  } = props;
+
+  const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
+  const [reductionAmount, setReductionAmount] = useState(0.5);
+  const [reductionMethod, setReductionMethod] = useState<'random_vertex' | 'quadric' | 'grid_based' | 'triangle_collapse'>('quadric');
+  const [expandedSections, setExpandedSections] = useState({
+    upload: true,
+    visualization: false,
+    tools: false,
+    export: false
+  });
+
+  const [showTriangleSettings, setShowTriangleSettings] = useState(false);
+  const [triangleOptions, setTriangleOptions] = useState({
+    partThickness: 2,
+    scale: 1
+  });
+
+  const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
+  const [exportType, setExportType] = useState<'complete' | 'parts'>('complete');
+
+  const [simplificationStats, setSimplificationStats] = useState<{
+    originalStats?: any;
+    newStats?: any;
+    reductionAchieved?: number;
+    processingTime?: number;
+  }>({});
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log(`🚀 Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      loadModelFromFile(file).catch(err => {
+        console.error('❌ Upload failed:', err);
+        alert(`Upload failed: ${err.message}`);
+      });
+    }
+    event.target.value = '';
+  };
+
+  const handleExportClick = (type: 'complete' | 'parts') => {
+    setExportType(type);
+    setShowExportFormatDialog(true);
+  };
+
+  const handleFormatSelection = (format: 'stl' | 'obj') => {
+    setShowExportFormatDialog(false);
+
+    if (exportType === 'complete') {
+      if (format === 'stl') {
+        exportSTL();
+      } else {
+        console.log('OBJ export selected - functionality to be implemented');
+        alert('OBJ export functionality coming soon!');
+      }
+    } else {
+      if (format === 'stl') {
+        exportParts(triangleOptions);
+      } else {
+        console.log('OBJ parts export selected - functionality to be implemented');
+        alert('OBJ parts export functionality coming soon!');
+      }
+    }
+  };
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const SectionHeader = ({
+    title,
+    isExpanded,
+    onToggle,
+    badge
+  }: {
+    title: string;
+    isExpanded: boolean;
+    onToggle: () => void;
+    badge?: string;
+  }) => (
+    <button
+      onClick={onToggle}
+      className="flex items-center justify-between w-full text-white text-sm font-semibold py-3 hover:text-white/80 transition-colors"
+    >
+      <div className="flex items-center gap-2">
+        {isExpanded ? (
+          <ChevronDown className="w-4 h-4" />
+        ) : (
+          <ChevronRight className="w-4 h-4" />
+        )}
+        <span>{title}</span>
+      </div>
+      {badge && (
+        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+          {badge}
+        </Badge>
+      )}
+    </button>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Mobile-optimized content with larger touch targets */}
+
+      {/* Enhanced Loading Progress Bar */}
+      {isLoading && (
+        <div className="p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-blue-200">
+                {loadingProgress.stage || 'Processing'}
+              </div>
+              <div className="text-xs text-blue-300/80">
+                {loadingProgress.details || 'Please wait...'}
+              </div>
+            </div>
+            <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-2 py-1 rounded">
+              {loadingProgress.percentage}%
+            </div>
+          </div>
+          <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${loadingProgress.percentage}%` }}
+            >
+              <div className="h-full bg-white/20 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 1. UPLOAD SECTION */}
+      <div>
+        <SectionHeader
+          title="1. UPLOAD & LOAD"
+          isExpanded={expandedSections.upload}
+          onToggle={() => toggleSection('upload')}
+          badge={fileName ? "Ready" : "Upload File"}
+        />
+
+        {expandedSections.upload && (
+          <div className="mt-4 space-y-4">
+            {/* File Upload - larger for mobile */}
+            <div className="relative">
+              <input
+                type="file"
+                accept=".stl,.obj"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                disabled={isLoading}
+                title="Upload STL or OBJ file (max 50MB)"
+              />
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 relative z-0 h-14 text-base"
+                disabled={isLoading}
+                title="Upload STL or OBJ file from your computer"
+                type="button"
+              >
+                <Upload className="w-6 h-6 mr-3" />
+                {isLoading ? 'Loading...' : 'Upload STL/OBJ File'}
+              </Button>
+            </div>
+
+            {/* Random Model - larger for mobile */}
+            <Button
+              onClick={loadDefaultSTL}
+              disabled={isLoading}
+              className="w-full border-gray-300 bg-white/10 hover:bg-white/20 text-white font-medium h-12 text-base"
+              variant="outline"
+            >
+              <RefreshCw className="w-5 h-5 mr-2" />
+              Load Random Model
+            </Button>
+
+            {/* File Info */}
+            {fileName && (
+              <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-4 h-4 text-blue-400" />
+                  <span className="font-medium text-white text-sm">{fileName}</span>
+                </div>
+                {(() => {
+                  const detailedStats = getDetailedGeometryStats();
+                  if (!detailedStats) return null;
+
+                  return (
+                    <div className="text-sm text-white/70 space-y-1">
+                      <div>Vertices: {detailedStats.vertices.toLocaleString()}</div>
+                      <div>Edges: {detailedStats.edges.toLocaleString()}</div>
+                      {detailedStats.polygonBreakdown.map(({ type, count }) => (
+                        <div key={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}s: {count.toLocaleString()}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Separator className="bg-white/20" />
+
+      {/* 2. VISUALIZATION SECTION */}
+      <div>
+        <SectionHeader
+          title="2. VISUALIZATION"
+          isExpanded={expandedSections.visualization}
+          onToggle={() => toggleSection('visualization')}
+        />
+
+        {expandedSections.visualization && (
+          <div className="mt-4 space-y-6">
+            {/* Random Colors - larger switches for mobile */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-3">
+                <Palette className="w-5 h-5 text-white/70" />
+                <Label htmlFor="colors-mobile" className="text-base text-white/80">Random Colors</Label>
+              </div>
+              <Switch
+                id="colors-mobile"
+                checked={randomColors}
+                onCheckedChange={onRandomColorsChange}
+              />
+            </div>
+
+            {/* Wireframe - larger switches for mobile */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex items-center gap-3">
+                <Eye className="w-5 h-5 text-white/70" />
+                <Label htmlFor="wireframe-mobile" className="text-base text-white/80">Wireframe Mode</Label>
+              </div>
+              <Switch
+                id="wireframe-mobile"
+                checked={wireframe}
+                onCheckedChange={onWireframeChange}
+              />
+            </div>
+
+            {/* Background Settings */}
+            <Popover open={showBackgroundSettings} onOpenChange={setShowBackgroundSettings}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium h-12 text-base"
+                >
+                  <Settings className="w-5 h-5 mr-2" />
+                  Background Options
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                sideOffset={8}
+                className="w-72 bg-black/90 backdrop-blur-md border-white/10 text-white"
+              >
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Background Options</h3>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Background</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { color: '#0a0a0a', name: 'Space Black' },
+                        { color: '#1a1a2e', name: 'Deep Ocean' },
+                        { color: '#16213e', name: 'Midnight Blue' },
+                        { color: '#2a0845', name: 'Purple Night' },
+                        { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
+                      ].map((bg) => (
+                        <button
+                          key={bg.color}
+                          className={`w-full h-10 rounded border-2 transition-all ${
+                            viewerSettings.backgroundColor === bg.color
+                              ? 'border-white'
+                              : 'border-white/20 hover:border-white/40'
+                          }`}
+                          style={{ background: bg.color }}
+                          onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                          title={bg.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+
+      <Separator className="bg-white/20" />
+
+      {/* 3. TOOLS SECTION */}
+      <div>
+        <SectionHeader
+          title="3. REDUCE MODEL"
+          isExpanded={expandedSections.tools}
+          onToggle={() => toggleSection('tools')}
+        />
+
+        {expandedSections.tools && (
+          <div className="mt-4 space-y-4">
+            {/* Reduction Settings */}
+            <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+              <div className="text-white text-base font-medium mb-3">
+                Model Reduction Settings
+              </div>
+
+              {/* Method Selection - larger buttons for mobile */}
+              <div className="mb-4">
+                <div className="text-white text-sm mb-3">Simplification Method</div>
+                <div className="grid grid-cols-1 gap-2">
+                  <Button
+                    onClick={() => setReductionMethod('quadric')}
+                    className={`text-sm py-3 px-4 h-auto ${
+                      reductionMethod === 'quadric'
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-white/20 hover:bg-white/30 text-white/80'
+                    }`}
+                  >
+                    Quadric ⭐ (Recommended)
+                  </Button>
+                  <Button
+                    onClick={() => setReductionMethod('random_vertex')}
+                    className={`text-sm py-3 px-4 h-auto ${
+                      reductionMethod === 'random_vertex'
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-white/20 hover:bg-white/30 text-white/80'
+                    }`}
+                  >
+                    Random Vertex (Fast)
+                  </Button>
+                </div>
+              </div>
+
+              {/* Reduction Amount - larger slider for mobile */}
+              <div className="mb-4">
+                <div className="text-white text-sm mb-3">
+                  Target Reduction: {Math.round(reductionAmount * 100)}%
+                </div>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="0.9"
+                  step="0.1"
+                  value={reductionAmount}
+                  onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
+                  className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-white/70 mt-2">
+                  <span>10%</span>
+                  <span>90%</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  const methodMapping: Record<string, string> = {
+                    'random_vertex': 'random',
+                    'quadric': 'quadric_edge_collapse',
+                    'grid_based': 'vertex_clustering',
+                    'triangle_collapse': 'adaptive'
+                  };
+                  const backendMethod = methodMapping[reductionMethod] || reductionMethod;
+                  onReducePoints(reductionAmount, backendMethod as any);
+                }}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-base py-3 h-auto"
+                disabled={isProcessing}
+              >
+                🔧 Apply Model Reduction
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Separator className="bg-white/20" />
+
+      {/* 4. EXPORT SECTION */}
+      <div>
+        <SectionHeader
+          title="4. EXPORT OPTIONS"
+          isExpanded={expandedSections.export}
+          onToggle={() => toggleSection('export')}
+          badge={geometry ? "Ready" : "No Model"}
+        />
+
+        {expandedSections.export && (
+          <div className="mt-4 space-y-4">
+            {/* Standard Export - larger buttons for mobile */}
+            <div>
+              <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Standard Export
+              </div>
+              <Button
+                onClick={() => handleExportClick('complete')}
+                disabled={!geometry}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12 text-base"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Export Complete Model
+              </Button>
+            </div>
+
+            <Separator className="bg-white/20" />
+
+            {/* Parts Export */}
+            <div>
+              <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                Polygon Parts Export
+              </div>
+              <Button
+                onClick={() => handleExportClick('parts')}
+                disabled={!geometry}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12 text-base"
+              >
+                <Package className="w-5 h-5 mr-2" />
+                Export Polygon Parts
+              </Button>
+            </div>
+
+            {!geometry && (
+              <p className="text-sm text-white/50 text-center mt-4">
+                Upload or load a model first to enable exports
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Processing Indicator */}
+      {isProcessing && (
+        <div className="mt-6 p-4 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+          <div className="text-yellow-300 text-base font-medium flex items-center">
+            <div className="w-5 h-5 border-2 border-yellow-300 border-t-transparent rounded-full animate-spin mr-3"></div>
+            Processing model...
+          </div>
+        </div>
+      )}
+
+      {/* Export Format Selection Dialog */}
+      {showExportFormatDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-black/90 backdrop-blur-md border border-white/20 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-white text-lg font-semibold mb-4 text-center">
+              Choose Export Format
+            </h3>
+            <p className="text-white/70 text-sm mb-6 text-center">
+              {exportType === 'complete'
+                ? 'Select format for complete model export:'
+                : 'Select format for polygon parts export:'}
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleFormatSelection('stl')}
+                className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <Download className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">STL Format</div>
+                  <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleFormatSelection('obj')}
+                className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <Package className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">OBJ Format</div>
+                  <div className="text-sm text-blue-100">Better topology for editing and groups</div>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowExportFormatDialog(false)}
+              className="w-full mt-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-base"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #f97316;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #f97316;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+      `}</style>
+    </div>
+  );
 }
