@@ -305,7 +305,17 @@ function STLMesh() {
   if (!geometry) return null;
 
   return (
-    <mesh ref={meshRef} geometry={geometry} material={material} />
+    <group ref={meshRef}>
+      {/* Main mesh */}
+      <mesh geometry={geometry} material={material} />
+
+      {/* Polygon-aware wireframe overlay */}
+      {viewerSettings.wireframe && wireframeGeometry && (
+        <lineSegments geometry={wireframeGeometry}>
+          <lineBasicMaterial color={0x00ff88} linewidth={2} />
+        </lineSegments>
+      )}
+    </group>
   );
 }
 
