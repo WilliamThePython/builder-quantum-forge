@@ -453,63 +453,28 @@ export default function STLWorkflowPanel({
               {/* Reduction Settings */}
               <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                   <div className="text-white text-sm font-medium mb-2">
-                      Model Reduction Settings
+                      Python-Style Model Reduction
                   </div>
                   <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                    🎯 <span className="font-medium">Goal:</span> Reduce complexity while preserving shape & topology.
-                    Uses vertex/triangle manipulation with automatic mesh repair.
+                    🐍 <span className="font-medium">Python Implementation:</span> Clean mesh → Quadric decimation → Merge coplanar faces.
+                    Eliminates internal triangles and prevents model deletion.
                   </div>
 
-                    {/* Method Selection */}
+                    {/* Method Selection - Single Python approach */}
                     <div className="mb-4">
                       <div className="text-white text-xs mb-2">Simplification Method</div>
-                      <div className="grid grid-cols-2 gap-1">
-                        <Button
-                          onClick={() => setReductionMethod('random_vertex')}
-                          className={`text-xs py-1 px-2 h-8 ${
-                            reductionMethod === 'random_vertex'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          Random Vertex
-                        </Button>
-                        <Button
-                          onClick={() => setReductionMethod('quadric')}
-                          className={`text-xs py-1 px-2 h-8 ${
-                            reductionMethod === 'quadric'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          Quadric ⭐
-                        </Button>
-                        <Button
-                          onClick={() => setReductionMethod('grid_based')}
-                          className={`text-xs py-1 px-2 h-8 ${
-                            reductionMethod === 'grid_based'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          Grid-Based
-                        </Button>
-                        <Button
-                          onClick={() => setReductionMethod('triangle_collapse')}
-                          className={`text-xs py-1 px-2 h-8 ${
-                            reductionMethod === 'triangle_collapse'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          Triangle Collapse
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => setReductionMethod('quadric_edge_collapse')}
+                        className="w-full text-xs py-2 px-3 h-10 bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        🐍 Python Quadric Decimation
+                      </Button>
                       <div className="text-xs text-white/60 mt-2 bg-white/5 rounded p-2">
-                        {reductionMethod === 'random_vertex' && '🧪 Experimental: Fast vertex removal with reconnection. Good for high-poly models.'}
-                        {reductionMethod === 'quadric' && '✅ Recommended: Shape-preserving decimation with minimal distortion. Best quality.'}
-                        {reductionMethod === 'grid_based' && '🧱 Voxel simplification. Works well for mechanical/architectural parts.'}
-                        {reductionMethod === 'triangle_collapse' && '🧩 Collapses triangles by curvature. Stable for medium-quality reductions.'}
+                        ✅ Direct translation of proven Python algorithm:<br/>
+                        • Cleans mesh (removes duplicates, degenerate triangles)<br/>
+                        • Applies Open3D-style quadric decimation<br/>
+                        • Merges coplanar faces to eliminate internal triangles<br/>
+                        • Conservative fallbacks prevent model deletion
                       </div>
                     </div>
 
@@ -764,7 +729,7 @@ export default function STLWorkflowPanel({
                                   <div>• Face types: {faceTypes.join(', ')}</div>
                                   <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
                                   <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>��� Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
                                 </>
                               );
                             } else {
