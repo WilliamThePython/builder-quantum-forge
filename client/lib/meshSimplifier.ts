@@ -149,21 +149,25 @@ export class MeshSimplifier {
     targetTriangles: number
   ): THREE.BufferGeometry {
     const currentTriangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
-    
-    // If already at or below target, return as-is
-    if (currentTriangles <= targetTriangles) {
-      console.log('📊 Model already at target size, no reduction needed');
+
+    // CRITICAL: Always ensure minimum triangles to prevent deletion
+    const absoluteMinimum = 12; // Minimum for any recognizable shape
+    const safeTarget = Math.max(absoluteMinimum, targetTriangles);
+
+    // If already at or below safe target, return as-is
+    if (currentTriangles <= safeTarget) {
+      console.log('📊 Model already at safe target size, no reduction needed');
       return geometry;
     }
 
-    // Very conservative reduction - only reduce by small amount to prevent deletion
-    const maxReduction = 0.3; // Never reduce by more than 30%
-    const safeTargetTriangles = Math.max(targetTriangles, Math.floor(currentTriangles * (1 - maxReduction)));
-    
-    console.log(`🛡️ Conservative reduction: ${currentTriangles} → ${safeTargetTriangles} triangles`);
-    
-    // Simple vertex decimation
-    return this.simpleVertexDecimation(geometry, safeTargetTriangles);
+    // Very conservative reduction - never reduce by more than 50%
+    const maxReduction = 0.5;
+    const conservativeTarget = Math.max(safeTarget, Math.floor(currentTriangles * (1 - maxReduction)));
+
+    console.log(`🛡️ Conservative reduction: ${currentTriangles} → ${conservativeTarget} triangles (min: ${absoluteMinimum})`);
+
+    // Use safe decimation that preserves geometry structure
+    return this.safeVertexDecimation(geometry, conservativeTarget);
   }
 
   /**
