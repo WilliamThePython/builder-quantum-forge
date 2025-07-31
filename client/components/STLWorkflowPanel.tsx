@@ -193,15 +193,15 @@ export default function STLWorkflowPanel({
 
   if (isMobile) {
     return (
-      <div className="fixed left-2 top-2 bottom-2 z-50 w-72 max-w-[85vw] max-h-[calc(100vh-1rem)]">
-        <div className="bg-black/90 backdrop-blur-lg rounded-xl border border-white/20 h-full overflow-y-auto">
+      <div className="fixed left-2 top-2 z-50 w-64 max-w-[80vw]">
+        <div className="bg-black/90 backdrop-blur-lg rounded-lg border border-white/20 overflow-hidden">
           {/* Compact Mobile Header */}
-          <div className="sticky top-0 bg-black/95 backdrop-blur-lg border-b border-white/20 p-3">
-            <h2 className="text-white font-bold text-base text-center">STL Workflow</h2>
+          <div className="bg-black/95 backdrop-blur-lg border-b border-white/20 p-2">
+            <h2 className="text-white font-semibold text-sm text-center">STL Workflow</h2>
           </div>
 
           {/* Mobile Content with compact sections */}
-          <div className="p-3">
+          <div className="p-2">
             <MobileWorkflowContent
               {...{
                 fileName,
@@ -1020,18 +1020,18 @@ function MobileWorkflowContent(props: any) {
   }) => (
     <button
       onClick={onToggle}
-      className="flex items-center justify-between w-full text-white text-xs font-semibold py-2 px-2 hover:bg-white/10 rounded-lg transition-colors"
+      className="flex items-center justify-between w-full text-white text-xs font-medium py-1.5 px-1.5 hover:bg-white/10 rounded-md transition-colors"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {isExpanded ? (
-          <ChevronDown className="w-3 h-3" />
+          <ChevronDown className="w-2.5 h-2.5" />
         ) : (
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-2.5 h-2.5" />
         )}
         <span className="text-xs">{title}</span>
       </div>
       {badge && (
-        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0">
+        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0 text-xs">
           {badge}
         </Badge>
       )}
@@ -1039,24 +1039,24 @@ function MobileWorkflowContent(props: any) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       {/* Compact mobile content with collapsible sections */}
 
       {/* Enhanced Loading Progress Bar - Compact */}
       {isLoading && (
-        <div className="p-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="p-1.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-md">
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className="w-2.5 h-2.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             <div className="flex-1">
-              <div className="text-xs font-semibold text-blue-200">
+              <div className="text-xs font-medium text-blue-200">
                 {loadingProgress.stage || 'Processing'}
               </div>
             </div>
-            <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-1 py-0.5 rounded">
+            <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-1 py-0.5 rounded text-xs">
               {loadingProgress.percentage}%
             </div>
           </div>
-          <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-white/10 rounded-full h-1 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${loadingProgress.percentage}%` }}
