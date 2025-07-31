@@ -328,9 +328,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
 
+      updateProgress(70, 'Optimizing', 'Ensuring solid object display...');
       // Ensure solid object appearance with proper face normals
       ensureSolidObjectDisplay(geometry);
 
+      updateProgress(75, 'Reconstructing', 'Analyzing polygon faces...');
       // Conditional polygon reconstruction based on model complexity
       if (vertexCount < 100000) { // Only for models under 100K vertices
         console.log('🔍 Reconstructing polygon faces from uploaded STL...');
