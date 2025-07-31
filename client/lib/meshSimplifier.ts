@@ -171,71 +171,234 @@ export class MeshSimplifier {
   }
 
   /**
-   * Simple vertex decimation to avoid model deletion
+   * Safe vertex decimation with polygon stitching
    */
-  private static simpleVertexDecimation(
+  private static safeVertexDecimation(
     geometry: THREE.BufferGeometry,
     targetTriangles: number
   ): THREE.BufferGeometry {
     const positions = geometry.attributes.position;
     const currentTriangles = geometry.index ? geometry.index.count / 3 : positions.count / 3;
-    
+
     if (currentTriangles <= targetTriangles) {
       return geometry;
     }
 
-    // Calculate reduction ratio
-    const reductionRatio = targetTriangles / currentTriangles;
-    
-    // For indexed geometry
-    if (geometry.index) {
-      const indices = geometry.index.array;
-      const newIndices: number[] = [];
-      
-      // Keep triangles based on reduction ratio
-      for (let i = 0; i < indices.length; i += 3) {
-        if (Math.random() < reductionRatio) {
-          newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
-        }
-      }
-      
-      // Ensure we have at least some triangles
-      if (newIndices.length < 9) { // Less than 3 triangles
-        console.log('⚠️ Too few triangles after reduction, keeping original');
-        return geometry;
-      }
-      
-      const newGeometry = new THREE.BufferGeometry();
-      newGeometry.setAttribute('position', positions.clone());
-      newGeometry.setIndex(newIndices);
-      newGeometry.computeVertexNormals();
-      
-      return newGeometry;
-    }
-    
-    // For non-indexed geometry
-    const newPositions: number[] = [];
-    for (let i = 0; i < positions.count; i += 3) {
-      if (Math.random() < reductionRatio) {
-        newPositions.push(
-          positions.getX(i), positions.getY(i), positions.getZ(i),
-          positions.getX(i + 1), positions.getY(i + 1), positions.getZ(i + 1),
-          positions.getX(i + 2), positions.getY(i + 2), positions.getZ(i + 2)
-        );
-      }
-    }
-    
-    // Ensure we have at least some vertices
-    if (newPositions.length < 9) {
-      console.log('⚠️ Too few vertices after reduction, keeping original');
+    console.log(`🔧 Safe decimation: ${currentTriangles} → ${targetTriangles} triangles`);
+
+    // Step 1: Extract triangle parts and group by proximity/normals
+    const triangleParts = this.extractTriangleParts(geometry);
+    console.log(`📊 Extracted ${triangleParts.length} triangle parts`);
+
+    // Step 2: Group coplanar triangles for stitching
+    const coplanarGroups = this.groupCoplanarTriangles(triangleParts);
+    console.log(`🔗 Found ${coplanarGroups.length} coplanar groups`);
+
+    // Step 3: Reduce number of groups if needed
+    const targetGroups = Math.min(targetTriangles, coplanarGroups.length);
+    const selectedGroups = this.selectBestGroups(coplanarGroups, targetGroups);
+    console.log(`✂️ Selected ${selectedGroups.length} groups for final geometry`);
+
+    // Step 4: Stitch groups into polygons and triangulate
+    const stitchedGeometry = this.stitchGroupsIntoGeometry(selectedGroups);
+    console.log(`🧵 Stitched geometry created`);
+
+    // Step 5: Validate and return
+    const finalTriangles = stitchedGeometry.index ? stitchedGeometry.index.count / 3 : stitchedGeometry.attributes.position.count / 3;
+
+    if (finalTriangles < 3) {
+      console.log('⚠️ Stitched geometry too small, returning original');
       return geometry;
     }
-    
-    const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-    newGeometry.computeVertexNormals();
-    
-    return newGeometry;
+
+    console.log(`✅ Safe decimation completed: ${finalTriangles} triangles`);
+    return stitchedGeometry;
+  }
+
+  /**
+   * Group coplanar triangles for stitching into larger polygons
+   */
+  private static groupCoplanarTriangles(triangleParts: TrianglePart[]): TrianglePart[][] {
+    const groups: TrianglePart[][] = [];
+    const used = new Set<number>();
+    const angleThreshold = Math.PI / 36; // 5 degrees
+
+    for (let i = 0; i < triangleParts.length; i++) {
+      if (used.has(i)) continue;
+
+      const group = [triangleParts[i]];
+      used.add(i);
+
+      const baseNormal = this.calculateTriangleNormal(
+        triangleParts[i].vertices[0],
+        triangleParts[i].vertices[1],
+        triangleParts[i].vertices[2]
+      );
+
+      // Find triangles with similar normals and close proximity
+      for (let j = i + 1; j < triangleParts.length; j++) {
+        if (used.has(j)) continue;
+
+        const otherNormal = this.calculateTriangleNormal(
+          triangleParts[j].vertices[0],
+          triangleParts[j].vertices[1],
+          triangleParts[j].vertices[2]
+        );
+
+        const dot = Math.abs(baseNormal.dot(otherNormal));
+        const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+
+        if (angle <= angleThreshold) {
+          // Check if triangles are close enough to stitch
+          if (this.areTrianglesAdjacent(triangleParts[i], triangleParts[j])) {
+            group.push(triangleParts[j]);
+            used.add(j);
+          }
+        }
+      }
+
+      groups.push(group);
+    }
+
+    return groups;
+  }
+
+  /**
+   * Check if two triangles are adjacent (share vertices or are close)
+   */
+  private static areTrianglesAdjacent(tri1: TrianglePart, tri2: TrianglePart): boolean {
+    const threshold = 1e-3;
+
+    for (const v1 of tri1.vertices) {
+      for (const v2 of tri2.vertices) {
+        if (v1.distanceTo(v2) < threshold) {
+          return true; // Share a vertex or are very close
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Select best groups to keep for target triangle count
+   */
+  private static selectBestGroups(groups: TrianglePart[][], targetCount: number): TrianglePart[][] {
+    // Sort groups by size (larger groups = better polygon stitching opportunities)
+    const sortedGroups = groups.sort((a, b) => b.length - a.length);
+
+    // Always keep largest groups first
+    const selected = sortedGroups.slice(0, Math.min(targetCount, sortedGroups.length));
+
+    // Ensure we have enough triangles
+    if (selected.length === 0 && sortedGroups.length > 0) {
+      selected.push(sortedGroups[0]);
+    }
+
+    return selected;
+  }
+
+  /**
+   * Stitch groups into final geometry with polygon reconstruction
+   */
+  private static stitchGroupsIntoGeometry(groups: TrianglePart[][]): THREE.BufferGeometry {
+    const finalPositions: number[] = [];
+    const finalIndices: number[] = [];
+    let vertexIndex = 0;
+
+    for (const group of groups) {
+      if (group.length === 0) continue;
+
+      if (group.length === 1) {
+        // Single triangle - add as-is
+        const triangle = group[0];
+        for (const vertex of triangle.vertices) {
+          finalPositions.push(vertex.x, vertex.y, vertex.z);
+        }
+        finalIndices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2);
+        vertexIndex += 3;
+      } else {
+        // Multiple triangles - attempt to stitch into polygon
+        const stitched = this.stitchTrianglesIntoPolygon(group);
+
+        // Add polygon vertices
+        for (const vertex of stitched.vertices) {
+          finalPositions.push(vertex.x, vertex.y, vertex.z);
+        }
+
+        // Triangulate polygon (simple fan triangulation)
+        for (let i = 1; i < stitched.vertices.length - 1; i++) {
+          finalIndices.push(vertexIndex, vertexIndex + i, vertexIndex + i + 1);
+        }
+        vertexIndex += stitched.vertices.length;
+      }
+    }
+
+    // Create final geometry
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(finalPositions, 3));
+
+    if (finalIndices.length > 0) {
+      geometry.setIndex(finalIndices);
+    }
+
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+
+    return geometry;
+  }
+
+  /**
+   * Stitch multiple triangles into a single polygon
+   */
+  private static stitchTrianglesIntoPolygon(triangles: TrianglePart[]): { vertices: THREE.Vector3[] } {
+    // Collect all vertices from triangles
+    const allVertices: THREE.Vector3[] = [];
+    for (const triangle of triangles) {
+      allVertices.push(...triangle.vertices);
+    }
+
+    // Remove duplicates and create polygon boundary
+    const uniqueVertices = this.removeDuplicateVertices(allVertices);
+
+    // If we have too few vertices, just use the first triangle
+    if (uniqueVertices.length < 3) {
+      return { vertices: triangles[0].vertices };
+    }
+
+    // Sort vertices to form a proper polygon (simple convex hull approach)
+    const sortedVertices = this.sortVerticesIntoPolygon(uniqueVertices);
+
+    return { vertices: sortedVertices };
+  }
+
+  /**
+   * Sort vertices into a proper polygon order
+   */
+  private static sortVerticesIntoPolygon(vertices: THREE.Vector3[]): THREE.Vector3[] {
+    if (vertices.length <= 3) return vertices;
+
+    // Calculate centroid
+    const centroid = new THREE.Vector3();
+    for (const vertex of vertices) {
+      centroid.add(vertex);
+    }
+    centroid.divideScalar(vertices.length);
+
+    // Sort by angle around centroid
+    return vertices.sort((a, b) => {
+      const angleA = Math.atan2(a.y - centroid.y, a.x - centroid.x);
+      const angleB = Math.atan2(b.y - centroid.y, b.x - centroid.x);
+      return angleA - angleB;
+    });
+  }
+
+  /**
+   * Calculate triangle normal
+   */
+  private static calculateTriangleNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
+    const edge1 = v2.clone().sub(v1);
+    const edge2 = v3.clone().sub(v1);
+    return edge1.cross(edge2).normalize();
   }
 
   /**
