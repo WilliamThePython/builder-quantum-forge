@@ -983,6 +983,7 @@ function MobileWorkflowContent(props: any) {
     loadModelFromFile,
     loadDefaultSTL,
     exportSTL,
+    exportOBJ,
     exportParts,
     viewerSettings,
     updateViewerSettings,
