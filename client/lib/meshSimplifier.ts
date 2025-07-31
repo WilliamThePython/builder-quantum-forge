@@ -66,34 +66,52 @@ export class MeshSimplifier {
     console.log(`🎯 Safe targets: ${currentTriangles} → ${targetParts} triangles (min: ${minimumTriangles})`);
 
     try {
-      // Step 1: Clean mesh (like Python clean_mesh function)
-      const cleanedGeometry = this.cleanMesh(geometry.clone());
-      console.log('✅ Mesh cleaned');
+      // Step 1: Clean mesh (like Python clean_mesh function) - but very gently
+      const cleanedGeometry = this.gentleCleanMesh(geometry.clone());
+      console.log('✅ Mesh gently cleaned');
 
-      // Step 2: Simplify with quadric decimation (like Python simplify_with_open3d)
-      const simplifiedGeometry = await this.simplifyWithQuadric(cleanedGeometry, targetParts);
-      console.log('✅ Quadric decimation completed');
+      // Verify cleaning didn't break anything
+      const cleanedStats = this.getMeshStats(cleanedGeometry);
+      if (cleanedStats.vertices === 0 || cleanedStats.faces === 0) {
+        console.warn('⚠️ Cleaning removed all geometry, using original');
+        throw new Error('Cleaning failed');
+      }
 
-      // Step 3: Remove low impact vertices (currently no-op like Python)
-      const refinedGeometry = this.removeLowImpactVertices(simplifiedGeometry, angleTolerance);
-      console.log('✅ Low impact vertices processed');
+      // Step 2: ULTRA CONSERVATIVE - only reduce if we have A LOT of triangles
+      let finalGeometry = cleanedGeometry;
+      if (currentTriangles > 1000 && options.targetReduction > 0.1) {
+        console.log('🔧 Attempting gentle reduction (only for high-poly models)...');
+        try {
+          const reducedGeometry = await this.ultraConservativeReduction(cleanedGeometry, targetParts);
+          const reducedStats = this.getMeshStats(reducedGeometry);
 
-      // Step 4: Extract triangle parts (like Python triangle_parts list)
-      const triangleParts = this.extractTriangleParts(refinedGeometry);
-      console.log(`✅ Extracted ${triangleParts.length} triangle parts`);
+          // Only use reduced geometry if it's still valid
+          if (reducedStats.vertices > 0 && reducedStats.faces > 0) {
+            finalGeometry = reducedGeometry;
+            console.log('✅ Gentle reduction successful');
+          } else {
+            console.warn('⚠️ Reduction failed validation, using cleaned original');
+          }
+        } catch (reductionError) {
+          console.warn('⚠️ Reduction failed, using cleaned original:', reductionError);
+        }
+      } else {
+        console.log('🛡️ Model too small or reduction too aggressive, skipping reduction');
+      }
 
-      // Step 5: Merge coplanar faces (like Python merge_coplanar_faces)
-      const mergedParts = this.mergeCoplanarFaces(refinedGeometry, angleTolerance);
-      console.log(`✅ Created ${mergedParts.length} merged parts`);
+      // Step 3: Extract triangle parts and merge coplanar faces (this is safe)
+      const triangleParts = this.extractTriangleParts(finalGeometry);
+      const mergedParts = this.mergeCoplanarFaces(finalGeometry, angleTolerance);
+      console.log(`✅ Extracted ${triangleParts.length} triangle parts, ${mergedParts.length} merged parts`);
 
-      const newStats = this.getMeshStats(refinedGeometry);
-      const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
+      const newStats = this.getMeshStats(finalGeometry);
+      const reductionAchieved = Math.max(0, 1 - (newStats.vertices / originalStats.vertices));
       const processingTime = Date.now() - startTime;
 
-      console.log(`🎯 Simplification completed: ${originalStats.vertices} → ${newStats.vertices} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
+      console.log(`🎯 Conservative processing completed: ${originalStats.vertices} → ${newStats.vertices} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
 
       return {
-        simplifiedGeometry: refinedGeometry,
+        simplifiedGeometry: finalGeometry,
         originalStats,
         newStats,
         triangleParts,
@@ -103,15 +121,17 @@ export class MeshSimplifier {
       };
 
     } catch (error) {
-      console.error('❌ Simplification failed:', error);
-      // Return original geometry if simplification fails completely
-      const newStats = originalStats;
+      console.error('❌ All simplification failed, returning original geometry:', error);
+      // Return EXACT original geometry if everything fails
+      const triangleParts = this.extractTriangleParts(geometry);
+      const mergedParts = this.mergeCoplanarFaces(geometry, angleTolerance);
+
       return {
         simplifiedGeometry: geometry.clone(),
         originalStats,
-        newStats,
-        triangleParts: [],
-        mergedParts: [],
+        newStats: originalStats,
+        triangleParts,
+        mergedParts,
         reductionAchieved: 0,
         processingTime: Date.now() - startTime
       };
