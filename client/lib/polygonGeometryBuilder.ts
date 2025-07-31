@@ -175,19 +175,32 @@ export class PolygonGeometryBuilder {
     // Add all vertices to main array
     vertices.push(...topVertices, ...bottomVertices);
 
+    // Calculate geometry center for outward normal validation
+    const geometryCenter = new THREE.Vector3(0, 0, 0);
+
     // Top and bottom faces (polygons) - ensure correct winding for outward normals
-    faces.push(this.createFace([...topVertices], 'polygon'));
-    faces.push(this.createFace([...bottomVertices], 'polygon'));
+    let topFace = this.createFace([...topVertices], 'polygon');
+    let bottomFace = this.createFace([...bottomVertices], 'polygon');
+
+    // Ensure outward normals
+    topFace = this.ensureOutwardFaceWinding(topFace, geometryCenter);
+    bottomFace = this.ensureOutwardFaceWinding(bottomFace, geometryCenter);
+
+    faces.push(topFace);
+    faces.push(bottomFace);
 
     // Side faces (rectangles) - ensure correct winding for outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      faces.push(this.createFace([
+      let sideFace = this.createFace([
         bottomVertices[i],
         bottomVertices[next],
         topVertices[next],
         topVertices[i]
-      ], 'quad'));
+      ], 'quad');
+
+      sideFace = this.ensureOutwardFaceWinding(sideFace, geometryCenter);
+      faces.push(sideFace);
     }
 
     return { vertices, faces, type: 'cylinder' };
