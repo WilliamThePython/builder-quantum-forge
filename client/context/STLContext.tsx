@@ -454,327 +454,52 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const loadDefaultSTL = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Selecting random model' });
 
     try {
-      // Create polygon-based geometries with higher-order faces
-      const geometryOptions = [
-        // Cube with 6 quadrilateral faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
-          ),
-          name: 'cube-polygon.stl'
-        },
-
-        // Irregular rectangular prisms with quadrilateral faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createBoxWithQuads(
-              5 + Math.random() * 30,   // width: 5-35
-              8 + Math.random() * 20,   // height: 8-28
-              12 + Math.random() * 25   // depth: 12-37
-            )
-          ),
-          name: 'irregular-prism-1.stl'
-        },
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createBoxWithQuads(
-              15 + Math.random() * 15,  // width: 15-30
-              3 + Math.random() * 40,   // height: 3-43
-              6 + Math.random() * 18    // depth: 6-24
-            )
-          ),
-          name: 'irregular-prism-2.stl'
-        },
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createBoxWithQuads(
-              25 + Math.random() * 10,  // width: 25-35
-              20 + Math.random() * 5,   // height: 20-25
-              2 + Math.random() * 35    // depth: 2-37
-            )
-          ),
-          name: 'irregular-prism-3.stl'
-        },
-
-        // Triangular prisms with triangular ends and rectangular sides
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createTriangularPrism(12, 25)
-          ),
-          name: 'triangular-prism.stl'
-        },
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createTriangularPrism(
-              8 + Math.random() * 12,   // radius: 8-20
-              15 + Math.random() * 20   // height: 15-35
-            )
-          ),
-          name: 'irregular-triangular-prism.stl'
-        },
-
-        // Cylinders with circular ends and rectangular sides
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8)
-          ),
-          name: 'octagonal-cylinder.stl'
-        },
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCylinderWithPolygons(
-              8 + Math.random() * 12,   // top radius: 8-20
-              12 + Math.random() * 8,   // bottom radius: 12-20
-              15 + Math.random() * 20,  // height: 15-35
-              6 + Math.floor(Math.random() * 10) // segments: 6-16
-            )
-          ),
-          name: 'irregular-cylinder.stl'
-        },
-
-        // Cones with circular base and triangular sides
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8)
-          ),
-          name: 'octagonal-cone.stl'
-        },
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createConeWithPolygons(
-              8 + Math.random() * 15,   // radius: 8-23
-              20 + Math.random() * 20,  // height: 20-40
-              6 + Math.floor(Math.random() * 10) // segments: 6-16
-            )
-          ),
-          name: 'irregular-cone.stl'
-        },
-
-        // Hexagonal prisms
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 20, 6)
-          ),
-          name: 'hexagonal-prism.stl'
-        },
-
-        // Pentagonal prisms
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 5)
-          ),
-          name: 'pentagonal-prism.stl'
-        },
-
-        // Truncated pyramids (frustums)
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCylinderWithPolygons(
-              5 + Math.random() * 8,    // top radius: 5-13
-              12 + Math.random() * 8,   // bottom radius: 12-20
-              15 + Math.random() * 15,  // height: 15-30
-              4 + Math.floor(Math.random() * 4) // segments: 4-8
-            )
-          ),
-          name: 'truncated-pyramid.stl'
-        },
-
-        // Rotated prisms for variety
-        {
-          geometry: (() => {
-            const geom = PolygonGeometryBuilder.toBufferGeometry(
-              PolygonGeometryBuilder.createBoxWithQuads(
-                12 + Math.random() * 16,
-                18 + Math.random() * 12,
-                8 + Math.random() * 20
-              )
-            );
-            // Apply rotation
-            geom.rotateX((Math.random() - 0.5) * Math.PI * 0.25);
-            geom.rotateY((Math.random() - 0.5) * Math.PI * 0.25);
-            geom.rotateZ((Math.random() - 0.5) * Math.PI * 0.25);
-            return geom;
-          })(),
-          name: 'rotated-prism.stl'
-        },
-
-        // BASIC SHAPES
-        // Tetrahedron - simplest 3D shape with 4 triangular faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createTetrahedron(15 + Math.random() * 10)
-          ),
-          name: 'tetrahedron.stl'
-        },
-
-        // Octahedron - diamond shape with 8 triangular faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createOctahedron(12 + Math.random() * 8)
-          ),
-          name: 'octahedron.stl'
-        },
-
-        // Dodecahedron - complex shape with 12 pentagonal faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createDodecahedron(10 + Math.random() * 6)
-          ),
-          name: 'dodecahedron.stl'
-        },
-
-        // Icosahedron - sphere-like with 20 triangular faces
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createIcosahedron(14 + Math.random() * 8)
-          ),
-          name: 'icosahedron.stl'
-        },
-
-        // ARCHITECTURAL/FUNCTIONAL SHAPES
-        // Stepped pyramid with multiple levels
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createSteppedPyramid(
-              20 + Math.random() * 10,  // base size: 20-30
-              2 + Math.floor(Math.random() * 4),  // levels: 2-5
-              15 + Math.random() * 10   // height: 15-25
-            )
-          ),
-          name: 'stepped-pyramid.stl'
-        },
-
-        // L-bracket - common mechanical part
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createLBracket(
-              20 + Math.random() * 10,  // width: 20-30
-              15 + Math.random() * 10,  // height: 15-25
-              8 + Math.random() * 6,    // depth: 8-14
-              3 + Math.random() * 2     // thickness: 3-5
-            )
-          ),
-          name: 'l-bracket.stl'
-        },
-
-        // Washer/ring - torus-like shape
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createWasher(
-              12 + Math.random() * 8,   // outer radius: 12-20
-              6 + Math.random() * 4,    // inner radius: 6-10
-              3 + Math.random() * 4,    // height: 3-7
-              12 + Math.floor(Math.random() * 8) // segments: 12-20
-            )
-          ),
-          name: 'washer-ring.stl'
-        },
-
-        // Simple house - cube base with triangular roof
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createSimpleHouse(
-              16 + Math.random() * 8,   // width: 16-24
-              12 + Math.random() * 6,   // height: 12-18
-              20 + Math.random() * 10,  // depth: 20-30
-              8 + Math.random() * 6     // roof height: 8-14
-            )
-          ),
-          name: 'simple-house.stl'
-        },
-
-        // Gear wheel - circle with teeth around edge
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createGearWheel(
-              8 + Math.random() * 4,    // inner radius: 8-12
-              14 + Math.random() * 6,   // outer radius: 14-20
-              4 + Math.random() * 3,    // height: 4-7
-              8 + Math.floor(Math.random() * 8) // teeth: 8-16
-            )
-          ),
-          name: 'gear-wheel.stl'
-        },
-
-        // ORGANIC/COMPLEX SHAPES
-        // Ellipsoid - stretched sphere
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createEllipsoid(
-              10 + Math.random() * 8,   // radius X: 10-18
-              15 + Math.random() * 5,   // radius Y: 15-20
-              12 + Math.random() * 6,   // radius Z: 12-18
-              8 + Math.floor(Math.random() * 4) // segments: 8-12
-            )
-          ),
-          name: 'ellipsoid.stl'
-        },
-
-        // Wedge - half cylinder cut diagonally
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createWedge(
-              12 + Math.random() * 8,   // radius: 12-20
-              10 + Math.random() * 10,  // height: 10-20
-              8 + Math.floor(Math.random() * 6) // segments: 8-14
-            )
-          ),
-          name: 'wedge.stl'
-        },
-
-        // Star shape - extruded star polygon
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createStarShape(
-              15 + Math.random() * 5,   // outer radius: 15-20
-              8 + Math.random() * 4,    // inner radius: 8-12
-              6 + Math.random() * 6,    // height: 6-12
-              5 + Math.floor(Math.random() * 3) // points: 5-7
-            )
-          ),
-          name: 'star-shape.stl'
-        },
-
-        // Cross shape - plus sign extruded
-        {
-          geometry: PolygonGeometryBuilder.toBufferGeometry(
-            PolygonGeometryBuilder.createCrossShape(
-              12 + Math.random() * 8,   // width: 12-20
-              16 + Math.random() * 8,   // length: 16-24
-              4 + Math.random() * 3,    // thickness: 4-7
-              8 + Math.random() * 6     // height: 8-14
-            )
-          ),
-          name: 'cross-shape.stl'
-        }
-      ];
-
-      // Randomly select a geometry
-      const randomIndex = Math.floor(Math.random() * geometryOptions.length);
-      const selected = geometryOptions[randomIndex];
-
-      // Ensure solid object appearance with proper face normals
-      ensureSolidObjectDisplay(selected.geometry);
-
-      // Validate the generated geometry
-      const validationReport = STLGeometryValidator.validateGeometry(selected.geometry);
-      if (!validationReport.isValid) {
-        console.warn('Generated geometry has validation issues:', validationReport);
-        // Still proceed but log the issues
-        validationReport.issues.forEach(issue => {
-          console.warn(`Generated geometry issue: ${issue.message}`);
-        });
+      // Initialize model cache if needed
+      if (ModelCache.getAvailableModels().length === 0) {
+        setLoadingProgress({ percentage: 20, stage: 'Initializing cache...', details: 'Pre-generating models' });
+        ModelCache.initializeCache();
       }
 
-      setGeometry(selected.geometry);
-      setFileName(selected.name);
+      setLoadingProgress({ percentage: 50, stage: 'Loading model...', details: 'Getting cached model' });
+
+      // Get a random model from cache (already as OBJ for polygon preservation)
+      const cachedModel = ModelCache.getRandomModel();
+      if (!cachedModel) {
+        throw new Error('No cached models available');
+      }
+
+      setLoadingProgress({ percentage: 70, stage: 'Processing model...', details: 'Applying final touches' });
+
+      // The cached geometry is already properly formatted and validated
+      // No need for cleanup or validation as it's procedurally generated and cached
+      const geometry = cachedModel.geometry;
+
+      // Ensure solid object display (minimal processing for cached models)
+      ensureSolidObjectDisplay(geometry);
+
+      setLoadingProgress({ percentage: 90, stage: 'Finalizing...', details: 'Setting up viewer' });
+
+      // Set the geometry and OBJ string for proper polygon support
+      setGeometry(geometry);
+      setFileName(cachedModel.name);
+      setObjString(cachedModel.objString); // Preserve OBJ format for polygon structure
+      setOriginalFormat('obj'); // Mark as OBJ to preserve polygon handling
+
+      setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Model loaded successfully' });
+
+      console.log(`✅ Loaded cached model: ${cachedModel.name}`);
     } catch (err) {
       addError('Failed to load default model');
       console.error('Default STL loading error:', err);
     } finally {
       setIsLoading(false);
+      // Clear progress after a short delay
+      setTimeout(() => {
+        setLoadingProgress({ percentage: 0, stage: '', details: '' });
+      }, 1000);
     }
   }, []);
 
