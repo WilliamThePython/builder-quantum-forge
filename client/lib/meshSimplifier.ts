@@ -175,46 +175,50 @@ export class MeshSimplifier {
   }
 
   /**
-   * Ultra-conservative reduction that barely touches the geometry
+   * Minimal reduction that barely touches the geometry - only removes a few triangles
    */
-  private static async ultraConservativeReduction(
+  private static async minimalReduction(
     geometry: THREE.BufferGeometry,
-    targetTriangles: number
+    currentTriangles: number
   ): Promise<THREE.BufferGeometry> {
-    const currentTriangles = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
 
-    // Only attempt reduction if we have way more triangles than target
-    if (currentTriangles < targetTriangles * 2) {
-      console.log('🛡️ Not enough triangles to safely reduce');
+    // NEVER reduce by more than 10% and NEVER go below 1000 triangles
+    const maxReduction = 0.1; // Only 10% maximum
+    const absoluteMinimum = Math.max(1000, currentTriangles * 0.9);
+    const targetTriangles = Math.floor(currentTriangles * (1 - maxReduction));
+    const safeTarget = Math.max(absoluteMinimum, targetTriangles);
+
+    console.log(`🔧 Minimal reduction: ${currentTriangles} → ${safeTarget} (max ${maxReduction * 100}% reduction)`);
+
+    // If we can't safely reduce, don't even try
+    if (safeTarget >= currentTriangles) {
+      console.log('🛡️ No safe reduction possible, returning original');
       return geometry;
     }
 
-    // Use very conservative target - never reduce by more than 20%
-    const ultraSafeTarget = Math.max(targetTriangles, Math.floor(currentTriangles * 0.8));
-
-    console.log(`🔧 Ultra-conservative reduction: ${currentTriangles} → ${ultraSafeTarget} (max 20% reduction)`);
-
     try {
-      // Try Three.js SimplifyModifier with very conservative settings
+      // Try Three.js SimplifyModifier with extremely conservative settings
       const { SimplifyModifier } = await import('three/examples/jsm/modifiers/SimplifyModifier.js');
 
       const modifier = new SimplifyModifier();
-      const simplified = modifier.modify(geometry, ultraSafeTarget);
+      const simplified = modifier.modify(geometry, safeTarget);
 
-      // Validate result
+      // Strict validation
       const resultTriangles = simplified.index ? simplified.index.count / 3 : simplified.attributes.position.count / 3;
+      const resultVertices = simplified.attributes.position.count;
 
-      if (resultTriangles > 10) { // Minimum sanity check
+      if (resultTriangles >= absoluteMinimum && resultVertices > 0) {
         simplified.computeVertexNormals();
-        console.log(`✅ Conservative SimplifyModifier successful: ${resultTriangles} triangles`);
+        simplified.computeBoundingBox();
+        console.log(`✅ Minimal SimplifyModifier successful: ${currentTriangles} → ${resultTriangles} triangles`);
         return simplified;
       } else {
-        console.warn('⚠️ SimplifyModifier result too small, using original');
+        console.warn(`⚠️ SimplifyModifier result invalid (${resultTriangles} triangles), using original`);
         return geometry;
       }
 
     } catch (error) {
-      console.warn('⚠️ SimplifyModifier failed, using original geometry:', error);
+      console.warn('⚠️ SimplifyModifier failed completely, using original geometry:', error);
       return geometry;
     }
   }
