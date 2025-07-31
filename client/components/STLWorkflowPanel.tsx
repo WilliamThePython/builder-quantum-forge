@@ -193,90 +193,44 @@ export default function STLWorkflowPanel({
 
   if (isMobile) {
     return (
-      <>
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsDrawerOpen(true)}
-          className="fixed top-4 left-4 z-50 w-12 h-12 bg-black/80 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-all"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-
-        {/* Mobile Drawer Overlay */}
-        {isDrawerOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex"
-            onClick={handleBackdropClick}
-          >
-            {/* Drawer Content */}
-            <div className="w-80 max-w-[85vw] h-full bg-black/95 backdrop-blur-lg border-r border-white/20 overflow-y-auto">
-              {/* Mobile Header with Close Button */}
-              <div className="sticky top-0 bg-black/95 backdrop-blur-lg border-b border-white/20 p-4 flex items-center justify-between">
-                <h2 className="text-white font-bold text-lg">STL Workflow</h2>
-                <button
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-all"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Drawer Content */}
-              <div className="p-4">
-                <MobileWorkflowContent
-                  {...{
-                    fileName,
-                    isLoading,
-                    loadingProgress,
-                    geometry,
-                    loadModelFromFile,
-                    loadDefaultSTL,
-                    exportSTL,
-                    exportParts,
-                    viewerSettings,
-                    updateViewerSettings,
-                    getDetailedGeometryStats,
-                    hasBackup,
-                    restoreFromBackup,
-                    activeToolMode,
-                    onToolModeChange,
-                    onReducePoints,
-                    isProcessing,
-                    geometryStats,
-                    randomColors,
-                    wireframe,
-                    onRandomColorsChange,
-                    onWireframeChange,
-                    handleFileUpload,
-                    handleExportClick,
-                    handleFormatSelection,
-                    toggleSection,
-                    SectionHeader,
-                    showBackgroundSettings,
-                    setShowBackgroundSettings,
-                    reductionAmount,
-                    setReductionAmount,
-                    reductionMethod,
-                    setReductionMethod,
-                    expandedSections,
-                    setExpandedSections,
-                    showTriangleSettings,
-                    setShowTriangleSettings,
-                    triangleOptions,
-                    setTriangleOptions,
-                    showExportFormatDialog,
-                    setShowExportFormatDialog,
-                    exportType,
-                    setExportType,
-                    simplificationStats,
-                    setSimplificationStats
-                  }}
-                />
-              </div>
-            </div>
+      <div className="fixed left-2 top-2 bottom-2 z-50 w-72 max-w-[85vw] max-h-[calc(100vh-1rem)]">
+        <div className="bg-black/90 backdrop-blur-lg rounded-xl border border-white/20 h-full overflow-y-auto">
+          {/* Compact Mobile Header */}
+          <div className="sticky top-0 bg-black/95 backdrop-blur-lg border-b border-white/20 p-3">
+            <h2 className="text-white font-bold text-base text-center">STL Workflow</h2>
           </div>
-        )}
-      </>
+
+          {/* Mobile Content with compact sections */}
+          <div className="p-3">
+            <MobileWorkflowContent
+              {...{
+                fileName,
+                isLoading,
+                loadingProgress,
+                geometry,
+                loadModelFromFile,
+                loadDefaultSTL,
+                exportSTL,
+                exportParts,
+                viewerSettings,
+                updateViewerSettings,
+                getDetailedGeometryStats,
+                hasBackup,
+                restoreFromBackup,
+                activeToolMode,
+                onToolModeChange,
+                onReducePoints,
+                isProcessing,
+                geometryStats,
+                randomColors,
+                wireframe,
+                onRandomColorsChange,
+                onWireframeChange
+              }}
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
