@@ -421,6 +421,11 @@ class Analytics {
     return sanitized;
   }
 
+  // Public getter for failure count
+  get failureCount(): number {
+    return this.analyticsFailureCount;
+  }
+
   // Get custom analytics data from any endpoint
   async getCustomData(endpoint: string) {
     try {
