@@ -85,6 +85,8 @@ const STLContext = createContext<STLContextType | undefined>(undefined);
 export const useSTL = () => {
   const context = useContext(STLContext);
   if (!context) {
+    // More detailed error with stack trace for debugging
+    console.error('useSTL called outside of STLProvider. Stack trace:', new Error().stack);
     throw new Error('useSTL must be used within an STLProvider');
   }
   return context;
