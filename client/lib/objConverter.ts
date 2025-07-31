@@ -305,12 +305,15 @@ export class OBJConverter {
       objString += '# Faces\n';
       
       const indices = geometry.index?.array;
-      if (indices) {
+      if (indices && indices.length > 0) {
         for (let i = 0; i < indices.length; i += 3) {
-          const v1 = indices[i] + 1;
-          const v2 = indices[i + 1] + 1;
-          const v3 = indices[i + 2] + 1;
-          objString += `f ${v1} ${v2} ${v3}\n`;
+          // Ensure we have enough indices for a complete triangle
+          if (i + 2 < indices.length) {
+            const v1 = indices[i] + 1;
+            const v2 = indices[i + 1] + 1;
+            const v3 = indices[i + 2] + 1;
+            objString += `f ${v1} ${v2} ${v3}\n`;
+          }
         }
       }
     }
