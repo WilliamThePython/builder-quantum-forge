@@ -152,33 +152,33 @@ export class PolygonGeometryBuilder {
     const faces: PolygonFace[] = [];
     const h = height / 2;
 
-    // Apex of the cone
-    const apex = new THREE.Vector3(0, 0, h);
-    vertices.push(apex);
+    // Apex of the cone - Y is up
+    const apex = new THREE.Vector3(0, h, 0);
 
-    // Base circle vertices
+    // Base circle vertices - Y is up
     const baseVertices: THREE.Vector3[] = [];
     for (let i = 0; i < segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
       const x = radius * Math.cos(angle);
-      const y = radius * Math.sin(angle);
-      const baseVertex = new THREE.Vector3(x, y, -h);
+      const z = radius * Math.sin(angle);
+      const baseVertex = new THREE.Vector3(x, -h, z);
       baseVertices.push(baseVertex);
-      vertices.push(baseVertex);
     }
 
-    // Base face (polygon)
+    // Add all vertices
+    vertices.push(apex, ...baseVertices);
+
+    // Base face (polygon) - correct winding for downward normal
     faces.push(this.createFace([...baseVertices].reverse(), 'polygon'));
 
-    // Side faces (triangles)
+    // Side faces (triangles) - correct winding for outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      const sideTriangle = [
+      faces.push(this.createFace([
         apex,
-        baseVertices[i],
-        baseVertices[next]
-      ];
-      faces.push(this.createFace(sideTriangle, 'triangle'));
+        baseVertices[next],
+        baseVertices[i]
+      ], 'triangle'));
     }
 
     return { vertices, faces, type: 'cone' };
