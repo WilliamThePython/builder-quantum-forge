@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSTL } from '../context/STLContext';
+import { useIsMobile } from '../hooks/use-mobile';
 
 export default function TriangleStatsDisplay() {
   const { highlightedTriangle, triangleStats, viewerSettings } = useSTL();
