@@ -173,7 +173,7 @@ class Analytics {
 
   // Track custom events
   trackEvent(event: AnalyticsEvent) {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized || this.globallyDisabled) return;
 
     try {
       // Send to Google Analytics
