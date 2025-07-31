@@ -150,12 +150,17 @@ export class OBJConverter {
       const polygonFaces = (geometry as any).polygonFaces;
       
       for (const face of polygonFaces) {
+        // Ensure face and vertices exist
+        if (!face || !face.vertices || !Array.isArray(face.vertices) || face.vertices.length === 0) {
+          continue;
+        }
+
         if (face.vertices.length === 4) {
           hasQuads = true;
         } else if (face.vertices.length > 4) {
           hasPolygons = true;
         }
-        
+
         const faceString = face.vertices.map((v: any) => v.index + 1).join(' ');
         objString += `f ${faceString}\n`;
         faceCount++;
