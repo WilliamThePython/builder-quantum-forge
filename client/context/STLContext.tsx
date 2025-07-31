@@ -223,10 +223,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [highlightedTriangle, setHighlightedTriangleState] = useState<number | null>(null);
   const [triangleStats, setTriangleStats] = useState<any>(null);
 
+  // Helper function to update loading progress
+  const updateProgress = (percentage: number, stage: string, details: string = '') => {
+    setLoadingProgress({ percentage, stage, details });
+  };
+
   const loadSTLFromFile = useCallback(async (file: File) => {
     console.log('loadSTLFromFile called with:', file.name);
     setIsLoading(true);
     setError(null);
+    updateProgress(0, 'Starting', 'Initializing upload...');
 
     try {
       // Basic file validation first
