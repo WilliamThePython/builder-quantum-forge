@@ -131,19 +131,16 @@ export default function STLWorkflowPanel({
       if (format === 'stl') {
         exportSTL();
       } else {
-        // For OBJ export, we'll need to add this functionality to the context
-        console.log('OBJ export selected - functionality to be implemented');
-        // For now, show a message
-        alert('OBJ export functionality coming soon!');
+        // Export complete model as OBJ
+        exportOBJ();
       }
     } else {
       // Export parts
       if (format === 'stl') {
         exportParts(triangleOptions);
       } else {
-        // For OBJ parts export
-        console.log('OBJ parts export selected - functionality to be implemented');
-        alert('OBJ parts export functionality coming soon!');
+        // Export parts as OBJ
+        exportParts({ ...triangleOptions, format: 'obj' });
       }
     }
   };
