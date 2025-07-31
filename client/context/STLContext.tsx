@@ -327,14 +327,27 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
       }
 
-      // Validate geometry for printing accuracy issues
-      console.log('Validating STL geometry for parts export accuracy...');
-      const validationReport = STLGeometryValidator.validateGeometry(geometry);
+      // Optimized validation for large models
+      let validationReport;
+      if (vertexCount < 200000) {
+        console.log('🔍 Full validation for parts export accuracy...');
+        validationReport = STLGeometryValidator.validateGeometry(geometry);
+      } else {
+        console.log('⏭️ Skipping intensive validation for high-poly model');
+        // Create a minimal validation report for large models
+        validationReport = {
+          isValid: true,
+          issues: [],
+          warnings: [],
+          stats: { zeroAreaFaces: 0 }
+        };
+        addError('Full validation skipped for high-poly model to prevent freezing.');
+      }
 
       // Display validation results
       if (!validationReport.isValid || validationReport.warnings.length > 0) {
         const summary = STLGeometryValidator.generateValidationSummary(validationReport);
-        console.log('STL Validation Report:\n', summary);
+        console.log('📋 Validation Report:\n', summary);
 
         // Show critical issues as errors
         if (!validationReport.isValid) {
