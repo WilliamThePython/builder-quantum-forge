@@ -941,7 +941,7 @@ function MobileWorkflowContent(props: any) {
   const [reductionAmount, setReductionAmount] = useState(0.5);
   const [reductionMethod, setReductionMethod] = useState<'random_vertex' | 'quadric' | 'grid_based' | 'triangle_collapse'>('quadric');
   const [expandedSections, setExpandedSections] = useState({
-    upload: true,
+    upload: false,
     visualization: false,
     tools: false,
     export: false
