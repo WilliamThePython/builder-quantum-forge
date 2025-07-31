@@ -223,9 +223,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         return;
       }
 
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        addError('File too large. Maximum size: 50MB');
+      // Smart file size limits based on expected complexity
+      const maxSize = 25 * 1024 * 1024; // Reduced to 25MB for better performance
+      if (file.size > maxSize) {
+        addError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 25MB for optimal performance`);
         return;
+      }
+
+      // Warn about large files that might cause performance issues
+      if (file.size > 10 * 1024 * 1024) {
+        console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
+        addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - processing may take longer. Consider using model reduction after loading.`);
       }
 
       console.log('Basic validation passed, proceeding with STL loading...');
