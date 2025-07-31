@@ -639,7 +639,7 @@ window.addEventListener('error', (event) => {
   }
 
   // Skip if analytics is already failing too much
-  if (analytics?.analyticsFailureCount > 5) {
+  if (analytics?.failureCount > 5) {
     return;
   }
 
