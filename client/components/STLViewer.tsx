@@ -43,8 +43,11 @@ function STLMesh() {
     return new THREE.MeshStandardMaterial({
       color: baseColor,
       vertexColors: viewerSettings.randomColors,
-      metalness: 0.3,
-      roughness: 0.4
+      metalness: 0.1,
+      roughness: 0.6,
+      side: THREE.FrontSide,
+      transparent: false,
+      opacity: 1.0
     });
   }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
