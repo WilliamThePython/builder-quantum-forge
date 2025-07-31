@@ -25,6 +25,7 @@ export class PolygonPartsExporter {
     }
 
     const {
+      format = 'stl', // default to STL format
       partThickness = 2, // 2mm thick polygon pieces
       scale = 1
     } = options;
