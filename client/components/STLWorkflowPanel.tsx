@@ -11,8 +11,11 @@ import {
   ChevronDown,
   ChevronRight,
   Package,
-  Wrench
+  Wrench,
+  Menu,
+  ArrowLeft
 } from 'lucide-react';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
@@ -52,6 +55,9 @@ export default function STLWorkflowPanel({
   onRandomColorsChange,
   onWireframeChange
 }: STLWorkflowPanelProps) {
+  const isMobile = useIsMobile();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const {
     fileName,
     isLoading,
@@ -178,6 +184,103 @@ export default function STLWorkflowPanel({
     </button>
   );
 
+  // Close drawer when clicking outside on mobile
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && isMobile) {
+      setIsDrawerOpen(false);
+    }
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="fixed top-4 left-4 z-50 w-12 h-12 bg-black/80 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center text-white hover:bg-black/90 transition-all"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
+        {/* Mobile Drawer Overlay */}
+        {isDrawerOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex"
+            onClick={handleBackdropClick}
+          >
+            {/* Drawer Content */}
+            <div className="w-80 max-w-[85vw] h-full bg-black/95 backdrop-blur-lg border-r border-white/20 overflow-y-auto">
+              {/* Mobile Header with Close Button */}
+              <div className="sticky top-0 bg-black/95 backdrop-blur-lg border-b border-white/20 p-4 flex items-center justify-between">
+                <h2 className="text-white font-bold text-lg">STL Workflow</h2>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Drawer Content */}
+              <div className="p-4">
+                <MobileWorkflowContent
+                  {...{
+                    fileName,
+                    isLoading,
+                    loadingProgress,
+                    geometry,
+                    loadModelFromFile,
+                    loadDefaultSTL,
+                    exportSTL,
+                    exportParts,
+                    viewerSettings,
+                    updateViewerSettings,
+                    getDetailedGeometryStats,
+                    hasBackup,
+                    restoreFromBackup,
+                    activeToolMode,
+                    onToolModeChange,
+                    onReducePoints,
+                    isProcessing,
+                    geometryStats,
+                    randomColors,
+                    wireframe,
+                    onRandomColorsChange,
+                    onWireframeChange,
+                    handleFileUpload,
+                    handleExportClick,
+                    handleFormatSelection,
+                    toggleSection,
+                    SectionHeader,
+                    showBackgroundSettings,
+                    setShowBackgroundSettings,
+                    reductionAmount,
+                    setReductionAmount,
+                    reductionMethod,
+                    setReductionMethod,
+                    expandedSections,
+                    setExpandedSections,
+                    showTriangleSettings,
+                    setShowTriangleSettings,
+                    triangleOptions,
+                    setTriangleOptions,
+                    showExportFormatDialog,
+                    setShowExportFormatDialog,
+                    exportType,
+                    setExportType,
+                    simplificationStats,
+                    setSimplificationStats
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="fixed left-4 top-4 bottom-4 z-50 w-80 max-h-[calc(100vh-2rem)]">
       <div className="bg-black/85 backdrop-blur-lg rounded-2xl border border-white/20 p-5 h-full overflow-y-auto">
@@ -851,4 +954,54 @@ export default function STLWorkflowPanel({
       `}</style>
     </div>
   );
+}
+
+// Mobile Content Component
+function MobileWorkflowContent({
+  fileName,
+  isLoading,
+  loadingProgress,
+  geometry,
+  loadModelFromFile,
+  loadDefaultSTL,
+  exportSTL,
+  exportParts,
+  viewerSettings,
+  updateViewerSettings,
+  getDetailedGeometryStats,
+  hasBackup,
+  restoreFromBackup,
+  activeToolMode,
+  onToolModeChange,
+  onReducePoints,
+  isProcessing,
+  geometryStats,
+  randomColors,
+  wireframe,
+  onRandomColorsChange,
+  onWireframeChange,
+  handleFileUpload,
+  handleExportClick,
+  handleFormatSelection,
+  toggleSection,
+  SectionHeader,
+  showBackgroundSettings,
+  setShowBackgroundSettings,
+  reductionAmount,
+  setReductionAmount,
+  reductionMethod,
+  setReductionMethod,
+  expandedSections,
+  setExpandedSections,
+  showTriangleSettings,
+  setShowTriangleSettings,
+  triangleOptions,
+  setTriangleOptions,
+  showExportFormatDialog,
+  setShowExportFormatDialog,
+  exportType,
+  setExportType,
+  simplificationStats,
+  setSimplificationStats
+}: any) {
 }
