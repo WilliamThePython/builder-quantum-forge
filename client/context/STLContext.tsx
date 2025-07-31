@@ -760,6 +760,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.obj') : 'exported_model.obj');
 
       console.log('Converting geometry to OBJ format...');
+      console.log('Geometry debug info:', {
+        hasGeometry: !!geometry,
+        hasAttributes: !!(geometry && geometry.attributes),
+        hasPosition: !!(geometry && geometry.attributes && geometry.attributes.position),
+        hasPositionArray: !!(geometry && geometry.attributes && geometry.attributes.position && geometry.attributes.position.array),
+        positionArrayLength: geometry && geometry.attributes && geometry.attributes.position && geometry.attributes.position.array ? geometry.attributes.position.array.length : 0,
+        hasIndex: !!(geometry && geometry.index),
+        hasIndexArray: !!(geometry && geometry.index && geometry.index.array),
+        indexArrayLength: geometry && geometry.index && geometry.index.array ? geometry.index.array.length : 0
+      });
+
       const objResult = OBJConverter.geometryToOBJ(geometry, exportFilename);
 
       if (!objResult.success) {
