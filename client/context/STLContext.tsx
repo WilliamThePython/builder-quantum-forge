@@ -454,41 +454,96 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const loadDefaultSTL = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Creating test cube' });
+    setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Selecting random model' });
 
     try {
-      console.log('🔧 Testing direct cube creation (bypassing cache)...');
+      console.log('🎲 Loading random model...');
 
-      setLoadingProgress({ percentage: 20, stage: 'Creating geometry...', details: 'Building cube structure' });
+      // Create a list of working models (since cube works, these should too)
+      const workingModels = [
+        {
+          name: 'cube.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20),
+          description: 'Simple cube with 6 quad faces'
+        },
+        {
+          name: 'rectangular-prism-1.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(25, 15, 20),
+          description: 'Rectangular prism - wide'
+        },
+        {
+          name: 'rectangular-prism-2.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(15, 30, 12),
+          description: 'Rectangular prism - tall'
+        },
+        {
+          name: 'rectangular-prism-3.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 10, 25),
+          description: 'Rectangular prism - flat'
+        },
+        {
+          name: 'triangular-prism.stl',
+          generator: () => PolygonGeometryBuilder.createTriangularPrism(12, 25),
+          description: 'Triangular prism with triangle ends'
+        },
+        {
+          name: 'hexagonal-prism.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 20, 6),
+          description: 'Hexagonal prism (6-sided cylinder)'
+        },
+        {
+          name: 'octagonal-cylinder.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8),
+          description: 'Octagonal cylinder (8-sided)'
+        },
+        {
+          name: 'pentagonal-prism.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 5),
+          description: 'Pentagonal prism (5-sided cylinder)'
+        },
+        {
+          name: 'cone-8sided.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8),
+          description: 'Octagonal cone (8-sided base)'
+        },
+        {
+          name: 'cone-6sided.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(12, 20, 6),
+          description: 'Hexagonal cone (6-sided base)'
+        }
+      ];
 
-      // Test direct cube creation with detailed logging
+      // Randomly select a model
+      const randomIndex = Math.floor(Math.random() * workingModels.length);
+      const selectedModel = workingModels[randomIndex];
+
+      console.log(`🎯 Selected: ${selectedModel.name} - ${selectedModel.description}`);
+
+      setLoadingProgress({ percentage: 20, stage: 'Creating geometry...', details: selectedModel.description });
+
+      // Generate the model
       console.log('Step 1: Creating PolygonGeometry...');
-      const polygonGeometry = PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20);
-      console.log('PolygonGeometry created:', polygonGeometry);
-      console.log(`  - Type: ${polygonGeometry.type}`);
-      console.log(`  - Vertices: ${polygonGeometry.vertices.length}`);
-      console.log(`  - Faces: ${polygonGeometry.faces.length}`);
+      const polygonGeometry = selectedModel.generator();
+      console.log(`✅ PolygonGeometry created: ${polygonGeometry.type}`);
+      console.log(`   - Vertices: ${polygonGeometry.vertices.length}`);
+      console.log(`   - Faces: ${polygonGeometry.faces.length}`);
 
       setLoadingProgress({ percentage: 50, stage: 'Converting geometry...', details: 'Triangulating faces' });
 
       console.log('Step 2: Converting to BufferGeometry...');
       const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
-      console.log('BufferGeometry created:', bufferGeometry);
-      console.log(`  - Has position attribute: ${!!bufferGeometry.attributes.position}`);
+      console.log('✅ BufferGeometry created successfully');
+
       if (bufferGeometry.attributes.position) {
-        console.log(`  - Position count: ${bufferGeometry.attributes.position.count}`);
-        console.log(`  - Position array length: ${bufferGeometry.attributes.position.array.length}`);
+        console.log(`   - Vertices: ${bufferGeometry.attributes.position.count}`);
+        console.log(`   - Triangles: ${bufferGeometry.attributes.position.count / 3}`);
       }
 
       setLoadingProgress({ percentage: 70, stage: 'Validating geometry...', details: 'Checking structure' });
 
-      // Validate the geometry has the required attributes
-      if (!bufferGeometry.attributes.position) {
-        throw new Error('Generated geometry missing position attribute');
-      }
-
-      if (bufferGeometry.attributes.position.count === 0) {
-        throw new Error('Generated geometry has no vertices');
+      // Validate the geometry
+      if (!bufferGeometry.attributes.position || bufferGeometry.attributes.position.count === 0) {
+        throw new Error(`Generated geometry has no vertices: ${selectedModel.name}`);
       }
 
       setLoadingProgress({ percentage: 90, stage: 'Finalizing...', details: 'Setting up viewer' });
@@ -498,23 +553,24 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Set the geometry
       setGeometry(bufferGeometry);
-      setFileName('test-cube.stl');
+      setFileName(selectedModel.name);
       setOriginalFormat('stl');
 
-      setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Test cube loaded successfully' });
-      console.log('✅ Successfully loaded test cube directly');
+      setLoadingProgress({ percentage: 100, stage: 'Complete', details: `${selectedModel.name} loaded successfully` });
+      console.log(`✅ Successfully loaded: ${selectedModel.name}`);
+      console.log('='.repeat(60)); // Visual separator in console
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      addError(`Failed to create test model: ${errorMessage}`);
-      console.error('Direct cube creation error:', err);
+      addError(`Failed to create random model: ${errorMessage}`);
+      console.error('❌ Random model creation error:', err);
       console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     } finally {
       setIsLoading(false);
-      // Clear progress after a short delay
+      // Clear progress after a longer delay so you can see the result
       setTimeout(() => {
         setLoadingProgress({ percentage: 0, stage: '', details: '' });
-      }, 1000);
+      }, 2000);
     }
   }, []);
 
