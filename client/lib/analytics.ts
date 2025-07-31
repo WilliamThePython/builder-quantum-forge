@@ -493,8 +493,7 @@ class Analytics {
 
     // Skip analytics entirely if we've had too many failures
     if (this.analyticsFailureCount > 10) {
-      console.log('🚫 Analytics disabled due to repeated failures');
-      return;
+      return; // Silent skip
     }
 
     try {
