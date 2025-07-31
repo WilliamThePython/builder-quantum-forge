@@ -71,6 +71,41 @@ export default function STLWorkflowPanel({
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Epilepsy warning state
+  const [showEpilepsyWarning, setShowEpilepsyWarning] = useState(false);
+  const [hasShownEpilepsyWarning, setHasShownEpilepsyWarning] = useState(false);
+
+  // Check if epilepsy warning has been shown this session
+  useEffect(() => {
+    const warningShown = sessionStorage.getItem('epilepsy_warning_shown');
+    if (warningShown === 'true') {
+      setHasShownEpilepsyWarning(true);
+    }
+  }, []);
+
+  // Handle colors change with epilepsy warning
+  const handleColorsChange = (checked: boolean) => {
+    if (checked && !hasShownEpilepsyWarning) {
+      setShowEpilepsyWarning(true);
+    } else {
+      onRandomColorsChange(checked);
+    }
+  };
+
+  // Handle epilepsy warning acceptance
+  const handleEpilepsyWarningAccept = () => {
+    setShowEpilepsyWarning(false);
+    setHasShownEpilepsyWarning(true);
+    sessionStorage.setItem('epilepsy_warning_shown', 'true');
+    onRandomColorsChange(true);
+  };
+
+  // Handle epilepsy warning cancel
+  const handleEpilepsyWarningCancel = () => {
+    setShowEpilepsyWarning(false);
+    // Don't enable colors
+  };
+
   const {
     fileName,
     isLoading,
