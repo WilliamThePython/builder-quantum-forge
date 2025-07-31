@@ -855,50 +855,100 @@ export default function STLWorkflowPanel({
                 : 'Select format for polygon parts export:'}
             </p>
 
-            {/* File Size Preview */}
-            {geometry && exportType === 'complete' && (() => {
-              const sizeEstimate = estimateModelFileSize(geometry);
-              if (!sizeEstimate) return null;
-
-              return (
-                <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                  <div className="text-white text-sm font-medium mb-2">📦 Estimated File Sizes:</div>
-                  <div className="text-xs text-white/70 space-y-1">
-                    <div className="flex justify-between">
-                      <span>STL format:</span>
-                      <span className="text-white font-mono">{sizeEstimate.stl.formatted}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>OBJ format:</span>
-                      <span className="text-white font-mono">{sizeEstimate.obj.formatted}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
             <div className="space-y-3">
-              <button
-                onClick={() => handleFormatSelection('stl')}
-                className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
-              >
-                <Download className="w-5 h-5" />
-                <div className="text-left">
-                  <div className="font-semibold">STL Format</div>
-                  <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
-                </div>
-              </button>
+              {(() => {
+                // Get size estimates based on export type
+                const sizeEstimate = exportType === 'complete'
+                  ? estimateModelFileSize(geometry)
+                  : null;
+                const partsEstimate = exportType === 'parts'
+                  ? estimatePartsFileSize(geometry, triangleOptions.partThickness, triangleOptions.scale)
+                  : null;
 
-              <button
-                onClick={() => handleFormatSelection('obj')}
-                className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
-              >
-                <Package className="w-5 h-5" />
-                <div className="text-left">
-                  <div className="font-semibold">OBJ Format</div>
-                  <div className="text-sm text-blue-100">Better topology for editing and groups</div>
-                </div>
-              </button>
+                return (
+                  <>
+                    <button
+                      onClick={() => handleFormatSelection('stl')}
+                      className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Download className="w-5 h-5" />
+                        <div className="text-left flex-1">
+                          <div className="font-semibold">STL Format</div>
+                          <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
+                        </div>
+                      </div>
+
+                      {/* STL File Size Info */}
+                      {geometry && (
+                        <div className="mt-2 pt-2 border-t border-green-400/30">
+                          <div className="text-xs text-green-100 space-y-1">
+                            {exportType === 'complete' && sizeEstimate && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>📄 File size:</span>
+                                  <span className="font-mono">{sizeEstimate.stl.formatted}</span>
+                                </div>
+                              </>
+                            )}
+                            {exportType === 'parts' && partsEstimate && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>📦 Total download:</span>
+                                  <span className="font-mono">{partsEstimate.totalFormatted}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>📄 Per part average:</span>
+                                  <span className="font-mono">{partsEstimate.averageFormatted}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>🔢 Number of files:</span>
+                                  <span className="font-mono">{partsEstimate.partCount}</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => handleFormatSelection('obj')}
+                      className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Package className="w-5 h-5" />
+                        <div className="text-left flex-1">
+                          <div className="font-semibold">OBJ Format</div>
+                          <div className="text-sm text-blue-100">Better topology for editing and groups</div>
+                        </div>
+                      </div>
+
+                      {/* OBJ File Size Info */}
+                      {geometry && (
+                        <div className="mt-2 pt-2 border-t border-blue-400/30">
+                          <div className="text-xs text-blue-100 space-y-1">
+                            {exportType === 'complete' && sizeEstimate && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>📝 File size:</span>
+                                  <span className="font-mono">{sizeEstimate.obj.formatted}</span>
+                                </div>
+                              </>
+                            )}
+                            {exportType === 'parts' && partsEstimate && (
+                              <>
+                                <div className="text-center text-blue-200 font-medium">OBJ parts export coming soon!</div>
+                                <div className="text-center text-xs text-blue-300/70">Use STL format for parts export</div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  </>
+                );
+              })()}
             </div>
 
             <button
