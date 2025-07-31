@@ -1149,12 +1149,12 @@ function MobileWorkflowContent(props: any) {
         />
 
         {expandedSections.visualization && (
-          <div className="mt-4 space-y-6">
-            {/* Random Colors - larger switches for mobile */}
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-3">
-                <Palette className="w-5 h-5 text-white/70" />
-                <Label htmlFor="colors-mobile" className="text-base text-white/80">Random Colors</Label>
+          <div className="mt-1 space-y-1.5">
+            {/* Random Colors - compact for mobile */}
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-1.5">
+                <Palette className="w-3 h-3 text-white/70" />
+                <Label htmlFor="colors-mobile" className="text-xs text-white/80">Colors</Label>
               </div>
               <Switch
                 id="colors-mobile"
@@ -1163,11 +1163,11 @@ function MobileWorkflowContent(props: any) {
               />
             </div>
 
-            {/* Wireframe - larger switches for mobile */}
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-3">
-                <Eye className="w-5 h-5 text-white/70" />
-                <Label htmlFor="wireframe-mobile" className="text-base text-white/80">Wireframe Mode</Label>
+            {/* Wireframe - compact for mobile */}
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-1.5">
+                <Eye className="w-3 h-3 text-white/70" />
+                <Label htmlFor="wireframe-mobile" className="text-xs text-white/80">Wireframe</Label>
               </div>
               <Switch
                 id="wireframe-mobile"
@@ -1176,37 +1176,35 @@ function MobileWorkflowContent(props: any) {
               />
             </div>
 
-            {/* Background Settings */}
+            {/* Background Settings - compact */}
             <Popover open={showBackgroundSettings} onOpenChange={setShowBackgroundSettings}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium h-12 text-base"
+                  className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium h-7 text-xs"
                 >
-                  <Settings className="w-5 h-5 mr-2" />
-                  Background Options
+                  <Settings className="w-3 h-3 mr-1" />
+                  Background
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                side="top"
+                side="right"
                 sideOffset={8}
-                className="w-72 bg-black/90 backdrop-blur-md border-white/10 text-white"
+                className="w-52 bg-black/90 backdrop-blur-md border-white/10 text-white"
               >
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Background Options</h3>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Background</Label>
-                    <div className="grid grid-cols-4 gap-2">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-sm">Background</h3>
+                  <div className="space-y-1">
+                    <div className="grid grid-cols-3 gap-1">
                       {[
-                        { color: '#0a0a0a', name: 'Space Black' },
-                        { color: '#1a1a2e', name: 'Deep Ocean' },
-                        { color: '#16213e', name: 'Midnight Blue' },
-                        { color: '#2a0845', name: 'Purple Night' },
-                        { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
+                        { color: '#0a0a0a', name: 'Black' },
+                        { color: '#1a1a2e', name: 'Ocean' },
+                        { color: '#16213e', name: 'Blue' },
+                        { color: '#2a0845', name: 'Purple' }
                       ].map((bg) => (
                         <button
                           key={bg.color}
-                          className={`w-full h-10 rounded border-2 transition-all ${
+                          className={`w-full h-7 rounded border-2 transition-all ${
                             viewerSettings.backgroundColor === bg.color
                               ? 'border-white'
                               : 'border-white/20 hover:border-white/40'
