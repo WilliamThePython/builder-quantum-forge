@@ -988,6 +988,7 @@ export default function STLWorkflowPanel({
 
 // Mobile Content Component
 function MobileWorkflowContent(props: any) {
+  // Get STL context functions directly
   const {
     fileName,
     isLoading,
@@ -1001,7 +1002,11 @@ function MobileWorkflowContent(props: any) {
     updateViewerSettings,
     getDetailedGeometryStats,
     hasBackup,
-    restoreFromBackup,
+    restoreFromBackup
+  } = useSTL();
+
+  // Get other props
+  const {
     activeToolMode,
     onToolModeChange,
     onReducePoints,
