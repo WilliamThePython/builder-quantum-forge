@@ -498,15 +498,13 @@ class Analytics {
     }
 
     try {
-      console.log('📊 Sending analytics event:', event.event_name);
-
       // Set flag to prevent tracking analytics-related errors
       if (event.event_name === 'javascript_error') {
         this.isTrackingAnalyticsErrors = true;
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced timeout
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter timeout
 
       // Safe JSON serialization to avoid circular references
       const safeEventData = this.sanitizeEventData({
@@ -530,26 +528,28 @@ class Analytics {
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          console.log('✅ Analytics event sent successfully:', event.event_name);
           // Reset failure count on success
           this.analyticsFailureCount = 0;
           return response.json();
         } else {
-          throw new Error(`Analytics API error: ${response.status}`);
+          throw new Error(`HTTP ${response.status}`);
         }
       })
       .then(data => {
-        // Silent success - don't log response data
+        // Silent success
       })
       .catch(error => {
         clearTimeout(timeoutId);
         // Silent failure to prevent cascading errors
         this.analyticsFailureCount++;
-        console.warn(`⚠️ Analytics failed (${this.analyticsFailureCount}/10):`, error.message);
 
-        // Don't call handleAnalyticsFailure to prevent error loops
+        // Only log if we're having persistent issues
+        if (this.analyticsFailureCount === 5) {
+          console.warn('Analytics having connection issues, continuing silently...');
+        }
+
+        // Disable after too many failures
         if (this.analyticsFailureCount > 10) {
-          console.warn('🚫 Analytics permanently disabled after 10 failures');
           this.globallyDisabled = true;
         }
       })
@@ -562,10 +562,14 @@ class Analytics {
     } catch (error) {
       // Silent catch to prevent cascading failures
       this.analyticsFailureCount++;
-      console.warn(`⚠️ Analytics error (${this.analyticsFailureCount}/10):`, error.message);
 
       if (event.event_name === 'javascript_error') {
         this.isTrackingAnalyticsErrors = false;
+      }
+
+      // Disable if too many synchronous failures
+      if (this.analyticsFailureCount > 10) {
+        this.globallyDisabled = true;
       }
     }
   }
