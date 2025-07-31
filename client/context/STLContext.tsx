@@ -793,14 +793,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     error,
     errors,
     viewerSettings,
+
+    // Model data (dual format support)
+    processedModel,
+    originalFormat,
+    objString,
+    cleanupResults,
+
     toolMode,
     isProcessingTool,
     highlightedTriangle,
     triangleStats,
-    loadSTLFromFile,
+
+    loadModelFromFile: loadSTLFromFile, // TODO: Update to use new unified loader
     loadDefaultSTL,
     updateViewerSettings,
-    exportSTL,
+    exportModel: exportSTL, // TODO: Update to support format selection
     exportParts,
     clearError,
     clearErrorById,
@@ -809,7 +817,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     reducePoints,
     getGeometryStats,
     getDetailedGeometryStats,
-    setHighlightedTriangle
+    setHighlightedTriangle,
+
+    // Backup and restore functionality
+    hasBackup,
+    createBackup,
+    restoreFromBackup
   };
 
   return (
