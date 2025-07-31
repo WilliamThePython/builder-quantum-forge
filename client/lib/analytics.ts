@@ -518,52 +518,58 @@ class Analytics {
         referrer: document.referrer
       });
 
-      fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(safeEventData),
-        signal: controller.signal
-      })
-      .then(response => {
-        clearTimeout(timeoutId);
+      // Wrap in try-catch to prevent any errors from bubbling up
+      try {
+        fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(safeEventData),
+          signal: controller.signal
+        })
+        .then(response => {
+          clearTimeout(timeoutId);
 
-        if (response.ok) {
-          // Reset failure count on success
-          this.analyticsFailureCount = 0;
-          return response.json();
-        } else {
-          // Don't throw, just increment failure count
+          if (response.ok) {
+            // Reset failure count on success
+            this.analyticsFailureCount = 0;
+            return response.json();
+          } else {
+            // Don't throw, just increment failure count
+            this.analyticsFailureCount++;
+            return null;
+          }
+        })
+        .then(data => {
+          // Silent success
+        })
+        .catch(error => {
+          clearTimeout(timeoutId);
+          // Completely silent failure to prevent cascading errors
           this.analyticsFailureCount++;
-          return null;
-        }
-      })
-      .then(data => {
-        // Silent success
-      })
-      .catch(error => {
+
+          // In development, be more forgiving; in production, disable after failures
+          const maxFailures = isDevelopment ? 50 : 10;
+          if (this.analyticsFailureCount > maxFailures) {
+            this.globallyDisabled = true;
+          }
+        })
+        .finally(() => {
+          // Reset flag after attempt
+          if (event.event_name === 'javascript_error') {
+            this.isTrackingAnalyticsErrors = false;
+          }
+        });
+      } catch (fetchSetupError) {
+        // Handle any synchronous errors when setting up the fetch
         clearTimeout(timeoutId);
-        // Silent failure to prevent cascading errors
         this.analyticsFailureCount++;
 
-        // Only log if we're having persistent issues
-        if (this.analyticsFailureCount === 5 && !isDevelopment) {
-          console.warn('Analytics having connection issues, continuing silently...');
-        }
-
-        // In development, be more forgiving; in production, disable after failures
-        const maxFailures = isDevelopment ? 50 : 10;
-        if (this.analyticsFailureCount > maxFailures) {
-          this.globallyDisabled = true;
-        }
-      })
-      .finally(() => {
-        // Reset flag after attempt
         if (event.event_name === 'javascript_error') {
           this.isTrackingAnalyticsErrors = false;
         }
-      });
+      }
     } catch (error) {
       // Silent catch to prevent cascading failures
       this.analyticsFailureCount++;
