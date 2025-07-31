@@ -459,57 +459,126 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     try {
       console.log('🎲 Loading random model...');
 
-      // Create a list of working models (since cube works, these should too)
+      // Create a list of working models - gradually adding more complex shapes
       const workingModels = [
+        // Basic rectangular shapes (known to work)
         {
           name: 'cube.stl',
           generator: () => PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20),
           description: 'Simple cube with 6 quad faces'
         },
         {
-          name: 'rectangular-prism-1.stl',
-          generator: () => PolygonGeometryBuilder.createBoxWithQuads(25, 15, 20),
-          description: 'Rectangular prism - wide'
+          name: 'wide-block.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(35, 12, 20),
+          description: 'Wide rectangular block'
         },
         {
-          name: 'rectangular-prism-2.stl',
-          generator: () => PolygonGeometryBuilder.createBoxWithQuads(15, 30, 12),
-          description: 'Rectangular prism - tall'
+          name: 'tall-tower.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(12, 40, 12),
+          description: 'Tall tower shape'
         },
         {
-          name: 'rectangular-prism-3.stl',
-          generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 10, 25),
-          description: 'Rectangular prism - flat'
+          name: 'flat-plate.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 5, 25),
+          description: 'Flat plate'
         },
+
+        // Basic shapes with triangles
+        {
+          name: 'tetrahedron.stl',
+          generator: () => PolygonGeometryBuilder.createTetrahedron(18),
+          description: 'Tetrahedron - 4 triangular faces'
+        },
+        {
+          name: 'octahedron.stl',
+          generator: () => PolygonGeometryBuilder.createOctahedron(15),
+          description: 'Octahedron - 8 triangular faces'
+        },
+        {
+          name: 'icosahedron.stl',
+          generator: () => PolygonGeometryBuilder.createIcosahedron(16),
+          description: 'Icosahedron - 20 triangular faces'
+        },
+
+        // Prisms and cylinders
         {
           name: 'triangular-prism.stl',
-          generator: () => PolygonGeometryBuilder.createTriangularPrism(12, 25),
+          generator: () => PolygonGeometryBuilder.createTriangularPrism(14, 28),
           description: 'Triangular prism with triangle ends'
         },
         {
           name: 'hexagonal-prism.stl',
-          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 20, 6),
-          description: 'Hexagonal prism (6-sided cylinder)'
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 22, 6),
+          description: 'Hexagonal prism (6-sided)'
         },
         {
           name: 'octagonal-cylinder.stl',
-          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 25, 8),
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(13, 13, 25, 8),
           description: 'Octagonal cylinder (8-sided)'
         },
         {
           name: 'pentagonal-prism.stl',
-          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 5),
-          description: 'Pentagonal prism (5-sided cylinder)'
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(14, 14, 20, 5),
+          description: 'Pentagonal prism (5-sided)'
         },
         {
-          name: 'cone-8sided.stl',
-          generator: () => PolygonGeometryBuilder.createConeWithPolygons(15, 25, 8),
+          name: 'dodecagon-cylinder.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(12, 12, 18, 12),
+          description: 'Dodecagonal cylinder (12-sided)'
+        },
+
+        // Cones
+        {
+          name: 'octagonal-cone.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(16, 28, 8),
           description: 'Octagonal cone (8-sided base)'
         },
         {
-          name: 'cone-6sided.stl',
-          generator: () => PolygonGeometryBuilder.createConeWithPolygons(12, 20, 6),
+          name: 'hexagonal-cone.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(14, 24, 6),
           description: 'Hexagonal cone (6-sided base)'
+        },
+        {
+          name: 'square-pyramid.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(15, 22, 4),
+          description: 'Square pyramid (4-sided base)'
+        },
+
+        // Truncated shapes (frustums)
+        {
+          name: 'truncated-cone.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(8, 16, 20, 8),
+          description: 'Truncated octagonal cone'
+        },
+        {
+          name: 'truncated-pyramid.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(6, 18, 22, 4),
+          description: 'Truncated square pyramid'
+        },
+
+        // Irregular shapes
+        {
+          name: 'irregular-prism-1.stl',
+          generator: () => PolygonGeometryBuilder.createBoxWithQuads(
+            15 + Math.random() * 15, 20 + Math.random() * 10, 18 + Math.random() * 12
+          ),
+          description: 'Irregular rectangular prism'
+        },
+        {
+          name: 'irregular-cylinder.stl',
+          generator: () => PolygonGeometryBuilder.createCylinderWithPolygons(
+            10 + Math.random() * 8, 14 + Math.random() * 6, 20 + Math.random() * 10,
+            6 + Math.floor(Math.random() * 6)
+          ),
+          description: 'Irregular cylinder shape'
+        },
+        {
+          name: 'random-cone.stl',
+          generator: () => PolygonGeometryBuilder.createConeWithPolygons(
+            12 + Math.random() * 8, 20 + Math.random() * 15,
+            5 + Math.floor(Math.random() * 8)
+          ),
+          description: 'Random cone variation'
         }
       ];
 
