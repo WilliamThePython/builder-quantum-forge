@@ -439,11 +439,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         fileName: file?.name || 'unknown'
       });
     } finally {
-      setIsLoading(false);
-      // Reset progress after a short delay to show completion
+      // Keep loading state for a moment to show completion
       setTimeout(() => {
-        setLoadingProgress({ percentage: 0, stage: '', details: '' });
-      }, 2000);
+        setIsLoading(false);
+        // Reset progress after showing completion
+        setTimeout(() => {
+          setLoadingProgress({ percentage: 0, stage: '', details: '' });
+        }, 1000);
+      }, 500);
     }
   }, []);
 
