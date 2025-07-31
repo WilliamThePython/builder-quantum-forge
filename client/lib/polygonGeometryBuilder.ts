@@ -18,14 +18,63 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Calculate normal for a polygon face
+   * Calculate normal for a polygon face with improved robustness
    */
   static calculateFaceNormal(vertices: THREE.Vector3[]): THREE.Vector3 {
     if (vertices.length < 3) return new THREE.Vector3(0, 0, 1);
-    
+
+    // Use cross product of two edges to get normal
     const edge1 = new THREE.Vector3().subVectors(vertices[1], vertices[0]);
     const edge2 = new THREE.Vector3().subVectors(vertices[2], vertices[0]);
-    return new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+    const normal = new THREE.Vector3().crossVectors(edge1, edge2);
+
+    // Ensure the normal has reasonable magnitude
+    if (normal.length() < 1e-6) {
+      // If the normal is too small, try different vertices
+      if (vertices.length > 3) {
+        const edge3 = new THREE.Vector3().subVectors(vertices[3], vertices[0]);
+        normal.crossVectors(edge1, edge3);
+      }
+      if (normal.length() < 1e-6) {
+        return new THREE.Vector3(0, 1, 0); // Default upward normal
+      }
+    }
+
+    return normal.normalize();
+  }
+
+  /**
+   * Ensure face winding is consistent for outward normals
+   */
+  static ensureOutwardFaceWinding(face: PolygonFace, geometryCenter?: THREE.Vector3): PolygonFace {
+    if (!geometryCenter) {
+      // Calculate geometry center from face vertices
+      geometryCenter = new THREE.Vector3();
+      face.vertices.forEach(v => geometryCenter!.add(v));
+      geometryCenter.divideScalar(face.vertices.length);
+    }
+
+    // Calculate face center
+    const faceCenter = new THREE.Vector3();
+    face.vertices.forEach(v => faceCenter.add(v));
+    faceCenter.divideScalar(face.vertices.length);
+
+    // Vector from geometry center to face center
+    const toFace = new THREE.Vector3().subVectors(faceCenter, geometryCenter);
+
+    // Check if normal points outward (away from center)
+    const dot = face.normal.dot(toFace);
+
+    if (dot < 0) {
+      // Normal points inward, reverse the vertex order
+      return {
+        vertices: [...face.vertices].reverse(),
+        faceType: face.faceType,
+        normal: face.normal.clone().negate()
+      };
+    }
+
+    return face;
   }
 
   /**
