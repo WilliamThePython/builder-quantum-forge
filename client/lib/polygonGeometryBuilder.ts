@@ -552,17 +552,28 @@ export class PolygonGeometryBuilder {
     const topVertices: THREE.Vector3[] = [];
     const bottomVertices: THREE.Vector3[] = [];
 
-    // Create gear profile with alternating inner/outer points
-    for (let i = 0; i < teeth * 2; i++) {
-      const angle = (i / (teeth * 2)) * Math.PI * 2;
-      const isOuter = Math.floor(i / 2) % 2 === Math.floor((i + 1) / 2) % 2; // Create tooth pattern
-      const radius = isOuter ? outerRadius : innerRadius;
+    // Create gear profile with clear tooth pattern
+    for (let i = 0; i < teeth; i++) {
+      const baseAngle = (i / teeth) * Math.PI * 2;
+      const toothHalfWidth = (Math.PI / teeth) * 0.3; // 30% of segment for tooth width
 
-      const x = radius * Math.cos(angle);
-      const y = radius * Math.sin(angle);
+      // Add 4 points per tooth for clear gear shape
+      const angles = [
+        baseAngle - toothHalfWidth,     // valley 1 (inner)
+        baseAngle - toothHalfWidth * 0.5, // tip 1 (outer)
+        baseAngle + toothHalfWidth * 0.5, // tip 2 (outer)
+        baseAngle + toothHalfWidth      // valley 2 (inner)
+      ];
 
-      topVertices.push(new THREE.Vector3(x, y, h));
-      bottomVertices.push(new THREE.Vector3(x, y, -h));
+      const radii = [innerRadius, outerRadius, outerRadius, innerRadius];
+
+      for (let j = 0; j < 4; j++) {
+        const x = radii[j] * Math.cos(angles[j]);
+        const z = radii[j] * Math.sin(angles[j]);
+
+        topVertices.push(new THREE.Vector3(x, h, z));
+        bottomVertices.push(new THREE.Vector3(x, -h, z));
+      }
     }
 
     vertices.push(...topVertices, ...bottomVertices);
