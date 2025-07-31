@@ -99,7 +99,7 @@ export default function STLWorkflowPanel({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      loadSTLFromFile(file).catch(err => {
+      loadModelFromFile(file).catch(err => {
         console.error('Upload failed:', err);
       });
     }
