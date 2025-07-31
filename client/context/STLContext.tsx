@@ -454,63 +454,61 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const loadDefaultSTL = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Selecting random model' });
+    setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Creating test cube' });
 
     try {
-      // Initialize model cache if needed
-      if (ModelCache.getAvailableModels().length === 0) {
-        setLoadingProgress({ percentage: 20, stage: 'Initializing cache...', details: 'Pre-generating models' });
-        ModelCache.initializeCache();
+      console.log('🔧 Testing direct cube creation (bypassing cache)...');
+
+      setLoadingProgress({ percentage: 20, stage: 'Creating geometry...', details: 'Building cube structure' });
+
+      // Test direct cube creation with detailed logging
+      console.log('Step 1: Creating PolygonGeometry...');
+      const polygonGeometry = PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20);
+      console.log('PolygonGeometry created:', polygonGeometry);
+      console.log(`  - Type: ${polygonGeometry.type}`);
+      console.log(`  - Vertices: ${polygonGeometry.vertices.length}`);
+      console.log(`  - Faces: ${polygonGeometry.faces.length}`);
+
+      setLoadingProgress({ percentage: 50, stage: 'Converting geometry...', details: 'Triangulating faces' });
+
+      console.log('Step 2: Converting to BufferGeometry...');
+      const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+      console.log('BufferGeometry created:', bufferGeometry);
+      console.log(`  - Has position attribute: ${!!bufferGeometry.attributes.position}`);
+      if (bufferGeometry.attributes.position) {
+        console.log(`  - Position count: ${bufferGeometry.attributes.position.count}`);
+        console.log(`  - Position array length: ${bufferGeometry.attributes.position.array.length}`);
       }
 
-      setLoadingProgress({ percentage: 50, stage: 'Loading model...', details: 'Getting cached model' });
+      setLoadingProgress({ percentage: 70, stage: 'Validating geometry...', details: 'Checking structure' });
 
-      // Get a random model from cache (already as OBJ for polygon preservation)
-      const cachedModel = ModelCache.getRandomModel();
-      if (!cachedModel) {
-        // Fallback to simple cube generation if cache failed
-        console.warn('⚠️ No cached models available, creating simple cube');
-        setLoadingProgress({ percentage: 60, stage: 'Creating fallback...', details: 'Generating simple model' });
-
-        const simpleGeometry = PolygonGeometryBuilder.toBufferGeometry(
-          PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20)
-        );
-
-        // Ensure solid object display
-        ensureSolidObjectDisplay(simpleGeometry);
-
-        setGeometry(simpleGeometry);
-        setFileName('simple-cube.stl');
-        setOriginalFormat('stl'); // Keep as STL for simple fallback
-
-        setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Fallback model loaded' });
-        console.log('✅ Loaded fallback simple cube');
-        return;
+      // Validate the geometry has the required attributes
+      if (!bufferGeometry.attributes.position) {
+        throw new Error('Generated geometry missing position attribute');
       }
 
-      setLoadingProgress({ percentage: 70, stage: 'Processing model...', details: 'Applying final touches' });
-
-      // The cached geometry is already properly formatted and validated
-      // No need for cleanup or validation as it's procedurally generated and cached
-      const geometry = cachedModel.geometry;
-
-      // Ensure solid object display (minimal processing for cached models)
-      ensureSolidObjectDisplay(geometry);
+      if (bufferGeometry.attributes.position.count === 0) {
+        throw new Error('Generated geometry has no vertices');
+      }
 
       setLoadingProgress({ percentage: 90, stage: 'Finalizing...', details: 'Setting up viewer' });
 
-      // Set the geometry and OBJ string for proper polygon support
-      setGeometry(geometry);
-      setFileName(cachedModel.name);
-      setObjString(cachedModel.objString); // Preserve OBJ format for polygon structure
-      setOriginalFormat('obj'); // Mark as OBJ to preserve polygon handling
+      // Ensure solid object display
+      ensureSolidObjectDisplay(bufferGeometry);
 
-      setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Model loaded successfully' });
+      // Set the geometry
+      setGeometry(bufferGeometry);
+      setFileName('test-cube.stl');
+      setOriginalFormat('stl');
 
-      console.log(`✅ Loaded cached model: ${cachedModel.name}`);
+      setLoadingProgress({ percentage: 100, stage: 'Complete', details: 'Test cube loaded successfully' });
+      console.log('✅ Successfully loaded test cube directly');
+
     } catch (err) {
-      addError('Failed to load default model');
-      console.error('Default STL loading error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      addError(`Failed to create test model: ${errorMessage}`);
+      console.error('Direct cube creation error:', err);
+      console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     } finally {
       setIsLoading(false);
       // Clear progress after a short delay
