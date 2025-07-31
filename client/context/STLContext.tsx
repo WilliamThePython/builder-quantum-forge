@@ -225,7 +225,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to update loading progress
   const updateProgress = (percentage: number, stage: string, details: string = '') => {
+    console.log(`📊 Progress: ${percentage}% - ${stage} - ${details}`);
     setLoadingProgress({ percentage, stage, details });
+    // Force a small delay to ensure UI updates are visible
+    return new Promise(resolve => setTimeout(resolve, 50));
   };
 
   const loadSTLFromFile = useCallback(async (file: File) => {
