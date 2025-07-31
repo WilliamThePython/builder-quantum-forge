@@ -880,6 +880,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     geometry,
     fileName,
     isLoading,
+    loadingProgress,
     error,
     errors,
     viewerSettings,
