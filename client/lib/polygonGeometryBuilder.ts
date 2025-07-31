@@ -337,19 +337,23 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Create a stepped pyramid with multiple levels
+   * Create a stepped pyramid with multiple levels - ensure minimum spacing
    */
   static createSteppedPyramid(baseSize: number, levels: number, height: number): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const levelHeight = height / levels;
 
+    // Ensure minimum size difference between levels to prevent vertex merging
+    const minSizeReduction = Math.max(0.8, baseSize * 0.1 / levels);
+
     for (let level = 0; level <= levels; level++) {
-      const levelSize = baseSize * (1 - level / (levels + 1));
+      // Use a more aggressive size reduction to ensure distinct levels
+      const levelSize = baseSize * Math.max(0.2, 1 - (level * 0.7 / levels));
       const y = -height / 2 + level * levelHeight;
       const s = levelSize / 2;
 
-      // Add 4 vertices for this level
+      // Add 4 vertices for this level with unique positions
       const levelStart = vertices.length;
       vertices.push(
         new THREE.Vector3(-s, y, -s),
@@ -361,22 +365,46 @@ export class PolygonGeometryBuilder {
       if (level === 0) {
         // Bottom face
         faces.push(this.createFace([
-          vertices[levelStart], vertices[levelStart + 1],
-          vertices[levelStart + 2], vertices[levelStart + 3]
-        ].reverse(), 'quad'));
+          vertices[levelStart + 3], vertices[levelStart + 2],
+          vertices[levelStart + 1], vertices[levelStart]
+        ], 'quad'));
       } else {
         // Connect to previous level with side faces
         const prevStart = levelStart - 4;
+
+        // Create step faces (horizontal)
         for (let i = 0; i < 4; i++) {
           const next = (i + 1) % 4;
+          // Side wall of this step
           faces.push(this.createFace([
             vertices[prevStart + i], vertices[prevStart + next],
             vertices[levelStart + next], vertices[levelStart + i]
           ], 'quad'));
         }
 
+        // Create horizontal step surfaces
+        if (level < levels) {
+          // Top of this level (will be covered by next level, creating the step)
+          const stepWidth = (vertices[prevStart].x - vertices[levelStart].x); // Size difference
+          if (stepWidth > 0.1) { // Only create step surface if there's significant size difference
+            for (let i = 0; i < 4; i++) {
+              const next = (i + 1) % 4;
+              // Create the horizontal step surface around the smaller level
+              const outerPrev = vertices[prevStart + i];
+              const outerNext = vertices[prevStart + next];
+              const innerThis = vertices[levelStart + i];
+              const innerNext = vertices[levelStart + next];
+
+              // Create L-shaped step surface
+              faces.push(this.createFace([
+                outerPrev, outerNext, innerNext, innerThis
+              ], 'quad'));
+            }
+          }
+        }
+
         if (level === levels) {
-          // Top face
+          // Top face of pyramid
           faces.push(this.createFace([
             vertices[levelStart], vertices[levelStart + 1],
             vertices[levelStart + 2], vertices[levelStart + 3]
@@ -657,7 +685,7 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Curved face
+    // Curved face - side of the half cylinder
     for (let i = 0; i < segments; i++) {
       faces.push(this.createFace([
         bottomVertices[i], bottomVertices[i + 1],
@@ -665,14 +693,26 @@ export class PolygonGeometryBuilder {
       ], 'quad'));
     }
 
-    // Top and bottom faces
+    // Top half-circle face
     faces.push(this.createFace([...topVertices], 'polygon'));
+
+    // Bottom half-circle face
     faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
 
-    // Flat sides
+    // Flat side 1 (at angle 0)
     faces.push(this.createFace([
       bottomVertices[0], topVertices[0], topVertices[segments], bottomVertices[segments]
     ], 'quad'));
+
+    // The wedge should also have the flat cut face - this was missing!
+    // Create the diagonal cut face that makes it a "wedge"
+    const cutFaceVertices = [
+      bottomVertices[0],    // Start of bottom arc
+      bottomVertices[segments], // End of bottom arc
+      topVertices[segments],    // End of top arc
+      topVertices[0]        // Start of top arc
+    ];
+    faces.push(this.createFace(cutFaceVertices, 'quad'));
 
     return { vertices, faces, type: 'wedge' };
   }
