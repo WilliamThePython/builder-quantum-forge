@@ -240,58 +240,49 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Create a simplified dodecahedron-like shape with pentagonal faces
-   * Using a more stable approach than full dodecahedron geometry
+   * Create a proper dodecahedron with 12 pentagonal faces
    */
   static createDodecahedron(size: number): PolygonGeometry {
-    // Create a simplified 12-sided shape that's more stable than full dodecahedron
-    // Use two pentagonal caps connected by rectangular faces
-    const s = size / 2;
-    const h = s * 0.8; // Height between caps
+    // Use icosahedron dual to create proper dodecahedron
+    const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
+    const s = size / 3;
 
-    const vertices: THREE.Vector3[] = [];
-    const faces: PolygonFace[] = [];
+    // Create the 20 vertices of a dodecahedron using proper coordinates
+    const vertices = [
+      // Cube vertices scaled by 1
+      new THREE.Vector3(s, s, s), new THREE.Vector3(s, s, -s),
+      new THREE.Vector3(s, -s, s), new THREE.Vector3(s, -s, -s),
+      new THREE.Vector3(-s, s, s), new THREE.Vector3(-s, s, -s),
+      new THREE.Vector3(-s, -s, s), new THREE.Vector3(-s, -s, -s),
 
-    // Top pentagon vertices
-    const topVertices: THREE.Vector3[] = [];
-    for (let i = 0; i < 5; i++) {
-      const angle = (i / 5) * Math.PI * 2;
-      const x = s * Math.cos(angle);
-      const z = s * Math.sin(angle);
-      topVertices.push(new THREE.Vector3(x, h, z));
-    }
+      // Golden rectangles in XY plane
+      new THREE.Vector3(0, s * phi, s / phi), new THREE.Vector3(0, s * phi, -s / phi),
+      new THREE.Vector3(0, -s * phi, s / phi), new THREE.Vector3(0, -s * phi, -s / phi),
 
-    // Bottom pentagon vertices (rotated for better shape)
-    const bottomVertices: THREE.Vector3[] = [];
-    for (let i = 0; i < 5; i++) {
-      const angle = (i / 5) * Math.PI * 2 + Math.PI / 5; // Offset by 36 degrees
-      const x = s * 0.8 * Math.cos(angle);
-      const z = s * 0.8 * Math.sin(angle);
-      bottomVertices.push(new THREE.Vector3(x, -h, z));
-    }
+      // Golden rectangles in YZ plane
+      new THREE.Vector3(s / phi, 0, s * phi), new THREE.Vector3(-s / phi, 0, s * phi),
+      new THREE.Vector3(s / phi, 0, -s * phi), new THREE.Vector3(-s / phi, 0, -s * phi),
 
-    vertices.push(...topVertices, ...bottomVertices);
+      // Golden rectangles in XZ plane
+      new THREE.Vector3(s * phi, s / phi, 0), new THREE.Vector3(s * phi, -s / phi, 0),
+      new THREE.Vector3(-s * phi, s / phi, 0), new THREE.Vector3(-s * phi, -s / phi, 0)
+    ];
 
-    // Top pentagon face
-    faces.push(this.createFace([...topVertices], 'polygon'));
-
-    // Bottom pentagon face
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
-
-    // Side faces - create pentagons by connecting top and bottom
-    for (let i = 0; i < 5; i++) {
-      const next = (i + 1) % 5;
-      const nextNext = (i + 2) % 5;
-
-      // Create pentagonal side faces
-      faces.push(this.createFace([
-        topVertices[i],
-        topVertices[next],
-        bottomVertices[next],
-        bottomVertices[i],
-        bottomVertices[(i + 4) % 5] // Previous bottom vertex for pentagon shape
-      ], 'polygon'));
-    }
+    // Define the 12 pentagonal faces with correct vertex ordering
+    const faces = [
+      this.createFace([vertices[0], vertices[8], vertices[4], vertices[12], vertices[16]], 'polygon'),
+      this.createFace([vertices[1], vertices[16], vertices[14], vertices[9], vertices[5]], 'polygon'),
+      this.createFace([vertices[2], vertices[17], vertices[16], vertices[0], vertices[12]], 'polygon'),
+      this.createFace([vertices[3], vertices[14], vertices[16], vertices[17], vertices[11]], 'polygon'),
+      this.createFace([vertices[4], vertices[8], vertices[9], vertices[5], vertices[18]], 'polygon'),
+      this.createFace([vertices[5], vertices[9], vertices[14], vertices[3], vertices[15]], 'polygon'),
+      this.createFace([vertices[6], vertices[13], vertices[12], vertices[0], vertices[19]], 'polygon'),
+      this.createFace([vertices[7], vertices[15], vertices[3], vertices[11], vertices[10]], 'polygon'),
+      this.createFace([vertices[8], vertices[0], vertices[19], vertices[18], vertices[9]], 'polygon'),
+      this.createFace([vertices[10], vertices[6], vertices[19], vertices[18], vertices[13]], 'polygon'),
+      this.createFace([vertices[11], vertices[17], vertices[2], vertices[6], vertices[10]], 'polygon'),
+      this.createFace([vertices[12], vertices[13], vertices[18], vertices[4], vertices[2]], 'polygon')
+    ];
 
     return { vertices, faces, type: 'dodecahedron' };
   }
@@ -561,43 +552,22 @@ export class PolygonGeometryBuilder {
     const topVertices: THREE.Vector3[] = [];
     const bottomVertices: THREE.Vector3[] = [];
 
-    // Create gear teeth profile
-    for (let i = 0; i < teeth; i++) {
-      const baseAngle = (i / teeth) * Math.PI * 2;
-      const toothWidth = (Math.PI * 2) / teeth / 4; // tooth takes 1/4 of segment
+    // Create gear profile with alternating inner/outer points
+    for (let i = 0; i < teeth * 2; i++) {
+      const angle = (i / (teeth * 2)) * Math.PI * 2;
+      const isOuter = Math.floor(i / 2) % 2 === Math.floor((i + 1) / 2) % 2; // Create tooth pattern
+      const radius = isOuter ? outerRadius : innerRadius;
 
-      // Inner circle point
-      const innerAngle = baseAngle;
-      const innerX = innerRadius * Math.cos(innerAngle);
-      const innerY = innerRadius * Math.sin(innerAngle);
+      const x = radius * Math.cos(angle);
+      const y = radius * Math.sin(angle);
 
-      // Tooth base points
-      const tooth1Angle = baseAngle - toothWidth;
-      const tooth2Angle = baseAngle + toothWidth;
-
-      // Tooth tip points
-      const tip1X = outerRadius * Math.cos(tooth1Angle);
-      const tip1Y = outerRadius * Math.sin(tooth1Angle);
-      const tip2X = outerRadius * Math.cos(tooth2Angle);
-      const tip2Y = outerRadius * Math.sin(tooth2Angle);
-
-      // Add vertices
-      topVertices.push(
-        new THREE.Vector3(innerX, innerY, h),
-        new THREE.Vector3(tip1X, tip1Y, h),
-        new THREE.Vector3(tip2X, tip2Y, h)
-      );
-
-      bottomVertices.push(
-        new THREE.Vector3(innerX, innerY, -h),
-        new THREE.Vector3(tip1X, tip1Y, -h),
-        new THREE.Vector3(tip2X, tip2Y, -h)
-      );
+      topVertices.push(new THREE.Vector3(x, y, h));
+      bottomVertices.push(new THREE.Vector3(x, y, -h));
     }
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Create top and bottom faces
+    // Create top and bottom faces as star-like polygons
     faces.push(this.createFace([...topVertices], 'polygon'));
     faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
 
@@ -772,7 +742,7 @@ export class PolygonGeometryBuilder {
     const l = length / 2;
     const t = thickness / 2;
 
-    // Create cross profile vertices (plus sign)
+    // Create cross profile vertices (plus sign) - correct Z coordinate
     const crossProfile = [
       new THREE.Vector3(-t, -l, 0),  // bottom center
       new THREE.Vector3(t, -l, 0),
@@ -788,9 +758,9 @@ export class PolygonGeometryBuilder {
       new THREE.Vector3(-t, -t, 0)   // bottom left inner
     ];
 
-    // Create top and bottom vertices
-    const topVertices = crossProfile.map(v => new THREE.Vector3(v.x, h, v.z));
-    const bottomVertices = crossProfile.map(v => new THREE.Vector3(v.x, -h, v.z));
+    // Create top and bottom vertices - correct Y coordinates for height
+    const topVertices = crossProfile.map(v => new THREE.Vector3(v.x, h, v.y));
+    const bottomVertices = crossProfile.map(v => new THREE.Vector3(v.x, -h, v.y));
 
     vertices.push(...topVertices, ...bottomVertices);
 
