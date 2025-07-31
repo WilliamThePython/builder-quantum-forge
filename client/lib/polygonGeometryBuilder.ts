@@ -32,8 +32,6 @@ export class PolygonGeometryBuilder {
    * Create a rectangular prism with 6 quadrilateral faces
    */
   static createBoxWithQuads(width: number, height: number, depth: number): PolygonGeometry {
-    console.log(`🧱 Creating box with dimensions: ${width} x ${height} x ${depth}`);
-
     const w = width / 2;
     const h = height / 2;
     const d = depth / 2;
@@ -50,9 +48,6 @@ export class PolygonGeometryBuilder {
       new THREE.Vector3(-w, h, d)    // 7
     ];
 
-    console.log(`   Created ${vertices.length} vertices`);
-    vertices.forEach((v, i) => console.log(`   Vertex ${i}: (${v.x}, ${v.y}, ${v.z})`));
-
     // 6 quadrilateral faces
     const faces = [
       this.createFace([vertices[0], vertices[1], vertices[2], vertices[3]], 'quad'), // front
@@ -63,15 +58,7 @@ export class PolygonGeometryBuilder {
       this.createFace([vertices[4], vertices[5], vertices[1], vertices[0]], 'quad')  // bottom
     ];
 
-    console.log(`   Created ${faces.length} faces`);
-    faces.forEach((face, i) => {
-      console.log(`   Face ${i}: ${face.faceType} with ${face.vertices.length} vertices`);
-      console.log(`   Face normal: (${face.normal.x}, ${face.normal.y}, ${face.normal.z})`);
-    });
-
-    const result = { vertices, faces, type: 'box' };
-    console.log('✅ Box creation completed successfully');
-    return result;
+    return { vertices, faces, type: 'box' };
   }
 
   /**
