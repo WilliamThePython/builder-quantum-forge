@@ -3,7 +3,7 @@ import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
 
 /**
- * PolygonPartsExporter exports each polygon face as a separate STL file
+ * PolygonPartsExporter exports each polygon face as a separate STL or OBJ file
  * Preserves higher-order polygons (triangles, quads, etc.) instead of triangulating everything
  */
 export class PolygonPartsExporter {
