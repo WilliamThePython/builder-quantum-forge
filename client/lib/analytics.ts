@@ -427,25 +427,19 @@ class Analytics {
     return this.analyticsFailureCount;
   }
 
-  // Get custom analytics data from any endpoint
+  // Get custom analytics data from any endpoint - completely silent
   async getCustomData(endpoint: string) {
     try {
-      console.log(`Fetching analytics data from: ${endpoint}`);
       const response = await fetch(endpoint);
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`Analytics data received from ${endpoint}:`, data);
         return data;
-      } else {
-        console.error(`Analytics API error from ${endpoint}:`, response.status, response.statusText);
-        throw new Error(`Analytics API error: ${response.status}`);
       }
     } catch (error) {
-      console.error(`Failed to fetch data from ${endpoint}:`, error);
+      // Completely silent
     }
 
-    console.log(`Returning empty data for ${endpoint}`);
     return {};
   }
 
