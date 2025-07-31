@@ -88,6 +88,97 @@ const defaultSTLFiles = [
   '/default-stl/cylinder.stl'
 ];
 
+// Helper function to ensure geometries display as solid objects
+const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
+  console.log('🔧 Ensuring solid object display...');
+
+  // First, compute basic vertex normals
+  geometry.computeVertexNormals();
+
+  // Check if we need to flip faces by examining face normals
+  const positions = geometry.attributes.position.array;
+  const normals = geometry.attributes.normal.array;
+
+  // Count how many normals point inward vs outward
+  let inwardCount = 0;
+  let outwardCount = 0;
+
+  const center = new THREE.Vector3();
+  geometry.computeBoundingBox();
+  if (geometry.boundingBox) {
+    geometry.boundingBox.getCenter(center);
+  }
+
+  // Sample some vertices to determine overall normal orientation
+  const sampleCount = Math.min(300, positions.length / 3); // Sample every few vertices
+  for (let i = 0; i < sampleCount; i++) {
+    const vertexIndex = Math.floor((i / sampleCount) * (positions.length / 3)) * 3;
+
+    const vertexPos = new THREE.Vector3(
+      positions[vertexIndex],
+      positions[vertexIndex + 1],
+      positions[vertexIndex + 2]
+    );
+
+    const vertexNormal = new THREE.Vector3(
+      normals[vertexIndex],
+      normals[vertexIndex + 1],
+      normals[vertexIndex + 2]
+    );
+
+    // Vector from center to vertex
+    const centerToVertex = vertexPos.clone().sub(center).normalize();
+
+    // If normal and center-to-vertex point in same direction, normal is outward
+    if (centerToVertex.dot(vertexNormal) > 0) {
+      outwardCount++;
+    } else {
+      inwardCount++;
+    }
+  }
+
+  console.log(`🔍 Normal analysis: ${outwardCount} outward, ${inwardCount} inward`);
+
+  // If more normals point inward, flip all faces
+  if (inwardCount > outwardCount) {
+    console.log('🔄 Flipping face winding for correct display');
+
+    // Flip indices to reverse winding order
+    const indices = geometry.index;
+    if (indices) {
+      const indexArray = indices.array;
+      for (let i = 0; i < indexArray.length; i += 3) {
+        // Swap second and third vertices to flip winding
+        const temp = indexArray[i + 1];
+        indexArray[i + 1] = indexArray[i + 2];
+        indexArray[i + 2] = temp;
+      }
+      indices.needsUpdate = true;
+    } else {
+      // Non-indexed geometry - swap position attributes
+      const posArray = new Float32Array(positions);
+      for (let i = 0; i < posArray.length; i += 9) {
+        // Swap vertices 1 and 2 of each triangle
+        for (let j = 0; j < 3; j++) {
+          const temp = posArray[i + 3 + j];
+          posArray[i + 3 + j] = posArray[i + 6 + j];
+          posArray[i + 6 + j] = temp;
+        }
+      }
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(posArray, 3));
+    }
+
+    // Recompute normals after flipping
+    geometry.computeVertexNormals();
+  }
+
+  // Ensure proper material-side settings will be respected
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  console.log('✅ Solid object display ensured');
+};
+
 export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
