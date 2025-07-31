@@ -55,7 +55,8 @@ interface STLContextType {
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
   exportSTL: (customFilename?: string) => void;
-  exportParts: (format: 'stl' | 'obj', options?: any) => Promise<void>; // Enhanced parts export
+  exportOBJ: (customFilename?: string) => void;
+  exportParts: (options?: { format?: 'stl' | 'obj'; partThickness?: number; scale?: number }) => Promise<void>;
   clearError: () => void;
   clearErrorById: (id: string) => void;
   addError: (message: string) => void;
