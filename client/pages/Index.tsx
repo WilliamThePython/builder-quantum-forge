@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Info, BarChart3 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -146,7 +147,7 @@ export default function Index() {
                 isMobile ? 'text-xs' : 'text-sm'
               }`}>
                 <p>🎯 Upload your own STL files</p>
-                <p>⚡ Real-time visualization controls</p>
+                <p>�� Real-time visualization controls</p>
                 <p>🛠️ Advanced manipulation tools</p>
                 <p>✨ Clean up & reduce STL models</p>
                 <p>🔍 Interactive facet highlighting</p>
