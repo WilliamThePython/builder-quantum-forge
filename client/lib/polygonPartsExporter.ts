@@ -94,7 +94,7 @@ export class PolygonPartsExporter {
       });
 
       // Add to zip
-      zip.file(partFilename, polygonSTL);
+      zip.file(partFilename, partContent);
 
       // Progress logging
       if (i % 10 === 0 || i === polygonFaces.length - 1) {
