@@ -697,7 +697,7 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Create a star shape - extruded star polygon
+   * Create a star shape - extruded star polygon with proper triangulation
    */
   static createStarShape(outerRadius: number, innerRadius: number, height: number, points: number = 5): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
@@ -707,7 +707,7 @@ export class PolygonGeometryBuilder {
     const topVertices: THREE.Vector3[] = [];
     const bottomVertices: THREE.Vector3[] = [];
 
-    // Create star vertices
+    // Create star vertices with proper ordering
     for (let i = 0; i < points * 2; i++) {
       const angle = (i / (points * 2)) * Math.PI * 2;
       const radius = i % 2 === 0 ? outerRadius : innerRadius;
@@ -720,11 +720,35 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Top and bottom star faces
-    faces.push(this.createFace([...topVertices], 'polygon'));
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+    // For star shapes, break into triangular faces instead of complex polygon
+    // This ensures better triangulation
+    const center = new THREE.Vector3(0, h, 0);
+    const bottomCenter = new THREE.Vector3(0, -h, 0);
+    vertices.push(center, bottomCenter);
+    const centerIndex = topVertices.length * 2;
+    const bottomCenterIndex = centerIndex + 1;
 
-    // Side faces
+    // Top star face - triangulate from center
+    for (let i = 0; i < topVertices.length; i++) {
+      const next = (i + 1) % topVertices.length;
+      faces.push(this.createFace([
+        vertices[centerIndex], // center
+        topVertices[i],
+        topVertices[next]
+      ], 'triangle'));
+    }
+
+    // Bottom star face - triangulate from center
+    for (let i = 0; i < bottomVertices.length; i++) {
+      const next = (i + 1) % bottomVertices.length;
+      faces.push(this.createFace([
+        vertices[bottomCenterIndex], // bottom center
+        bottomVertices[next],
+        bottomVertices[i]
+      ], 'triangle'));
+    }
+
+    // Side faces - rectangular strips
     for (let i = 0; i < topVertices.length; i++) {
       const next = (i + 1) % topVertices.length;
       faces.push(this.createFace([
