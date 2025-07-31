@@ -168,8 +168,8 @@ export class PolygonGeometryBuilder {
     // Add all vertices
     vertices.push(apex, ...baseVertices);
 
-    // Base face (polygon) - correct winding for downward normal
-    faces.push(this.createFace([...baseVertices].reverse(), 'polygon'));
+    // Base face (polygon) - correct winding for outward normal (bottom-up view)
+    faces.push(this.createFace([...baseVertices], 'polygon'));
 
     // Side faces (triangles) - correct winding for outward normals
     for (let i = 0; i < segments; i++) {
