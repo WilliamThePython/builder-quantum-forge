@@ -243,17 +243,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         return;
       }
 
-      // Smart file size limits based on expected complexity
-      const maxSize = 25 * 1024 * 1024; // Reduced to 25MB for better performance
+      updateProgress(5, 'Validating', `Checking ${(file.size / 1024 / 1024).toFixed(1)}MB file...`);
+
+      // Smart file size limits - more generous for better user experience
+      const maxSize = 40 * 1024 * 1024; // Increased to 40MB to handle larger models
       if (file.size > maxSize) {
-        addError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 25MB for optimal performance`);
+        addError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 40MB`);
         return;
       }
 
-      // Warn about large files that might cause performance issues
-      if (file.size > 10 * 1024 * 1024) {
+      // Enhanced warnings for large files
+      if (file.size > 15 * 1024 * 1024) {
+        updateProgress(8, 'Warning', 'Large file detected - this may take longer...');
         console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
-        addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - processing may take longer. Consider using model reduction after loading.`);
+        addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below. Consider using model reduction after loading.`);
+
+        // Give UI time to update progress bar before heavy processing
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       updateProgress(15, 'Loading', 'Preparing STL loader...');
