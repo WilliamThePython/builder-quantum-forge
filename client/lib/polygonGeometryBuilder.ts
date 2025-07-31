@@ -872,7 +872,7 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Triangulate a polygon face using ear clipping algorithm for better handling of complex polygons
+   * Triangulate a polygon face - simplified version
    */
   static triangulateFace(face: PolygonFace): THREE.Vector3[] {
     const vertices = face.vertices;
@@ -882,152 +882,17 @@ export class PolygonGeometryBuilder {
       // Already a triangle
       triangulated.push(...vertices);
     } else if (vertices.length === 4) {
-      // Quad - split into 2 triangles, check which diagonal gives better triangles
-      const diagonal1Area = this.getTriangleArea(vertices[0], vertices[1], vertices[2]) +
-                            this.getTriangleArea(vertices[0], vertices[2], vertices[3]);
-      const diagonal2Area = this.getTriangleArea(vertices[0], vertices[1], vertices[3]) +
-                            this.getTriangleArea(vertices[1], vertices[2], vertices[3]);
-
-      if (diagonal1Area > diagonal2Area) {
-        triangulated.push(vertices[0], vertices[1], vertices[2]);
-        triangulated.push(vertices[0], vertices[2], vertices[3]);
-      } else {
-        triangulated.push(vertices[0], vertices[1], vertices[3]);
-        triangulated.push(vertices[1], vertices[2], vertices[3]);
-      }
+      // Quad - split into 2 triangles
+      triangulated.push(vertices[0], vertices[1], vertices[2]);
+      triangulated.push(vertices[0], vertices[2], vertices[3]);
     } else {
-      // Complex polygon - use ear clipping for better results
-      const earClipped = this.earClipTriangulation(vertices);
-      triangulated.push(...earClipped);
-    }
-
-    return triangulated;
-  }
-
-  /**
-   * Calculate triangle area
-   */
-  private static getTriangleArea(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): number {
-    const edge1 = new THREE.Vector3().subVectors(v2, v1);
-    const edge2 = new THREE.Vector3().subVectors(v3, v1);
-    return edge1.cross(edge2).length() * 0.5;
-  }
-
-  /**
-   * Simplified ear clipping triangulation for convex and simple concave polygons
-   */
-  private static earClipTriangulation(vertices: THREE.Vector3[]): THREE.Vector3[] {
-    if (vertices.length < 3) return [];
-    if (vertices.length === 3) return [...vertices];
-
-    const triangulated: THREE.Vector3[] = [];
-    const workingVertices = [...vertices];
-
-    // For most procedural shapes, they should be convex or simple
-    // Use a more robust approach than simple fan triangulation
-
-    // First try: Check if polygon is roughly convex by testing if center point works
-    const center = this.getPolygonCenter(workingVertices);
-    const centerTriangulation = this.triangulateFromCenter(workingVertices, center);
-
-    if (this.isValidTriangulation(centerTriangulation)) {
-      triangulated.push(...centerTriangulation);
-    } else {
-      // Fallback to modified fan triangulation with validation
-      triangulated.push(...this.safeFanTriangulation(workingVertices));
-    }
-
-    return triangulated;
-  }
-
-  /**
-   * Get the geometric center of a polygon
-   */
-  private static getPolygonCenter(vertices: THREE.Vector3[]): THREE.Vector3 {
-    const center = new THREE.Vector3();
-    vertices.forEach(v => center.add(v));
-    center.divideScalar(vertices.length);
-    return center;
-  }
-
-  /**
-   * Triangulate polygon from center point
-   */
-  private static triangulateFromCenter(vertices: THREE.Vector3[], center: THREE.Vector3): THREE.Vector3[] {
-    const triangulated: THREE.Vector3[] = [];
-
-    for (let i = 0; i < vertices.length; i++) {
-      const next = (i + 1) % vertices.length;
-      triangulated.push(center, vertices[i], vertices[next]);
-    }
-
-    return triangulated;
-  }
-
-  /**
-   * Safe fan triangulation with validation
-   */
-  private static safeFanTriangulation(vertices: THREE.Vector3[]): THREE.Vector3[] {
-    const triangulated: THREE.Vector3[] = [];
-
-    // Try fan from each vertex and pick the best one
-    let bestTriangulation: THREE.Vector3[] = [];
-    let bestScore = -1;
-
-    for (let startVertex = 0; startVertex < Math.min(vertices.length, 3); startVertex++) {
-      const fanTriangles: THREE.Vector3[] = [];
-      let score = 0;
-
+      // Polygon - simple fan triangulation from first vertex
       for (let i = 1; i < vertices.length - 1; i++) {
-        const v1 = vertices[startVertex];
-        const v2 = vertices[(startVertex + i) % vertices.length];
-        const v3 = vertices[(startVertex + i + 1) % vertices.length];
-
-        const area = this.getTriangleArea(v1, v2, v3);
-        if (area > 1e-6) { // Valid triangle
-          fanTriangles.push(v1, v2, v3);
-          score += area;
-        }
-      }
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestTriangulation = fanTriangles;
-      }
-    }
-
-    return bestTriangulation.length > 0 ? bestTriangulation : this.fallbackTriangulation(vertices);
-  }
-
-  /**
-   * Last resort triangulation for complex cases
-   */
-  private static fallbackTriangulation(vertices: THREE.Vector3[]): THREE.Vector3[] {
-    const triangulated: THREE.Vector3[] = [];
-
-    // Simple fan from first vertex, but with area validation
-    for (let i = 1; i < vertices.length - 1; i++) {
-      const area = this.getTriangleArea(vertices[0], vertices[i], vertices[i + 1]);
-      if (area > 1e-6) {
         triangulated.push(vertices[0], vertices[i], vertices[i + 1]);
       }
     }
 
     return triangulated;
-  }
-
-  /**
-   * Check if triangulation produces valid triangles
-   */
-  private static isValidTriangulation(triangles: THREE.Vector3[]): boolean {
-    if (triangles.length === 0 || triangles.length % 3 !== 0) return false;
-
-    for (let i = 0; i < triangles.length; i += 3) {
-      const area = this.getTriangleArea(triangles[i], triangles[i + 1], triangles[i + 2]);
-      if (area < 1e-6) return false;
-    }
-
-    return true;
   }
 }
 
