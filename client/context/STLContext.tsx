@@ -668,6 +668,32 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry, fileName]);
 
+  // Backup and restore functions
+  const createBackup = useCallback(() => {
+    if (geometry) {
+      console.log('🔄 Creating backup of current model...');
+      // Clone the geometry to avoid reference issues
+      const backup = geometry.clone();
+      setBackupGeometry(backup);
+      setBackupProcessedModel(processedModel);
+      setHasBackup(true);
+      console.log('✅ Backup created successfully');
+    }
+  }, [geometry, processedModel]);
+
+  const restoreFromBackup = useCallback(() => {
+    if (backupGeometry && hasBackup) {
+      console.log('🔄 Restoring model from backup...');
+      // Clone the backup to avoid reference issues
+      const restored = backupGeometry.clone();
+      setGeometry(restored);
+      setProcessedModel(backupProcessedModel);
+      console.log('✅ Model restored from backup');
+    } else {
+      console.warn('⚠️ No backup available to restore from');
+    }
+  }, [backupGeometry, backupProcessedModel, hasBackup]);
+
   // STL Tool Methods
   const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' = 'adaptive'): Promise<ToolOperationResult> => {
     if (!geometry) {
