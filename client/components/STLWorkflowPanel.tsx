@@ -902,6 +902,28 @@ export default function STLWorkflowPanel({
                 : 'Select format for polygon parts export:'}
             </p>
 
+            {/* File Size Preview */}
+            {geometry && exportType === 'complete' && (() => {
+              const sizeEstimate = estimateModelFileSize(geometry);
+              if (!sizeEstimate) return null;
+
+              return (
+                <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div className="text-white text-sm font-medium mb-2">📦 Estimated File Sizes:</div>
+                  <div className="text-xs text-white/70 space-y-1">
+                    <div className="flex justify-between">
+                      <span>STL format:</span>
+                      <span className="text-white font-mono">{sizeEstimate.stl.formatted}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>OBJ format:</span>
+                      <span className="text-white font-mono">{sizeEstimate.obj.formatted}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="space-y-3">
               <button
                 onClick={() => handleFormatSelection('stl')}
