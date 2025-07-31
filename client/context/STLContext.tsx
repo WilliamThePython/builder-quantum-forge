@@ -289,6 +289,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const triangleCount = Math.floor(vertexCount / 3);
 
       console.log(`📊 Model stats: ${vertexCount.toLocaleString()} vertices, ${triangleCount.toLocaleString()} triangles`);
+      updateProgress(50, 'Analyzing', `${(vertexCount / 1000).toFixed(0)}K vertices, ${(triangleCount / 1000).toFixed(0)}K triangles`);
 
       // Handle extremely high-poly models
       const maxRecommendedVertices = 500000; // 500K vertices for smooth performance
@@ -306,6 +307,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
+      updateProgress(60, 'Processing', 'Centering and scaling geometry...');
       // Center and scale the geometry
       geometry.computeBoundingBox();
 
