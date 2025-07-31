@@ -675,28 +675,6 @@ export default function STLWorkflowPanel({
                   <Download className="w-4 h-4 mr-2" />
                   Export Complete Model
                 </Button>
-
-                {/* File Size Estimates */}
-                {geometry && (() => {
-                  const sizeEstimate = estimateModelFileSize(geometry);
-                  if (!sizeEstimate) return null;
-
-                  return (
-                    <div className="mt-2 p-2 bg-white/5 rounded border border-white/10">
-                      <div className="text-xs text-white/70 space-y-1">
-                        <div className="flex justify-between">
-                          <span>📄 STL format:</span>
-                          <span className="text-white font-mono">{sizeEstimate.stl.formatted}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>📝 OBJ format:</span>
-                          <span className="text-white font-mono">{sizeEstimate.obj.formatted}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
                 <p className="text-xs text-white/60 mt-1">
                   Download the complete model in STL or OBJ format
                 </p>
