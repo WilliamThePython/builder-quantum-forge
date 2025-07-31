@@ -400,7 +400,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const randomIndex = Math.floor(Math.random() * geometryOptions.length);
       const selected = geometryOptions[randomIndex];
 
-      selected.geometry.computeVertexNormals();
+      // Ensure solid object appearance with proper face normals
+      this.ensureSolidObjectDisplay(selected.geometry);
 
       // Validate the generated geometry
       const validationReport = STLGeometryValidator.validateGeometry(selected.geometry);
