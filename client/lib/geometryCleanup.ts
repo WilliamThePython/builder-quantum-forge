@@ -261,12 +261,16 @@ export class GeometryCleanup {
       finalFaceCount: geometry.attributes.position.count / 3
     };
 
-    // Only recompute normals and bounds for procedural geometries
-    // Skip aggressive vertex deduplication and triangle removal
+    // For procedural geometries, only do minimal cleanup:
+    // 1. Recompute normals (essential for lighting)
+    // 2. Recompute bounds (essential for rendering)
+    // 3. Skip all vertex deduplication (preserves polygon structure)
+    // 4. Skip triangle area validation (trust procedural generation)
+
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
 
-    console.log('✅ Lightweight cleanup completed for procedural geometry');
+    console.log('✅ Minimal cleanup completed for procedural geometry - preserved all vertices and faces');
     return results;
   }
 
