@@ -622,11 +622,13 @@ window.addEventListener('load', () => {
 
 // Global error tracking with analytics loop prevention
 window.addEventListener('error', (event) => {
-  // Don't track analytics-related errors to prevent infinite loops
-  if ((event.message?.includes('Failed to fetch') &&
-       (event.filename?.includes('analytics.ts') || event.filename?.includes('/api/analytics/'))) ||
-      event.message?.includes('sendToCustomAnalytics')) {
-    console.warn('🔄 Skipping analytics fetch error to prevent loop');
+  // Enhanced analytics-related error filtering to prevent loops
+  if (event.message?.includes('Failed to fetch') ||
+      event.filename?.includes('analytics.ts') ||
+      event.filename?.includes('/api/analytics/') ||
+      event.message?.includes('sendToCustomAnalytics') ||
+      event.message?.includes('trackEvent')) {
+    console.warn('🔄 Skipping analytics-related error to prevent loop');
     return;
   }
 
@@ -634,7 +636,10 @@ window.addEventListener('error', (event) => {
   if (event.filename?.includes('fullstory.com') ||
       event.filename?.includes('fs.js') ||
       event.filename?.includes('edge.fullstory.com') ||
-      event.message?.includes('fullstory')) {
+      event.message?.includes('fullstory') ||
+      event.filename?.includes('gtag') ||
+      event.filename?.includes('googletagmanager') ||
+      event.filename?.includes('google-analytics')) {
     return;
   }
 
