@@ -13,11 +13,23 @@ export class OBJConverter {
    * Convert Three.js BufferGeometry to OBJ format string
    * This is essential for internal processing as OBJ preserves face topology better than STL
    */
-  static geometryToOBJ(geometry: THREE.BufferGeometry): OBJConversionResult {
+  static geometryToOBJ(geometry: THREE.BufferGeometry, filename?: string): OBJConversionResult {
     console.log('🔄 Converting geometry to OBJ format...');
-    
+
+    // Check if geometry has required attributes
+    if (!geometry.attributes.position) {
+      console.error('❌ Geometry missing position attribute');
+      throw new Error('Geometry is missing position attribute - cannot convert to OBJ');
+    }
+
     const positions = geometry.attributes.position.array as Float32Array;
     const indices = geometry.index?.array;
+
+    // Validate positions array
+    if (!positions || positions.length === 0) {
+      console.error('❌ Geometry has empty positions array');
+      throw new Error('Geometry has no vertices - cannot convert to OBJ');
+    }
     
     let objString = '# Generated OBJ file from STL/geometry\n';
     objString += '# Converted for better face topology preservation\n\n';
