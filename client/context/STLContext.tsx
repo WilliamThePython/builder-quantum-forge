@@ -256,12 +256,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - processing may take longer. Consider using model reduction after loading.`);
       }
 
+      updateProgress(15, 'Loading', 'Preparing STL loader...');
       console.log('Basic validation passed, proceeding with STL loading...');
 
       const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
       const loader = new STLLoader();
 
       const uploadStartTime = Date.now();
+      updateProgress(20, 'Reading', `Reading ${(file.size / 1024 / 1024).toFixed(1)}MB file...`);
       console.log('Reading file as array buffer...');
       const arrayBuffer = await file.arrayBuffer();
       console.log('Array buffer size:', arrayBuffer.byteLength);
