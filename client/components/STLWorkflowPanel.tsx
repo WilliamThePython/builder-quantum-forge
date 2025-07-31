@@ -28,6 +28,7 @@ import {
 } from './ui/popover';
 import { STLToolMode } from '../lib/stlManipulator';
 import { useSTL } from '../context/STLContext';
+import { estimateModelFileSize, estimatePartsFileSize, getTestFileSizeData } from '../lib/fileSizeEstimator';
 
 interface STLWorkflowPanelProps {
   activeToolMode: STLToolMode;
