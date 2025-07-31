@@ -126,9 +126,9 @@ export class PolygonGeometryBuilder {
     // Add all vertices to main array
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Top and bottom faces (polygons) - ensure correct winding
+    // Top and bottom faces (polygons) - ensure correct winding for outward normals
     faces.push(this.createFace([...topVertices], 'polygon'));
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+    faces.push(this.createFace([...bottomVertices], 'polygon'));
 
     // Side faces (rectangles) - ensure correct winding for outward normals
     for (let i = 0; i < segments; i++) {
