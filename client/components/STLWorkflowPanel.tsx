@@ -1039,32 +1039,28 @@ function MobileWorkflowContent(props: any) {
   );
 
   return (
-    <div className="space-y-4">
-      {/* Mobile-optimized content with larger touch targets */}
+    <div className="space-y-2">
+      {/* Compact mobile content with collapsible sections */}
 
-      {/* Enhanced Loading Progress Bar */}
+      {/* Enhanced Loading Progress Bar - Compact */}
       {isLoading && (
-        <div className="p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="p-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             <div className="flex-1">
-              <div className="text-sm font-semibold text-blue-200">
+              <div className="text-xs font-semibold text-blue-200">
                 {loadingProgress.stage || 'Processing'}
               </div>
-              <div className="text-xs text-blue-300/80">
-                {loadingProgress.details || 'Please wait...'}
-              </div>
             </div>
-            <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-2 py-1 rounded">
+            <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-1 py-0.5 rounded">
               {loadingProgress.percentage}%
             </div>
           </div>
-          <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${loadingProgress.percentage}%` }}
             >
-              <div className="h-full bg-white/20 animate-pulse"></div>
             </div>
           </div>
         </div>
