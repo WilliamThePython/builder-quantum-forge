@@ -626,6 +626,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setFileName(selectedModel.name);
       setOriginalFormat('stl');
 
+      // Log file size estimation test data for calibration
+      const testData = getTestFileSizeData(bufferGeometry);
+      if (testData) {
+        console.log(`📊 File Size Test Data for ${selectedModel.name}:`, testData);
+      }
+
       setLoadingProgress({ percentage: 100, stage: 'Complete', details: `${selectedModel.name} loaded successfully` });
       console.log(`✅ Successfully loaded: ${selectedModel.name}`);
       console.log('='.repeat(60)); // Visual separator in console
