@@ -481,32 +481,30 @@ class Analytics {
   }
 
   private sendToCustomAnalytics(event: AnalyticsEvent) {
-    // Check circuit breaker
-    if (this.shouldSkipAnalytics()) {
-      return;
-    }
-
-    // Don't track analytics errors to prevent infinite loops
-    if (event.event_name === 'javascript_error' && this.isTrackingAnalyticsErrors) {
-      return;
-    }
-
-    // Skip analytics entirely if we've had too many failures
-    if (this.analyticsFailureCount > 10) {
-      return; // Silent skip
-    }
-
-    // In development, be more lenient with analytics failures
-    const isDevelopment = import.meta.env?.DEV || window.location.hostname === 'localhost';
-
+    // Ultimate silent analytics - nothing can throw or bubble up
     try {
+      // Check circuit breaker
+      if (this.shouldSkipAnalytics()) {
+        return;
+      }
+
+      // Don't track analytics errors to prevent infinite loops
+      if (event.event_name === 'javascript_error' && this.isTrackingAnalyticsErrors) {
+        return;
+      }
+
+      // Skip analytics entirely if we've had too many failures
+      if (this.analyticsFailureCount > 10) {
+        return; // Silent skip
+      }
+
+      // In development, be more lenient with analytics failures
+      const isDevelopment = import.meta.env?.DEV || window.location.hostname === 'localhost';
+
       // Set flag to prevent tracking analytics-related errors
       if (event.event_name === 'javascript_error') {
         this.isTrackingAnalyticsErrors = true;
       }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter timeout
 
       // Safe JSON serialization to avoid circular references
       const safeEventData = this.sanitizeEventData({
@@ -518,67 +516,56 @@ class Analytics {
         referrer: document.referrer
       });
 
-      // Wrap in try-catch to prevent any errors from bubbling up
-      try {
-        fetch('/api/analytics/track', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(safeEventData),
-          signal: controller.signal
-        })
-        .then(response => {
+      // Completely isolated async operation that can't throw
+      Promise.resolve().then(async () => {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+          const response = await fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(safeEventData),
+            signal: controller.signal
+          });
+
           clearTimeout(timeoutId);
 
           if (response.ok) {
-            // Reset failure count on success
             this.analyticsFailureCount = 0;
-            return response.json();
           } else {
-            // Don't throw, just increment failure count
             this.analyticsFailureCount++;
-            return null;
           }
-        })
-        .then(data => {
-          // Silent success
-        })
-        .catch(error => {
-          clearTimeout(timeoutId);
-          // Completely silent failure to prevent cascading errors
+        } catch (fetchError) {
+          // Completely silent
           this.analyticsFailureCount++;
+        }
 
-          // In development, be more forgiving; in production, disable after failures
-          const maxFailures = isDevelopment ? 50 : 10;
-          if (this.analyticsFailureCount > maxFailures) {
-            this.globallyDisabled = true;
-          }
-        })
-        .finally(() => {
-          // Reset flag after attempt
-          if (event.event_name === 'javascript_error') {
-            this.isTrackingAnalyticsErrors = false;
-          }
-        });
-      } catch (fetchSetupError) {
-        // Handle any synchronous errors when setting up the fetch
-        clearTimeout(timeoutId);
-        this.analyticsFailureCount++;
-
+        // Reset flag after attempt
         if (event.event_name === 'javascript_error') {
           this.isTrackingAnalyticsErrors = false;
         }
-      }
+
+        // Disable after too many failures
+        const maxFailures = isDevelopment ? 50 : 10;
+        if (this.analyticsFailureCount > maxFailures) {
+          this.globallyDisabled = true;
+        }
+      }).catch(() => {
+        // Ultimate safety net - nothing can escape
+      });
+
     } catch (error) {
-      // Silent catch to prevent cascading failures
+      // Final safety catch for any synchronous errors
       this.analyticsFailureCount++;
 
       if (event.event_name === 'javascript_error') {
         this.isTrackingAnalyticsErrors = false;
       }
 
-      // Disable if too many synchronous failures (more forgiving in development)
+      const isDevelopment = import.meta.env?.DEV || window.location.hostname === 'localhost';
       const maxFailures = isDevelopment ? 50 : 10;
       if (this.analyticsFailureCount > maxFailures) {
         this.globallyDisabled = true;
