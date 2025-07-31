@@ -485,8 +485,14 @@ class Analytics {
       return;
     }
 
+    // Skip analytics entirely if we've had too many failures
+    if (this.analyticsFailureCount > 10) {
+      console.log('🚫 Analytics disabled due to repeated failures');
+      return;
+    }
+
     try {
-      console.log('Sending analytics event:', event.event_name, event);
+      console.log('📊 Sending analytics event:', event.event_name);
 
       // Set flag to prevent tracking analytics-related errors
       if (event.event_name === 'javascript_error') {
@@ -494,7 +500,7 @@ class Analytics {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced timeout
 
       // Safe JSON serialization to avoid circular references
       const safeEventData = this.sanitizeEventData({
@@ -518,7 +524,7 @@ class Analytics {
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          console.log('Analytics event sent successfully:', event.event_name);
+          console.log('✅ Analytics event sent successfully:', event.event_name);
           // Reset failure count on success
           this.analyticsFailureCount = 0;
           return response.json();
@@ -527,11 +533,18 @@ class Analytics {
         }
       })
       .then(data => {
-        console.log('Analytics response:', data);
+        // Silent success - don't log response data
       })
       .catch(error => {
         clearTimeout(timeoutId);
-        this.handleAnalyticsFailure(error, event.event_name);
+        // Silent failure to prevent cascading errors
+        this.analyticsFailureCount++;
+        console.warn(`⚠️ Analytics failed (${this.analyticsFailureCount}/10):`, error.message);
+
+        // Don't call handleAnalyticsFailure to prevent error loops
+        if (this.analyticsFailureCount > 10) {
+          console.warn('🚫 Analytics disabled after 10 failures');
+        }
       })
       .finally(() => {
         // Reset flag after attempt
@@ -540,7 +553,10 @@ class Analytics {
         }
       });
     } catch (error) {
-      this.handleAnalyticsFailure(error, event.event_name);
+      // Silent catch to prevent cascading failures
+      this.analyticsFailureCount++;
+      console.warn(`⚠️ Analytics error (${this.analyticsFailureCount}/10):`, error.message);
+
       if (event.event_name === 'javascript_error') {
         this.isTrackingAnalyticsErrors = false;
       }
