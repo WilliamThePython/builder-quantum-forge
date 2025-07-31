@@ -16,19 +16,62 @@ export class OBJConverter {
   static geometryToOBJ(geometry: THREE.BufferGeometry, filename?: string): OBJConversionResult {
     console.log('🔄 Converting geometry to OBJ format...');
 
-    // Check if geometry has required attributes
-    if (!geometry.attributes.position) {
-      console.error('❌ Geometry missing position attribute');
-      throw new Error('Geometry is missing position attribute - cannot convert to OBJ');
+    // Validate geometry exists
+    if (!geometry) {
+      console.error('❌ No geometry provided');
+      return {
+        success: false,
+        error: 'No geometry provided - cannot convert to OBJ',
+        objContent: '',
+        stats: null
+      };
     }
 
-    const positions = geometry.attributes.position.array as Float32Array;
+    // Check if geometry has attributes
+    if (!geometry.attributes) {
+      console.error('❌ Geometry missing attributes');
+      return {
+        success: false,
+        error: 'Geometry is missing attributes - cannot convert to OBJ',
+        objContent: '',
+        stats: null
+      };
+    }
+
+    // Check if geometry has required position attribute
+    if (!geometry.attributes.position) {
+      console.error('❌ Geometry missing position attribute');
+      return {
+        success: false,
+        error: 'Geometry is missing position attribute - cannot convert to OBJ',
+        objContent: '',
+        stats: null
+      };
+    }
+
+    const positionAttribute = geometry.attributes.position;
+    if (!positionAttribute.array) {
+      console.error('❌ Position attribute missing array');
+      return {
+        success: false,
+        error: 'Position attribute is missing array data - cannot convert to OBJ',
+        objContent: '',
+        stats: null
+      };
+    }
+
+    const positions = positionAttribute.array as Float32Array;
     const indices = geometry.index?.array;
 
     // Validate positions array
     if (!positions || positions.length === 0) {
       console.error('❌ Geometry has empty positions array');
-      throw new Error('Geometry has no vertices - cannot convert to OBJ');
+      return {
+        success: false,
+        error: 'Geometry has no vertices - cannot convert to OBJ',
+        objContent: '',
+        stats: null
+      };
     }
     
     let objString = '# Generated OBJ file from STL/geometry\n';
