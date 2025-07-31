@@ -742,6 +742,70 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry, fileName]);
 
+  const exportOBJ = useCallback(async (customFilename?: string) => {
+    if (!geometry) {
+      addError('No model available for export');
+      return;
+    }
+
+    try {
+      console.log('Starting OBJ export...', {
+        fileName,
+        hasGeometry: !!geometry,
+        vertexCount: geometry?.attributes?.position?.count || 0
+      });
+
+      const exportFilename = customFilename ||
+        (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.obj') : 'exported_model.obj');
+
+      console.log('Converting geometry to OBJ format...');
+      const objResult = OBJConverter.geometryToOBJ(geometry, exportFilename);
+
+      if (!objResult.success) {
+        throw new Error(objResult.error || 'Failed to convert geometry to OBJ');
+      }
+
+      // Create and download the OBJ file
+      const blob = new Blob([objResult.objContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = exportFilename;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('OBJ export completed successfully');
+
+      // Track export event
+      try {
+        analytics.trackEvent({
+          event_name: 'obj_export',
+          event_category: '3d_interaction',
+          event_label: exportFilename,
+          custom_parameters: {
+            original_filename: fileName,
+            export_filename: exportFilename,
+            vertex_count: geometry.attributes.position?.count || 0,
+            face_count: objResult.stats?.faces || 0,
+            polygon_faces: objResult.stats?.polygonFaces || 0
+          }
+        });
+      } catch (analyticsError) {
+        console.warn('Failed to track export event:', analyticsError);
+      }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to export OBJ file';
+      addError(`OBJ export failed: ${errorMessage}`);
+      console.error('OBJ export error details:', error);
+    }
+  }, [geometry, fileName]);
+
   const exportParts = useCallback(async (options: {
     partThickness?: number;
     scale?: number;
