@@ -328,7 +328,7 @@ export default function STLWorkflowPanel({
         {/* 1. UPLOAD SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="1. UPLOAD & LOAD"
+            title="1. MESH IMPORT"
             isExpanded={expandedSections.upload}
             onToggle={() => toggleSection('upload')}
             badge={fileName ? "Ready" : "Upload File"}
@@ -402,7 +402,7 @@ export default function STLWorkflowPanel({
         {/* 2. VISUALIZATION SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="2. VISUALIZATION"
+            title="2. MESH PREVIEW"
             isExpanded={expandedSections.visualization}
             onToggle={() => toggleSection('visualization')}
           />
@@ -489,7 +489,7 @@ export default function STLWorkflowPanel({
         {/* 3. TOOLS SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="3. REDUCE MODEL"
+            title="3. INTELLIGENT SIMPLIFICATION"
             isExpanded={expandedSections.tools}
             onToggle={() => toggleSection('tools')}
           />
@@ -643,7 +643,7 @@ export default function STLWorkflowPanel({
         {/* 4. EXPORT SECTION */}
         <div>
           <SectionHeader
-            title="4. EXPORT OPTIONS"
+            title="4. FABRICATION EXPORT"
             isExpanded={expandedSections.export}
             onToggle={() => toggleSection('export')}
             badge={geometry ? "Ready" : "No Model"}
