@@ -24,11 +24,11 @@ export default function About() {
       <div className="max-w-4xl mx-auto px-6 pb-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-            About 3D Tools
+          <h1 className="intellimesh-title text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            About Intellimesh
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Empowering creators with cutting-edge 3D model visualization and manipulation tools. 
+          <p className="text-xl text-blue-200/90 max-w-2xl mx-auto leading-relaxed intellimesh-mono">
+            Next-generation platform for intelligent 3D mesh manipulation and fabrication. 
             Built for designers, engineers, and 3D enthusiasts worldwide.
           </p>
         </div>
