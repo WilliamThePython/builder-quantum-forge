@@ -69,7 +69,7 @@ export default function About() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-4 flex items-center text-purple-400">
                   <Zap className="w-5 h-5 mr-2" />
-                  Why Choose 3D Tools?
+                  Why Choose Intellimesh?
                 </h3>
                 <div className="grid md:grid-cols-3 gap-6 mt-4">
                   <div>
