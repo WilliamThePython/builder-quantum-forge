@@ -270,8 +270,10 @@ export default function STLWorkflowPanel({
       <div className="bg-slate-900/90 backdrop-blur-lg rounded-2xl border border-blue-400/30 p-5 h-full overflow-y-auto shadow-2xl shadow-blue-500/20">
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-white font-bold text-xl mb-1">Intellimesh</h2>
-          <p className="text-white/60 text-sm">Intelligent mesh manipulation & fabrication</p>
+          <h2 className="intellimesh-title text-white text-2xl mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Intellimesh
+          </h2>
+          <p className="text-blue-200/80 text-sm intellimesh-mono">Smarter tools for 3D modeling, slicing, and fabrication</p>
 
           {/* Enhanced Loading Progress Bar */}
           {isLoading && (
