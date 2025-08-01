@@ -269,7 +269,7 @@ export default function STLWorkflowPanel({
     <div className="fixed left-4 top-4 bottom-4 z-50 w-80 max-h-[calc(100vh-2rem)]">
       <div className="bg-slate-900/90 backdrop-blur-lg rounded-2xl border border-blue-400/30 p-5 h-full overflow-y-auto shadow-2xl shadow-blue-500/20">
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 mesh-pattern-dense p-4 rounded-xl border border-blue-400/20">
           <h2 className="intellimesh-title text-white text-2xl mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Intellimesh
           </h2>
