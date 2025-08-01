@@ -267,7 +267,7 @@ export default function STLWorkflowPanel({
   // Desktop Layout
   return (
     <div className="fixed left-4 top-4 bottom-4 z-50 w-80 max-h-[calc(100vh-2rem)]">
-      <div className="bg-black/85 backdrop-blur-lg rounded-2xl border border-white/20 p-5 h-full overflow-y-auto">
+      <div className="bg-slate-900/90 backdrop-blur-lg rounded-2xl border border-blue-400/30 p-5 h-full overflow-y-auto shadow-2xl shadow-blue-500/20">
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-white font-bold text-xl mb-1">Intellimesh</h2>
