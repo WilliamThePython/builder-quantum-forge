@@ -75,7 +75,7 @@ export default function Index() {
   };
   return (
     // <AdManager page="home">
-      <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-black to-slate-800 relative">
+      <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 relative">
       {/* Fullscreen 3D Canvas */}
       <div className="absolute inset-0">
         <STLViewer />
