@@ -515,7 +515,7 @@ export default function STLWorkflowPanel({
                         onClick={() => setReductionMethod('quadric_edge_collapse')}
                         className="w-full text-xs py-2 px-3 h-10 bg-blue-500 hover:bg-blue-600 text-white"
                       >
-                        🐍 Python Quadric Decimation
+                        🧠 Intelligent Mesh Optimization
                       </Button>
                       <div className="text-xs text-white/60 mt-2 bg-white/5 rounded p-2">
                         ✅ Direct translation of proven Python algorithm:<br/>
