@@ -45,9 +45,9 @@ export default function About() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-4 text-blue-400">Our Mission</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  We believe 3D modeling should be accessible to everyone. Our platform provides 
-                  intuitive tools for viewing, analyzing, and manipulating STL files without the 
-                  complexity of traditional CAD software.
+                  We believe intelligent mesh manipulation should be accessible to all creators.
+                  Intellimesh provides smart tools for analyzing, optimizing, and fabricating 3D models
+                  with AI-powered precision and professional-grade results.
                 </p>
               </CardContent>
             </Card>
