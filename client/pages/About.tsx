@@ -73,16 +73,16 @@ export default function About() {
                 </h3>
                 <div className="grid md:grid-cols-3 gap-6 mt-4">
                   <div>
-                    <h4 className="font-semibold text-white mb-2">⚡ Lightning Fast</h4>
-                    <p className="text-sm text-gray-400">Instant STL loading and real-time 3D manipulation</p>
+                    <h4 className="font-semibold text-white mb-2">🧠 AI-Powered</h4>
+                    <p className="text-sm text-gray-400">Intelligent mesh analysis and automated optimization</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-white mb-2">🌐 Web-Based</h4>
-                    <p className="text-sm text-gray-400">No downloads required - works in any modern browser</p>
+                    <h4 className="font-semibold text-white mb-2">🏭 Fabrication-Ready</h4>
+                    <p className="text-sm text-gray-400">Optimized outputs for 3D printing and manufacturing</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-white mb-2">🛠️ Powerful Tools</h4>
-                    <p className="text-sm text-gray-400">Advanced visualization and analysis features</p>
+                    <h4 className="font-semibold text-white mb-2">⚡ Professional Grade</h4>
+                    <p className="text-sm text-gray-400">Advanced geometric processing for creators and pros</p>
                   </div>
                 </div>
               </CardContent>
