@@ -242,7 +242,7 @@ export default function STLWorkflowPanel({
         <div className="bg-black/90 backdrop-blur-lg rounded-lg border border-white/20 overflow-hidden">
           {/* Compact Mobile Header */}
           <div className="bg-black/95 backdrop-blur-lg border-b border-white/20 p-2">
-            <h2 className="text-white font-semibold text-sm text-center">STL Workflow</h2>
+            <h2 className="text-white font-semibold text-sm text-center">Intellimesh</h2>
           </div>
 
           {/* Mobile Content with compact sections */}
