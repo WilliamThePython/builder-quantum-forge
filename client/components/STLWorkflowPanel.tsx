@@ -504,8 +504,8 @@ export default function STLWorkflowPanel({
                       Python-Style Model Reduction
                   </div>
                   <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                    🐍 <span className="font-medium">Python Implementation:</span> Clean mesh → Quadric decimation → Merge coplanar faces.
-                    Eliminates internal triangles and prevents model deletion.
+                    🧠 <span className="font-medium">Intelligent Processing:</span> Advanced mesh analysis → Smart simplification → Topology preservation.
+                    Maintains geometric integrity while optimizing for fabrication.
                   </div>
 
                     {/* Method Selection - Single Python approach */}
