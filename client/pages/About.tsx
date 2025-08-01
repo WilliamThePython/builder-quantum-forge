@@ -56,9 +56,9 @@ export default function About() {
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-4 text-green-400">Our Vision</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  To democratize 3D technology by creating powerful, web-based tools that work 
-                  seamlessly across all devices. Making 3D design accessible, collaborative, 
-                  and fun for creators everywhere.
+                  To bridge the gap between creative modeling and precision fabrication. We're building
+                  the future where intelligent mesh processing enables seamless workflows from design
+                  concept to physical creation.
                 </p>
               </CardContent>
             </Card>
