@@ -239,9 +239,9 @@ export default function STLWorkflowPanel({
   if (isMobile) {
     return (
       <div className="fixed left-2 top-2 z-50 w-64 max-w-[80vw]">
-        <div className="bg-black/90 backdrop-blur-lg rounded-lg border border-white/20 overflow-hidden">
+        <div className="bg-slate-900/95 backdrop-blur-lg rounded-lg border border-blue-400/30 overflow-hidden shadow-2xl shadow-blue-500/20">
           {/* Compact Mobile Header */}
-          <div className="bg-black/95 backdrop-blur-lg border-b border-white/20 p-2">
+          <div className="bg-gradient-to-r from-blue-900/95 to-purple-900/95 backdrop-blur-lg border-b border-blue-400/30 p-2">
             <h2 className="text-white font-semibold text-sm text-center">Intellimesh</h2>
           </div>
 
