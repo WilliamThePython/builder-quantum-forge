@@ -621,7 +621,7 @@ export default function STLWorkflowPanel({
                         className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
                         disabled={isProcessing}
                       >
-                        🐍 Apply Python Reduction
+                        🧠 Apply Intelligent Optimization
                       </Button>
 
                       <div className="text-xs text-white/60 bg-blue-500/10 border border-blue-500/20 rounded p-2">
