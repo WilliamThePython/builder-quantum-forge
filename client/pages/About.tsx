@@ -6,7 +6,7 @@ import { AdSenseSidebarAds } from '../components/GoogleAdSenseAds';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 text-white mesh-pattern">
       {/* Header with Back Button */}
       <header className="relative z-10 p-6">
         <Link to="/">
