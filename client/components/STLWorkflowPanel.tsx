@@ -1183,7 +1183,7 @@ function MobileWorkflowContent(props: any) {
       {/* 1. UPLOAD SECTION */}
       <div>
         <SectionHeader
-          title="1. UPLOAD & LOAD"
+          title="1. MESH IMPORT"
           isExpanded={expandedSections.upload}
           onToggle={() => toggleSection('upload')}
           badge={fileName ? "Ready" : "Upload File"}
@@ -1257,7 +1257,7 @@ function MobileWorkflowContent(props: any) {
       {/* 2. VISUALIZATION SECTION */}
       <div>
         <SectionHeader
-          title="2. VISUALIZATION"
+          title="2. MESH PREVIEW"
           isExpanded={expandedSections.visualization}
           onToggle={() => toggleSection('visualization')}
         />
@@ -1342,7 +1342,7 @@ function MobileWorkflowContent(props: any) {
       {/* 3. TOOLS SECTION */}
       <div>
         <SectionHeader
-          title="3. REDUCE MODEL"
+          title="3. INTELLIGENT SIMPLIFICATION"
           isExpanded={expandedSections.tools}
           onToggle={() => toggleSection('tools')}
         />
@@ -1428,7 +1428,7 @@ function MobileWorkflowContent(props: any) {
       {/* 4. EXPORT SECTION */}
       <div>
         <SectionHeader
-          title="4. EXPORT OPTIONS"
+          title="4. FABRICATION EXPORT"
           isExpanded={expandedSections.export}
           onToggle={() => toggleSection('export')}
           badge={geometry ? "Ready" : "No Model"}
