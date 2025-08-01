@@ -518,11 +518,11 @@ export default function STLWorkflowPanel({
                         🧠 Intelligent Mesh Optimization
                       </Button>
                       <div className="text-xs text-white/60 mt-2 bg-white/5 rounded p-2">
-                        ✅ Direct translation of proven Python algorithm:<br/>
-                        • Cleans mesh (removes duplicates, degenerate triangles)<br/>
-                        • Applies Open3D-style quadric decimation<br/>
-                        • Merges coplanar faces to eliminate internal triangles<br/>
-                        • Conservative fallbacks prevent model deletion
+                        ✅ Advanced mesh intelligence pipeline:<br/>
+                        • Geometric analysis and topology validation<br/>
+                        • Adaptive quadric edge collapse algorithms<br/>
+                        • Smart face merging for fabrication optimization<br/>
+                        • Intelligent safeguards preserve model integrity
                       </div>
                     </div>
 
