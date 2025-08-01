@@ -625,11 +625,11 @@ export default function STLWorkflowPanel({
                       </Button>
 
                       <div className="text-xs text-white/60 bg-blue-500/10 border border-blue-500/20 rounded p-2">
-                        <div className="font-medium text-blue-200 mb-1">🐍 Python Process:</div>
-                        <div>• Clean mesh (remove duplicates, degenerate triangles)</div>
-                        <div>• Apply quadric decimation with conservative fallbacks</div>
-                        <div>• Merge coplanar faces (eliminate internal triangles)</div>
-                        <div>• Never delete entire model (safe minimum limits)</div>
+                        <div className="font-medium text-blue-200 mb-1">🧠 Intelligent Process:</div>
+                        <div>• Advanced topology analysis and mesh validation</div>
+                        <div>• Adaptive simplification with geometric preservation</div>
+                        <div>• Smart face optimization for fabrication readiness</div>
+                        <div>• AI-powered safeguards maintain model integrity</div>
                       </div>
                     </div>
               </div>
