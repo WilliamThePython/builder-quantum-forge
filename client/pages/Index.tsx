@@ -26,7 +26,7 @@ export default function Index() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-center">
           <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-          <p>Initializing 3D Tools...</p>
+          <p>Initializing Intellimesh...</p>
         </div>
       </div>
     );
