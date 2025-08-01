@@ -270,8 +270,8 @@ export default function STLWorkflowPanel({
       <div className="bg-black/85 backdrop-blur-lg rounded-2xl border border-white/20 p-5 h-full overflow-y-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-white font-bold text-xl mb-1">STL Workflow</h2>
-          <p className="text-white/60 text-sm">Upload → Modify → Export</p>
+          <h2 className="text-white font-bold text-xl mb-1">Intellimesh</h2>
+          <p className="text-white/60 text-sm">Intelligent mesh manipulation & fabrication</p>
 
           {/* Enhanced Loading Progress Bar */}
           {isLoading && (
