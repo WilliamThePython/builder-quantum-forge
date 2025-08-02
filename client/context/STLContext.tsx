@@ -1130,6 +1130,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     highlightedTriangle,
     triangleStats,
 
+    // Decimation Painter Mode
+    decimationPainterMode,
+    setDecimationPainterMode,
+    decimateEdge,
+
     loadModelFromFile: loadSTLFromFile, // TODO: Update to use new unified loader
     loadDefaultSTL,
     updateViewerSettings,
