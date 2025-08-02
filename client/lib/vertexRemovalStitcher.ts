@@ -537,11 +537,16 @@ export class VertexRemovalStitcher {
     positions: Float32Array,
     indices: number[]
   ): THREE.BufferGeometry {
+    console.log(`🔧 === REBUILDING GEOMETRY ===`);
+    console.log(`   Input: ${positions.length / 3} position vertices, ${indices.length / 3} triangles`);
+
     // Create mapping from old vertices to new vertices (removing unused ones)
     const usedVertices = new Set<number>();
     for (const index of indices) {
       usedVertices.add(index);
     }
+
+    console.log(`   Used vertices: ${usedVertices.size} out of ${positions.length / 3}`);
 
     const vertexMapping = new Map<number, number>();
     const newPositions: number[] = [];
@@ -550,11 +555,15 @@ export class VertexRemovalStitcher {
     const sortedVertices = Array.from(usedVertices).sort((a, b) => a - b);
     for (const oldIndex of sortedVertices) {
       vertexMapping.set(oldIndex, newVertexIndex);
-      newPositions.push(
-        positions[oldIndex * 3],
-        positions[oldIndex * 3 + 1],
-        positions[oldIndex * 3 + 2]
-      );
+      const x = positions[oldIndex * 3];
+      const y = positions[oldIndex * 3 + 1];
+      const z = positions[oldIndex * 3 + 2];
+      newPositions.push(x, y, z);
+
+      // Debug first few vertices to see if positions changed
+      if (newVertexIndex < 3) {
+        console.log(`   Vertex ${oldIndex} → ${newVertexIndex}: [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
+      }
       newVertexIndex++;
     }
 
@@ -589,6 +598,16 @@ export class VertexRemovalStitcher {
     newGeometry.computeBoundingSphere();
 
     console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
+
+    // Debug final positions to confirm changes are preserved
+    console.log(`   Final geometry first 3 vertices:`);
+    for (let i = 0; i < Math.min(3, newPositions.length / 3); i++) {
+      const x = newPositions[i * 3];
+      const y = newPositions[i * 3 + 1];
+      const z = newPositions[i * 3 + 2];
+      console.log(`     Vertex ${i}: [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
+    }
+
     return newGeometry;
   }
 
