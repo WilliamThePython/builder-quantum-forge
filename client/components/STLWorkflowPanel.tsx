@@ -591,13 +591,28 @@ export default function STLWorkflowPanel({
                       </Button>
 
                       {/* Decimation Painter Toggle */}
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className={`p-3 rounded-lg border transition-all ${
+                        decimationPainterMode
+                          ? 'bg-blue-500/20 border-blue-500/50'
+                          : 'bg-white/5 border-white/10'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Palette className="w-4 h-4 text-blue-400" />
+                            <Palette className={`w-4 h-4 ${
+                              decimationPainterMode ? 'text-blue-300' : 'text-blue-400'
+                            }`} />
                             <div>
-                              <div className="text-white text-xs font-medium">Decimation Painter</div>
-                              <div className="text-white/60 text-xs">Click edges to decimate individual vertex pairs</div>
+                              <div className={`text-xs font-medium ${
+                                decimationPainterMode ? 'text-blue-200' : 'text-white'
+                              }`}>
+                                Decimation Painter {decimationPainterMode ? '🎯' : ''}
+                              </div>
+                              <div className="text-white/60 text-xs">
+                                {decimationPainterMode
+                                  ? 'Click on edges to decimate them'
+                                  : 'Click edges to decimate individual vertex pairs'
+                                }
+                              </div>
                             </div>
                           </div>
                           <Switch
