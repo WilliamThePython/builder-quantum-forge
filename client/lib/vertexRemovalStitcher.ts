@@ -344,17 +344,45 @@ export class VertexRemovalStitcher {
         // Use quadric error (lower cost = less important vertices)
         const q1 = vertexQuadrics.get(edge.v1) || { area: 0, faceCount: 0 };
         const q2 = vertexQuadrics.get(edge.v2) || { area: 0, faceCount: 0 };
-        cost = Math.min(q1.area + q1.faceCount, q2.area + q2.faceCount);
+
+        // Calculate edge length
+        const v1x = positions[edge.v1 * 3];
+        const v1y = positions[edge.v1 * 3 + 1];
+        const v1z = positions[edge.v1 * 3 + 2];
+        const v2x = positions[edge.v2 * 3];
+        const v2y = positions[edge.v2 * 3 + 1];
+        const v2z = positions[edge.v2 * 3 + 2];
+
+        const edgeLength = Math.sqrt(
+          (v2x - v1x) * (v2x - v1x) +
+          (v2y - v1y) * (v2y - v1y) +
+          (v2z - v1z) * (v2z - v1z)
+        );
+
+        // Prefer shorter edges with lower quadric error
+        cost = (q1.area + q1.faceCount + q2.area + q2.faceCount) * edgeLength;
       } else {
-        // Use random cost for random method
-        cost = Math.random();
+        // Use edge length for simpler method
+        const v1x = positions[edge.v1 * 3];
+        const v1y = positions[edge.v1 * 3 + 1];
+        const v1z = positions[edge.v1 * 3 + 2];
+        const v2x = positions[edge.v2 * 3];
+        const v2y = positions[edge.v2 * 3 + 1];
+        const v2z = positions[edge.v2 * 3 + 2];
+
+        cost = Math.sqrt(
+          (v2x - v1x) * (v2x - v1x) +
+          (v2y - v1y) * (v2y - v1y) +
+          (v2z - v1z) * (v2z - v1z)
+        );
       }
 
       queue.push({ v1: edge.v1, v2: edge.v2, cost });
     }
 
-    // Sort by cost (lowest first)
+    // Sort by cost (lowest first = collapse shortest/least important edges first)
     queue.sort((a, b) => a.cost - b.cost);
+    console.log(`📋 Created edge queue with ${queue.length} edges, cost range: ${queue[0]?.cost.toFixed(4)} - ${queue[queue.length-1]?.cost.toFixed(4)}`);
     return queue;
   }
 
