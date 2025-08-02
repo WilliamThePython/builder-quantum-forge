@@ -159,7 +159,7 @@ export class VertexRemovalStitcher {
     let collapsedEdges = 0;
 
     // Collapse edges until we reach target face count
-    const maxIterations = edgeQueue.length * 2; // Safety limit
+    const maxIterations = Math.min(edgeQueue.length, targetFaces * 2); // More reasonable safety limit
     let iterations = 0;
 
     while (currentFaces > targetFaces && edgeQueue.length > 0 && iterations < maxIterations) {
@@ -171,7 +171,7 @@ export class VertexRemovalStitcher {
         continue;
       }
 
-      // Perform edge collapse
+      // Perform edge collapse - this merges vertices and removes only degenerate triangles
       const facesBeforeCollapse = indices.length / 3;
       const success = this.collapseEdge(edge, positions, indices, vertexToFaces);
       if (success) {
@@ -184,7 +184,7 @@ export class VertexRemovalStitcher {
           break;
         }
 
-        if (collapsedEdges % 50 === 0) {
+        if (collapsedEdges % 20 === 0) {
           console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
         }
       }
@@ -1553,51 +1553,7 @@ export class VertexRemovalStitcher {
     return analyzedGeometry;
   }
 
-  /**
-   * Check if collapsing an edge would preserve manifold properties
-   */
-  private static wouldPreserveManifold(
-    v1: number,
-    v2: number,
-    indices: number[],
-    vertexToFaces: Map<number, number[]>
-  ): boolean {
-    const v1Faces = vertexToFaces.get(v1) || [];
-    const v2Faces = vertexToFaces.get(v2) || [];
 
-    // Find faces that would be removed (those containing both v1 and v2)
-    const facesToRemove = new Set<number>();
-    for (const faceIdx of v1Faces) {
-      if (v2Faces.includes(faceIdx)) {
-        facesToRemove.add(faceIdx);
-      }
-    }
-
-    // Check each remaining face to ensure it won't become degenerate
-    const remainingFaces = [...v1Faces, ...v2Faces].filter(f => !facesToRemove.has(f));
-
-    for (const faceIdx of remainingFaces) {
-      const faceStart = faceIdx * 3;
-      if (faceStart + 2 < indices.length) {
-        const fv1 = indices[faceStart];
-        const fv2 = indices[faceStart + 1];
-        const fv3 = indices[faceStart + 2];
-
-        // After collapse, v2 becomes v1, check if triangle would be valid
-        const newTriangle = [fv1, fv2, fv3].map(v => v === v2 ? v1 : v);
-        if (newTriangle[0] === newTriangle[1] ||
-            newTriangle[1] === newTriangle[2] ||
-            newTriangle[2] === newTriangle[0]) {
-          // This face would become degenerate, but that's expected and handled
-          continue;
-        }
-      }
-    }
-
-    // Basic manifold check: ensure the collapse doesn't create too complex vertex neighborhoods
-    const totalNeighborFaces = new Set([...v1Faces, ...v2Faces]).size;
-    return totalNeighborFaces <= 12; // Reasonable limit for vertex valence
-  }
 
   /**
    * Get mesh statistics
