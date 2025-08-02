@@ -60,7 +60,7 @@ export class VertexRemovalStitcher {
     let actualReduction = targetReduction;
     if (currentVertices <= 20) {
       actualReduction = Math.min(targetReduction, 0.3); // Max 30% reduction for small models
-      console.log(`⚠️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
+      console.log(`���️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
     }
 
     const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction))); // Minimum 4 faces (tetrahedron)
@@ -322,50 +322,79 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Calculate quadric error matrices for each vertex
+   * Calculate proper Quadric Error Metrics (QEM) for each vertex
+   * This implements the Garland-Heckbert quadric error metric
    */
   private static calculateVertexQuadrics(
     positions: Float32Array,
     indices: number[],
     vertexToFaces: Map<number, number[]>
   ): Map<number, any> {
+    console.log(`🧮 Computing proper Quadric Error Metrics (QEM)...`);
     const quadrics = new Map<number, any>();
 
-    // For simplicity, use a basic error metric based on face areas
+    // Calculate quadric error matrix for each vertex
     for (const [vertexIndex, faceIndices] of vertexToFaces) {
-      let totalArea = 0;
-      let faceCount = faceIndices.length;
+      // Initialize 4x4 quadric matrix Q = sum of Kp over all faces
+      let Q = new Array(10).fill(0); // Symmetric 4x4 matrix stored as 10 values
 
       for (const faceIndex of faceIndices) {
         const i = faceIndex * 3;
         if (i + 2 < indices.length) {
-          const v1Pos = new THREE.Vector3(
+          // Get triangle vertices
+          const v1 = new THREE.Vector3(
             positions[indices[i] * 3],
             positions[indices[i] * 3 + 1],
             positions[indices[i] * 3 + 2]
           );
-          const v2Pos = new THREE.Vector3(
+          const v2 = new THREE.Vector3(
             positions[indices[i + 1] * 3],
             positions[indices[i + 1] * 3 + 1],
             positions[indices[i + 1] * 3 + 2]
           );
-          const v3Pos = new THREE.Vector3(
+          const v3 = new THREE.Vector3(
             positions[indices[i + 2] * 3],
             positions[indices[i + 2] * 3 + 1],
             positions[indices[i + 2] * 3 + 2]
           );
 
-          const edge1 = new THREE.Vector3().subVectors(v2Pos, v1Pos);
-          const edge2 = new THREE.Vector3().subVectors(v3Pos, v1Pos);
-          const cross = new THREE.Vector3().crossVectors(edge1, edge2);
-          totalArea += cross.length() * 0.5;
+          // Calculate plane equation ax + by + cz + d = 0
+          const edge1 = new THREE.Vector3().subVectors(v2, v1);
+          const edge2 = new THREE.Vector3().subVectors(v3, v1);
+          const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+          const a = normal.x;
+          const b = normal.y;
+          const c = normal.z;
+          const d = -(a * v1.x + b * v1.y + c * v1.z);
+
+          // Build fundamental quadric Kp for this plane
+          // Kp = pp^T where p = [a, b, c, d]
+          const plane = [a, b, c, d];
+
+          // Add to quadric matrix Q (symmetric 4x4 stored as 10 values)
+          Q[0] += a * a;     // Q11
+          Q[1] += a * b;     // Q12
+          Q[2] += a * c;     // Q13
+          Q[3] += a * d;     // Q14
+          Q[4] += b * b;     // Q22
+          Q[5] += b * c;     // Q23
+          Q[6] += b * d;     // Q24
+          Q[7] += c * c;     // Q33
+          Q[8] += c * d;     // Q34
+          Q[9] += d * d;     // Q44
         }
       }
 
-      // Store error metric (vertices with more/larger faces are more important)
-      quadrics.set(vertexIndex, { area: totalArea, faceCount });
+      // Store the quadric matrix for this vertex
+      quadrics.set(vertexIndex, {
+        Q: Q,
+        faceCount: faceIndices.length,
+        vertexIndex: vertexIndex
+      });
     }
 
+    console.log(`✅ Computed QEM for ${quadrics.size} vertices`);
     return quadrics;
   }
 
