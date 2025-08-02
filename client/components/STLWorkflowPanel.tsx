@@ -1342,7 +1342,7 @@ function MobileWorkflowContent(props: any) {
       {/* 3. TOOLS SECTION */}
       <div>
         <SectionHeader
-          title="3. INTELLIGENT SIMPLIFICATION"
+          title="3. SIMPLIFICATION"
           isExpanded={expandedSections.tools}
           onToggle={() => toggleSection('tools')}
         />
