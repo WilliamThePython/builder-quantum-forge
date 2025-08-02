@@ -372,7 +372,7 @@ class Analytics {
   // Get historical analytics data
   async getHistoricalData(timeRange: string) {
     try {
-      const response = await fetch(`/api/analytics/historical?range=${timeRange}`);
+      const response = await originalFetch(`/api/analytics/historical?range=${timeRange}`);
       if (response.ok) {
         return await response.json();
       }
