@@ -739,7 +739,12 @@ export class VertexRemovalStitcher {
    */
   private static buildVertexFaceAdjacency(geometry: THREE.BufferGeometry): Map<number, number[]> {
     const vertexFaceMap = new Map<number, number[]>();
-    const indices = geometry.index!.array;
+
+    if (!geometry.index) {
+      throw new Error('Geometry must be indexed for vertex-face adjacency mapping');
+    }
+
+    const indices = geometry.index.array;
     
     // Initialize map
     const vertexCount = geometry.attributes.position.count;
