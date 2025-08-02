@@ -644,7 +644,7 @@ export class VertexRemovalStitcher {
       return false;
     }
 
-    console.log(`🔗 COLLAPSING EDGE ${v1}-${v2}: This should visibly change the model shape`);
+    console.log(`���� COLLAPSING EDGE ${v1}-${v2}: This should visibly change the model shape`);
 
     // Get original positions
     const v1x = positions[v1 * 3];
@@ -2353,7 +2353,9 @@ export class VertexRemovalStitcher {
     const mergeableVertices: Array<{v1: number, v2: number, newPos: number[]}> = [];
     const usedVertices = new Set<number>();
 
-    console.log(`   🔍 Finding vertices to merge for actual reduction...`);
+    console.log(`   🔍 === VERTEX MERGING ANALYSIS ===`);
+    console.log(`     Target merges: ${targetMerges}`);
+    console.log(`     Polygon faces: ${polygonFaces.length}`);
 
     // Look for vertices that are close together across all polygon faces
     const vertexCount = positions.length / 3;
@@ -2362,6 +2364,7 @@ export class VertexRemovalStitcher {
     // Collect all vertices used in polygon faces
     for (const face of polygonFaces) {
       if (face.vertices) {
+        console.log(`     Polygon face vertices: [${face.vertices.join(', ')}]`);
         for (const v of face.vertices) {
           if (!allVertices.includes(v)) {
             allVertices.push(v);
@@ -2370,7 +2373,10 @@ export class VertexRemovalStitcher {
       }
     }
 
+    console.log(`     All vertices in polygons: [${allVertices.join(', ')}]`);
+
     // Find pairs of vertices that are close enough to merge
+    let distanceChecks = 0;
     for (let i = 0; i < allVertices.length && mergeableVertices.length < targetMerges; i++) {
       const v1 = allVertices[i];
       if (usedVertices.has(v1)) continue;
@@ -2388,8 +2394,16 @@ export class VertexRemovalStitcher {
           (pos2[2] - pos1[2]) ** 2
         );
 
-        // If vertices are close enough, merge them
-        if (distance < 5.0) { // Reasonable merging distance
+        distanceChecks++;
+        console.log(`     Distance v${v1} ↔ v${v2}: ${distance.toFixed(3)} units`);
+
+        // Try multiple distance thresholds for small models
+        let mergeThreshold = 5.0;
+        if (vertexCount <= 10) {
+          mergeThreshold = 15.0; // Larger threshold for small models
+        }
+
+        if (distance < mergeThreshold) {
           const newPos = [
             (pos1[0] + pos2[0]) * 0.5,
             (pos1[1] + pos2[1]) * 0.5,
@@ -2400,12 +2414,23 @@ export class VertexRemovalStitcher {
           usedVertices.add(v1);
           usedVertices.add(v2);
 
-          console.log(`   🔗 Will merge v${v1} + v${v2} (distance: ${distance.toFixed(3)})`);
+          console.log(`     ✅ WILL MERGE v${v1} + v${v2} (distance: ${distance.toFixed(3)} < ${mergeThreshold})`);
+        } else {
+          console.log(`     ❌ Too far apart: ${distance.toFixed(3)} >= ${mergeThreshold}`);
         }
       }
     }
 
-    console.log(`   ✅ Found ${mergeableVertices.length} vertex pairs to merge`);
+    console.log(`   📊 MERGE SUMMARY:`);
+    console.log(`     Distance checks performed: ${distanceChecks}`);
+    console.log(`     Mergeable pairs found: ${mergeableVertices.length}/${targetMerges}`);
+
+    if (mergeableVertices.length === 0) {
+      console.warn(`     ⚠️ NO MERGEABLE VERTICES FOUND!`);
+      console.warn(`     This means no vertices are close enough to merge.`);
+      console.warn(`     Consider: 1) Smaller model needs looser thresholds, 2) Vertices already optimally spaced`);
+    }
+
     return mergeableVertices;
   }
 
