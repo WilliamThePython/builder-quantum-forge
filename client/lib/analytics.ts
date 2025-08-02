@@ -589,6 +589,26 @@ class Analytics {
   }
 }
 
+// Wrap the native fetch to catch FullStory errors
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+  return originalFetch.apply(this, args).catch(error => {
+    // Check if this is a FullStory or other third-party analytics service call
+    const url = args[0]?.toString() || '';
+    if (url.includes('fullstory.com') ||
+        url.includes('fs.') ||
+        url.includes('edge.fullstory.com') ||
+        error.stack?.includes('fullstory') ||
+        error.stack?.includes('fs.js')) {
+      // Silently ignore FullStory fetch errors
+      console.debug('Ignoring FullStory fetch error:', error.message);
+      return Promise.reject(error); // Still reject but don't let it bubble up as unhandled
+    }
+    // Re-throw other errors
+    throw error;
+  });
+};
+
 // Create singleton instance
 export const analytics = new Analytics();
 
