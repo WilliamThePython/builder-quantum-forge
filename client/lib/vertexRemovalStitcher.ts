@@ -62,20 +62,8 @@ export class VertexRemovalStitcher {
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
     console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
-    // Debug geometry state before decimation
-    console.log(`📊 Before decimation:`);
-    console.log(`   Vertices: ${workingGeometry.attributes.position.count}`);
-    console.log(`   Indices: ${workingGeometry.index?.count || 0}`);
-    console.log(`   Triangles: ${workingGeometry.index ? workingGeometry.index.count / 3 : 0}`);
-
     // Apply quadric edge collapse (vertex merging)
     const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
-
-    // Debug geometry state after decimation
-    console.log(`📊 After decimation:`);
-    console.log(`   Vertices: ${resultGeometry.attributes.position.count}`);
-    console.log(`   Indices: ${resultGeometry.index?.count || 0}`);
-    console.log(`   Triangles: ${resultGeometry.index ? resultGeometry.index.count / 3 : 0}`);
 
     // Validate result geometry
     if (!this.validateGeometry(resultGeometry)) {
@@ -171,68 +159,38 @@ export class VertexRemovalStitcher {
     let collapsedEdges = 0;
 
     // Collapse edges until we reach target face count
-    const maxIterations = Math.min(edgeQueue.length, targetFaces * 2); // More reasonable safety limit
+    const maxIterations = Math.min(edgeQueue.length, targetFaces * 2);
     let iterations = 0;
-    let skippedEdges = 0;
-
-    console.log(`🔄 Starting edge collapse loop: ${edgeQueue.length} edges queued, target ${targetFaces} faces`);
 
     while (currentFaces > targetFaces && edgeQueue.length > 0 && iterations < maxIterations) {
       iterations++;
       const edge = edgeQueue.shift()!;
 
-      if (iterations <= 5) { // Debug first few iterations
-        console.log(`   Iteration ${iterations}: Testing edge ${edge.v1}-${edge.v2} (cost: ${edge.cost.toFixed(4)})`);
-      }
-
-      // Check if edge is still valid (vertices haven't been merged already)
+      // Check if edge is still valid
       if (!this.isEdgeValid(edge, indices)) {
-        skippedEdges++;
-        if (iterations <= 5) {
-          console.log(`   ⚠️ Edge ${edge.v1}-${edge.v2} is no longer valid, skipping`);
-        }
         continue;
       }
 
-      // Perform edge collapse - this merges vertices and removes only degenerate triangles
-      const facesBeforeCollapse = indices.length / 3;
+      // Perform edge collapse
       const success = this.collapseEdge(edge, positions, indices, vertexToFaces);
       if (success) {
-        currentFaces = indices.length / 3; // Update with actual face count after collapse
+        currentFaces = indices.length / 3;
         collapsedEdges++;
 
-        // Validate that we haven't removed too many faces
+        // Safety check
         if (currentFaces < 4) {
-          console.warn(`⚠️ Face count dropped below minimum (${currentFaces}), stopping decimation`);
+          console.warn(`⚠️ Face count dropped below minimum, stopping decimation`);
           break;
         }
 
-        if (collapsedEdges <= 5 || collapsedEdges % 20 === 0) {
-          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${facesBeforeCollapse} → ${currentFaces} faces remaining`);
-        }
-      } else {
-        if (iterations <= 5) {
-          console.log(`   ⚠️ Edge collapse failed for ${edge.v1}-${edge.v2}`);
+        if (collapsedEdges % 50 === 0) {
+          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
         }
       }
     }
 
-    console.log(`📋 Edge collapse summary: ${collapsedEdges} successful, ${skippedEdges} skipped, ${iterations} iterations`);
-
     // Clean up and rebuild geometry with improved vertex handling
     let cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
-
-    if (iterations >= maxIterations) {
-      console.warn(`⚠️ Hit safety limit of ${maxIterations} iterations, stopping early`);
-    }
-
-    if (collapsedEdges === 0) {
-      console.warn(`⚠️ No edges were collapsed! This explains why no vertices moved.`);
-      console.warn(`   Possible issues:`);
-      console.warn(`   - No valid edges found`);
-      console.warn(`   - Edge validation too restrictive`);
-      console.warn(`   - Edge collapse function failing`);
-    }
 
     console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
 
@@ -455,9 +413,7 @@ export class VertexRemovalStitcher {
       return false; // Can't collapse edge to itself
     }
 
-    console.log(`🔗 Collapsing edge ${v1}-${v2}: merging vertex ${v2} into ${v1}`);
-
-    // Debug: Show positions before merge
+    // Step 1: Calculate optimal position for merged vertex (using midpoint)
     const v1OriginalX = positions[v1 * 3];
     const v1OriginalY = positions[v1 * 3 + 1];
     const v1OriginalZ = positions[v1 * 3 + 2];
@@ -465,71 +421,31 @@ export class VertexRemovalStitcher {
     const v2OriginalY = positions[v2 * 3 + 1];
     const v2OriginalZ = positions[v2 * 3 + 2];
 
-    console.log(`   BEFORE: v1[${v1}] = [${v1OriginalX.toFixed(3)}, ${v1OriginalY.toFixed(3)}, ${v1OriginalZ.toFixed(3)}]`);
-    console.log(`   BEFORE: v2[${v2}] = [${v2OriginalX.toFixed(3)}, ${v2OriginalY.toFixed(3)}, ${v2OriginalZ.toFixed(3)}]`);
-
-    // Step 1: Calculate optimal position for merged vertex (using midpoint)
     const newX = (v1OriginalX + v2OriginalX) * 0.5;
     const newY = (v1OriginalY + v2OriginalY) * 0.5;
     const newZ = (v1OriginalZ + v2OriginalZ) * 0.5;
-
-    // Calculate distance moved
-    const distanceMoved = Math.sqrt(
-      (newX - v1OriginalX) * (newX - v1OriginalX) +
-      (newY - v1OriginalY) * (newY - v1OriginalY) +
-      (newZ - v1OriginalZ) * (newZ - v1OriginalZ)
-    );
-    console.log(`   CALCULATED new position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}] (moved ${distanceMoved.toFixed(3)} units)`);
 
     // Step 2: Move v1 to the optimal position
     positions[v1 * 3] = newX;
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Verify the position was actually changed
-    console.log(`   AFTER: v1[${v1}] = [${positions[v1 * 3].toFixed(3)}, ${positions[v1 * 3 + 1].toFixed(3)}, ${positions[v1 * 3 + 2].toFixed(3)}]`);
-    console.log(`   VERIFICATION: Position successfully moved ${distanceMoved.toFixed(3)} units`);
-
-    // Step 3: Count current references before replacement
-    let v1RefsBefore = 0, v2RefsBefore = 0;
-    for (let i = 0; i < indices.length; i++) {
-      if (indices[i] === v1) v1RefsBefore++;
-      if (indices[i] === v2) v2RefsBefore++;
-    }
-    console.log(`   Before: v1 referenced ${v1RefsBefore} times, v2 referenced ${v2RefsBefore} times`);
-
-    // Step 4: Replace ALL occurrences of v2 with v1 in the index array
-    let replacements = 0;
+    // Step 3: Replace ALL occurrences of v2 with v1 in the index array
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
         indices[i] = v1;
-        replacements++;
       }
     }
 
-    // Step 5: Count references after replacement
-    let v1RefsAfter = 0, v2RefsAfter = 0;
-    for (let i = 0; i < indices.length; i++) {
-      if (indices[i] === v1) v1RefsAfter++;
-      if (indices[i] === v2) v2RefsAfter++;
-    }
-    console.log(`   After: v1 referenced ${v1RefsAfter} times, v2 referenced ${v2RefsAfter} times (${replacements} replacements)`);
-
-    // Step 6: ONLY remove triangles that have become degenerate (same vertex repeated)
-    const initialTriangles = indices.length / 3;
+    // Step 4: Remove degenerate triangles that naturally result from merging
     this.removeOnlyDegenerateTriangles(indices);
-    const finalTriangles = indices.length / 3;
-    const removedTriangles = initialTriangles - finalTriangles;
 
-    console.log(`   → Removed ${removedTriangles} degenerate triangles (${initialTriangles} → ${finalTriangles})`);
-
-    // Step 7: Update vertex-to-faces mapping
+    // Step 5: Update vertex-to-faces mapping
     const v1Faces = vertexToFaces.get(v1) || [];
     const v2Faces = vertexToFaces.get(v2) || [];
     vertexToFaces.set(v1, [...new Set([...v1Faces, ...v2Faces])]);
     vertexToFaces.delete(v2);
 
-    console.log(`✅ Edge collapse complete: vertices merged, ${removedTriangles} degenerate triangles removed`);
     return true;
   }
 
@@ -584,17 +500,11 @@ export class VertexRemovalStitcher {
     positions: Float32Array,
     indices: number[]
   ): THREE.BufferGeometry {
-    console.log(`🔧 Rebuilding geometry from arrays...`);
-    console.log(`   Input: ${positions.length / 3} position vertices, ${indices.length / 3} triangles`);
-
     // Create mapping from old vertices to new vertices (removing unused ones)
     const usedVertices = new Set<number>();
     for (const index of indices) {
       usedVertices.add(index);
     }
-
-    console.log(`   Used vertices: ${usedVertices.size} out of ${positions.length / 3}`);
-    console.log(`   Unused vertices: ${(positions.length / 3) - usedVertices.size}`);
 
     const vertexMapping = new Map<number, number>();
     const newPositions: number[] = [];
@@ -603,24 +513,16 @@ export class VertexRemovalStitcher {
     const sortedVertices = Array.from(usedVertices).sort((a, b) => a - b);
     for (const oldIndex of sortedVertices) {
       vertexMapping.set(oldIndex, newVertexIndex);
-      const x = positions[oldIndex * 3];
-      const y = positions[oldIndex * 3 + 1];
-      const z = positions[oldIndex * 3 + 2];
-      newPositions.push(x, y, z);
-
-      // Debug: Show vertex remapping
-      if (newVertexIndex < 5) { // Only show first 5 to avoid spam
-        console.log(`   Vertex mapping: old[${oldIndex}] -> new[${newVertexIndex}] = [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
-      }
+      newPositions.push(
+        positions[oldIndex * 3],
+        positions[oldIndex * 3 + 1],
+        positions[oldIndex * 3 + 2]
+      );
       newVertexIndex++;
     }
 
-    console.log(`   Vertex mapping created: ${sortedVertices.length} vertices mapped`);
-
     // Remap indices and validate each triangle
     const newIndices: number[] = [];
-    let skippedTriangles = 0;
-
     for (let i = 0; i < indices.length; i += 3) {
       const v1 = vertexMapping.get(indices[i]);
       const v2 = vertexMapping.get(indices[i + 1]);
@@ -630,38 +532,26 @@ export class VertexRemovalStitcher {
       if (v1 !== undefined && v2 !== undefined && v3 !== undefined &&
           v1 !== v2 && v2 !== v3 && v3 !== v1) {
         newIndices.push(v1, v2, v3);
-      } else {
-        skippedTriangles++;
-        if (v1 === undefined || v2 === undefined || v3 === undefined) {
-          console.warn(`   ⚠️ Skipping triangle with unmapped vertices: [${indices[i]}, ${indices[i+1]}, ${indices[i+2]}] → [${v1}, ${v2}, ${v3}]`);
-        }
       }
     }
 
-    console.log(`   Triangle remapping: ${indices.length / 3} → ${newIndices.length / 3} (skipped ${skippedTriangles})`);
-
-    // Create new geometry
+    // Create new geometry with proper updates
     const newGeometry = new THREE.BufferGeometry();
     const positionAttribute = new THREE.Float32BufferAttribute(newPositions, 3);
     newGeometry.setAttribute('position', positionAttribute);
     newGeometry.setIndex(newIndices);
 
-    // Force position attribute to update
+    // Force updates for proper visual refresh
     positionAttribute.needsUpdate = true;
 
-    // Ensure geometry is valid before computing normals
     if (newIndices.length >= 3) {
       newGeometry.computeVertexNormals();
     }
 
-    // Force geometry to update
     newGeometry.computeBoundingBox();
     newGeometry.computeBoundingSphere();
 
     console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
-    console.log(`   Bounding box: min=[${newGeometry.boundingBox?.min.x.toFixed(3)}, ${newGeometry.boundingBox?.min.y.toFixed(3)}, ${newGeometry.boundingBox?.min.z.toFixed(3)}]`);
-    console.log(`   Bounding box: max=[${newGeometry.boundingBox?.max.x.toFixed(3)}, ${newGeometry.boundingBox?.max.y.toFixed(3)}, ${newGeometry.boundingBox?.max.z.toFixed(3)}]`);
-
     return newGeometry;
   }
 
