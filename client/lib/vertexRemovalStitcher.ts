@@ -425,43 +425,7 @@ export class VertexRemovalStitcher {
     return true;
   }
 
-  /**
-   * Find faces that share a specific edge
-   */
-  private static findFacesSharingEdge(v1: number, v2: number, indices: number[]): number[] {
-    const sharedFaces: number[] = [];
 
-    for (let i = 0; i < indices.length; i += 3) {
-      const faceIndex = i / 3;
-      const face = [indices[i], indices[i + 1], indices[i + 2]];
-
-      // Check if this face contains both vertices of the edge
-      const hasV1 = face.includes(v1);
-      const hasV2 = face.includes(v2);
-
-      if (hasV1 && hasV2) {
-        sharedFaces.push(faceIndex);
-      }
-    }
-
-    return sharedFaces;
-  }
-
-  /**
-   * Remove specific faces by their indices
-   */
-  private static removeSpecificFaces(indices: number[], facesToRemove: number[]) {
-    // Sort face indices in descending order to remove from the end first
-    const sortedFaces = [...facesToRemove].sort((a, b) => b - a);
-
-    for (const faceIndex of sortedFaces) {
-      const startIndex = faceIndex * 3;
-      // Remove 3 indices (1 triangle)
-      indices.splice(startIndex, 3);
-    }
-
-    console.log(`🔧 Removed ${facesToRemove.length} specific faces, ${indices.length / 3} faces remaining`);
-  }
 
   /**
    * Remove faces that have duplicate vertices (degenerate triangles)
