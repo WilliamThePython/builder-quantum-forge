@@ -7,25 +7,38 @@ import * as THREE from 'three';
 export class PolygonFaceReconstructor {
   
   /**
-   * Reconstruct polygon faces from a triangulated geometry
+   * Reconstruct polygon faces from a triangulated geometry with comprehensive coplanar merging
    */
   static reconstructPolygonFaces(geometry: THREE.BufferGeometry): any[] {
     if (!geometry || !geometry.attributes.position) {
       return [];
     }
 
-    console.log('Reconstructing polygon faces from triangulated geometry...');
-    
+    console.log('🔄 COMPREHENSIVE POLYGON RECONSTRUCTION');
+
     const positions = geometry.attributes.position;
     const triangleCount = Math.floor(positions.count / 3);
+    console.log(`   Input: ${triangleCount} triangles`);
+
     const triangles = this.extractTriangles(geometry);
-    
-    // Group triangles by coplanar faces
-    const faces = this.groupCoplanarTriangles(triangles);
-    
-    console.log(`Reconstructed ${faces.length} polygon faces from ${triangleCount} triangles`);
-    
-    return faces;
+
+    // Step 1: Group triangles by coplanar faces with enhanced tolerance
+    const rawFaces = this.groupCoplanarTriangles(triangles);
+    console.log(`   Raw grouping: ${rawFaces.length} faces`);
+
+    // Step 2: Enhanced coplanar merging with iterative refinement
+    const mergedFaces = this.enhancedCoplanarMerging(rawFaces);
+    console.log(`   After enhanced merging: ${mergedFaces.length} faces`);
+
+    // Step 3: Validate all faces are truly coplanar
+    const validatedFaces = this.validateAndFixCoplanarity(mergedFaces);
+    console.log(`   After coplanarity validation: ${validatedFaces.length} faces`);
+
+    // Step 4: Final polygon optimization
+    const optimizedFaces = this.optimizePolygonFaces(validatedFaces);
+    console.log(`✅ Final result: ${optimizedFaces.length} robust polygon faces`);
+
+    return optimizedFaces;
   }
 
   /**
