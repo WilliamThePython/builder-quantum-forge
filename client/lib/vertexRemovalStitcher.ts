@@ -644,7 +644,7 @@ export class VertexRemovalStitcher {
       return false;
     }
 
-    console.log(`���� COLLAPSING EDGE ${v1}-${v2}: This should visibly change the model shape`);
+    console.log(`🔗 COLLAPSING EDGE ${v1}-${v2}: This should visibly change the model shape`);
 
     // Get original positions
     const v1x = positions[v1 * 3];
@@ -2240,19 +2240,40 @@ export class VertexRemovalStitcher {
     const newPositions: number[] = [];
     const removedVertices = new Set<number>();
 
+    console.log(`   🔄 === VERTEX REMOVAL PROCESS ===`);
+    console.log(`     Starting with ${vertexCount} vertices`);
+
     // First, mark vertices for removal and create merged positions
+    let actualMerges = 0;
     for (const {v1, v2, newPos} of mergeableVertices) {
       if (!removedVertices.has(v1) && !removedVertices.has(v2)) {
         // Remove v2, keep v1 at merged position
         removedVertices.add(v2);
 
         // Update v1's position to merged position
+        const oldPos1 = [originalPositions[v1 * 3], originalPositions[v1 * 3 + 1], originalPositions[v1 * 3 + 2]];
+        const oldPos2 = [originalPositions[v2 * 3], originalPositions[v2 * 3 + 1], originalPositions[v2 * 3 + 2]];
+
         originalPositions[v1 * 3] = newPos[0];
         originalPositions[v1 * 3 + 1] = newPos[1];
         originalPositions[v1 * 3 + 2] = newPos[2];
 
-        console.log(`   🔗 Merging v${v2} into v${v1} at [${newPos.map(p => p.toFixed(3)).join(', ')}]`);
+        actualMerges++;
+        console.log(`     ${actualMerges}. MERGE: v${v2} → v${v1}`);
+        console.log(`        v${v1} old: [${oldPos1.map(p => p.toFixed(3)).join(', ')}]`);
+        console.log(`        v${v2} old: [${oldPos2.map(p => p.toFixed(3)).join(', ')}]`);
+        console.log(`        v${v1} new: [${newPos.map(p => p.toFixed(3)).join(', ')}]`);
+        console.log(`        v${v2} REMOVED`);
       }
+    }
+
+    console.log(`     Vertices marked for removal: [${Array.from(removedVertices).join(', ')}]`);
+    console.log(`     Actual merges performed: ${actualMerges}`);
+    console.log(`     Expected final vertex count: ${vertexCount - removedVertices.size}`);
+
+    if (removedVertices.size === 0) {
+      console.warn(`     ⚠️ NO VERTICES WERE REMOVED!`);
+      console.warn(`     This means no merging could happen - returning original geometry`);
     }
 
     // Build new vertex array and remapping
