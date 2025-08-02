@@ -523,8 +523,13 @@ class Analytics {
             this.analyticsFailureCount++;
           }
         } catch (fetchError) {
-          // Completely silent
-          this.analyticsFailureCount++;
+          // Completely silent - ignore all errors including AbortError
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            // Timeout occurred, but don't count as failure for abort errors
+            console.debug('Analytics request timed out (this is normal)');
+          } else {
+            this.analyticsFailureCount++;
+          }
         }
 
         // Reset flag after attempt
