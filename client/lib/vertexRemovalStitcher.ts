@@ -24,6 +24,17 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     console.log(`🔧 Starting quadric edge collapse: ${(targetReduction * 100).toFixed(1)}% reduction`);
 
+    // Debug geometry structure
+    console.log(`🔍 Input geometry debug:`, {
+      hasPosition: !!geometry.attributes.position,
+      vertexCount: geometry.attributes.position?.count || 0,
+      hasIndex: !!geometry.index,
+      indexCount: geometry.index?.count || 0,
+      polygonFaces: (geometry as any).polygonFaces,
+      polygonFacesType: typeof (geometry as any).polygonFaces,
+      polygonFacesLength: (geometry as any).polygonFaces?.length
+    });
+
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
 
@@ -2032,7 +2043,7 @@ export class VertexRemovalStitcher {
 
     // Second pass: Any close vertices if not enough found
     if (mergeableVertices.length < Math.min(targetMerges, 10)) {
-      console.log(`   ���� Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
+      console.log(`   🔍 Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
 
       const vertexCount = positions.length / 3;
       for (let i = 0; i < vertexCount - 1 && mergeableVertices.length < targetMerges; i++) {
