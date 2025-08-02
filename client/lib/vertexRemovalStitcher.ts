@@ -59,9 +59,10 @@ export class VertexRemovalStitcher {
       };
     }
 
-    console.log(`📊 Plan: Reduce faces ${currentFaces} → ${targetFaces} (${(actualReduction * 100).toFixed(1)}% reduction)`);
+    console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
+    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
-    // Apply quadric edge collapse
+    // Apply quadric edge collapse (vertex merging)
     const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
 
     // Validate result geometry
