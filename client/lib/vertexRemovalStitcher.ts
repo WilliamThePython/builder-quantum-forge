@@ -48,7 +48,9 @@ export class VertexRemovalStitcher {
       polygonFacesLength: polygonFaces?.length || 0,
       polygonType: polygonType,
       isPolygonPreserved: isPolygonPreserved,
-      polygonFacesValid: polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0
+      polygonFacesValid: polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0,
+      inputVertexCount: originalStats.vertices,
+      targetReduction: `${(targetReduction * 100).toFixed(1)}%`
     });
 
     const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
