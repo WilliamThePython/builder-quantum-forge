@@ -255,13 +255,26 @@ export class VertexRemovalStitcher {
       const originalVertices = face.originalVertices;
       const newVertices = [];
 
+      // For non-indexed geometry, check vertex positions directly
+      const tolerance = 0.001;
+      const vertex1Pos = new THREE.Vector3(
+        positions[vertexIndex1 * 3],
+        positions[vertexIndex1 * 3 + 1],
+        positions[vertexIndex1 * 3 + 2]
+      );
+      const vertex2Pos = new THREE.Vector3(
+        positions[vertexIndex2 * 3],
+        positions[vertexIndex2 * 3 + 1],
+        positions[vertexIndex2 * 3 + 2]
+      );
+
       // Go through each vertex in the polygon
       for (let i = 0; i < originalVertices.length; i++) {
         const vertex = originalVertices[i];
-        const vertexIndex = this.findVertexIndexFromPosition(vertex, positions);
 
-        if (vertexIndex === vertexIndex1 || vertexIndex === vertexIndex2) {
-          // Both vertices become the collapse position
+        // Check if this polygon vertex matches either of the edge vertices
+        if (vertex.distanceTo(vertex1Pos) < tolerance || vertex.distanceTo(vertex2Pos) < tolerance) {
+          // This vertex is part of the collapsed edge - use collapse position
           newVertices.push(collapsePosition.clone());
         } else {
           // Keep original vertex
@@ -276,7 +289,7 @@ export class VertexRemovalStitcher {
         const nextVertex = newVertices[(i + 1) % newVertices.length];
 
         // Only add if different from next vertex
-        if (currentVertex.distanceTo(nextVertex) > 0.001) {
+        if (currentVertex.distanceTo(nextVertex) > tolerance) {
           cleanedVertices.push(currentVertex);
         } else {
           console.log(`     Removed duplicate vertex from polygon ${faceIndex}`);
@@ -2391,7 +2404,7 @@ export class VertexRemovalStitcher {
 
       mergedCount++;
 
-      console.log(`   🚫 POLYGON MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] → [${newPos.map(v => v.toFixed(3)).join(',')}]`);
+      console.log(`   🚫 POLYGON MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] ��� [${newPos.map(v => v.toFixed(3)).join(',')}]`);
 
       if (mergedCount >= 15) break; // Limit for performance
     }
