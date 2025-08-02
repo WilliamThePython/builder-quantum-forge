@@ -984,14 +984,21 @@ function STLMesh() {
     return edgeData;
   }, [geometry, decimationPainterMode]);
 
-  // Enhanced edge highlighting with multiple detection methods
+  // Enhanced edge highlighting with multiple detection methods and throttling
   useEffect(() => {
     if (!decimationPainterMode || !edgeGeometry) {
       setHighlightedEdge(null);
       return;
     }
 
+    let lastUpdate = 0;
+    const throttleMs = 16; // ~60fps for smooth but performant updates
+
     const handleMouseMove = (event: MouseEvent) => {
+      const now = performance.now();
+      if (now - lastUpdate < throttleMs) return;
+      lastUpdate = now;
+
       // Update pointer position
       const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
