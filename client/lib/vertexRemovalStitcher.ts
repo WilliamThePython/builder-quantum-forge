@@ -456,12 +456,3 @@ export class VertexRemovalStitcher {
 /**
  * Mesh statistics interface
  */
-interface MeshStats {
-  vertices: number;
-  faces: number;
-  edges: number;
-  volume: number;
-  hasNormals: boolean;
-  hasUVs: boolean;
-  isIndexed: boolean;
-}
