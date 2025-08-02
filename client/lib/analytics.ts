@@ -619,7 +619,8 @@ window.fetch = function(...args) {
         // Silently ignore third-party analytics fetch errors
         console.debug('Ignoring third-party analytics fetch error:', error.message);
         // Return a resolved promise to prevent unhandled rejection
-        return Promise.resolve(new Response('', { status: 204 }));
+        // Use null body for 204 status as per HTTP spec
+        return Promise.resolve(new Response(null, { status: 204 }));
       }
 
       // Re-throw other errors
