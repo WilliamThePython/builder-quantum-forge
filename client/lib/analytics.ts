@@ -623,8 +623,10 @@ window.addEventListener('error', (event) => {
       event.message?.includes('sendToCustomAnalytics') ||
       event.message?.includes('trackEvent') ||
       event.error?.stack?.includes('fullstory') ||
-      event.error?.stack?.includes('fs.js')) {
-    console.warn('🔄 Skipping analytics-related error to prevent loop');
+      event.error?.stack?.includes('fs.js') ||
+      event.filename?.includes('edge.fullstory.com') ||
+      event.error?.message?.includes('Failed to fetch')) {
+    console.warn('🔄 Skipping analytics/third-party error to prevent loop');
     return;
   }
 
