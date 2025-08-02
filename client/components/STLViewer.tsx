@@ -1080,26 +1080,61 @@ function STLMesh() {
         </lineSegments>
       )}
 
-      {/* Highlighted edge for decimation painter */}
+      {/* Enhanced highlighted edge visualization for decimation painter */}
       {decimationPainterMode && highlightedEdge && (
-        <line key={`highlighted-edge-${highlightedEdge.vertexIndex1}-${highlightedEdge.vertexIndex2}`}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              array={new Float32Array([
-                highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
-                highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
-              ])}
-              count={2}
-              itemSize={3}
+        <group key={`highlighted-edge-${highlightedEdge.vertexIndex1}-${highlightedEdge.vertexIndex2}`}>
+          {/* Outer glow effect - wider, semi-transparent */}
+          <line>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                array={new Float32Array([
+                  highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
+                  highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
+                ])}
+                count={2}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial
+              color="#00ff00"
+              linewidth={15}
+              transparent={true}
+              opacity={0.2}
             />
-          </bufferGeometry>
-          <lineBasicMaterial
-            color="#00ff00"
-            linewidth={4}
-            transparent={false}
-          />
-        </line>
+          </line>
+
+          {/* Main highlighted edge - bright green */}
+          <line>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                array={new Float32Array([
+                  highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
+                  highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
+                ])}
+                count={2}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial
+              color="#00ff00"
+              linewidth={8}
+              transparent={false}
+            />
+          </line>
+
+          {/* Vertex indicators at edge endpoints */}
+          <mesh position={[highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z]}>
+            <sphereGeometry args={[0.03, 8, 8]} />
+            <meshBasicMaterial color="#00ff00" transparent={true} opacity={0.9} />
+          </mesh>
+
+          <mesh position={[highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z]}>
+            <sphereGeometry args={[0.03, 8, 8]} />
+            <meshBasicMaterial color="#00ff00" transparent={true} opacity={0.9} />
+          </mesh>
+        </group>
       )}
     </group>
   );
