@@ -1144,6 +1144,33 @@ function STLMesh() {
           </mesh>
         </group>
       )}
+
+      {/* Decimation painter mode indicator */}
+      {decimationPainterMode && (
+        <group>
+          {/* Floating mode indicator */}
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.5, 0.6, 32]} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={0.2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+
+          {/* Subtle pulsing animation */}
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.4, 0.45, 32]} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={Math.sin(Date.now() * 0.003) * 0.1 + 0.2}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }
