@@ -17,14 +17,12 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   // Check if this geometry has polygon face metadata
   const polygonFaces = (geometry as any).polygonFaces;
   if (!polygonFaces || !Array.isArray(polygonFaces)) {
-    console.warn('⚠️ No polygon faces detected - decimation painter disabled for triangulated geometry');
     return null;
   }
 
   // Find which polygon face was clicked
   const clickedPolygonFace = findPolygonFaceFromIntersection(geometry, intersection);
   if (clickedPolygonFace === null || clickedPolygonFace >= polygonFaces.length) {
-    console.warn('⚠️ Could not determine clicked polygon face');
     return null;
   }
 
