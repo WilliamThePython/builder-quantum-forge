@@ -22,7 +22,7 @@ export class VertexRemovalStitcher {
     processingTime: number;
   }> {
     const startTime = Date.now();
-    console.log(`🔧 Starting quadric edge collapse: ${(targetReduction * 100).toFixed(1)}% reduction`);
+    console.log(`🔧 Starting mesh reduction: ${(targetReduction * 100).toFixed(1)}% reduction`);
 
     // Debug geometry structure
     console.log(`🔍 Input geometry debug:`, {
@@ -38,23 +38,39 @@ export class VertexRemovalStitcher {
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
 
-    // Clone geometry but preserve original structure
+    // CRITICAL DECISION POINT: Check for polygon structure FIRST
+    const polygonFaces = (geometry as any).polygonFaces;
+    const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
+
+    if (hasPolygonStructure) {
+      console.log('🚫 === POLYGON MODEL PATH === NO TRIANGULATION ALLOWED');
+      console.log(`   Detected ${polygonFaces.length} polygon faces - using pure polygon reduction`);
+      console.log(`   🚫 COMPLETELY BYPASSING all triangle-based logic`);
+
+      // Go directly to polygon-only reduction - skip ALL triangle logic
+      return this.polygonOnlyReduction(geometry, targetReduction, originalStats, startTime);
+    }
+
+    // TRIANGLE MODEL PATH - only if no polygon structure detected
+    console.log('🔗 === TRIANGLE MODEL PATH === Using QEM decimation');
+
+    // Clone geometry for triangle processing
     let workingGeometry = geometry.clone();
 
-    // Calculate target face count with safeguards for small models
+    // Calculate target face count for triangle meshes
     const currentFaces = originalStats.faces;
     const currentVertices = originalStats.vertices;
 
     // For very small models, be much more conservative
     let actualReduction = targetReduction;
     if (currentVertices <= 20) {
-      actualReduction = Math.min(targetReduction, 0.3); // Max 30% reduction for small models
-      console.log(`⚠️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
+      actualReduction = Math.min(targetReduction, 0.3);
+      console.log(`⚠️ Small triangle model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
     }
 
-    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction))); // Minimum 4 faces (tetrahedron)
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction)));
 
-    // Ensure we don't reduce too aggressively
+    // Early return for minimal reductions
     if (targetFaces >= currentFaces * 0.9) {
       console.log(`⚠️ Target would remove less than 10% of faces, skipping decimation`);
       return {
@@ -66,34 +82,16 @@ export class VertexRemovalStitcher {
       };
     }
 
-    console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+    console.log(`📊 Triangle reduction plan: ${currentFaces} → ${targetFaces} faces`);
 
-    // Check if this is a solid geometry with polygon faces
-    const polygonFaces = (geometry as any).polygonFaces;
-    const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
-
-    // Initialize result geometry variable
-    let resultGeometry: THREE.BufferGeometry;
-
-    if (hasPolygonStructure) {
-      console.log('🚫 POLYGON MODEL DETECTED: Completely avoiding triangulation-based decimation');
-      console.log(`   Original structure: ${polygonFaces.length} polygon faces`);
-      console.log('   🎯 Using polygon-preserving vertex merging instead');
-
-      // Use direct polygon-preserving reduction - NO indexing, NO triangulation
-      resultGeometry = this.polygonAwareDecimation(workingGeometry, actualReduction);
-    } else {
-      // For triangle-based geometries, use proper QEM decimation
-      console.log('🔗 Triangle model detected, using QEM-based decimation');
-      if (!workingGeometry.index) {
-        console.log('🔧 Converting triangle geometry to indexed format...');
-        workingGeometry = this.ensureIndexedGeometry(workingGeometry);
-      }
-
-      // Apply QEM quadric edge collapse for triangle meshes
-      resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
+    // Ensure triangle geometry is indexed
+    if (!workingGeometry.index) {
+      console.log('🔧 Converting triangle geometry to indexed format...');
+      workingGeometry = this.ensureIndexedGeometry(workingGeometry);
     }
+
+    // Apply QEM quadric edge collapse for triangle meshes
+    const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
 
 
 
