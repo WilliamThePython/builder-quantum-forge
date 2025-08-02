@@ -60,14 +60,32 @@ export class PythonMeshProcessor {
       throw new Error('Python mesh processing service is not available. Please start the service.');
     }
 
-    // Convert Three.js geometry to STL format for Python service
-    const stlData = await this.geometryToSTL(geometry);
-    console.log(`   Generated STL data: ${stlData.length} bytes`);
+    // Check if geometry has polygon structure
+    const polygonFaces = (geometry as any).polygonFaces;
 
-    // Create form data for upload
-    const formData = new FormData();
-    const stlBlob = new Blob([stlData], { type: 'application/octet-stream' });
-    formData.append('file', stlBlob, 'mesh.stl');
+    if (polygonFaces && Array.isArray(polygonFaces)) {
+      console.log(`   🔸 PRESERVING POLYGON STRUCTURE: Converting to OBJ format with ${polygonFaces.length} polygon faces`);
+
+      // Convert to OBJ format to preserve polygon structure
+      const objData = await this.geometryToOBJ(geometry, polygonFaces);
+      console.log(`   Generated OBJ data: ${objData.length} bytes`);
+
+      // Create form data for upload
+      const formData = new FormData();
+      const objBlob = new Blob([objData], { type: 'text/plain' });
+      formData.append('file', objBlob, 'mesh.obj');
+    } else {
+      console.log(`   Converting triangle mesh to STL format`);
+
+      // Convert Three.js geometry to STL format for triangle meshes
+      const stlData = await this.geometryToSTL(geometry);
+      console.log(`   Generated STL data: ${stlData.length} bytes`);
+
+      // Create form data for upload
+      const formData = new FormData();
+      const stlBlob = new Blob([stlData], { type: 'application/octet-stream' });
+      formData.append('file', stlBlob, 'mesh.stl');
+    }
     formData.append('target_reduction', targetReduction.toString());
     formData.append('preserve_boundary', preserveBoundary.toString());
 
