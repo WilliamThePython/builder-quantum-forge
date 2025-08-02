@@ -190,7 +190,7 @@ export class VertexRemovalStitcher {
       }
     }
 
-    // Clean up and rebuild geometry
+    // Clean up and rebuild geometry with improved vertex handling
     let cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
 
     if (iterations >= maxIterations) {
@@ -199,19 +199,17 @@ export class VertexRemovalStitcher {
 
     console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
 
-    // Post-processing: validate stitching and merge coplanar triangles
-    console.log(`🔧 Post-processing: validating stitching and merging coplanar triangles...`);
+    // Post-processing: validate stitching and analyze coplanar regions
+    console.log(`🔧 Post-processing: validating mesh and analyzing structure...`);
 
     try {
       const postProcessedGeometry = this.postProcessMesh(cleanedGeometry);
 
       // Validate that post-processing didn't break the geometry
-      if (postProcessedGeometry.attributes.position.count > 0 &&
-          postProcessedGeometry.index &&
-          postProcessedGeometry.index.count > 0) {
+      if (this.validateGeometry(postProcessedGeometry)) {
         cleanedGeometry = postProcessedGeometry;
       } else {
-        console.warn(`⚠️ Post-processing failed, using pre-processed geometry`);
+        console.warn(`⚠️ Post-processing validation failed, using pre-processed geometry`);
       }
     } catch (error) {
       console.warn(`⚠️ Post-processing failed:`, error, `- using pre-processed geometry`);
@@ -1104,7 +1102,7 @@ export class VertexRemovalStitcher {
       try {
         newGeometry.computeVertexNormals();
       } catch (error) {
-        console.warn('⚠️ Failed to compute normals, using default:', error);
+        console.warn('⚠��� Failed to compute normals, using default:', error);
       }
 
       return newGeometry;
