@@ -2064,11 +2064,11 @@ export class VertexRemovalStitcher {
             (pos2[2] - pos1[2]) ** 2
           );
 
-          if (distance < 30.0) { // Very aggressive for any vertex pairs
+          if (distance < 12.0) { // More conservative global search
             const newPos = [
-              (pos1[0] + pos2[0]) * 0.5 + (Math.random() - 0.5) * 6.0, // Even bigger random offset
-              (pos1[1] + pos2[1]) * 0.5 + (Math.random() - 0.5) * 6.0,
-              (pos1[2] + pos2[2]) * 0.5 + (Math.random() - 0.5) * 6.0
+              (pos1[0] + pos2[0]) * 0.5 + (Math.random() - 0.5) * 1.5, // Moderate random offset
+              (pos1[1] + pos2[1]) * 0.5 + (Math.random() - 0.5) * 1.5,
+              (pos1[2] + pos2[2]) * 0.5 + (Math.random() - 0.5) * 1.5
             ];
 
             mergeableVertices.push({ v1: i, v2: j, newPos });
