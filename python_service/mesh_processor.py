@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""
+Mesh processing service using Open3D for reliable quadric decimation
+"""
+
+import io
+import numpy as np
+import open3d as o3d
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+import uvicorn
+from typing import Optional
+import tempfile
+import os
+
+app = FastAPI(title="Mesh Processing Service", version="1.0.0")
+
+# Enable CORS for frontend communication
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+async def root():
+    return {"message": "Mesh Processing Service using Open3D", "version": "1.0.0"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "open3d_version": o3d.__version__}
+
+@app.post("/decimate")
+async def decimate_mesh(
+    file: UploadFile = File(...),
+    target_reduction: float = 0.5,
+    preserve_boundary: bool = True
+):
+    """
+    Decimate a mesh using Open3D's quadric decimation algorithm
+    
+    Args:
+        file: STL or OBJ mesh file
+        target_reduction: Reduction ratio (0.0 to 1.0, where 0.5 = 50% reduction)
+        preserve_boundary: Whether to preserve boundary edges
+    
+    Returns:
+        Decimated mesh in STL format
+    """
+    
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    if target_reduction < 0.0 or target_reduction > 0.95:
+        raise HTTPException(status_code=400, detail="Target reduction must be between 0.0 and 0.95")
+    
+    # Determine file format
+    file_extension = file.filename.lower().split('.')[-1]
+    if file_extension not in ['stl', 'obj']:
+        raise HTTPException(status_code=400, detail="Only STL and OBJ files are supported")
+    
+    try:
+        # Read uploaded file
+        file_content = await file.read()
+        
+        # Create temporary file for Open3D to read
+        with tempfile.NamedTemporaryFile(suffix=f'.{file_extension}', delete=False) as temp_input:
+            temp_input.write(file_content)
+            temp_input_path = temp_input.name
+        
+        print(f"🔧 Loading mesh from {file.filename} ({len(file_content)} bytes)")
+        
+        # Load mesh using Open3D
+        if file_extension == 'stl':
+            mesh = o3d.io.read_triangle_mesh(temp_input_path)
+        else:  # obj
+            mesh = o3d.io.read_triangle_mesh(temp_input_path)
+        
+        # Clean up temporary input file
+        os.unlink(temp_input_path)
+        
+        if len(mesh.vertices) == 0:
+            raise HTTPException(status_code=400, detail="Failed to load mesh - file may be corrupted")
+        
+        original_vertices = len(mesh.vertices)
+        original_triangles = len(mesh.triangles)
+        
+        print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles")
+        
+        # Calculate target triangle count
+        target_triangles = max(4, int(original_triangles * (1 - target_reduction)))
+        
+        print(f"📊 Target: {target_triangles} triangles ({target_reduction*100:.1f}% reduction)")
+        
+        # Apply quadric decimation using Open3D
+        print("🔧 Applying Open3D quadric decimation...")
+        
+        decimated_mesh = mesh.simplify_quadric_decimation(
+            target_number_of_triangles=target_triangles,
+            maximum_error=1e30,  # Allow any error to reach target count
+            boundary_weight=1.0 if preserve_boundary else 0.1
+        )
+        
+        final_vertices = len(decimated_mesh.vertices)
+        final_triangles = len(decimated_mesh.triangles)
+        actual_reduction = 1 - (final_vertices / original_vertices)
+        
+        print(f"✅ Decimation complete: {original_vertices} → {final_vertices} vertices")
+        print(f"   Triangles: {original_triangles} → {final_triangles}")
+        print(f"   Actual reduction: {actual_reduction*100:.1f}%")
+        
+        # Ensure mesh has vertex normals for proper rendering
+        if not decimated_mesh.has_vertex_normals():
+            decimated_mesh.compute_vertex_normals()
+        
+        # Export to STL format
+        with tempfile.NamedTemporaryFile(suffix='.stl', delete=False) as temp_output:
+            temp_output_path = temp_output.name
+        
+        success = o3d.io.write_triangle_mesh(temp_output_path, decimated_mesh)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to export decimated mesh")
+        
+        # Read the output file
+        with open(temp_output_path, 'rb') as f:
+            output_content = f.read()
+        
+        # Clean up temporary output file
+        os.unlink(temp_output_path)
+        
+        print(f"📤 Returning decimated mesh ({len(output_content)} bytes)")
+        
+        # Return the decimated mesh
+        return Response(
+            content=output_content,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f"attachment; filename=decimated_{file.filename}",
+                "X-Original-Vertices": str(original_vertices),
+                "X-Final-Vertices": str(final_vertices),
+                "X-Original-Triangles": str(original_triangles),
+                "X-Final-Triangles": str(final_triangles),
+                "X-Reduction-Achieved": f"{actual_reduction:.3f}"
+            }
+        )
+        
+    except Exception as e:
+        print(f"❌ Error during decimation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Decimation failed: {str(e)}")
+
+if __name__ == "__main__":
+    print("🚀 Starting Mesh Processing Service with Open3D")
+    print(f"   Open3D version: {o3d.__version__}")
+    uvicorn.run(app, host="0.0.0.0", port=8001)
