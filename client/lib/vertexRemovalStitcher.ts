@@ -121,14 +121,15 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Quadric edge collapse simplification (like Open3D's quadric decimation)
+   * Quadric edge collapse: progressively merge vertices by collapsing edges
+   * This reduces vertex count while preserving mesh topology
    */
   private static quadricEdgeCollapse(
     geometry: THREE.BufferGeometry,
     targetFaces: number,
     useQuadricError: boolean = true
   ): THREE.BufferGeometry {
-    console.log(`🔧 Starting quadric edge collapse to ${targetFaces} faces...`);
+    console.log(`🔗 Starting vertex merging via edge collapse (target: ${targetFaces} faces)...`);
 
     // Ensure geometry is indexed
     if (!geometry.index) {
