@@ -350,7 +350,7 @@ class Analytics {
   async getRealTimeData() {
     try {
       console.log('Fetching real-time analytics data...');
-      const response = await fetch('/api/analytics/realtime');
+      const response = await originalFetch('/api/analytics/realtime');
 
       if (response.ok) {
         const data = await response.json();
