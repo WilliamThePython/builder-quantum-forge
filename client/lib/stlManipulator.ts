@@ -85,15 +85,11 @@ export class STLManipulator {
     vertexIndex1: number,
     vertexIndex2: number
   ): Promise<ToolOperationResult> {
-    console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
-    console.log(`   Collapsing edge: vertex ${vertexIndex1} → vertex ${vertexIndex2}`);
-
     if (!geometry) {
       return { success: false, message: 'No geometry loaded' };
     }
 
     try {
-      // Get vertex positions
       const positions = geometry.attributes.position.array as Float32Array;
       const vertexCount = geometry.attributes.position.count;
 
@@ -101,6 +97,7 @@ export class STLManipulator {
         return { success: false, message: 'Invalid vertex indices' };
       }
 
+      // Get vertex positions and calculate midpoint
       const v1 = new THREE.Vector3(
         positions[vertexIndex1 * 3],
         positions[vertexIndex1 * 3 + 1],
@@ -113,14 +110,9 @@ export class STLManipulator {
         positions[vertexIndex2 * 3 + 2]
       );
 
-      console.log(`   v${vertexIndex1}: [${v1.x.toFixed(3)}, ${v1.y.toFixed(3)}, ${v1.z.toFixed(3)}]`);
-      console.log(`   v${vertexIndex2}: [${v2.x.toFixed(3)}, ${v2.y.toFixed(3)}, ${v2.z.toFixed(3)}]`);
-
-      // Calculate optimal collapse position (midpoint for simplicity)
       const collapsePosition = v1.clone().add(v2).multiplyScalar(0.5);
-      console.log(`   Collapse to: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
-      // Use VertexRemovalStitcher for single edge collapse
+      // Perform edge collapse
       const result = await VertexRemovalStitcher.collapseSingleEdge(
         geometry,
         vertexIndex1,
@@ -129,29 +121,21 @@ export class STLManipulator {
       );
 
       if (result.success) {
-        console.log(`✅ Single edge decimation completed successfully`);
-        console.log(`   Vertex count: ${vertexCount} → ${result.geometry?.attributes.position.count}`);
-
         return {
           success: true,
-          message: `Edge decimated: ${vertexIndex1}↔${vertexIndex2}`,
+          message: `Edge collapsed: ${vertexIndex1}↔${vertexIndex2}`,
           geometry: result.geometry,
-          stats: {
-            originalVertices: vertexCount,
-            newVertices: result.geometry?.attributes.position.count || 0,
-            verticesRemoved: 1
-          }
+          originalStats: { vertices: vertexCount, faces: 0 },
+          newStats: { vertices: result.geometry?.attributes.position.count || 0, faces: 0 }
         };
-      } else {
-        console.error(`❌ Single edge decimation failed: ${result.message}`);
-        return result;
       }
 
+      return result;
+
     } catch (error) {
-      console.error('❌ Single edge decimation error:', error);
       return {
         success: false,
-        message: `Error during edge decimation: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Edge decimation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
