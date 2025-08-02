@@ -52,11 +52,12 @@ export class VertexRemovalStitcher {
       positions[vertexIndex2 * 3 + 2] = collapsePosition.z;
       console.log(`   Updated vertex ${vertexIndex2}: [${oldVertex2[0].toFixed(3)}, ${oldVertex2[1].toFixed(3)}, ${oldVertex2[2].toFixed(3)}] → [${positions[vertexIndex2 * 3].toFixed(3)}, ${positions[vertexIndex2 * 3 + 1].toFixed(3)}, ${positions[vertexIndex2 * 3 + 2].toFixed(3)}]`);
 
-      // STEP 2: Update all indices - replace vertex2 references with vertex1
-      console.log(`🔗 === UPDATING INDEX REFERENCES ===`);
+      // STEP 2: Handle indexed vs non-indexed geometry
+      console.log(`🔗 === UPDATING VERTEX REFERENCES ===`);
       let indexUpdates = 0;
 
       if (resultGeometry.index) {
+        // INDEXED GEOMETRY - update index references
         const indices = resultGeometry.index.array;
         console.log(`   Scanning ${indices.length} indices for references to vertex ${vertexIndex2}...`);
 
@@ -69,11 +70,18 @@ export class VertexRemovalStitcher {
           }
         }
         resultGeometry.index.needsUpdate = true;
+        console.log(`   Total index updates: ${indexUpdates}`);
       } else {
-        console.log(`   No index buffer - geometry is non-indexed`);
+        // NON-INDEXED GEOMETRY - directly modify position array
+        console.log(`   Non-indexed geometry detected - merging vertices in position array`);
+        indexUpdates = this.mergeVerticesInNonIndexedGeometry(
+          resultGeometry,
+          vertexIndex1,
+          vertexIndex2,
+          collapsePosition
+        );
+        console.log(`   Total vertex merges in faces: ${indexUpdates}`);
       }
-
-      console.log(`   Total index updates: ${indexUpdates}`);
 
       // STEP 3: Remove degenerate faces (triangles with duplicate vertices)
       this.removeDegenerateFaces(resultGeometry);
