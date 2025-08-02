@@ -95,23 +95,14 @@ export class VertexRemovalStitcher {
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
 
-    // Get unique vertices and build adjacency information
-    const { vertices, faces, vertexToFaces } = this.analyzeGeometry(indexedGeometry);
+    // Calculate target number of faces (triangles)
+    const currentFaces = indexedGeometry.index!.count / 3;
+    const reductionRatio = verticesToRemove / indexedGeometry.attributes.position.count;
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - reductionRatio)));
 
-    console.log(`📊 Geometry analysis: ${vertices.length} unique vertices, ${faces.length} faces`);
+    console.log(`🐍 Target: ${currentFaces} → ${targetFaces} faces (${(reductionRatio * 100).toFixed(1)}% reduction)`);
 
-    // Calculate vertex importance scores (similar to quadric error)
-    const vertexScores = this.calculateVertexImportance(vertices, faces, vertexToFaces);
-
-    // Select vertices with lowest importance scores
-    const verticesToRemoveSet = this.selectLeastImportantVertices(vertexScores, verticesToRemove);
-    console.log(`🐍 Selected ${verticesToRemoveSet.size} least important vertices for removal`);
-
-    // Remove vertices and stitch holes
-    const newFaces = this.removeVerticesAndStitch(faces, verticesToRemoveSet, vertexToFaces, vertices);
-
-    // Rebuild geometry
-    return this.rebuildGeometry(vertices, newFaces, verticesToRemoveSet);
+    return this.quadricEdgeCollapse(indexedGeometry, targetFaces, true);
   }
 
   /**
