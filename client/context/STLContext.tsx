@@ -954,7 +954,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Create backup before simplification
       createBackup();
 
-      console.log('🔍 === DECIMATION DATA FLOW DEBUGGING ===');
+      console.log('��� === DECIMATION DATA FLOW DEBUGGING ===');
       console.log('📥 INPUT GEOMETRY from viewer:', {
         vertices: geometry.attributes.position.count,
         faces: geometry.index ? geometry.index.count / 3 : 0,
@@ -1083,8 +1083,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       createBackup();
 
       // Use STLManipulator for single edge decimation
-      const manipulator = new STLManipulator(geometry);
-      const result = await manipulator.decimateSingleEdge(vertexIndex1, vertexIndex2);
+      const result = await STLManipulator.decimateSingleEdge(geometry, vertexIndex1, vertexIndex2);
 
       if (result.success && result.geometry) {
         console.log(`✅ Edge decimation successful`);
