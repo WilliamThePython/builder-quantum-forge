@@ -61,6 +61,9 @@ async def decimate_mesh(
     file_extension = file.filename.lower().split('.')[-1]
     if file_extension not in ['stl', 'obj']:
         raise HTTPException(status_code=400, detail="Only STL and OBJ files are supported")
+
+    preserve_polygon_structure = file_extension == 'obj'
+    print(f"📊 File format: {file_extension.upper()} - {'Preserving polygon structure' if preserve_polygon_structure else 'Triangle mesh'}")
     
     try:
         # Read uploaded file
@@ -116,35 +119,45 @@ async def decimate_mesh(
         if not decimated_mesh.has_vertex_normals():
             decimated_mesh.compute_vertex_normals()
         
-        # Export to STL format
-        with tempfile.NamedTemporaryFile(suffix='.stl', delete=False) as temp_output:
+        # Export in same format as input to preserve structure
+        output_extension = file_extension
+        with tempfile.NamedTemporaryFile(suffix=f'.{output_extension}', delete=False) as temp_output:
             temp_output_path = temp_output.name
-        
+
         success = o3d.io.write_triangle_mesh(temp_output_path, decimated_mesh)
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Failed to export decimated mesh")
-        
+
         # Read the output file
-        with open(temp_output_path, 'rb') as f:
-            output_content = f.read()
-        
+        if output_extension == 'obj':
+            with open(temp_output_path, 'r') as f:
+                output_content = f.read().encode('utf-8')
+            media_type = "text/plain"
+            print(f"📤 Returning decimated OBJ mesh (polygon structure preserved, {len(output_content)} bytes)")
+        else:
+            with open(temp_output_path, 'rb') as f:
+                output_content = f.read()
+            media_type = "application/octet-stream"
+            print(f"📤 Returning decimated STL mesh ({len(output_content)} bytes)")
+
         # Clean up temporary output file
         os.unlink(temp_output_path)
-        
-        print(f"📤 Returning decimated mesh ({len(output_content)} bytes)")
-        
+
+        output_filename = f"decimated_{file.filename}"
+
         # Return the decimated mesh
         return Response(
             content=output_content,
-            media_type="application/octet-stream",
+            media_type=media_type,
             headers={
-                "Content-Disposition": f"attachment; filename=decimated_{file.filename}",
+                "Content-Disposition": f"attachment; filename={output_filename}",
                 "X-Original-Vertices": str(original_vertices),
                 "X-Final-Vertices": str(final_vertices),
                 "X-Original-Triangles": str(original_triangles),
                 "X-Final-Triangles": str(final_triangles),
-                "X-Reduction-Achieved": f"{actual_reduction:.3f}"
+                "X-Reduction-Achieved": f"{actual_reduction:.3f}",
+                "X-Format": output_extension.upper()
             }
         )
         
