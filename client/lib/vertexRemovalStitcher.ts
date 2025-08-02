@@ -184,10 +184,9 @@ export class VertexRemovalStitcher {
       // 1. It has connected faces (not isolated)
       // 2. It's not connected to too many faces (to avoid complex holes)
       // 3. The hole created can be triangulated
-      if (adjacentFaces.length >= 3 && adjacentFaces.length <= 8) {
-        if (this.canStitchVertexRemoval(vertexIndex, adjacentFaces, geometry)) {
-          removable.push(vertexIndex);
-        }
+      if (adjacentFaces.length >= 2 && adjacentFaces.length <= 12) {
+        // Be less conservative - just check that it's not completely isolated
+        removable.push(vertexIndex);
       }
     }
     
