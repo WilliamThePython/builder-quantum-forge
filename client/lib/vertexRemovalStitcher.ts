@@ -375,7 +375,7 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Collapse an edge by merging v2 into v1 (proper quadric decimation)
+   * Collapse an edge by merging two vertices into one (proper quadric decimation)
    */
   private static collapseEdge(
     edge: {v1: number, v2: number},
@@ -390,36 +390,38 @@ export class VertexRemovalStitcher {
       return false; // Can't collapse edge to itself
     }
 
-    // Step 1: Find the faces that share this edge (these will be removed)
-    const facesToRemove = this.findFacesSharingEdge(v1, v2, indices);
-    console.log(`🔧 Collapsing edge ${v1}-${v2}, removing ${facesToRemove.length} faces that share this edge`);
+    console.log(`🔗 Collapsing vertices ${v2} → ${v1} (merging two points into one)`);
 
-    // Step 2: Calculate new position (midpoint of the edge)
+    // Step 1: Calculate optimal position for merged vertex
+    // Using midpoint for simplicity (in full quadric decimation, this would use quadric error minimization)
     const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
     const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
     const newZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) * 0.5;
 
-    // Step 3: Update v1 position to the new position
+    // Step 2: Move v1 to the optimal position
     positions[v1 * 3] = newX;
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Step 4: Replace all occurrences of v2 with v1 in the index array
+    // Step 3: MERGE vertices by replacing all v2 references with v1
+    // This is the core of vertex collapsing - we're making v2 and v1 the same point
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
-        indices[i] = v1;
+        indices[i] = v1; // Merge: v2 now points to v1's location
       }
     }
 
-    // Step 5: Remove ONLY the faces that shared the collapsed edge
-    this.removeSpecificFaces(indices, facesToRemove);
+    // Step 4: Clean up degenerate triangles that naturally result from merging
+    // When two vertices become one, some triangles become invalid (e.g., [v1, v1, v3])
+    this.removeDegenerateFaces(indices);
 
-    // Step 6: Update vertex-to-faces mapping
+    // Step 5: Update vertex-to-faces mapping (v2 no longer exists as a separate vertex)
     const v2Faces = vertexToFaces.get(v2) || [];
     const v1Faces = vertexToFaces.get(v1) || [];
     vertexToFaces.set(v1, [...v1Faces, ...v2Faces]);
-    vertexToFaces.delete(v2);
+    vertexToFaces.delete(v2); // v2 no longer exists as a separate vertex
 
+    console.log(`✅ Vertices merged successfully, degenerate faces cleaned up`);
     return true;
   }
 
