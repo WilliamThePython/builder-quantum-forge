@@ -97,7 +97,7 @@ export class VertexRemovalStitcher {
 
     // Validate result geometry
     if (!this.validateGeometry(resultGeometry)) {
-      console.error('❌ Decimation produced invalid geometry, returning original');
+      console.error('❌ Triangle decimation produced invalid geometry, returning original');
       return {
         simplifiedGeometry: geometry,
         originalStats,
