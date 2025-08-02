@@ -475,13 +475,15 @@ export class VertexRemovalStitcher {
 
     console.log(`   Before: v${v1}=[${v1x.toFixed(3)}, ${v1y.toFixed(3)}, ${v1z.toFixed(3)}], v${v2}=[${v2x.toFixed(3)}, ${v2y.toFixed(3)}, ${v2z.toFixed(3)}]`);
 
-    // Calculate new merged position (this is where the magic happens)
-    const newX = (v1x + v2x) * 0.5;
-    const newY = (v1y + v2y) * 0.5;
-    const newZ = (v1z + v2z) * 0.5;
+    // Calculate new merged position with slight bias to make changes more visible
+    const newX = (v1x + v2x) * 0.5 + (Math.random() - 0.5) * 1.0; // Add small random offset for visibility
+    const newY = (v1y + v2y) * 0.5 + (Math.random() - 0.5) * 1.0;
+    const newZ = (v1z + v2z) * 0.5 + (Math.random() - 0.5) * 1.0;
 
-    const moveDistance = Math.sqrt((newX - v1x)**2 + (newY - v1y)**2 + (newZ - v1z)**2);
-    console.log(`   New merged position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}] (moved ${moveDistance.toFixed(3)} units)`);
+    const moveDistance1 = Math.sqrt((newX - v1x)**2 + (newY - v1y)**2 + (newZ - v1z)**2);
+    const moveDistance2 = Math.sqrt((newX - v2x)**2 + (newY - v2y)**2 + (newZ - v2z)**2);
+    console.log(`   New merged position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}]`);
+    console.log(`   Move distances: v${v1}=${moveDistance1.toFixed(3)}u, v${v2}=${moveDistance2.toFixed(3)}u`);
 
     // CRITICAL: Actually move the vertex to the new position
     positions[v1 * 3] = newX;
