@@ -58,6 +58,18 @@ export class VertexRemovalStitcher {
     // Apply quadric edge collapse
     const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
 
+    // Validate result geometry
+    if (!this.validateGeometry(resultGeometry)) {
+      console.error('❌ Decimation produced invalid geometry, returning original');
+      return {
+        simplifiedGeometry: geometry,
+        originalStats,
+        newStats: originalStats,
+        reductionAchieved: 0,
+        processingTime: Date.now() - startTime
+      };
+    }
+
     // Get final stats
     const newStats = this.getMeshStats(resultGeometry);
     const reductionAchieved = Math.max(0, 1 - (newStats.vertices / originalStats.vertices));
