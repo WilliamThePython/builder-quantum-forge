@@ -62,32 +62,31 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Random vertex removal with stitching
+   * Random vertex removal with proper stitching
    */
   private static async randomVertexRemoval(
     geometry: THREE.BufferGeometry,
     verticesToRemove: number
   ): Promise<THREE.BufferGeometry> {
-    console.log('🎲 Applying simplified random vertex removal...');
+    console.log('🎲 Applying proper vertex removal with stitching...');
 
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
 
-    // Simple approach: randomly remove faces instead of vertices to avoid complex stitching
-    const indices = indexedGeometry.index!.array;
-    const faceCount = indices.length / 3;
-    const targetFaces = Math.floor(faceCount * (1 - (verticesToRemove / indexedGeometry.attributes.position.count)));
-    const facesToKeep = Math.max(4, targetFaces); // Keep at least 4 faces (tetrahedron)
+    // Get unique vertices and build adjacency information
+    const { vertices, faces, vertexToFaces } = this.analyzeGeometry(indexedGeometry);
 
-    console.log(`🎲 Reducing faces from ${faceCount} to ${facesToKeep}`);
+    console.log(`📊 Geometry analysis: ${vertices.length} unique vertices, ${faces.length} faces`);
 
-    // Randomly select faces to keep
-    const faceIndices = Array.from({ length: faceCount }, (_, i) => i);
-    const shuffledFaces = faceIndices.sort(() => Math.random() - 0.5);
-    const facesToKeepIndices = shuffledFaces.slice(0, facesToKeep);
+    // Select vertices to remove randomly
+    const verticesToRemoveSet = this.selectRandomVerticesForRemoval(vertices.length, verticesToRemove);
+    console.log(`🎲 Selected ${verticesToRemoveSet.size} vertices for removal: [${Array.from(verticesToRemoveSet).slice(0, 5).join(', ')}...]`);
 
-    // Build new geometry with selected faces
-    return this.buildGeometryFromFaces(indexedGeometry, facesToKeepIndices);
+    // Remove vertices and stitch holes
+    const newFaces = this.removeVerticesAndStitch(faces, verticesToRemoveSet, vertexToFaces, vertices);
+
+    // Rebuild geometry
+    return this.rebuildGeometry(vertices, newFaces, verticesToRemoveSet);
   }
 
   /**
