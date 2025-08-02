@@ -34,22 +34,22 @@ export class VertexRemovalStitcher {
     const hasPolygonStructure = (geometry as any).polygonFaces;
 
     if (hasPolygonStructure) {
-      console.log('📊 PRESERVING SOLID STRUCTURE: Model has polygon faces, avoiding triangulation');
+      console.log('🚫 POLYGON MODEL DETECTED: Completely avoiding triangulation-based decimation');
       console.log(`   Original structure: ${(geometry as any).polygonFaces.length} polygon faces`);
+      console.log('   🎯 Using polygon-preserving vertex merging instead');
 
-      // For polygon geometries, work directly with the existing structure
-      // Don't convert to indexed triangles - this breaks the solid
-      if (!workingGeometry.index) {
-        // Only index if absolutely necessary, but warn about structure loss
-        console.warn('⚠️ Converting polygon geometry to indexed - this may break solid structure');
-        workingGeometry = this.ensureIndexedGeometry(workingGeometry);
-      }
+      // Use direct polygon-preserving reduction - NO indexing, NO triangulation
+      resultGeometry = this.polygonAwareDecimation(workingGeometry, targetReduction);
     } else {
-      // For triangle-based geometries, indexing is safe
+      // For triangle-based geometries, use proper QEM decimation
+      console.log('🔗 Triangle model detected, using QEM-based decimation');
       if (!workingGeometry.index) {
         console.log('🔧 Converting triangle geometry to indexed format...');
         workingGeometry = this.ensureIndexedGeometry(workingGeometry);
       }
+
+      // Apply QEM quadric edge collapse for triangle meshes
+      resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
     }
 
     // Calculate target face count with safeguards for small models
@@ -78,7 +78,7 @@ export class VertexRemovalStitcher {
     }
 
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+    console.log(`�� Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
     // Check if we should use polygon-aware decimation
     const polygonFaces = (workingGeometry as any).polygonFaces;
@@ -181,7 +181,7 @@ export class VertexRemovalStitcher {
     // Create priority queue of edges sorted by collapse cost
     const edgeQueue = this.createEdgeQueue(edges, positions, indices, vertexQuadrics, useQuadricError);
 
-    console.log(`🔧 Built ${edges.length} edges, starting collapse process...`);
+    console.log(`��� Built ${edges.length} edges, starting collapse process...`);
 
     let currentFaces = indices.length / 3;
     let collapsedEdges = 0;
