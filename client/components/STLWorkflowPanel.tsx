@@ -588,6 +588,24 @@ export default function STLWorkflowPanel({
                         🔧 Apply Quadric Decimation
                       </Button>
 
+                      {/* Decimation Painter Toggle */}
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Palette className="w-4 h-4 text-blue-400" />
+                            <div>
+                              <div className="text-white text-xs font-medium">Decimation Painter</div>
+                              <div className="text-white/60 text-xs">Click edges to decimate individual vertex pairs</div>
+                            </div>
+                          </div>
+                          <Switch
+                            id="decimation-painter"
+                            checked={false}
+                            onCheckedChange={() => {}}
+                          />
+                        </div>
+                      </div>
+
                       <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
                         <div className="font-medium text-orange-200 mb-1">🔧 Quadric Edge Collapse Process:</div>
                         <div>• Calculate quadric error matrices for each vertex</div>
