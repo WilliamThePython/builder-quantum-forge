@@ -120,7 +120,6 @@ function findVertexIndex(positions: Float32Array, targetVertex: THREE.Vector3): 
     }
   }
 
-  console.warn('⚠️ Could not find vertex index for position:', targetVertex);
   return 0;
 }
 
