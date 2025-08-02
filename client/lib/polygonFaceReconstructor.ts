@@ -10,38 +10,24 @@ import { CoplanarMerger, PolygonFace } from './coplanarMerger';
 export class PolygonFaceReconstructor {
   
   /**
-   * Reconstruct polygon faces from a triangulated geometry with comprehensive coplanar merging
+   * Reconstruct polygon faces from a triangulated geometry using unified CoplanarMerger
    */
   static reconstructPolygonFaces(geometry: THREE.BufferGeometry): any[] {
     if (!geometry || !geometry.attributes.position) {
       return [];
     }
 
-    console.log('🔄 COMPREHENSIVE POLYGON RECONSTRUCTION');
+    console.log('🔄 POLYGON RECONSTRUCTION (Using Unified CoplanarMerger)');
 
-    const positions = geometry.attributes.position;
-    const triangleCount = Math.floor(positions.count / 3);
+    const triangleCount = Math.floor(geometry.attributes.position.count / 3);
     console.log(`   Input: ${triangleCount} triangles`);
 
-    const triangles = this.extractTriangles(geometry);
+    // Use the unified CoplanarMerger for consistent methodology
+    const mergedFaces = CoplanarMerger.mergeGeometryTriangles(geometry);
 
-    // Step 1: Group triangles by coplanar faces with enhanced tolerance
-    const rawFaces = this.groupCoplanarTriangles(triangles);
-    console.log(`   Raw grouping: ${rawFaces.length} faces`);
+    console.log(`✅ Reconstruction complete: ${mergedFaces.length} robust polygon faces`);
 
-    // Step 2: Enhanced coplanar merging with iterative refinement
-    const mergedFaces = this.enhancedCoplanarMerging(rawFaces);
-    console.log(`   After enhanced merging: ${mergedFaces.length} faces`);
-
-    // Step 3: Validate all faces are truly coplanar
-    const validatedFaces = this.validateAndFixCoplanarity(mergedFaces);
-    console.log(`   After coplanarity validation: ${validatedFaces.length} faces`);
-
-    // Step 4: Final polygon optimization
-    const optimizedFaces = this.optimizePolygonFaces(validatedFaces);
-    console.log(`✅ Final result: ${optimizedFaces.length} robust polygon faces`);
-
-    return optimizedFaces;
+    return mergedFaces;
   }
 
   /**
