@@ -629,21 +629,22 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
-                          // Use Python-style quadric edge collapse
-                          onReducePoints(reductionAmount, 'quadric_edge_collapse');
+                          // Use the selected vertex removal method
+                          const method = reductionMethod === 'random_vertex_removal' ? 'random_vertex' : 'python_vertex';
+                          onReducePoints(reductionAmount, method as any);
                         }}
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
-                        disabled={isProcessing}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
+                        disabled={isProcessing || !reductionMethod}
                       >
-                        🧠 Apply Intelligent Optimization
+                        🔧 Apply Vertex Reduction
                       </Button>
 
-                      <div className="text-xs text-white/60 bg-blue-500/10 border border-blue-500/20 rounded p-2">
-                        <div className="font-medium text-blue-200 mb-1">🧠 Intelligent Process:</div>
-                        <div>• Advanced topology analysis and mesh validation</div>
-                        <div>• Adaptive simplification with geometric preservation</div>
-                        <div>• Smart face optimization for fabrication readiness</div>
-                        <div>• AI-powered safeguards maintain model integrity</div>
+                      <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
+                        <div className="font-medium text-orange-200 mb-1">🔧 Vertex Removal Process:</div>
+                        <div>• Analyze mesh topology and identify removable vertices</div>
+                        <div>• Remove vertices according to selected method</div>
+                        <div>• Stitch geometry back together to close holes</div>
+                        <div>• Validate final mesh integrity and manifold structure</div>
                       </div>
                     </div>
               </div>
