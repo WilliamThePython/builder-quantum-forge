@@ -47,7 +47,7 @@ export default function Index() {
     setToolMode(mode);
   };
 
-  const handleReducePoints = async (reduction: number, method: 'random' | 'best') => {
+  const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex') => {
     const result = await reducePoints(reduction, method);
     if (result.success) {
       // Success message will be shown in console logs
