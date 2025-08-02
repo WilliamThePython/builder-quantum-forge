@@ -507,10 +507,12 @@ export class PythonMeshProcessor {
     const mergeableVertices: Array<{v1: number, v2: number, newPos: number[]}> = [];
     const usedVertices = new Set<number>();
 
+    console.log(`   🔍 Searching for mergeable vertices in ${polygonFaces.length} polygon faces...`);
+
     for (const face of polygonFaces) {
       if (!face.vertices || face.vertices.length < 3) continue;
 
-      // Look for adjacent vertices in the polygon that are close together
+      // Look for adjacent vertices in the polygon that can be merged
       for (let i = 0; i < face.vertices.length; i++) {
         const v1 = face.vertices[i];
         const v2 = face.vertices[(i + 1) % face.vertices.length];
@@ -528,8 +530,8 @@ export class PythonMeshProcessor {
           (pos2[2] - pos1[2]) ** 2
         );
 
-        // If vertices are close enough, they can be merged
-        if (distance < 3.0) { // Adjustable threshold
+        // More aggressive merging - accept larger distances for better reduction
+        if (distance < 10.0) { // Increased threshold for more visible changes
           const newPos = [
             (pos1[0] + pos2[0]) * 0.5,
             (pos1[1] + pos2[1]) * 0.5,
@@ -539,10 +541,55 @@ export class PythonMeshProcessor {
           mergeableVertices.push({ v1, v2, newPos });
           usedVertices.add(v1);
           usedVertices.add(v2);
+
+          console.log(`   🔧 Found mergeable pair: v${v1} distance=${distance.toFixed(3)} from v${v2}`);
         }
       }
     }
 
+    // If we don't find enough mergeable vertices in adjacent pairs, look for any close vertices
+    if (mergeableVertices.length < 5) {
+      console.log(`   🔍 Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
+
+      const vertexCount = positions.length / 3;
+      for (let i = 0; i < vertexCount - 1; i++) {
+        if (usedVertices.has(i)) continue;
+
+        for (let j = i + 1; j < vertexCount; j++) {
+          if (usedVertices.has(j)) continue;
+
+          const pos1 = [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]];
+          const pos2 = [positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]];
+
+          const distance = Math.sqrt(
+            (pos2[0] - pos1[0]) ** 2 +
+            (pos2[1] - pos1[1]) ** 2 +
+            (pos2[2] - pos1[2]) ** 2
+          );
+
+          if (distance < 15.0) { // Even more aggressive for any vertex pairs
+            const newPos = [
+              (pos1[0] + pos2[0]) * 0.5,
+              (pos1[1] + pos2[1]) * 0.5,
+              (pos1[2] + pos2[2]) * 0.5
+            ];
+
+            mergeableVertices.push({ v1: i, v2: j, newPos });
+            usedVertices.add(i);
+            usedVertices.add(j);
+
+            console.log(`   🔧 Found close vertex pair: v${i} distance=${distance.toFixed(3)} from v${j}`);
+
+            // Stop after finding enough pairs
+            if (mergeableVertices.length >= 10) break;
+          }
+        }
+
+        if (mergeableVertices.length >= 10) break;
+      }
+    }
+
+    console.log(`   ✅ Found ${mergeableVertices.length} total mergeable vertex pairs`);
     return mergeableVertices;
   }
 }
