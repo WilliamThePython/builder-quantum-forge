@@ -48,6 +48,7 @@ export default function Index() {
   };
 
   const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex') => {
+    console.log('🎯 handleReducePoints called with:', { reduction, method });
     // Map UI method names to backend method names
     let backendMethod: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' | 'random_vertex' | 'python_vertex';
 
