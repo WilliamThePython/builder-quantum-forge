@@ -112,7 +112,7 @@ export class VertexRemovalStitcher {
     const reductionAchieved = Math.max(0, 1 - (newStats.vertices / originalStats.vertices));
     const processingTime = Date.now() - startTime;
     
-    console.log(`✅ Vertex removal completed: ${originalStats.vertices} → ${newStats.vertices} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
+    console.log(`✅ Triangle mesh reduction completed: ${originalStats.vertices} → ${newStats.vertices} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
     
     return {
       simplifiedGeometry: resultGeometry,
