@@ -887,16 +887,24 @@ function STLMesh() {
     }
   }, [toolMode, geometry, camera, raycaster, pointer]);
 
-  // Update canvas cursor for decimation painter mode
+  // Update canvas cursor and styling for decimation painter mode
   useEffect(() => {
     const canvas = document.querySelector('canvas');
     if (canvas) {
-      canvas.style.cursor = decimationPainterMode ? 'crosshair' : 'default';
+      if (decimationPainterMode) {
+        canvas.style.cursor = 'crosshair';
+        canvas.style.filter = 'brightness(1.1) contrast(1.05)'; // Slight visual enhancement
+        canvas.style.transition = 'filter 0.2s ease';
+      } else {
+        canvas.style.cursor = 'default';
+        canvas.style.filter = 'none';
+      }
     }
 
     return () => {
       if (canvas) {
         canvas.style.cursor = 'default';
+        canvas.style.filter = 'none';
       }
     };
   }, [decimationPainterMode]);
