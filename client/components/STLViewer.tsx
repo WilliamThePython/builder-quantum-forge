@@ -213,6 +213,92 @@ function areVerticesConsecutiveInPolygon(
   return false;
 }
 
+// Check if a polygon is actually coplanar (all vertices lie in the same plane)
+function isCoplanarPolygon(vertices: any[]): boolean {
+  if (vertices.length < 4) return true; // Triangles are always coplanar
+
+  const tolerance = 0.001;
+
+  // Convert to Vector3 objects
+  const positions = vertices.map(v =>
+    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+  );
+
+  // Calculate plane from first 3 non-collinear vertices
+  let planeNormal: THREE.Vector3 | null = null;
+  let planePoint: THREE.Vector3 | null = null;
+
+  for (let i = 0; i < positions.length - 2; i++) {
+    const v1 = positions[i];
+    const v2 = positions[i + 1];
+    const v3 = positions[i + 2];
+
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+
+    const normal = new THREE.Vector3().crossVectors(edge1, edge2);
+
+    if (normal.length() > tolerance) {
+      planeNormal = normal.normalize();
+      planePoint = v1;
+      break;
+    }
+  }
+
+  if (!planeNormal || !planePoint) return false; // All points are collinear
+
+  // Check if all other vertices lie on this plane
+  for (const vertex of positions) {
+    const toVertex = new THREE.Vector3().subVectors(vertex, planePoint);
+    const distanceToPlane = Math.abs(toVertex.dot(planeNormal));
+
+    if (distanceToPlane > tolerance) {
+      return false; // Vertex is not on the plane
+    }
+  }
+
+  return true;
+}
+
+// Check if an edge is a true polygon boundary (not internal triangulation)
+function isTruePolygonBoundaryEdge(
+  polygonFaces: any[],
+  vertex1: THREE.Vector3,
+  vertex2: THREE.Vector3
+): boolean {
+  const tolerance = 0.001;
+  let adjacentFaceCount = 0;
+
+  // Count how many coplanar polygon faces share this edge
+  for (const face of polygonFaces) {
+    if (!face.originalVertices || !isCoplanarPolygon(face.originalVertices)) continue;
+
+    let hasVertex1 = false;
+    let hasVertex2 = false;
+
+    // Check if this face contains both vertices of the edge
+    for (const vertex of face.originalVertices) {
+      const vertexPos = vertex instanceof THREE.Vector3
+        ? vertex
+        : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+
+      if (vertexPos.distanceTo(vertex1) < tolerance) hasVertex1 = true;
+      if (vertexPos.distanceTo(vertex2) < tolerance) hasVertex2 = true;
+    }
+
+    // If face has both vertices, check if they're consecutive (true boundary edge)
+    if (hasVertex1 && hasVertex2) {
+      if (areVerticesConsecutiveInPolygon(face.originalVertices, vertex1, vertex2, tolerance)) {
+        adjacentFaceCount++;
+      }
+    }
+  }
+
+  // True boundary edges should be shared by exactly 1 or 2 coplanar faces
+  // 1 = exterior boundary, 2 = interior boundary between adjacent faces
+  return adjacentFaceCount >= 1 && adjacentFaceCount <= 2;
+}
+
 // Helper function to count triangles in a polygon face
 function getTriangleCountForPolygon(face: any): number {
   if (!face.originalVertices) {
