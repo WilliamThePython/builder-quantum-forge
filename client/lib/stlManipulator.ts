@@ -18,7 +18,7 @@ export class STLManipulator {
   static async reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
-    method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' | 'random_vertex' | 'python_vertex' = 'adaptive'
+    method: 'quadric_edge_collapse' = 'quadric_edge_collapse'
   ): Promise<{
     geometry: THREE.BufferGeometry;
     originalStats: MeshStats;
@@ -26,47 +26,17 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`🔄 Starting mesh reduction (${method}, ${(targetReduction * 100).toFixed(1)}% reduction)...`);
+    console.log(`🔄 Starting quadric edge collapse (${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
-    // Check if using new vertex removal methods
-    if (method === 'random_vertex' || method === 'python_vertex') {
-      const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, method);
+    // Use quadric edge collapse method
+    const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
-      console.log('✅ Vertex removal completed:', {
-        method,
-        originalVertices: result.originalStats.vertices,
-        newVertices: result.newStats.vertices,
-        originalFaces: result.originalStats.faces,
-        newFaces: result.newStats.faces,
-        reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
-        processingTime: `${result.processingTime}ms`
-      });
-
-      return {
-        geometry: result.simplifiedGeometry,
-        originalStats: result.originalStats,
-        newStats: result.newStats,
-        reductionAchieved: result.reductionAchieved,
-        processingTime: result.processingTime
-      };
-    }
-
-    // Use the original mesh simplifier for legacy methods
-    const result = await MeshSimplifier.simplifyMesh(geometry, {
-      method,
-      targetReduction,
-      angleTolerance: 1.0 // 1 degree tolerance for coplanar face detection
-    });
-
-    console.log('✅ Mesh simplification completed:', {
-      method,
+    console.log('✅ Quadric decimation completed:', {
       originalVertices: result.originalStats.vertices,
       newVertices: result.newStats.vertices,
       originalFaces: result.originalStats.faces,
       newFaces: result.newStats.faces,
       reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
-      triangleParts: result.triangleParts.length,
-      mergedParts: result.mergedParts.length,
       processingTime: `${result.processingTime}ms`
     });
 
