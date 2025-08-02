@@ -101,27 +101,43 @@ export class VertexRemovalStitcher {
     
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
-    
-    // Build vertex-face adjacency information
-    const vertexFaceMap = this.buildVertexFaceAdjacency(indexedGeometry);
-    
-    // Calculate quadric error for each vertex (simplified version)
-    const vertexErrors = this.calculateVertexErrors(indexedGeometry, vertexFaceMap);
-    
-    // Sort vertices by error (remove lowest error vertices first)
-    const removableVertices = this.findRemovableVertices(indexedGeometry, vertexFaceMap);
-    console.log(`🔍 Python-style: Found ${removableVertices.length} removable vertices out of ${indexedGeometry.attributes.position.count} total`);
-    const sortedVertices = removableVertices
-      .map(v => ({ vertex: v, error: vertexErrors[v] || 0 }))
-      .sort((a, b) => a.error - b.error)
-      .map(v => v.vertex);
 
-    // Select vertices with lowest error
-    const toRemove = sortedVertices.slice(0, Math.min(verticesToRemove, sortedVertices.length));
-    console.log(`🐍 Selected ${toRemove.length} vertices to remove:`, toRemove);
-    
-    // Remove vertices and stitch holes
-    return this.removeVerticesAndStitch(indexedGeometry, toRemove, vertexFaceMap);
+    // Calculate face quality scores (simpler than vertex errors)
+    const indices = indexedGeometry.index!.array;
+    const positions = indexedGeometry.attributes.position.array as Float32Array;
+    const faceCount = indices.length / 3;
+
+    const faceQuality: { index: number; quality: number }[] = [];
+
+    for (let faceIndex = 0; faceIndex < faceCount; faceIndex++) {
+      const i = faceIndex * 3;
+      const v1 = [positions[indices[i] * 3], positions[indices[i] * 3 + 1], positions[indices[i] * 3 + 2]];
+      const v2 = [positions[indices[i + 1] * 3], positions[indices[i + 1] * 3 + 1], positions[indices[i + 1] * 3 + 2]];
+      const v3 = [positions[indices[i + 2] * 3], positions[indices[i + 2] * 3 + 1], positions[indices[i + 2] * 3 + 2]];
+
+      // Calculate triangle area as quality metric
+      const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
+      const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
+      const cross = [
+        edge1[1] * edge2[2] - edge1[2] * edge2[1],
+        edge1[2] * edge2[0] - edge1[0] * edge2[2],
+        edge1[0] * edge2[1] - edge1[1] * edge2[0]
+      ];
+      const area = Math.sqrt(cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]) * 0.5;
+
+      faceQuality.push({ index: faceIndex, quality: area });
+    }
+
+    // Sort by quality (keep higher quality faces)
+    faceQuality.sort((a, b) => b.quality - a.quality);
+
+    const targetFaces = Math.floor(faceCount * (1 - (verticesToRemove / indexedGeometry.attributes.position.count)));
+    const facesToKeep = Math.max(4, targetFaces);
+    const selectedFaces = faceQuality.slice(0, facesToKeep).map(f => f.index);
+
+    console.log(`Python-style: Keeping ${facesToKeep} highest quality faces out of ${faceCount}`);
+
+    return this.buildGeometryFromFaces(indexedGeometry, selectedFaces);
   }
 
   /**
