@@ -590,7 +590,9 @@ export enum STLToolMode {
 export interface ToolOperationResult {
   success: boolean;
   message: string;
+  geometry?: THREE.BufferGeometry;
   originalStats?: any;
   newStats?: any;
   processingTime?: number;
+  stats?: any;
 }
