@@ -119,7 +119,9 @@ export default function STLWorkflowPanel({
     updateViewerSettings,
     getDetailedGeometryStats,
     hasBackup,
-    restoreFromBackup
+    restoreFromBackup,
+    decimationPainterMode,
+    setDecimationPainterMode
   } = useSTL();
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
