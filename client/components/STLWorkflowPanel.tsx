@@ -1301,39 +1301,10 @@ function MobileWorkflowContent(props: any) {
             {/* Reduction Settings */}
             <div className="p-4 bg-white/10 rounded-lg border border-white/20">
               <div className="text-white text-base font-medium mb-3">
-                Vertex Removal & Stitching
+                Quadric Edge Collapse
               </div>
-
-              {/* Method Selection - larger buttons for mobile */}
-              <div className="mb-4">
-                <div className="text-white text-sm mb-3">Simplification Method</div>
-                <div className="grid grid-cols-1 gap-2">
-                  <Button
-                    onClick={() => setReductionMethod('random_vertex_removal')}
-                    className={`text-sm py-3 px-4 h-auto ${
-                      reductionMethod === 'random_vertex_removal'
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-white/20 hover:bg-white/30 text-white/80'
-                    }`}
-                  >
-                    🎲 Random Vertex Removal
-                  </Button>
-                  <Button
-                    onClick={() => setReductionMethod('python_vertex_removal')}
-                    className={`text-sm py-3 px-4 h-auto ${
-                      reductionMethod === 'python_vertex_removal'
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-white/20 hover:bg-white/30 text-white/80'
-                    }`}
-                  >
-                    🐍 Python-Style Removal
-                  </Button>
-                </div>
-                <div className="text-sm text-white/60 mt-2 bg-white/5 rounded p-2">
-                  {reductionMethod === 'random_vertex_removal' && '🎲 Randomly selects vertices to remove, then stitches holes closed.'}
-                  {reductionMethod === 'python_vertex_removal' && '🐍 Uses quadric decimation for intelligent vertex selection.'}
-                  {!reductionMethod && 'Select a method to see details...'}
-                </div>
+              <div className="text-sm text-white/60 mb-4 bg-white/5 rounded p-2">
+                🔧 <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features.
               </div>
 
               {/* Reduction Amount - larger slider for mobile */}
