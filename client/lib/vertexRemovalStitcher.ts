@@ -158,7 +158,13 @@ export class VertexRemovalStitcher {
         currentFaces = indices.length / 3; // Update with actual face count after collapse
         collapsedEdges++;
 
-        if (collapsedEdges % 100 === 0) {
+        // Validate that we haven't removed too many faces
+        if (currentFaces < 4) {
+          console.warn(`⚠️ Face count dropped below minimum (${currentFaces}), stopping decimation`);
+          break;
+        }
+
+        if (collapsedEdges % 50 === 0) {
           console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
         }
       }
