@@ -2470,10 +2470,54 @@ export class VertexRemovalStitcher {
     console.log(`     Distance checks performed: ${distanceChecks}`);
     console.log(`     Mergeable pairs found: ${mergeableVertices.length}/${targetMerges}`);
 
+    // If no vertices found from polygon faces, try brute force search of all vertices
+    if (allVertices.length === 0) {
+      console.warn(`     ⚠️ NO VERTICES EXTRACTED FROM POLYGON FACES!`);
+      console.warn(`     Trying brute force search of all vertices for duplicates...`);
+
+      // Search all vertices for duplicates/close ones
+      for (let i = 0; i < vertexCount && mergeableVertices.length < targetMerges; i++) {
+        for (let j = i + 1; j < vertexCount && mergeableVertices.length < targetMerges; j++) {
+          const pos1 = [positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]];
+          const pos2 = [positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]];
+
+          const distance = Math.sqrt(
+            (pos2[0] - pos1[0]) ** 2 +
+            (pos2[1] - pos1[1]) ** 2 +
+            (pos2[2] - pos1[2]) ** 2
+          );
+
+          console.log(`     🔍 Brute force: v${i} ↔ v${j} distance: ${distance.toFixed(6)}`);
+
+          // Use very tight threshold to find exact duplicates first
+          if (distance < 0.001) {
+            const newPos = [
+              (pos1[0] + pos2[0]) * 0.5,
+              (pos1[1] + pos2[1]) * 0.5,
+              (pos1[2] + pos2[2]) * 0.5
+            ];
+
+            mergeableVertices.push({ v1: i, v2: j, newPos });
+            console.log(`     ✅ EXACT DUPLICATE: v${i} = v${j} (distance: ${distance.toFixed(6)})`);
+          } else if (distance < 2.0 && mergeableVertices.length < 5) {
+            // Also try close vertices if we need more merges
+            const newPos = [
+              (pos1[0] + pos2[0]) * 0.5,
+              (pos1[1] + pos2[1]) * 0.5,
+              (pos1[2] + pos2[2]) * 0.5
+            ];
+
+            mergeableVertices.push({ v1: i, v2: j, newPos });
+            console.log(`     ✅ CLOSE VERTICES: v${i} ≈ v${j} (distance: ${distance.toFixed(3)})`);
+          }
+        }
+      }
+    }
+
     if (mergeableVertices.length === 0) {
-      console.warn(`     ⚠️ NO MERGEABLE VERTICES FOUND!`);
+      console.warn(`     ⚠️ NO MERGEABLE VERTICES FOUND ANYWHERE!`);
       console.warn(`     This means no vertices are close enough to merge.`);
-      console.warn(`     Consider: 1) Smaller model needs looser thresholds, 2) Vertices already optimally spaced`);
+      console.warn(`     Model may already be optimally reduced.`);
     }
 
     return mergeableVertices;
