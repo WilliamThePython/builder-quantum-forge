@@ -158,6 +158,11 @@ export class VertexRemovalStitcher {
     let currentFaces = indices.length / 3;
     let collapsedEdges = 0;
 
+    // Store original positions for comparison
+    const originalPositions = new Float32Array(positions);
+    console.log(`🔄 Starting edge collapse: target ${targetFaces} faces`);
+    console.log(`   Original first vertex: [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`);
+
     // Collapse edges until we reach target face count
     const maxIterations = Math.min(edgeQueue.length, targetFaces * 2);
     let iterations = 0;
@@ -183,10 +188,26 @@ export class VertexRemovalStitcher {
           break;
         }
 
-        if (collapsedEdges % 50 === 0) {
+        if (collapsedEdges <= 3 || collapsedEdges % 20 === 0) {
           console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
         }
       }
+    }
+
+    // Verify that positions actually changed
+    let positionsChanged = 0;
+    for (let i = 0; i < positions.length; i++) {
+      if (Math.abs(positions[i] - originalPositions[i]) > 0.001) {
+        positionsChanged++;
+      }
+    }
+    console.log(`🔍 POSITION VERIFICATION: ${positionsChanged}/${positions.length} position values changed`);
+    console.log(`   Final first vertex: [${positions[0].toFixed(3)}, ${positions[1].toFixed(3)}, ${positions[2].toFixed(3)}]`);
+
+    if (positionsChanged === 0) {
+      console.error(`⚠️ CRITICAL: NO VERTEX POSITIONS CHANGED! This explains why the model looks the same.`);
+    } else {
+      console.log(`✅ SUCCESS: ${positionsChanged} vertex positions changed - model should look different!`);
     }
 
     // Clean up and rebuild geometry with improved vertex handling
