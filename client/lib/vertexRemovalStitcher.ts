@@ -104,8 +104,42 @@ export class VertexRemovalStitcher {
       // Force geometry refresh
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
+      // FINAL VERIFICATION: Check the updated positions
+      console.log(`✅ === FINAL VERIFICATION ===`);
+      const finalPositions = resultGeometry.attributes.position.array as Float32Array;
+      console.log(`   Final vertex ${vertexIndex1}: [${finalPositions[vertexIndex1 * 3].toFixed(3)}, ${finalPositions[vertexIndex1 * 3 + 1].toFixed(3)}, ${finalPositions[vertexIndex1 * 3 + 2].toFixed(3)}]`);
+      console.log(`   Final vertex ${vertexIndex2}: [${finalPositions[vertexIndex2 * 3].toFixed(3)}, ${finalPositions[vertexIndex2 * 3 + 1].toFixed(3)}, ${finalPositions[vertexIndex2 * 3 + 2].toFixed(3)}]`);
+
+      // Check if they're actually at the collapse position
+      const v1AtTarget = Math.abs(finalPositions[vertexIndex1 * 3] - collapsePosition.x) < 0.001 &&
+                        Math.abs(finalPositions[vertexIndex1 * 3 + 1] - collapsePosition.y) < 0.001 &&
+                        Math.abs(finalPositions[vertexIndex1 * 3 + 2] - collapsePosition.z) < 0.001;
+
+      const v2AtTarget = Math.abs(finalPositions[vertexIndex2 * 3] - collapsePosition.x) < 0.001 &&
+                        Math.abs(finalPositions[vertexIndex2 * 3 + 1] - collapsePosition.y) < 0.001 &&
+                        Math.abs(finalPositions[vertexIndex2 * 3 + 2] - collapsePosition.z) < 0.001;
+
+      console.log(`   Vertex ${vertexIndex1} at target: ${v1AtTarget ? '✅' : '❌'}`);
+      console.log(`   Vertex ${vertexIndex2} at target: ${v2AtTarget ? '✅' : '❌'}`);
+
+      // Count remaining references in indices
+      if (resultGeometry.index) {
+        const indices = resultGeometry.index.array;
+        let v1References = 0;
+        let v2References = 0;
+
+        for (let i = 0; i < indices.length; i++) {
+          if (indices[i] === vertexIndex1) v1References++;
+          if (indices[i] === vertexIndex2) v2References++;
+        }
+
+        console.log(`   Index references - vertex ${vertexIndex1}: ${v1References}, vertex ${vertexIndex2}: ${v2References}`);
+        console.log(`   Expected: vertex ${vertexIndex2} should have 0 references after merge`);
+      }
+
       console.log(`✅ SIMPLE EDGE COLLAPSE COMPLETED`);
       console.log(`   Vertices: ${geometry.attributes.position.count} (unchanged - just repositioned)`);
+      console.log(`   Index updates: ${indexUpdates}`);
       console.log(`   Merged vertex ${vertexIndex2} into vertex ${vertexIndex1}`);
 
       return {
