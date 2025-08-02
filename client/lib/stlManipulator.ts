@@ -80,21 +80,22 @@ export class STLManipulator {
   /**
    * Decimate a single edge by merging two vertices
    */
-  async decimateSingleEdge(
+  static async decimateSingleEdge(
+    geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number
   ): Promise<ToolOperationResult> {
     console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
     console.log(`   Collapsing edge: vertex ${vertexIndex1} → vertex ${vertexIndex2}`);
 
-    if (!this.geometry) {
+    if (!geometry) {
       return { success: false, message: 'No geometry loaded' };
     }
 
     try {
       // Get vertex positions
-      const positions = this.geometry.attributes.position.array as Float32Array;
-      const vertexCount = this.geometry.attributes.position.count;
+      const positions = geometry.attributes.position.array as Float32Array;
+      const vertexCount = geometry.attributes.position.count;
 
       if (vertexIndex1 >= vertexCount || vertexIndex2 >= vertexCount) {
         return { success: false, message: 'Invalid vertex indices' };
