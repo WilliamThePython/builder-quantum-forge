@@ -44,7 +44,7 @@ import { estimateModelFileSize, estimatePartsFileSize, getTestFileSizeData } fro
 interface STLWorkflowPanelProps {
   activeToolMode: STLToolMode;
   onToolModeChange: (mode: STLToolMode) => void;
-  onReducePoints: (reduction: number, method: 'random' | 'best') => void;
+  onReducePoints: (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex') => void;
   isProcessing: boolean;
   geometryStats: {
     vertices: number;
