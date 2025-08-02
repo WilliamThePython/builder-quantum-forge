@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+import { CoplanarMerger, PolygonFace } from './coplanarMerger';
 
 /**
- * PolygonFaceReconstructor analyzes triangulated geometries and attempts to 
+ * PolygonFaceReconstructor analyzes triangulated geometries and attempts to
  * reconstruct the original polygon faces by finding coplanar triangles
+ *
+ * Now uses the unified CoplanarMerger for consistent methodology
  */
 export class PolygonFaceReconstructor {
   
