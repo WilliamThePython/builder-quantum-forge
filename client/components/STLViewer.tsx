@@ -876,7 +876,7 @@ function STLMesh() {
     return edgeData;
   }, [geometry, decimationPainterMode]);
 
-  // Handle edge highlighting on hover in decimation painter mode
+  // Enhanced edge highlighting with multiple detection methods
   useEffect(() => {
     if (!decimationPainterMode || !edgeGeometry) {
       setHighlightedEdge(null);
@@ -889,25 +889,14 @@ function STLMesh() {
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      // Perform raycasting directly against polygon edge lines
-      raycaster.setFromCamera(pointer, camera);
-      raycaster.params.Line.threshold = 3; // Increase threshold for easier edge selection
-
-      let nearestEdge = null;
-      let minDistance = Number.MAX_VALUE;
-
-      // Test intersection with each polygon perimeter edge line
-      for (const edgeData of edgeGeometry) {
-        const intersects = raycaster.intersectObject(edgeData.line);
-
-        if (intersects.length > 0) {
-          const distance = intersects[0].distance;
-          if (distance < minDistance) {
-            minDistance = distance;
-            nearestEdge = edgeData;
-          }
-        }
-      }
+      // Enhanced edge detection with multiple methods
+      const nearestEdge = findNearestEdgeEnhanced(
+        edgeGeometry,
+        pointer,
+        camera,
+        raycaster,
+        rect
+      );
 
       if (nearestEdge) {
         setHighlightedEdge({
