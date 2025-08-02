@@ -1,4 +1,3 @@
-import React, { useRef, useEffect, useMemo } from 'react';
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
