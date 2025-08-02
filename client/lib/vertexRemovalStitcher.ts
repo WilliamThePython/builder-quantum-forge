@@ -610,7 +610,7 @@ export class VertexRemovalStitcher {
       newPositions.push(x, y, z);
 
       // Debug first few vertices to see if positions changed
-      if (newVertexIndex < 3) {
+      if (newVertexIndex < 5) {
         console.log(`   Vertex ${oldIndex} → ${newVertexIndex}: [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
       }
       newVertexIndex++;
@@ -630,13 +630,13 @@ export class VertexRemovalStitcher {
       }
     }
 
-    // Create new geometry with proper updates
+    // Create NEW geometry with completely new UUID to force viewer update
     const newGeometry = new THREE.BufferGeometry();
     const positionAttribute = new THREE.Float32BufferAttribute(newPositions, 3);
     newGeometry.setAttribute('position', positionAttribute);
     newGeometry.setIndex(newIndices);
 
-    // Force updates for proper visual refresh
+    // Force complete updates for proper visual refresh
     positionAttribute.needsUpdate = true;
 
     if (newIndices.length >= 3) {
@@ -646,11 +646,15 @@ export class VertexRemovalStitcher {
     newGeometry.computeBoundingBox();
     newGeometry.computeBoundingSphere();
 
+    // Generate new UUID to ensure React Three Fiber recognizes this as a different geometry
+    newGeometry.uuid = THREE.MathUtils.generateUUID();
+
     console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
+    console.log(`   🔄 New geometry UUID: ${newGeometry.uuid} (should force viewer update)`);
 
     // Debug final positions to confirm changes are preserved
-    console.log(`   Final geometry first 3 vertices:`);
-    for (let i = 0; i < Math.min(3, newPositions.length / 3); i++) {
+    console.log(`   📍 Final geometry first 5 vertices:`);
+    for (let i = 0; i < Math.min(5, newPositions.length / 3); i++) {
       const x = newPositions[i * 3];
       const y = newPositions[i * 3 + 1];
       const z = newPositions[i * 3 + 2];
