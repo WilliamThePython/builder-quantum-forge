@@ -2219,9 +2219,21 @@ export class VertexRemovalStitcher {
       });
     }
 
+    // Debug all vertex positions first
+    console.log(`   🔍 VERTEX ANALYSIS:`);
+    console.log(`     - Total vertices: ${vertexCount}`);
+    console.log(`     - Vertices to remove: ${verticesToRemove}`);
+    console.log(`     - Vertex positions:`);
+    for (let i = 0; i < Math.min(vertexCount, 10); i++) {
+      const x = originalPositions[i * 3];
+      const y = originalPositions[i * 3 + 1];
+      const z = originalPositions[i * 3 + 2];
+      console.log(`       v${i}: [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
+    }
+
     // Find vertices that can be merged (very close to each other)
     const mergeableVertices = this.findMergeableVerticesForPolygons(polygonFaces, originalPositions, verticesToRemove);
-    console.log(`   Found ${mergeableVertices.length} mergeable vertex pairs`);
+    console.log(`   📊 MERGING ANALYSIS: Found ${mergeableVertices.length} mergeable vertex pairs`);
 
     // Create vertex remapping - map old indices to new indices
     const vertexRemapping = new Map<number, number>();
