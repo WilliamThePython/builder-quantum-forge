@@ -116,7 +116,7 @@ export class VertexRemovalStitcher {
       for (const attributeName in geometry.attributes) {
         if (attributeName !== 'position') {
           const attribute = geometry.attributes[attributeName];
-          const newAttribute = this.compactAttribute(attribute, vertexIndex2, originalVertexCount);
+          const newAttribute = this.compactAttribute(attribute, removeVertex, originalVertexCount);
           if (newAttribute) {
             resultGeometry.setAttribute(attributeName, newAttribute);
           }
