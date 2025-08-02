@@ -78,9 +78,11 @@ export class VertexRemovalStitcher {
     
     // Get removable vertices (excluding those that would break topology)
     const removableVertices = this.findRemovableVertices(indexedGeometry, vertexFaceMap);
-    
+    console.log(`🔍 Found ${removableVertices.length} removable vertices out of ${indexedGeometry.attributes.position.count} total`);
+
     // Randomly select vertices to remove
     const toRemove = this.selectRandomVertices(removableVertices, Math.min(verticesToRemove, removableVertices.length));
+    console.log(`🎲 Selected ${toRemove.length} vertices to remove:`, toRemove);
     
     // Remove vertices and stitch holes
     return this.removeVerticesAndStitch(indexedGeometry, toRemove, vertexFaceMap);
