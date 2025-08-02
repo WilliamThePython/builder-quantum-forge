@@ -114,11 +114,21 @@ export class PythonMeshProcessor {
       console.log(`   Vertices: ${originalVertices} → ${finalVertices} (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
       console.log(`   Triangles: ${originalTriangles} → ${finalTriangles}`);
 
-      // Get decimated STL data
-      const decimatedSTLData = await response.arrayBuffer();
+      // Get decimated mesh data
+      const contentType = response.headers.get('content-type') || '';
+      const isOBJ = contentType.includes('text') || objData; // Check if we sent OBJ
 
-      // Convert back to Three.js geometry
-      const decimatedGeometry = await this.stlToGeometry(decimatedSTLData);
+      let decimatedGeometry: THREE.BufferGeometry;
+
+      if (isOBJ) {
+        console.log('   📥 Receiving OBJ format (polygon structure preserved)');
+        const decimatedOBJData = await response.text();
+        decimatedGeometry = await this.objToGeometry(decimatedOBJData);
+      } else {
+        console.log('   📥 Receiving STL format');
+        const decimatedSTLData = await response.arrayBuffer();
+        decimatedGeometry = await this.stlToGeometry(decimatedSTLData);
+      }
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ Python decimation complete in ${processingTime}ms`);
