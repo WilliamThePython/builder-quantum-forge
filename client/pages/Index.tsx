@@ -48,7 +48,27 @@ export default function Index() {
   };
 
   const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex') => {
-    const result = await reducePoints(reduction, method);
+    // Map UI method names to backend method names
+    let backendMethod: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' | 'random_vertex' | 'python_vertex';
+
+    switch (method) {
+      case 'random':
+        backendMethod = 'random';
+        break;
+      case 'best':
+        backendMethod = 'adaptive';
+        break;
+      case 'random_vertex':
+        backendMethod = 'random_vertex';
+        break;
+      case 'python_vertex':
+        backendMethod = 'python_vertex';
+        break;
+      default:
+        backendMethod = 'adaptive';
+    }
+
+    const result = await reducePoints(reduction, backendMethod);
     if (result.success) {
       // Success message will be shown in console logs
     } else {
