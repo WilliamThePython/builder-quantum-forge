@@ -376,7 +376,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.log('🔍 Full validation for parts export accuracy...');
         validationReport = STLGeometryValidator.validateGeometry(geometry);
       } else {
-        console.log('⏭️ Skipping intensive validation for high-poly model');
+        console.log('��️ Skipping intensive validation for high-poly model');
         // Create a minimal validation report for large models
         validationReport = {
           isValid: true,
@@ -935,7 +935,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [backupGeometry, backupProcessedModel, hasBackup]);
 
   // STL Tool Methods
-  const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' = 'adaptive'): Promise<ToolOperationResult> => {
+  const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' | 'random_vertex' | 'python_vertex' = 'adaptive'): Promise<ToolOperationResult> => {
     if (!geometry) {
       return { success: false, message: 'No model available for mesh simplification' };
     }
