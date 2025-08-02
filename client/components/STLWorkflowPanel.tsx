@@ -435,51 +435,34 @@ export default function STLWorkflowPanel({
                 />
               </div>
 
-              {/* Background Settings */}
-              <Popover open={showBackgroundSettings} onOpenChange={setShowBackgroundSettings}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium h-10"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Background Options
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  side="right"
-                  sideOffset={8}
-                  className="w-72 bg-black/90 backdrop-blur-md border-white/10 text-white"
-                >
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Background Options</h3>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Background</Label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          { color: '#0a0a0a', name: 'Space Black' },
-                          { color: '#1a1a2e', name: 'Deep Ocean' },
-                          { color: '#16213e', name: 'Midnight Blue' },
-                          { color: '#2a0845', name: 'Purple Night' },
-                          { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
-                        ].map((bg) => (
-                          <button
-                            key={bg.color}
-                            className={`w-full h-8 rounded border-2 transition-all ${
-                              viewerSettings.backgroundColor === bg.color
-                                ? 'border-white'
-                                : 'border-white/20 hover:border-white/40'
-                            }`}
-                            style={{ background: bg.color }}
-                            onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
-                            title={bg.name}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              {/* Background Settings - Colored Circles */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-white/70" />
+                  <Label className="text-sm text-white/80">Background</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  {[
+                    { color: '#0a0a0a', name: 'Space Black' },
+                    { color: '#1a1a2e', name: 'Deep Ocean' },
+                    { color: '#16213e', name: 'Midnight Blue' },
+                    { color: '#2a0845', name: 'Purple Night' },
+                    { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
+                  ].map((bg) => (
+                    <button
+                      key={bg.color}
+                      className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
+                        viewerSettings.backgroundColor === bg.color
+                          ? 'border-white shadow-lg shadow-blue-500/30'
+                          : 'border-white/30 hover:border-white/60'
+                      }`}
+                      style={{ background: bg.color }}
+                      onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                      title={bg.name}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -1305,49 +1288,34 @@ function MobileWorkflowContent(props: any) {
               />
             </div>
 
-            {/* Background Settings - compact */}
-            <Popover open={showBackgroundSettings} onOpenChange={setShowBackgroundSettings}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium h-7 text-xs"
-                >
-                  <Settings className="w-3 h-3 mr-1" />
-                  Background
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="right"
-                sideOffset={8}
-                className="w-52 bg-black/90 backdrop-blur-md border-white/10 text-white"
-              >
-                <div className="space-y-2">
-                  <h3 className="font-medium text-sm">Background</h3>
-                  <div className="space-y-1">
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
-                        { color: '#0a0a0a', name: 'Black' },
-                        { color: '#1a1a2e', name: 'Ocean' },
-                        { color: '#16213e', name: 'Blue' },
-                        { color: '#2a0845', name: 'Purple' }
-                      ].map((bg) => (
-                        <button
-                          key={bg.color}
-                          className={`w-full h-7 rounded border-2 transition-all ${
-                            viewerSettings.backgroundColor === bg.color
-                              ? 'border-white'
-                              : 'border-white/20 hover:border-white/40'
-                          }`}
-                          style={{ background: bg.color }}
-                          onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
-                          title={bg.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            {/* Background Settings - Colored Circles Mobile */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Settings className="w-3 h-3 text-white/70" />
+                <Label className="text-xs text-white/80">Background</Label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[
+                  { color: '#0a0a0a', name: 'Space Black' },
+                  { color: '#1a1a2e', name: 'Deep Ocean' },
+                  { color: '#16213e', name: 'Midnight Blue' },
+                  { color: '#2a0845', name: 'Purple Night' },
+                  { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
+                ].map((bg) => (
+                  <button
+                    key={bg.color}
+                    className={`w-5 h-5 rounded-full border-2 transition-all hover:scale-110 ${
+                      viewerSettings.backgroundColor === bg.color
+                        ? 'border-white shadow-lg shadow-blue-500/30'
+                        : 'border-white/30 hover:border-white/60'
+                    }`}
+                    style={{ background: bg.color }}
+                    onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                    title={bg.name}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
