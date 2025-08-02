@@ -433,20 +433,37 @@ export class VertexRemovalStitcher {
     console.log(`🔗 Collapsing edge ${v1}-${v2}: merging vertex ${v2} into ${v1}`);
 
     // Debug: Show positions before merge
-    console.log(`   v1 position: [${positions[v1 * 3].toFixed(3)}, ${positions[v1 * 3 + 1].toFixed(3)}, ${positions[v1 * 3 + 2].toFixed(3)}]`);
-    console.log(`   v2 position: [${positions[v2 * 3].toFixed(3)}, ${positions[v2 * 3 + 1].toFixed(3)}, ${positions[v2 * 3 + 2].toFixed(3)}]`);
+    const v1OriginalX = positions[v1 * 3];
+    const v1OriginalY = positions[v1 * 3 + 1];
+    const v1OriginalZ = positions[v1 * 3 + 2];
+    const v2OriginalX = positions[v2 * 3];
+    const v2OriginalY = positions[v2 * 3 + 1];
+    const v2OriginalZ = positions[v2 * 3 + 2];
+
+    console.log(`   BEFORE: v1[${v1}] = [${v1OriginalX.toFixed(3)}, ${v1OriginalY.toFixed(3)}, ${v1OriginalZ.toFixed(3)}]`);
+    console.log(`   BEFORE: v2[${v2}] = [${v2OriginalX.toFixed(3)}, ${v2OriginalY.toFixed(3)}, ${v2OriginalZ.toFixed(3)}]`);
 
     // Step 1: Calculate optimal position for merged vertex (using midpoint)
-    const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
-    const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
-    const newZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) * 0.5;
+    const newX = (v1OriginalX + v2OriginalX) * 0.5;
+    const newY = (v1OriginalY + v2OriginalY) * 0.5;
+    const newZ = (v1OriginalZ + v2OriginalZ) * 0.5;
+
+    // Calculate distance moved
+    const distanceMoved = Math.sqrt(
+      (newX - v1OriginalX) * (newX - v1OriginalX) +
+      (newY - v1OriginalY) * (newY - v1OriginalY) +
+      (newZ - v1OriginalZ) * (newZ - v1OriginalZ)
+    );
+    console.log(`   CALCULATED new position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}] (moved ${distanceMoved.toFixed(3)} units)`);
 
     // Step 2: Move v1 to the optimal position
     positions[v1 * 3] = newX;
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    console.log(`   merged position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}]`);
+    // Verify the position was actually changed
+    console.log(`   AFTER: v1[${v1}] = [${positions[v1 * 3].toFixed(3)}, ${positions[v1 * 3 + 1].toFixed(3)}, ${positions[v1 * 3 + 2].toFixed(3)}]`);
+    console.log(`   VERIFICATION: Position successfully moved ${distanceMoved.toFixed(3)} units`);
 
     // Step 3: Count current references before replacement
     let v1RefsBefore = 0, v2RefsBefore = 0;
@@ -561,11 +578,15 @@ export class VertexRemovalStitcher {
     const sortedVertices = Array.from(usedVertices).sort((a, b) => a - b);
     for (const oldIndex of sortedVertices) {
       vertexMapping.set(oldIndex, newVertexIndex);
-      newPositions.push(
-        positions[oldIndex * 3],
-        positions[oldIndex * 3 + 1],
-        positions[oldIndex * 3 + 2]
-      );
+      const x = positions[oldIndex * 3];
+      const y = positions[oldIndex * 3 + 1];
+      const z = positions[oldIndex * 3 + 2];
+      newPositions.push(x, y, z);
+
+      // Debug: Show vertex remapping
+      if (newVertexIndex < 5) { // Only show first 5 to avoid spam
+        console.log(`   Vertex mapping: old[${oldIndex}] -> new[${newVertexIndex}] = [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}]`);
+      }
       newVertexIndex++;
     }
 
