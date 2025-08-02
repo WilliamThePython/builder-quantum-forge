@@ -78,6 +78,84 @@ export class STLManipulator {
   }
 
   /**
+   * Decimate a single edge by merging two vertices
+   */
+  async decimateSingleEdge(
+    vertexIndex1: number,
+    vertexIndex2: number
+  ): Promise<ToolOperationResult> {
+    console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
+    console.log(`   Collapsing edge: vertex ${vertexIndex1} → vertex ${vertexIndex2}`);
+
+    if (!this.geometry) {
+      return { success: false, message: 'No geometry loaded' };
+    }
+
+    try {
+      // Get vertex positions
+      const positions = this.geometry.attributes.position.array as Float32Array;
+      const vertexCount = this.geometry.attributes.position.count;
+
+      if (vertexIndex1 >= vertexCount || vertexIndex2 >= vertexCount) {
+        return { success: false, message: 'Invalid vertex indices' };
+      }
+
+      const v1 = new THREE.Vector3(
+        positions[vertexIndex1 * 3],
+        positions[vertexIndex1 * 3 + 1],
+        positions[vertexIndex1 * 3 + 2]
+      );
+
+      const v2 = new THREE.Vector3(
+        positions[vertexIndex2 * 3],
+        positions[vertexIndex2 * 3 + 1],
+        positions[vertexIndex2 * 3 + 2]
+      );
+
+      console.log(`   v${vertexIndex1}: [${v1.x.toFixed(3)}, ${v1.y.toFixed(3)}, ${v1.z.toFixed(3)}]`);
+      console.log(`   v${vertexIndex2}: [${v2.x.toFixed(3)}, ${v2.y.toFixed(3)}, ${v2.z.toFixed(3)}]`);
+
+      // Calculate optimal collapse position (midpoint for simplicity)
+      const collapsePosition = v1.clone().add(v2).multiplyScalar(0.5);
+      console.log(`   Collapse to: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
+
+      // Use VertexRemovalStitcher for single edge collapse
+      const result = await VertexRemovalStitcher.collapseSingleEdge(
+        this.geometry,
+        vertexIndex1,
+        vertexIndex2,
+        collapsePosition
+      );
+
+      if (result.success) {
+        console.log(`✅ Single edge decimation completed successfully`);
+        console.log(`   Vertex count: ${vertexCount} → ${result.geometry?.attributes.position.count}`);
+
+        return {
+          success: true,
+          message: `Edge decimated: ${vertexIndex1}↔${vertexIndex2}`,
+          geometry: result.geometry,
+          stats: {
+            originalVertices: vertexCount,
+            newVertices: result.geometry?.attributes.position.count || 0,
+            verticesRemoved: 1
+          }
+        };
+      } else {
+        console.error(`❌ Single edge decimation failed: ${result.message}`);
+        return result;
+      }
+
+    } catch (error) {
+      console.error('❌ Single edge decimation error:', error);
+      return {
+        success: false,
+        message: `Error during edge decimation: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
    * Calculate mesh statistics
    */
   private static calculateMeshStats(geometry: THREE.BufferGeometry): MeshStats {
