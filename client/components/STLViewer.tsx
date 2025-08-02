@@ -112,6 +112,7 @@ function STLMesh() {
   useEffect(() => {
     if (geometry) {
       console.log('🌀 Starting initial model spin animation');
+      console.log(`🔄 Geometry updated in viewer: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
       spinState.current = {
         ...spinState.current,
         isSpinning: true,
