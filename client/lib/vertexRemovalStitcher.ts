@@ -1346,6 +1346,48 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Validate that geometry is not corrupted
+   */
+  private static validateGeometry(geometry: THREE.BufferGeometry): boolean {
+    try {
+      // Check basic attributes
+      if (!geometry.attributes.position) {
+        console.error('❌ Geometry missing position attribute');
+        return false;
+      }
+
+      const vertexCount = geometry.attributes.position.count;
+      if (vertexCount < 3) {
+        console.error('❌ Geometry has less than 3 vertices');
+        return false;
+      }
+
+      // Check index
+      if (geometry.index) {
+        const indexCount = geometry.index.count;
+        if (indexCount < 3 || indexCount % 3 !== 0) {
+          console.error('❌ Geometry has invalid index count');
+          return false;
+        }
+
+        // Check index values are valid
+        const indices = geometry.index.array;
+        for (let i = 0; i < indices.length; i++) {
+          if (indices[i] >= vertexCount) {
+            console.error('❌ Geometry has out-of-bounds index');
+            return false;
+          }
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Geometry validation failed:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get mesh statistics
    */
   private static getMeshStats(geometry: THREE.BufferGeometry): MeshStats {
