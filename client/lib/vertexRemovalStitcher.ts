@@ -185,6 +185,74 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Merge vertices in non-indexed geometry
+   */
+  private static mergeNonIndexedVertices(
+    positions: Float32Array,
+    keepVertex: number,
+    removeVertex: number,
+    collapsePosition: THREE.Vector3,
+    originalVertexCount: number
+  ): null {
+    // For non-indexed geometry, we need to find and merge duplicate vertices
+    // This is more complex as vertices are stored directly in face data
+    const tolerance = 0.001;
+    const vertexCount = positions.length / 3;
+
+    console.log(`   Non-indexed merge: scanning ${vertexCount} vertices for duplicates`);
+
+    // Find all vertices that match the original positions of our edge vertices
+    let mergedCount = 0;
+    for (let i = 0; i < vertexCount; i++) {
+      const vertex = new THREE.Vector3(
+        positions[i * 3],
+        positions[i * 3 + 1],
+        positions[i * 3 + 2]
+      );
+
+      // If this vertex is close to where our original vertices were, move it to collapse position
+      if (vertex.distanceTo(collapsePosition) < tolerance * 10) { // Wider tolerance for already moved vertices
+        positions[i * 3] = collapsePosition.x;
+        positions[i * 3 + 1] = collapsePosition.y;
+        positions[i * 3 + 2] = collapsePosition.z;
+        mergedCount++;
+      }
+    }
+
+    console.log(`   Merged ${mergedCount} duplicate vertices to collapse position`);
+    return null; // Non-indexed geometry doesn't use indices
+  }
+
+  /**
+   * Compact vertex attribute when removing a vertex
+   */
+  private static compactAttribute(
+    attribute: THREE.BufferAttribute,
+    removeVertexIndex: number,
+    originalVertexCount: number
+  ): THREE.BufferAttribute | null {
+    const itemSize = attribute.itemSize;
+    const oldArray = attribute.array;
+    const newVertexCount = originalVertexCount - 1;
+
+    // Create new array with one less vertex
+    const ArrayConstructor = oldArray.constructor as any;
+    const newArray = new ArrayConstructor(newVertexCount * itemSize);
+
+    // Copy data before removed vertex
+    for (let i = 0; i < removeVertexIndex * itemSize; i++) {
+      newArray[i] = oldArray[i];
+    }
+
+    // Copy data after removed vertex (shifted down)
+    for (let i = (removeVertexIndex + 1) * itemSize; i < oldArray.length; i++) {
+      newArray[i - itemSize] = oldArray[i];
+    }
+
+    return new THREE.BufferAttribute(newArray, itemSize);
+  }
+
+  /**
    * Update polygon face metadata after edge collapse
    */
   private static updatePolygonFaces(
