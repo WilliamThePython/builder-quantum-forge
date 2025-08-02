@@ -79,6 +79,12 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     }
   });
 
+  // VALIDATION: Ensure this edge is a proper polygon boundary
+  if (nearestEdge && !isValidPolygonBoundaryEdge(polygonFaces, nearestEdge.v1.position, nearestEdge.v2.position)) {
+    console.warn('⚠️ Selected edge is not a valid polygon boundary, skipping');
+    return null;
+  }
+
   return {
     vertexIndex1: nearestEdge.v1.index,
     vertexIndex2: nearestEdge.v2.index
