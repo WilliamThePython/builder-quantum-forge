@@ -612,8 +612,10 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
+                          console.log('🔄 Button clicked! Method:', reductionMethod, 'Amount:', reductionAmount);
                           // Use the selected vertex removal method
                           const method = reductionMethod === 'random_vertex_removal' ? 'random_vertex' : 'python_vertex';
+                          console.log('🔄 Mapped method:', method);
                           onReducePoints(reductionAmount, method as any);
                         }}
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
