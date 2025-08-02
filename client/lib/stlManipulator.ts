@@ -122,7 +122,7 @@ export class STLManipulator {
 
       // Use VertexRemovalStitcher for single edge collapse
       const result = await VertexRemovalStitcher.collapseSingleEdge(
-        this.geometry,
+        geometry,
         vertexIndex1,
         vertexIndex2,
         collapsePosition
