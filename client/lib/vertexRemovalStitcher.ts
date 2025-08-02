@@ -438,6 +438,61 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Build new geometry from selected faces
+   */
+  private static buildGeometryFromFaces(
+    geometry: THREE.BufferGeometry,
+    faceIndices: number[]
+  ): THREE.BufferGeometry {
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = geometry.index!.array;
+
+    // Collect unique vertices used by selected faces
+    const usedVertices = new Set<number>();
+    for (const faceIndex of faceIndices) {
+      const i = faceIndex * 3;
+      usedVertices.add(indices[i]);
+      usedVertices.add(indices[i + 1]);
+      usedVertices.add(indices[i + 2]);
+    }
+
+    // Create vertex mapping from old to new indices
+    const vertexMapping = new Map<number, number>();
+    const newPositions: number[] = [];
+    let newVertexIndex = 0;
+
+    for (const vertexIndex of Array.from(usedVertices).sort((a, b) => a - b)) {
+      vertexMapping.set(vertexIndex, newVertexIndex);
+      newPositions.push(
+        positions[vertexIndex * 3],
+        positions[vertexIndex * 3 + 1],
+        positions[vertexIndex * 3 + 2]
+      );
+      newVertexIndex++;
+    }
+
+    // Build new index array
+    const newIndices: number[] = [];
+    for (const faceIndex of faceIndices) {
+      const i = faceIndex * 3;
+      newIndices.push(
+        vertexMapping.get(indices[i])!,
+        vertexMapping.get(indices[i + 1])!,
+        vertexMapping.get(indices[i + 2])!
+      );
+    }
+
+    // Create new geometry
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.setIndex(newIndices);
+    newGeometry.computeVertexNormals();
+
+    console.log(`✅ Built new geometry: ${newVertexIndex} vertices, ${faceIndices.length} faces`);
+    return newGeometry;
+  }
+
+  /**
    * Get mesh statistics
    */
   private static getMeshStats(geometry: THREE.BufferGeometry): MeshStats {
