@@ -41,14 +41,23 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     const currentVertex = polygonVertices[i];
     const nextVertex = polygonVertices[(i + 1) % polygonVertices.length]; // Wrap around to first vertex
 
+    // Ensure vertices are Vector3 objects
+    const currentVec3 = currentVertex instanceof THREE.Vector3
+      ? currentVertex
+      : new THREE.Vector3(currentVertex.x, currentVertex.y, currentVertex.z);
+
+    const nextVec3 = nextVertex instanceof THREE.Vector3
+      ? nextVertex
+      : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
+
     perimeterEdges.push({
       v1: {
-        index: findVertexIndex(positions, currentVertex),
-        position: currentVertex.clone()
+        index: findVertexIndex(positions, currentVec3),
+        position: currentVec3.clone()
       },
       v2: {
-        index: findVertexIndex(positions, nextVertex),
-        position: nextVertex.clone()
+        index: findVertexIndex(positions, nextVec3),
+        position: nextVec3.clone()
       }
     });
   }
