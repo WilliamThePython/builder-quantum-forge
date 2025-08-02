@@ -165,6 +165,10 @@ export class VertexRemovalStitcher {
     // Clean up and rebuild geometry
     const cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
 
+    if (iterations >= maxIterations) {
+      console.warn(`⚠️ Hit safety limit of ${maxIterations} iterations, stopping early`);
+    }
+
     console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
     return cleanedGeometry;
   }
