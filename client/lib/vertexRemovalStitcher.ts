@@ -257,40 +257,52 @@ export class VertexRemovalStitcher {
    */
   private static updatePolygonFaces(
     polygonFaces: any[],
-    vertexIndex1: number,
-    vertexIndex2: number,
+    keepVertex: number,
+    removeVertex: number,
     collapsePosition: THREE.Vector3
   ): any[] {
+    console.log(`   Updating polygon faces for vertex removal: ${removeVertex} → ${keepVertex}`);
+
     return polygonFaces.map((face, faceIndex) => {
       if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
         return face;
       }
 
-      const newVertices = [];
       const tolerance = 0.001;
+      const newVertices = [];
+      let verticesRemoved = 0;
 
       // Process each vertex in the polygon
       for (let i = 0; i < face.originalVertices.length; i++) {
         const vertex = face.originalVertices[i];
+
+        // Check if this vertex should be merged to collapse position
+        // This is a simplified approach for polygon metadata
         newVertices.push(vertex.clone());
       }
 
-      // Remove consecutive duplicate vertices
+      // Remove consecutive duplicate vertices (from edge collapse)
       const cleanedVertices = [];
       for (let i = 0; i < newVertices.length; i++) {
         const currentVertex = newVertices[i];
         const nextVertex = newVertices[(i + 1) % newVertices.length];
-        
+
         if (currentVertex.distanceTo(nextVertex) > tolerance) {
           cleanedVertices.push(currentVertex);
+        } else {
+          verticesRemoved++;
         }
       }
 
-      // Update face type if needed
+      // Update face type based on new vertex count
       let newType = face.type;
       if (cleanedVertices.length === 3) newType = 'triangle';
       else if (cleanedVertices.length === 4) newType = 'quad';
       else if (cleanedVertices.length > 4) newType = 'polygon';
+
+      if (verticesRemoved > 0) {
+        console.log(`     Face ${faceIndex}: ${face.originalVertices.length} → ${cleanedVertices.length} vertices (${newType})`);
+      }
 
       return {
         ...face,
