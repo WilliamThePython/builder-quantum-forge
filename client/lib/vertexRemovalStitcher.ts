@@ -107,8 +107,18 @@ export class VertexRemovalStitcher {
         collapsePosition
       );
 
-      // STEP 7: Validate and fix coplanarity after decimation
-      const validatedFaces = this.validatePostDecimationCoplanarity(updatedPolygonFaces);
+      // STEP 7: Validate and fix coplanarity after decimation using unified merger
+      console.log('   🔄 POST-DECIMATION: Using unified CoplanarMerger validation');
+      const validatedFaces = CoplanarMerger.mergeCoplanarFaces(
+        updatedPolygonFaces.map((face: any) => ({
+          type: face.type,
+          originalVertices: face.originalVertices.map((v: any) =>
+            v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+          ),
+          normal: face.normal,
+          triangleIndices: face.triangleIndices || []
+        }))
+      );
 
       (resultGeometry as any).polygonFaces = validatedFaces;
       (resultGeometry as any).polygonType = (geometry as any).polygonType;
