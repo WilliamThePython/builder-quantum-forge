@@ -130,8 +130,9 @@ export class VertexRemovalStitcher {
       console.log(`   Vertex ${vertexIndex1} at target: ${v1AtTarget ? '✅' : '❌'}`);
       console.log(`   Vertex ${vertexIndex2} at target: ${v2AtTarget ? '✅' : '❌'}`);
 
-      // Count remaining references in indices
+      // Check vertex merge results
       if (resultGeometry.index) {
+        // INDEXED GEOMETRY - count index references
         const indices = resultGeometry.index.array;
         let v1References = 0;
         let v2References = 0;
@@ -143,6 +144,26 @@ export class VertexRemovalStitcher {
 
         console.log(`   Index references - vertex ${vertexIndex1}: ${v1References}, vertex ${vertexIndex2}: ${v2References}`);
         console.log(`   Expected: vertex ${vertexIndex2} should have 0 references after merge`);
+      } else {
+        // NON-INDEXED GEOMETRY - count position matches
+        const finalPositions = resultGeometry.attributes.position.array as Float32Array;
+        const vertexCount = finalPositions.length / 3;
+        let collapsePositionCount = 0;
+
+        for (let i = 0; i < vertexCount; i++) {
+          const vertex = new THREE.Vector3(
+            finalPositions[i * 3],
+            finalPositions[i * 3 + 1],
+            finalPositions[i * 3 + 2]
+          );
+
+          if (vertex.distanceTo(collapsePosition) < 0.001) {
+            collapsePositionCount++;
+          }
+        }
+
+        console.log(`   Vertices at collapse position: ${collapsePositionCount}`);
+        console.log(`   Expected: Multiple vertices should now share the collapse position`);
       }
 
       console.log(`✅ SIMPLE EDGE COLLAPSE COMPLETED`);
@@ -2404,7 +2425,7 @@ export class VertexRemovalStitcher {
 
       mergedCount++;
 
-      console.log(`   🚫 POLYGON MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] ��� [${newPos.map(v => v.toFixed(3)).join(',')}]`);
+      console.log(`   🚫 POLYGON MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] → [${newPos.map(v => v.toFixed(3)).join(',')}]`);
 
       if (mergedCount >= 15) break; // Limit for performance
     }
