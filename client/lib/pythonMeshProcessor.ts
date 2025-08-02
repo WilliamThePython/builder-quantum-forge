@@ -62,31 +62,38 @@ export class PythonMeshProcessor {
 
     // Check if geometry has polygon structure
     const polygonFaces = (geometry as any).polygonFaces;
-    let formData: FormData;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
-      console.log(`   🔸 PRESERVING POLYGON STRUCTURE: Converting to OBJ format with ${polygonFaces.length} polygon faces`);
+      console.log(`   🚫 CRITICAL: Model has ${polygonFaces.length} polygon faces - AVOIDING Python service`);
+      console.log(`   🔸 Using direct polygon vertex reduction instead`);
 
-      // Convert to OBJ format to preserve polygon structure
-      const objData = await this.geometryToOBJ(geometry, polygonFaces);
-      console.log(`   Generated OBJ data: ${objData.length} bytes`);
+      // Apply polygon-preserving reduction directly without Python service
+      const reducedGeometry = await this.polygonPreservingReduction(geometry, polygonFaces, targetReduction);
 
-      // Create form data for upload
-      formData = new FormData();
-      const objBlob = new Blob([objData], { type: 'text/plain' });
-      formData.append('file', objBlob, 'mesh.obj');
-    } else {
-      console.log(`   Converting triangle mesh to STL format`);
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ Polygon-preserving reduction complete in ${processingTime}ms`);
 
-      // Convert Three.js geometry to STL format for triangle meshes
-      const stlData = await this.geometryToSTL(geometry);
-      console.log(`   Generated STL data: ${stlData.length} bytes`);
-
-      // Create form data for upload
-      formData = new FormData();
-      const stlBlob = new Blob([stlData], { type: 'application/octet-stream' });
-      formData.append('file', stlBlob, 'mesh.stl');
+      return {
+        geometry: reducedGeometry,
+        originalVertices: geometry.attributes.position.count,
+        finalVertices: reducedGeometry.attributes.position.count,
+        originalTriangles: 0, // Not applicable for polygons
+        finalTriangles: 0,    // Not applicable for polygons
+        reductionAchieved: targetReduction,
+        processingTime
+      };
     }
+
+    console.log(`   Using Python service for triangle mesh`);
+
+    // Convert Three.js geometry to STL format for triangle meshes
+    const stlData = await this.geometryToSTL(geometry);
+    console.log(`   Generated STL data: ${stlData.length} bytes`);
+
+    // Create form data for upload
+    const formData = new FormData();
+    const stlBlob = new Blob([stlData], { type: 'application/octet-stream' });
+    formData.append('file', stlBlob, 'mesh.stl');
     formData.append('target_reduction', targetReduction.toString());
     formData.append('preserve_boundary', preserveBoundary.toString());
 
