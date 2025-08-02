@@ -146,9 +146,10 @@ export class VertexRemovalStitcher {
       }
 
       // Perform edge collapse
+      const facesBeforeCollapse = indices.length / 3;
       const success = this.collapseEdge(edge, positions, indices, vertexToFaces);
       if (success) {
-        currentFaces -= 2; // Each edge collapse removes 2 faces
+        currentFaces = indices.length / 3; // Update with actual face count after collapse
         collapsedEdges++;
 
         if (collapsedEdges % 100 === 0) {
