@@ -82,21 +82,15 @@ export class VertexRemovalStitcher {
 
     // Check if we should use polygon-aware decimation
     const polygonFaces = (workingGeometry as any).polygonFaces;
+    let resultGeometry: THREE.BufferGeometry;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
       console.log(`📊 Using POLYGON-AWARE decimation for ${polygonFaces.length} solid faces`);
-      const resultGeometry = this.polygonAwareDecimation(workingGeometry, targetReduction);
-      return {
-        simplifiedGeometry: resultGeometry,
-        originalStats,
-        newStats: this.getMeshStats(resultGeometry),
-        reductionAchieved: targetReduction,
-        processingTime: Date.now() - startTime
-      };
+      resultGeometry = this.polygonAwareDecimation(workingGeometry, targetReduction);
     } else {
       console.log(`🔗 Using triangle-based decimation for triangle mesh`);
       // Apply quadric edge collapse (vertex merging)
-      const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
+      resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
     }
 
     // Validate result geometry
