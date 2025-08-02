@@ -221,25 +221,37 @@ export class OBJConverter {
         const parts = trimmed.split(/\s+/).slice(1);
         
         if (parts.length >= 3) {
-          // Convert to triangles if needed (for quads/polygons)
+          // Parse face vertices
           const faceVertices = parts.map(part => {
             // Handle vertex/texture/normal format (v/vt/vn)
             const indices = part.split('/');
             return parseInt(indices[0]) - 1; // Convert to 0-based indexing
           });
-          
-          // Triangulate polygon faces
+
+          console.log(`🚫 PRESERVING polygon face with ${faceVertices.length} vertices (NO triangulation)`);
+
+          // Store polygon face information to preserve structure
+          polygonFaces.push({
+            vertices: faceVertices,
+            originalVertices: [...faceVertices],
+            type: faceVertices.length === 3 ? 'triangle' :
+                  faceVertices.length === 4 ? 'quad' :
+                  faceVertices.length === 5 ? 'pentagon' :
+                  faceVertices.length === 6 ? 'hexagon' : 'polygon'
+          });
+
+          // TEMPORARILY triangulate ONLY for Three.js rendering compatibility
+          // This is unfortunate but required for current Three.js mesh rendering
           if (faceVertices.length === 3) {
-            // Triangle
             faces.push(faceVertices[0], faceVertices[1], faceVertices[2]);
           } else if (faceVertices.length === 4) {
-            // Quad - split into two triangles
+            // Quad - split into two triangles for rendering only
             faces.push(
               faceVertices[0], faceVertices[1], faceVertices[2],
               faceVertices[0], faceVertices[2], faceVertices[3]
             );
           } else if (faceVertices.length > 4) {
-            // Polygon - fan triangulation
+            // Polygon - fan triangulation for rendering only
             for (let i = 1; i < faceVertices.length - 1; i++) {
               faces.push(faceVertices[0], faceVertices[i], faceVertices[i + 1]);
             }
