@@ -7,7 +7,7 @@ import { MeshStats } from './meshSimplifier';
 export class VertexRemovalStitcher {
 
   /**
-   * True vertex merging with array compaction
+   * Logical vertex merging - finds all instances of edge vertices and merges them
    */
   static async collapseSingleEdge(
     geometry: THREE.BufferGeometry,
@@ -20,22 +20,62 @@ export class VertexRemovalStitcher {
     geometry?: THREE.BufferGeometry;
   }> {
     const originalVertexCount = geometry.attributes.position.count;
-    console.log(`🎯 TRUE VERTEX MERGE: ${vertexIndex1} ↔ ${vertexIndex2} → [${collapsePosition.x.toFixed(2)}, ${collapsePosition.y.toFixed(2)}, ${collapsePosition.z.toFixed(2)}]`);
-    console.log(`   Original vertex count: ${originalVertexCount}`);
+    console.log(`🎯 LOGICAL VERTEX MERGE: ${vertexIndex1} ↔ ${vertexIndex2} → [${collapsePosition.x.toFixed(2)}, ${collapsePosition.y.toFixed(2)}, ${collapsePosition.z.toFixed(2)}]`);
+    console.log(`   Original buffer vertices: ${originalVertexCount}`);
 
     try {
-      // Always merge higher index into lower index to simplify compaction
-      const keepVertex = Math.min(vertexIndex1, vertexIndex2);
-      const removeVertex = Math.max(vertexIndex1, vertexIndex2);
+      const positions = geometry.attributes.position.array as Float32Array;
 
-      console.log(`   Strategy: Remove vertex ${removeVertex}, keep vertex ${keepVertex}`);
+      // STEP 1: Find all instances of the two logical vertices
+      const vertex1Pos = new THREE.Vector3(
+        positions[vertexIndex1 * 3],
+        positions[vertexIndex1 * 3 + 1],
+        positions[vertexIndex1 * 3 + 2]
+      );
 
-      // STEP 1: Create new vertex array with one less vertex
-      const oldPositions = geometry.attributes.position.array as Float32Array;
-      const newVertexCount = originalVertexCount - 1;
-      const newPositions = new Float32Array(newVertexCount * 3);
+      const vertex2Pos = new THREE.Vector3(
+        positions[vertexIndex2 * 3],
+        positions[vertexIndex2 * 3 + 1],
+        positions[vertexIndex2 * 3 + 2]
+      );
 
-      console.log(`   Creating new position array: ${originalVertexCount} → ${newVertexCount} vertices`);
+      console.log(`   Logical vertex 1: [${vertex1Pos.x.toFixed(2)}, ${vertex1Pos.y.toFixed(2)}, ${vertex1Pos.z.toFixed(2)}]`);
+      console.log(`   Logical vertex 2: [${vertex2Pos.x.toFixed(2)}, ${vertex2Pos.y.toFixed(2)}, ${vertex2Pos.z.toFixed(2)}]`);
+
+      // Find ALL instances of these logical vertices
+      const tolerance = 0.001;
+      const vertex1Instances = [];
+      const vertex2Instances = [];
+
+      for (let i = 0; i < originalVertexCount; i++) {
+        const currentPos = new THREE.Vector3(
+          positions[i * 3],
+          positions[i * 3 + 1],
+          positions[i * 3 + 2]
+        );
+
+        if (currentPos.distanceTo(vertex1Pos) < tolerance) {
+          vertex1Instances.push(i);
+        } else if (currentPos.distanceTo(vertex2Pos) < tolerance) {
+          vertex2Instances.push(i);
+        }
+      }
+
+      console.log(`   Found ${vertex1Instances.length} instances of logical vertex 1: [${vertex1Instances.join(', ')}]`);
+      console.log(`   Found ${vertex2Instances.length} instances of logical vertex 2: [${vertex2Instances.join(', ')}]`);
+
+      // STEP 2: Simple approach - just move all instances to collapse position
+      const resultGeometry = geometry.clone();
+      const resultPositions = resultGeometry.attributes.position.array as Float32Array;
+
+      // Move all instances of both logical vertices to the collapse position
+      [...vertex1Instances, ...vertex2Instances].forEach(vertexIndex => {
+        resultPositions[vertexIndex * 3] = collapsePosition.x;
+        resultPositions[vertexIndex * 3 + 1] = collapsePosition.y;
+        resultPositions[vertexIndex * 3 + 2] = collapsePosition.z;
+      });
+
+      console.log(`   Moved ${vertex1Instances.length + vertex2Instances.length} vertex instances to collapse position`);
 
       // Copy vertices before the removed vertex
       for (let i = 0; i < removeVertex; i++) {
