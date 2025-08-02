@@ -20,7 +20,7 @@ export class VertexRemovalStitcher {
     message: string;
     geometry?: THREE.BufferGeometry;
   }> {
-    console.log(`���� === SIMPLE EDGE COLLAPSE ===`);
+    console.log(`🎯 === SIMPLE EDGE COLLAPSE ===`);
     console.log(`   Merging vertices ${vertexIndex1} and ${vertexIndex2}`);
     console.log(`   New position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
@@ -98,6 +98,71 @@ export class VertexRemovalStitcher {
         message: `Edge collapse failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
+  }
+
+  /**
+   * Simple polygon face update - just update vertex references
+   */
+  private static updatePolygonFacesSimple(
+    polygonFaces: any[],
+    vertexIndex1: number,
+    vertexIndex2: number,
+    collapsePosition: THREE.Vector3,
+    positions: Float32Array
+  ): any[] {
+    console.log(`🔄 === UPDATING POLYGON FACES (SIMPLE) ===`);
+    console.log(`   Merging vertex references: ${vertexIndex2} → ${vertexIndex1}`);
+
+    return polygonFaces.map((face, faceIndex) => {
+      if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
+        return face;
+      }
+
+      const originalVertices = face.originalVertices;
+      const newVertices = [];
+
+      // Go through each vertex in the polygon
+      for (let i = 0; i < originalVertices.length; i++) {
+        const vertex = originalVertices[i];
+        const vertexIndex = this.findVertexIndexFromPosition(vertex, positions);
+
+        if (vertexIndex === vertexIndex1 || vertexIndex === vertexIndex2) {
+          // Both vertices become the collapse position
+          newVertices.push(collapsePosition.clone());
+        } else {
+          // Keep original vertex
+          newVertices.push(vertex.clone());
+        }
+      }
+
+      // Remove consecutive duplicate vertices (caused by merging)
+      const cleanedVertices = [];
+      for (let i = 0; i < newVertices.length; i++) {
+        const currentVertex = newVertices[i];
+        const nextVertex = newVertices[(i + 1) % newVertices.length];
+
+        // Only add if different from next vertex
+        if (currentVertex.distanceTo(nextVertex) > 0.001) {
+          cleanedVertices.push(currentVertex);
+        } else {
+          console.log(`     Removed duplicate vertex from polygon ${faceIndex}`);
+        }
+      }
+
+      console.log(`   Polygon ${faceIndex}: ${originalVertices.length} → ${cleanedVertices.length} vertices`);
+
+      // Update face type based on vertex count
+      let newType = face.type;
+      if (cleanedVertices.length === 3) newType = 'triangle';
+      else if (cleanedVertices.length === 4) newType = 'quad';
+      else if (cleanedVertices.length > 4) newType = 'polygon';
+
+      return {
+        ...face,
+        type: newType,
+        originalVertices: cleanedVertices
+      };
+    });
   }
 
   /**
@@ -2760,7 +2825,7 @@ export class VertexRemovalStitcher {
             ];
 
             mergeableVertices.push({ v1: i, v2: j, newPos });
-            console.log(`     ��� EXACT DUPLICATE: v${i} = v${j} (distance: ${distance.toFixed(6)})`);
+            console.log(`     ✅ EXACT DUPLICATE: v${i} = v${j} (distance: ${distance.toFixed(6)})`);
           } else if (distance < 2.0 && mergeableVertices.length < 5) {
             // Also try close vertices if we need more merges
             const newPos = [
