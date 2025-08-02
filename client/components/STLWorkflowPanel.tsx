@@ -1367,7 +1367,7 @@ function MobileWorkflowContent(props: any) {
             {/* Reduction Settings */}
             <div className="p-4 bg-white/10 rounded-lg border border-white/20">
               <div className="text-white text-base font-medium mb-3">
-                Model Reduction Settings
+                Vertex Removal & Stitching
               </div>
 
               {/* Method Selection - larger buttons for mobile */}
@@ -1375,19 +1375,19 @@ function MobileWorkflowContent(props: any) {
                 <div className="text-white text-sm mb-3">Simplification Method</div>
                 <div className="grid grid-cols-1 gap-2">
                   <Button
-                    onClick={() => setReductionMethod('quadric')}
+                    onClick={() => setReductionMethod('random_vertex_removal')}
                     className={`text-sm py-3 px-4 h-auto ${
-                      reductionMethod === 'quadric'
+                      reductionMethod === 'random_vertex_removal'
                         ? 'bg-orange-500 text-white'
                         : 'bg-white/20 hover:bg-white/30 text-white/80'
                     }`}
                   >
-                    Quadric ⭐ (Recommended)
+                    🎲 Random Vertex Removal
                   </Button>
                   <Button
-                    onClick={() => setReductionMethod('random_vertex')}
+                    onClick={() => setReductionMethod('python_vertex_removal')}
                     className={`text-sm py-3 px-4 h-auto ${
-                      reductionMethod === 'random_vertex'
+                      reductionMethod === 'python_vertex_removal'
                         ? 'bg-orange-500 text-white'
                         : 'bg-white/20 hover:bg-white/30 text-white/80'
                     }`}
