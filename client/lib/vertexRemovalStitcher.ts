@@ -1849,6 +1849,13 @@ export class VertexRemovalStitcher {
     console.log(`   NO triangulation, NO indexing - pure polygon preservation with aggressive reduction`);
 
     const polygonFaces = (geometry as any).polygonFaces;
+
+    // Validate polygon faces exist
+    if (!polygonFaces || !Array.isArray(polygonFaces) || polygonFaces.length === 0) {
+      console.warn(`⚠️ No valid polygon faces found, falling back to basic vertex adjustment`);
+      return this.basicVertexAdjustment(geometry, targetReduction);
+    }
+
     const originalPositions = new Float32Array(geometry.attributes.position.array);
     const vertexCount = originalPositions.length / 3;
 
