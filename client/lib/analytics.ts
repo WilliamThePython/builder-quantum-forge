@@ -659,8 +659,13 @@ window.addEventListener('unhandledrejection', (event) => {
       event.reason?.toString?.()?.includes('analytics') ||
       event.reason?.toString?.()?.includes('fullstory') ||
       event.reason?.toString?.()?.includes('fs.js') ||
-      event.reason?.toString?.()?.includes('edge.fullstory.com')) {
+      event.reason?.toString?.()?.includes('edge.fullstory.com') ||
+      event.reason?.stack?.includes('fullstory') ||
+      event.reason?.stack?.includes('fs.js') ||
+      event.reason?.stack?.includes('edge.fullstory.com') ||
+      (event.reason instanceof TypeError && event.reason.message?.includes('Failed to fetch'))) {
     console.warn('Skipping analytics/third-party promise rejection to prevent loop:', event.reason);
+    event.preventDefault(); // Prevent the error from being logged to console
     return;
   }
 
