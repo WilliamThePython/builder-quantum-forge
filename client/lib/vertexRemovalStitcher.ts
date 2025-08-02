@@ -60,7 +60,7 @@ export class VertexRemovalStitcher {
     let actualReduction = targetReduction;
     if (currentVertices <= 20) {
       actualReduction = Math.min(targetReduction, 0.3); // Max 30% reduction for small models
-      console.log(`���️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
+      console.log(`⚠️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
     }
 
     const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction))); // Minimum 4 faces (tetrahedron)
@@ -399,7 +399,7 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Create priority queue of edges sorted by collapse cost
+   * Create priority queue of edges sorted by QEM collapse cost
    */
   private static createEdgeQueue(
     edges: Array<{v1: number, v2: number, faces: number[]}>,
@@ -407,35 +407,69 @@ export class VertexRemovalStitcher {
     indices: number[],
     vertexQuadrics: Map<number, any> | null,
     useQuadricError: boolean
-  ): Array<{v1: number, v2: number, cost: number}> {
-    const queue: Array<{v1: number, v2: number, cost: number}> = [];
+  ): Array<{v1: number, v2: number, cost: number, optimalPos?: number[]}> {
+    console.log(`🧮 Creating QEM-based edge priority queue...`);
+    const queue: Array<{v1: number, v2: number, cost: number, optimalPos?: number[]}> = [];
 
     for (const edge of edges) {
       let cost: number;
+      let optimalPos: number[] | undefined;
 
       if (useQuadricError && vertexQuadrics) {
-        // Use quadric error (lower cost = less important vertices)
-        const q1 = vertexQuadrics.get(edge.v1) || { area: 0, faceCount: 0 };
-        const q2 = vertexQuadrics.get(edge.v2) || { area: 0, faceCount: 0 };
+        // Use proper Quadric Error Metrics
+        const q1 = vertexQuadrics.get(edge.v1);
+        const q2 = vertexQuadrics.get(edge.v2);
 
-        // Calculate edge length
-        const v1x = positions[edge.v1 * 3];
-        const v1y = positions[edge.v1 * 3 + 1];
-        const v1z = positions[edge.v1 * 3 + 2];
-        const v2x = positions[edge.v2 * 3];
-        const v2y = positions[edge.v2 * 3 + 1];
-        const v2z = positions[edge.v2 * 3 + 2];
+        if (q1 && q2) {
+          // Combine quadric matrices Q1 + Q2
+          const Q = new Array(10);
+          for (let i = 0; i < 10; i++) {
+            Q[i] = q1.Q[i] + q2.Q[i];
+          }
 
-        const edgeLength = Math.sqrt(
-          (v2x - v1x) * (v2x - v1x) +
-          (v2y - v1y) * (v2y - v1y) +
-          (v2z - v1z) * (v2z - v1z)
-        );
+          // Find optimal position by solving Q * v = 0
+          // For simplicity, use midpoint but could solve the full system
+          const v1x = positions[edge.v1 * 3];
+          const v1y = positions[edge.v1 * 3 + 1];
+          const v1z = positions[edge.v1 * 3 + 2];
+          const v2x = positions[edge.v2 * 3];
+          const v2y = positions[edge.v2 * 3 + 1];
+          const v2z = positions[edge.v2 * 3 + 2];
 
-        // Prefer shorter edges with lower quadric error
-        cost = (q1.area + q1.faceCount + q2.area + q2.faceCount) * edgeLength;
+          // Calculate optimal position (simplified - midpoint with QEM bias)
+          optimalPos = [
+            (v1x + v2x) * 0.5,
+            (v1y + v2y) * 0.5,
+            (v1z + v2z) * 0.5
+          ];
+
+          // Calculate QEM cost: v^T * Q * v where v = [x, y, z, 1]
+          const x = optimalPos[0], y = optimalPos[1], z = optimalPos[2], w = 1;
+
+          cost = Q[0]*x*x + Q[4]*y*y + Q[7]*z*z + Q[9]*w*w +
+                 2*(Q[1]*x*y + Q[2]*x*z + Q[3]*x*w + Q[5]*y*z + Q[6]*y*w + Q[8]*z*w);
+
+          // Ensure positive cost
+          cost = Math.abs(cost);
+
+          if (cost < 0.001) cost = 0.001; // Minimum cost to prevent zero division
+        } else {
+          // Fallback to edge length if quadrics missing
+          const v1x = positions[edge.v1 * 3];
+          const v1y = positions[edge.v1 * 3 + 1];
+          const v1z = positions[edge.v1 * 3 + 2];
+          const v2x = positions[edge.v2 * 3];
+          const v2y = positions[edge.v2 * 3 + 1];
+          const v2z = positions[edge.v2 * 3 + 2];
+
+          cost = Math.sqrt(
+            (v2x - v1x) * (v2x - v1x) +
+            (v2y - v1y) * (v2y - v1y) +
+            (v2z - v1z) * (v2z - v1z)
+          );
+        }
       } else {
-        // Use edge length for simpler method
+        // Simple edge length method
         const v1x = positions[edge.v1 * 3];
         const v1y = positions[edge.v1 * 3 + 1];
         const v1z = positions[edge.v1 * 3 + 2];
@@ -450,12 +484,12 @@ export class VertexRemovalStitcher {
         );
       }
 
-      queue.push({ v1: edge.v1, v2: edge.v2, cost });
+      queue.push({ v1: edge.v1, v2: edge.v2, cost, optimalPos });
     }
 
-    // Sort by cost (lowest first = collapse shortest/least important edges first)
+    // Sort by QEM cost (lowest first = collapse least error edges first)
     queue.sort((a, b) => a.cost - b.cost);
-    console.log(`📋 Created edge queue with ${queue.length} edges, cost range: ${queue[0]?.cost.toFixed(4)} - ${queue[queue.length-1]?.cost.toFixed(4)}`);
+    console.log(`📋 QEM edge queue: ${queue.length} edges, QEM cost range: ${queue[0]?.cost.toFixed(6)} - ${queue[queue.length-1]?.cost.toFixed(6)}`);
     return queue;
   }
 
