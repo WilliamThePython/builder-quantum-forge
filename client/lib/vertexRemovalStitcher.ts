@@ -998,10 +998,12 @@ export class VertexRemovalStitcher {
     // Step 1: Validate and fix any stitching issues
     const stitchedGeometry = this.validateAndFixStitching(geometry);
 
-    // Step 2: For now, skip coplanar triangle merging to prevent geometry corruption
-    // This preserves the mesh integrity while we have proper vertex merging
-    console.log(`✅ Post-processing complete in ${Date.now() - startTime}ms (stitching validation only)`);
-    return stitchedGeometry;
+    // Step 2: Safe coplanar triangle detection and metadata annotation
+    // Instead of modifying the geometry, we just identify coplanar regions
+    const analyzedGeometry = this.identifyCoplanarRegions(stitchedGeometry);
+
+    console.log(`✅ Post-processing complete in ${Date.now() - startTime}ms`);
+    return analyzedGeometry;
   }
 
   /**
@@ -1470,12 +1472,87 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Identify coplanar regions without modifying geometry
+   */
+  private static identifyCoplanarRegions(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    if (!geometry.index) {
+      return geometry;
+    }
+
+    console.log(`🔍 Identifying coplanar regions...`);
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = Array.from(geometry.index.array);
+    const triangleCount = indices.length / 3;
+
+    // Calculate normals for all triangles
+    const triangleNormals: THREE.Vector3[] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const p1 = new THREE.Vector3(positions[v1 * 3], positions[v1 * 3 + 1], positions[v1 * 3 + 2]);
+      const p2 = new THREE.Vector3(positions[v2 * 3], positions[v2 * 3 + 1], positions[v2 * 3 + 2]);
+      const p3 = new THREE.Vector3(positions[v3 * 3], positions[v3 * 3 + 1], positions[v3 * 3 + 2]);
+
+      const edge1 = new THREE.Vector3().subVectors(p2, p1);
+      const edge2 = new THREE.Vector3().subVectors(p3, p1);
+      const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+      triangleNormals.push(normal);
+    }
+
+    // Group coplanar triangles (just for analysis, not modification)
+    const coplanarGroups: number[][] = [];
+    const processed = new Set<number>();
+    const angleTolerance = Math.cos(Math.PI / 180 * 10); // 10 degree tolerance
+
+    for (let i = 0; i < triangleCount; i++) {
+      if (processed.has(i)) continue;
+
+      const group = [i];
+      processed.add(i);
+      const baseNormal = triangleNormals[i];
+
+      // Find coplanar neighbors
+      for (let j = i + 1; j < triangleCount; j++) {
+        if (processed.has(j)) continue;
+
+        const dot = Math.abs(baseNormal.dot(triangleNormals[j]));
+        if (dot >= angleTolerance) {
+          group.push(j);
+          processed.add(j);
+        }
+      }
+
+      if (group.length > 1) {
+        coplanarGroups.push(group);
+      }
+    }
+
+    // Store metadata about coplanar regions without modifying the mesh
+    const analyzedGeometry = geometry.clone();
+    (analyzedGeometry as any).coplanarRegions = coplanarGroups;
+    (analyzedGeometry as any).triangleNormals = triangleNormals;
+
+    const quads = coplanarGroups.filter(g => g.length === 2).length;
+    const pentagons = coplanarGroups.filter(g => g.length === 3).length;
+    const hexagons = coplanarGroups.filter(g => g.length === 4).length;
+    const polygons = coplanarGroups.filter(g => g.length > 4).length;
+
+    console.log(`📊 Identified ${coplanarGroups.length} coplanar regions: ${quads} quads, ${pentagons} pentagons, ${hexagons} hexagons, ${polygons} larger polygons`);
+
+    return analyzedGeometry;
+  }
+
+  /**
    * Get mesh statistics
    */
   private static getMeshStats(geometry: THREE.BufferGeometry): MeshStats {
     const vertices = geometry.attributes.position ? geometry.attributes.position.count : 0;
     const faces = geometry.index ? geometry.index.count / 3 : Math.floor(vertices / 3);
-    
+
     return {
       vertices,
       faces,
