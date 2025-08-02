@@ -78,20 +78,9 @@ export class VertexRemovalStitcher {
     }
 
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`�� Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
-    // Check if we should use polygon-aware decimation
-    const polygonFaces = (workingGeometry as any).polygonFaces;
-    let resultGeometry: THREE.BufferGeometry;
-
-    if (polygonFaces && Array.isArray(polygonFaces)) {
-      console.log(`📊 Using POLYGON-AWARE decimation for ${polygonFaces.length} solid faces`);
-      resultGeometry = this.polygonAwareDecimation(workingGeometry, targetReduction);
-    } else {
-      console.log(`🔗 Using triangle-based decimation for triangle mesh`);
-      // Apply quadric edge collapse (vertex merging)
-      resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
-    }
+    // resultGeometry is already set above based on polygon vs triangle detection
 
     // Validate result geometry
     if (!this.validateGeometry(resultGeometry)) {
@@ -181,7 +170,7 @@ export class VertexRemovalStitcher {
     // Create priority queue of edges sorted by collapse cost
     const edgeQueue = this.createEdgeQueue(edges, positions, indices, vertexQuadrics, useQuadricError);
 
-    console.log(`��� Built ${edges.length} edges, starting collapse process...`);
+    console.log(`🔧 Built ${edges.length} edges, starting collapse process...`);
 
     let currentFaces = indices.length / 3;
     let collapsedEdges = 0;
