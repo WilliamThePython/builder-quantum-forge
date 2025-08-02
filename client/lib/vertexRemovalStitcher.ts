@@ -45,6 +45,9 @@ export class VertexRemovalStitcher {
     const polygonFaces = (geometry as any).polygonFaces;
     const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
 
+    // Initialize result geometry variable
+    let resultGeometry: THREE.BufferGeometry;
+
     if (hasPolygonStructure) {
       console.log('🚫 POLYGON MODEL DETECTED: Completely avoiding triangulation-based decimation');
       console.log(`   Original structure: ${polygonFaces.length} polygon faces`);
