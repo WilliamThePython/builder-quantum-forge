@@ -461,39 +461,26 @@ function STLMesh() {
     if (!decimationPainterMode || !meshRef.current) return;
 
     const handleClick = async (event: MouseEvent) => {
-      // Update pointer position
-      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
       console.log('🎯 === DECIMATION PAINTER CLICK ===');
-      console.log(`   Click position: [${pointer.x.toFixed(3)}, ${pointer.y.toFixed(3)}]`);
 
-      // Perform raycasting to find intersection
-      raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObject(meshRef.current!);
+      if (highlightedEdge) {
+        console.log(`   Decimating highlighted edge: ${highlightedEdge.vertexIndex1} ↔ ${highlightedEdge.vertexIndex2}`);
+        console.log(`   Edge positions:`);
+        console.log(`     v${highlightedEdge.vertexIndex1}: [${highlightedEdge.position1.x.toFixed(3)}, ${highlightedEdge.position1.y.toFixed(3)}, ${highlightedEdge.position1.z.toFixed(3)}]`);
+        console.log(`     v${highlightedEdge.vertexIndex2}: [${highlightedEdge.position2.x.toFixed(3)}, ${highlightedEdge.position2.y.toFixed(3)}, ${highlightedEdge.position2.z.toFixed(3)}]`);
 
-      if (intersects.length > 0) {
-        const intersection = intersects[0];
+        try {
+          // Perform single edge decimation
+          await decimateEdge(highlightedEdge.vertexIndex1, highlightedEdge.vertexIndex2);
+          console.log('✅ Edge decimation completed successfully');
 
-        if (intersection.face && geometry) {
-          console.log(`   Face intersected: ${intersection.face.a}, ${intersection.face.b}, ${intersection.face.c}`);
-
-          // Find the nearest edge to the click point
-          const { vertexIndex1, vertexIndex2 } = findNearestEdge(geometry, intersection);
-
-          console.log(`   Nearest edge: ${vertexIndex1} ↔ ${vertexIndex2}`);
-
-          try {
-            // Perform single edge decimation
-            await decimateEdge(vertexIndex1, vertexIndex2);
-            console.log('✅ Edge decimation completed successfully');
-          } catch (error) {
-            console.error('❌ Edge decimation failed:', error);
-          }
+          // Clear the highlighted edge after decimation
+          setHighlightedEdge(null);
+        } catch (error) {
+          console.error('❌ Edge decimation failed:', error);
         }
       } else {
-        console.log('   No intersection found');
+        console.log('   No edge highlighted for decimation');
       }
     };
 
@@ -502,7 +489,7 @@ function STLMesh() {
       canvas.addEventListener('click', handleClick);
       return () => canvas.removeEventListener('click', handleClick);
     }
-  }, [decimationPainterMode, geometry, camera, raycaster, pointer, decimateEdge]);
+  }, [decimationPainterMode, highlightedEdge, decimateEdge]);
 
   // Subtle rotation animation (disabled when highlighting)
   useFrame((state) => {
