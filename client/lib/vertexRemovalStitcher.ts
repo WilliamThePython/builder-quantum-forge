@@ -550,10 +550,10 @@ export class VertexRemovalStitcher {
       newZ = optimalPos[2];
       console.log(`   Using QEM-optimal position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}]`);
     } else {
-      // Enhanced fallback with more aggressive positioning
-      newX = (v1x + v2x) * 0.5 + (Math.random() - 0.5) * 3.0; // Bigger offset for visibility
-      newY = (v1y + v2y) * 0.5 + (Math.random() - 0.5) * 3.0;
-      newZ = (v1z + v2z) * 0.5 + (Math.random() - 0.5) * 3.0;
+      // Conservative midpoint positioning to avoid spikes
+      newX = (v1x + v2x) * 0.5 + (Math.random() - 0.5) * 0.5; // Small offset for subtle movement
+      newY = (v1y + v2y) * 0.5 + (Math.random() - 0.5) * 0.5;
+      newZ = (v1z + v2z) * 0.5 + (Math.random() - 0.5) * 0.5;
       console.log(`   Using enhanced midpoint: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}]`);
     }
 
