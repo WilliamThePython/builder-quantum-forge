@@ -274,9 +274,19 @@ export class OBJConverter {
     }
     
     geometry.computeBoundingBox();
-    
-    console.log(`✅ OBJ parsing completed: ${vertices.length / 3} vertices, ${faces.length / 3} faces`);
-    
+
+    // CRITICAL: Store polygon face metadata to preserve structure
+    if (polygonFaces.length > 0) {
+      (geometry as any).polygonFaces = polygonFaces;
+      (geometry as any).polygonType = 'preserved';
+      (geometry as any).isPolygonPreserved = true;
+
+      console.log(`✅ OBJ parsing completed: ${vertices.length / 3} vertices, ${faces.length / 3} triangulated faces`);
+      console.log(`🚫 PRESERVED ${polygonFaces.length} polygon faces:`, polygonFaces.map(f => f.type).join(', '));
+    } else {
+      console.log(`✅ OBJ parsing completed: ${vertices.length / 3} vertices, ${faces.length / 3} triangle faces`);
+    }
+
     return geometry;
   }
   
