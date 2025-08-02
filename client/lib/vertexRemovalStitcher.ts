@@ -140,10 +140,11 @@ export class VertexRemovalStitcher {
       console.log(`   Vertices: ${originalVertexCount} → ${newVertexCount} (removed ${originalVertexCount - newVertexCount})`);
       console.log(`   Degenerate faces removed: ${degenerateFaces}`);
       console.log(`   Remaining faces: ${indices ? indices.length / 3 : 'non-indexed'}`);
+      console.log(`   Final result: vertex ${removeVertex} merged into vertex ${keepVertex}`);
 
       return {
         success: true,
-        message: `Edge collapsed: vertex ${vertexIndex2} merged into vertex ${vertexIndex1}`,
+        message: `Edge collapsed: vertex ${removeVertex} merged into vertex ${keepVertex}`,
         geometry: resultGeometry
       };
 
