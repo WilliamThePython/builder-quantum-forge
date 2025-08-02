@@ -180,20 +180,18 @@ export class VertexRemovalStitcher {
   ): number[] {
     const removable: number[] = [];
     const vertexCount = geometry.attributes.position.count;
-    
+
+    // Much more aggressive - allow removal of most vertices
     for (let vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++) {
       const adjacentFaces = vertexFaceMap.get(vertexIndex) || [];
-      
-      // Can remove vertex if:
-      // 1. It has connected faces (not isolated)
-      // 2. It's not connected to too many faces (to avoid complex holes)
-      // 3. The hole created can be triangulated
-      if (adjacentFaces.length >= 2 && adjacentFaces.length <= 12) {
-        // Be less conservative - just check that it's not completely isolated
+
+      // Only exclude vertices with no faces or too many faces
+      if (adjacentFaces.length >= 1 && adjacentFaces.length <= 20) {
         removable.push(vertexIndex);
       }
     }
-    
+
+    console.log(`🔍 Vertex analysis: ${removable.length}/${vertexCount} vertices marked as removable`);
     return removable;
   }
 
