@@ -34,11 +34,26 @@ export class VertexRemovalStitcher {
       workingGeometry = this.ensureIndexedGeometry(workingGeometry);
     }
 
-    // Calculate target face count
+    // Calculate target face count with safeguards for small models
     const currentFaces = originalStats.faces;
-    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - targetReduction))); // Minimum 4 faces (tetrahedron)
+    const currentVertices = originalStats.vertices;
 
-    console.log(`📊 Plan: Reduce faces ${currentFaces} → ${targetFaces}`);
+    // For very small models, be much more conservative
+    let actualReduction = targetReduction;
+    if (currentVertices <= 20) {
+      actualReduction = Math.min(targetReduction, 0.3); // Max 30% reduction for small models
+      console.log(`⚠️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
+    }
+
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction))); // Minimum 4 faces (tetrahedron)
+
+    // Ensure we don't reduce too aggressively
+    if (targetFaces >= currentFaces * 0.9) {
+      console.log(`⚠️ Target would remove less than 10% of faces, skipping decimation`);
+      return workingGeometry; // Return original if reduction is too small
+    }
+
+    console.log(`📊 Plan: Reduce faces ${currentFaces} → ${targetFaces} (${(actualReduction * 100).toFixed(1)}% reduction)`);
 
     // Apply quadric edge collapse
     const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
