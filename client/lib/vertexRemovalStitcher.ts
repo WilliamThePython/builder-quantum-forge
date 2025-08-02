@@ -353,6 +353,13 @@ export class VertexRemovalStitcher {
   ): boolean {
     const { v1, v2 } = edge;
 
+    // Validate edge
+    if (v1 === v2) {
+      return false; // Can't collapse edge to itself
+    }
+
+    const originalFaceCount = indices.length / 3;
+
     // Calculate new position (midpoint of the edge)
     const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
     const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
@@ -372,6 +379,13 @@ export class VertexRemovalStitcher {
 
     // Remove degenerate faces (faces with duplicate vertices)
     this.removeDegenerateFaces(indices);
+
+    // Validate that we still have faces after degenerate removal
+    const newFaceCount = indices.length / 3;
+    if (newFaceCount === 0) {
+      console.error(`❌ Edge collapse removed all faces! Stopping decimation.`);
+      return false;
+    }
 
     // Update vertex-to-faces mapping
     const v2Faces = vertexToFaces.get(v2) || [];
