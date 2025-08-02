@@ -29,11 +29,9 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   }
 
   const polygonFace = polygonFaces[clickedPolygonFace];
-  console.log(`   Clicked polygon face ${clickedPolygonFace}: ${polygonFace.type} with ${polygonFace.originalVertices?.length || 0} vertices`);
 
   // Get the original polygon vertices (perimeter only)
   if (!polygonFace.originalVertices || polygonFace.originalVertices.length < 3) {
-    console.warn('⚠️ Polygon face missing original vertices');
     return null;
   }
 
@@ -57,8 +55,6 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     });
   }
 
-  console.log(`   ${polygonFace.type} has ${perimeterEdges.length} perimeter edges`);
-
   // Find the closest perimeter edge to the click point
   let nearestEdge = perimeterEdges[0];
   let minDistance = Number.MAX_VALUE;
@@ -70,15 +66,11 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     line.closestPointToPoint(point, true, closestPoint);
     const distance = point.distanceTo(closestPoint);
 
-    console.log(`     Perimeter edge ${edgeIndex}: v${edge.v1.index} ↔ v${edge.v2.index} (distance: ${distance.toFixed(3)})`);
-
     if (distance < minDistance) {
       minDistance = distance;
       nearestEdge = edge;
     }
   });
-
-  console.log(`   ✅ Nearest perimeter edge: v${nearestEdge.v1.index} ↔ v${nearestEdge.v2.index} (distance: ${minDistance.toFixed(3)})`);
 
   return {
     vertexIndex1: nearestEdge.v1.index,
