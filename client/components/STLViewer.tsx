@@ -503,28 +503,35 @@ function STLMesh() {
         const intersection = intersects[0];
 
         if (intersection.face) {
-          // Find the nearest edge to the hover point
-          const { vertexIndex1, vertexIndex2 } = findNearestEdge(geometry, intersection);
+          // Find the nearest POLYGON PERIMETER edge to the hover point
+          const edgeResult = findNearestPolygonEdge(geometry, intersection);
 
-          // Get vertex positions for highlighting
-          const positions = geometry.attributes.position.array as Float32Array;
-          const position1 = new THREE.Vector3(
-            positions[vertexIndex1 * 3],
-            positions[vertexIndex1 * 3 + 1],
-            positions[vertexIndex1 * 3 + 2]
-          );
-          const position2 = new THREE.Vector3(
-            positions[vertexIndex2 * 3],
-            positions[vertexIndex2 * 3 + 1],
-            positions[vertexIndex2 * 3 + 2]
-          );
+          if (edgeResult) {
+            const { vertexIndex1, vertexIndex2 } = edgeResult;
 
-          setHighlightedEdge({
-            vertexIndex1,
-            vertexIndex2,
-            position1,
-            position2
-          });
+            // Get vertex positions for highlighting
+            const positions = geometry.attributes.position.array as Float32Array;
+            const position1 = new THREE.Vector3(
+              positions[vertexIndex1 * 3],
+              positions[vertexIndex1 * 3 + 1],
+              positions[vertexIndex1 * 3 + 2]
+            );
+            const position2 = new THREE.Vector3(
+              positions[vertexIndex2 * 3],
+              positions[vertexIndex2 * 3 + 1],
+              positions[vertexIndex2 * 3 + 2]
+            );
+
+            setHighlightedEdge({
+              vertexIndex1,
+              vertexIndex2,
+              position1,
+              position2
+            });
+          } else {
+            // No valid polygon edge found (probably triangulated geometry)
+            setHighlightedEdge(null);
+          }
         }
       } else {
         setHighlightedEdge(null);
