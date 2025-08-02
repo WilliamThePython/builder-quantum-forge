@@ -946,9 +946,42 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Create backup before simplification
       createBackup();
 
+      console.log('🔍 === DECIMATION DATA FLOW DEBUGGING ===');
+      console.log('📥 INPUT GEOMETRY from viewer:', {
+        vertices: geometry.attributes.position.count,
+        faces: geometry.index ? geometry.index.count / 3 : 0,
+        uuid: geometry.uuid,
+        boundingBox: geometry.boundingBox
+      });
+
+      // Log first few vertices for comparison
+      const inputPositions = geometry.attributes.position.array;
+      console.log('📥 INPUT first 3 vertices:', [
+        [inputPositions[0], inputPositions[1], inputPositions[2]],
+        [inputPositions[3], inputPositions[4], inputPositions[5]],
+        [inputPositions[6], inputPositions[7], inputPositions[8]]
+      ]);
+
       console.log('Starting professional mesh simplification...', { method, reductionAmount });
 
       const result = await STLManipulator.reducePoints(geometry, reductionAmount, method);
+
+      console.log('📤 OUTPUT GEOMETRY from decimation:', {
+        vertices: result.geometry.attributes.position.count,
+        faces: result.geometry.index ? result.geometry.index.count / 3 : 0,
+        uuid: result.geometry.uuid,
+        boundingBox: result.geometry.boundingBox
+      });
+
+      // Log first few vertices for comparison
+      const outputPositions = result.geometry.attributes.position.array;
+      console.log('📤 OUTPUT first 3 vertices:', [
+        [outputPositions[0], outputPositions[1], outputPositions[2]],
+        [outputPositions[3], outputPositions[4], outputPositions[5]],
+        [outputPositions[6], outputPositions[7], outputPositions[8]]
+      ]);
+
+      console.log('🔄 Setting geometry in viewer context...');
 
       // Update the geometry
       setGeometry(result.geometry);
