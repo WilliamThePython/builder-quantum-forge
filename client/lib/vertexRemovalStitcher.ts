@@ -60,7 +60,7 @@ export class VertexRemovalStitcher {
     }
 
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`���� Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
     // Debug geometry state before decimation
     console.log(`📊 Before decimation:`);
@@ -173,13 +173,24 @@ export class VertexRemovalStitcher {
     // Collapse edges until we reach target face count
     const maxIterations = Math.min(edgeQueue.length, targetFaces * 2); // More reasonable safety limit
     let iterations = 0;
+    let skippedEdges = 0;
+
+    console.log(`🔄 Starting edge collapse loop: ${edgeQueue.length} edges queued, target ${targetFaces} faces`);
 
     while (currentFaces > targetFaces && edgeQueue.length > 0 && iterations < maxIterations) {
       iterations++;
       const edge = edgeQueue.shift()!;
 
+      if (iterations <= 5) { // Debug first few iterations
+        console.log(`   Iteration ${iterations}: Testing edge ${edge.v1}-${edge.v2} (cost: ${edge.cost.toFixed(4)})`);
+      }
+
       // Check if edge is still valid (vertices haven't been merged already)
       if (!this.isEdgeValid(edge, indices)) {
+        skippedEdges++;
+        if (iterations <= 5) {
+          console.log(`   ⚠️ Edge ${edge.v1}-${edge.v2} is no longer valid, skipping`);
+        }
         continue;
       }
 
@@ -196,17 +207,31 @@ export class VertexRemovalStitcher {
           break;
         }
 
-        if (collapsedEdges % 20 === 0) {
-          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
+        if (collapsedEdges <= 5 || collapsedEdges % 20 === 0) {
+          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${facesBeforeCollapse} → ${currentFaces} faces remaining`);
+        }
+      } else {
+        if (iterations <= 5) {
+          console.log(`   ⚠️ Edge collapse failed for ${edge.v1}-${edge.v2}`);
         }
       }
     }
+
+    console.log(`📋 Edge collapse summary: ${collapsedEdges} successful, ${skippedEdges} skipped, ${iterations} iterations`);
 
     // Clean up and rebuild geometry with improved vertex handling
     let cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
 
     if (iterations >= maxIterations) {
       console.warn(`⚠️ Hit safety limit of ${maxIterations} iterations, stopping early`);
+    }
+
+    if (collapsedEdges === 0) {
+      console.warn(`⚠️ No edges were collapsed! This explains why no vertices moved.`);
+      console.warn(`   Possible issues:`);
+      console.warn(`   - No valid edges found`);
+      console.warn(`   - Edge validation too restrictive`);
+      console.warn(`   - Edge collapse function failing`);
     }
 
     console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
