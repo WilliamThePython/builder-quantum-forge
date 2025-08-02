@@ -430,8 +430,13 @@ export class VertexRemovalStitcher {
     faces: number[][];
     vertexToFaces: Map<number, number[]>;
   } {
+    // Ensure geometry is indexed
+    if (!geometry.index) {
+      throw new Error('Geometry must be indexed for analysis');
+    }
+
     const positions = geometry.attributes.position.array as Float32Array;
-    const indices = geometry.index!.array;
+    const indices = geometry.index.array;
 
     // Extract unique vertices
     const vertices: THREE.Vector3[] = [];
