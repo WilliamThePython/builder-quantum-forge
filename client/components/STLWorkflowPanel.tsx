@@ -1392,8 +1392,13 @@ function MobileWorkflowContent(props: any) {
                         : 'bg-white/20 hover:bg-white/30 text-white/80'
                     }`}
                   >
-                    Random Vertex (Fast)
+                    🐍 Python-Style Removal
                   </Button>
+                </div>
+                <div className="text-sm text-white/60 mt-2 bg-white/5 rounded p-2">
+                  {reductionMethod === 'random_vertex_removal' && '🎲 Randomly selects vertices to remove, then stitches holes closed.'}
+                  {reductionMethod === 'python_vertex_removal' && '🐍 Uses quadric decimation for intelligent vertex selection.'}
+                  {!reductionMethod && 'Select a method to see details...'}
                 </div>
               </div>
 
