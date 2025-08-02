@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MeshStats } from './meshSimplifier';
 
 /**
  * Vertex removal with proper geometry stitching
