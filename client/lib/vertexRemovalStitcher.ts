@@ -297,11 +297,11 @@ export class VertexRemovalStitcher {
    */
   private static updatePolygonFaces(
     polygonFaces: any[],
-    keepVertex: number,
-    removeVertex: number,
+    vertex1Pos: THREE.Vector3,
+    vertex2Pos: THREE.Vector3,
     collapsePosition: THREE.Vector3
   ): any[] {
-    console.log(`   Updating polygon faces for vertex removal: ${removeVertex} → ${keepVertex}`);
+    console.log(`   Updating polygon faces metadata for edge collapse`);
 
     return polygonFaces.map((face, faceIndex) => {
       if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
@@ -310,15 +310,27 @@ export class VertexRemovalStitcher {
 
       const tolerance = 0.001;
       const newVertices = [];
-      let verticesRemoved = 0;
+      let edgeVerticesFound = 0;
 
       // Process each vertex in the polygon
       for (let i = 0; i < face.originalVertices.length; i++) {
         const vertex = face.originalVertices[i];
+        const vertexPos = vertex instanceof THREE.Vector3
+          ? vertex
+          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
 
-        // Check if this vertex should be merged to collapse position
-        // This is a simplified approach for polygon metadata
-        newVertices.push(vertex.clone());
+        // If this vertex matches either edge vertex, replace with collapse position
+        if (vertexPos.distanceTo(vertex1Pos) < tolerance || vertexPos.distanceTo(vertex2Pos) < tolerance) {
+          // Only add collapse position if we haven't already (edge collapse merges both vertices)
+          if (edgeVerticesFound === 0) {
+            newVertices.push(collapsePosition.clone());
+            edgeVerticesFound++;
+          }
+          // Skip the second edge vertex (it's been merged into the first)
+        } else {
+          // Keep non-edge vertices as they were
+          newVertices.push(vertexPos.clone());
+        }
       }
 
       // Remove consecutive duplicate vertices (from edge collapse)
