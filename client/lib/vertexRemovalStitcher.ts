@@ -58,24 +58,7 @@ export class VertexRemovalStitcher {
   /**
    * Random vertex removal with proper stitching
    */
-  private static async randomVertexRemoval(
-    geometry: THREE.BufferGeometry,
-    verticesToRemove: number
-  ): Promise<THREE.BufferGeometry> {
-    console.log('🎲 Applying random edge collapse simplification...');
 
-    // Convert to indexed geometry if not already
-    const indexedGeometry = this.ensureIndexedGeometry(geometry);
-
-    // Calculate target number of faces (triangles)
-    const currentFaces = indexedGeometry.index!.count / 3;
-    const reductionRatio = verticesToRemove / indexedGeometry.attributes.position.count;
-    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - reductionRatio)));
-
-    console.log(`🎲 Target: ${currentFaces} → ${targetFaces} faces (${(reductionRatio * 100).toFixed(1)}% reduction)`);
-
-    return this.quadricEdgeCollapse(indexedGeometry, targetFaces, false);
-  }
 
   /**
    * Python-style vertex removal (quadric decimation approach)
