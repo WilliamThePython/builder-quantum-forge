@@ -27,8 +27,12 @@ export class VertexRemovalStitcher {
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
 
-    // Clone geometry for processing
-    const workingGeometry = geometry.clone();
+    // Clone and ensure geometry is indexed for processing
+    let workingGeometry = geometry.clone();
+    if (!workingGeometry.index) {
+      console.log('🔧 Converting geometry to indexed format...');
+      workingGeometry = this.ensureIndexedGeometry(workingGeometry);
+    }
 
     // Calculate target face count
     const currentFaces = originalStats.faces;
