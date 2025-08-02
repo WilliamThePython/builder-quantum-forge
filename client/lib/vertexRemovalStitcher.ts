@@ -1919,10 +1919,10 @@ export class VertexRemovalStitcher {
       if (mergedCount >= 15) break; // Limit for performance
     }
 
-    // If not enough natural merges found, force some dramatic changes
-    if (mergedCount < Math.min(5, verticesToMerge)) {
-      console.log(`   🔧 Only ${mergedCount} natural merges found, forcing additional visible changes...`);
-      const additionalMoves = Math.min(10, vertexCount - mergedCount * 2);
+    // If not enough natural merges found, apply subtle smoothing instead of dramatic changes
+    if (mergedCount < Math.min(3, verticesToMerge)) {
+      console.log(`   🔧 Only ${mergedCount} natural merges found, applying subtle vertex smoothing...`);
+      const additionalMoves = Math.min(5, vertexCount - mergedCount * 2);
 
       for (let i = 0; i < additionalMoves; i++) {
         const vertexIndex = Math.floor(Math.random() * vertexCount);
@@ -1932,12 +1932,12 @@ export class VertexRemovalStitcher {
           modifiedPositions[vertexIndex * 3 + 2]
         ];
 
-        // Apply dramatic position changes for visibility
-        modifiedPositions[vertexIndex * 3] += (Math.random() - 0.5) * 8.0; // Much larger changes
-        modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 8.0;
-        modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 8.0;
+        // Apply subtle smoothing instead of dramatic changes
+        modifiedPositions[vertexIndex * 3] += (Math.random() - 0.5) * 2.0; // Much smaller, conservative changes
+        modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 2.0;
+        modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 2.0;
 
-        console.log(`   🔧 FORCED MOVE vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
+        console.log(`   🔧 SUBTLE SMOOTH vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
       }
     }
 
