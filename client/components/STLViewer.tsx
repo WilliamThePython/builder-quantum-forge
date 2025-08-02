@@ -84,7 +84,7 @@ function findPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, interse
   try {
     return STLManipulator.getPolygonFaceFromIntersection(geometry, intersection);
   } catch (error) {
-    console.warn('STLManipulator.getPolygonFaceFromIntersection not available, using fallback');
+    // Fallback silently
   }
 
   // Fallback: calculate triangle index and map to polygon face
