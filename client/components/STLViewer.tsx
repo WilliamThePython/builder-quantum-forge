@@ -587,6 +587,12 @@ function STLMesh() {
     for (const face of polygonFaces) {
       if (!face.originalVertices || face.originalVertices.length < 3) continue;
 
+      // Validate that this face is actually coplanar
+      if (!isCoplanarPolygon(face.originalVertices)) {
+        console.warn('⚠️ Skipping non-coplanar polygon face');
+        continue;
+      }
+
       const vertices = face.originalVertices;
       for (let i = 0; i < vertices.length; i++) {
         const currentVertex = vertices[i];
@@ -598,6 +604,11 @@ function STLMesh() {
         const nextPos = nextVertex instanceof THREE.Vector3
           ? nextVertex
           : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
+
+        // Validate this is a true polygon boundary edge (not internal triangulation)
+        if (!isTruePolygonBoundaryEdge(polygonFaces, currentPos, nextPos)) {
+          continue;
+        }
 
         // Find vertex indices in the buffer
         const vertexIndex1 = findVertexIndex(positions, currentPos);
