@@ -166,6 +166,75 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Merge vertices in non-indexed geometry by updating position array directly
+   */
+  private static mergeVerticesInNonIndexedGeometry(
+    geometry: THREE.BufferGeometry,
+    keepVertexIndex: number,
+    removeVertexIndex: number,
+    collapsePosition: THREE.Vector3
+  ): number {
+    console.log(`🔄 === NON-INDEXED GEOMETRY VERTEX MERGE ===`);
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const vertexCount = positions.length / 3;
+
+    // For non-indexed geometry, we need to find faces that use these specific vertices
+    // and update them to use the collapsed position
+
+    const keepVertex = new THREE.Vector3(
+      positions[keepVertexIndex * 3],
+      positions[keepVertexIndex * 3 + 1],
+      positions[keepVertexIndex * 3 + 2]
+    );
+
+    const removeVertex = new THREE.Vector3(
+      positions[removeVertexIndex * 3],
+      positions[removeVertexIndex * 3 + 1],
+      positions[removeVertexIndex * 3 + 2]
+    );
+
+    console.log(`   Searching for faces using vertices:`);
+    console.log(`     Keep vertex ${keepVertexIndex}: [${keepVertex.x.toFixed(3)}, ${keepVertex.y.toFixed(3)}, ${keepVertex.z.toFixed(3)}]`);
+    console.log(`     Remove vertex ${removeVertexIndex}: [${removeVertex.x.toFixed(3)}, ${removeVertex.y.toFixed(3)}, ${removeVertex.z.toFixed(3)}]`);
+
+    let mergeCount = 0;
+    const tolerance = 0.001;
+
+    // Go through all vertices in the position array and find matches
+    for (let i = 0; i < vertexCount; i++) {
+      const currentVertex = new THREE.Vector3(
+        positions[i * 3],
+        positions[i * 3 + 1],
+        positions[i * 3 + 2]
+      );
+
+      // If this vertex matches the removeVertex, update it to collapse position
+      if (currentVertex.distanceTo(removeVertex) < tolerance) {
+        console.log(`     Found removeVertex at position ${i}, updating to collapse position`);
+        positions[i * 3] = collapsePosition.x;
+        positions[i * 3 + 1] = collapsePosition.y;
+        positions[i * 3 + 2] = collapsePosition.z;
+        mergeCount++;
+      }
+      // If this vertex matches the keepVertex, update it to collapse position
+      else if (currentVertex.distanceTo(keepVertex) < tolerance) {
+        console.log(`     Found keepVertex at position ${i}, updating to collapse position`);
+        positions[i * 3] = collapsePosition.x;
+        positions[i * 3 + 1] = collapsePosition.y;
+        positions[i * 3 + 2] = collapsePosition.z;
+        mergeCount++;
+      }
+    }
+
+    // Mark positions as needing update
+    geometry.attributes.position.needsUpdate = true;
+
+    console.log(`   Updated ${mergeCount} vertex positions to collapse point`);
+    return mergeCount;
+  }
+
+  /**
    * Simple polygon face update - just update vertex references
    */
   private static updatePolygonFacesSimple(
