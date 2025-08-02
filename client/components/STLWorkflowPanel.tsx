@@ -1329,21 +1329,13 @@ function MobileWorkflowContent(props: any) {
 
               <Button
                 onClick={() => {
-                  const methodMapping: Record<string, string> = {
-                    'random_vertex_removal': 'random_vertex',
-                    'python_vertex_removal': 'python_vertex',
-                    'random_vertex': 'random',
-                    'quadric': 'quadric_edge_collapse',
-                    'grid_based': 'vertex_clustering',
-                    'triangle_collapse': 'adaptive'
-                  };
-                  const backendMethod = methodMapping[reductionMethod] || reductionMethod;
-                  onReducePoints(reductionAmount, backendMethod as any);
+                  console.log('🔄 Mobile button clicked! Amount:', reductionAmount);
+                  onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
                 }}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white text-base py-3 h-auto"
-                disabled={isProcessing || !reductionMethod}
+                disabled={isProcessing}
               >
-                🔧 Apply Vertex Reduction
+                🔧 Apply Quadric Decimation
               </Button>
             </div>
           </div>
