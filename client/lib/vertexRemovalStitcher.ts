@@ -137,7 +137,11 @@ export class VertexRemovalStitcher {
     let collapsedEdges = 0;
 
     // Collapse edges until we reach target face count
-    while (currentFaces > targetFaces && edgeQueue.length > 0) {
+    const maxIterations = edgeQueue.length * 2; // Safety limit
+    let iterations = 0;
+
+    while (currentFaces > targetFaces && edgeQueue.length > 0 && iterations < maxIterations) {
+      iterations++;
       const edge = edgeQueue.shift()!;
 
       // Check if edge is still valid (vertices haven't been merged already)
