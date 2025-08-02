@@ -8,7 +8,7 @@ import { MeshStats } from './meshSimplifier';
 export class VertexRemovalStitcher {
 
   /**
-   * Collapse a single edge by merging two vertices - TRUE EDGE COLLAPSE
+   * Simple edge collapse - just update vertex references, don't remove anything
    */
   static async collapseSingleEdge(
     geometry: THREE.BufferGeometry,
@@ -20,146 +20,79 @@ export class VertexRemovalStitcher {
     message: string;
     geometry?: THREE.BufferGeometry;
   }> {
-    console.log(`🎯 === TRUE EDGE COLLAPSE ===`);
-
-    // CRITICAL: Always merge higher index into lower index to avoid index shifting issues
-    const keepVertex = Math.min(vertexIndex1, vertexIndex2);
-    const removeVertex = Math.max(vertexIndex1, vertexIndex2);
-
-    console.log(`   Original request: merge ${vertexIndex1} ↔ ${vertexIndex2}`);
-    console.log(`   Normalized: keeping vertex ${keepVertex}, removing vertex ${removeVertex}`);
+    console.log(`���� === SIMPLE EDGE COLLAPSE ===`);
+    console.log(`   Merging vertices ${vertexIndex1} and ${vertexIndex2}`);
     console.log(`   New position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
     try {
-      const originalVertexCount = geometry.attributes.position.count;
+      // Clone the geometry
+      const resultGeometry = geometry.clone();
+      const positions = resultGeometry.attributes.position.array as Float32Array;
 
-      // STEP 1: Move the vertex we're keeping to the collapse position
-      const positions = new Float32Array(geometry.attributes.position.array);
-      positions[keepVertex * 3] = collapsePosition.x;
-      positions[keepVertex * 3 + 1] = collapsePosition.y;
-      positions[keepVertex * 3 + 2] = collapsePosition.z;
+      // STEP 1: Update both vertices to the collapse position
+      positions[vertexIndex1 * 3] = collapsePosition.x;
+      positions[vertexIndex1 * 3 + 1] = collapsePosition.y;
+      positions[vertexIndex1 * 3 + 2] = collapsePosition.z;
 
-      console.log(`   Vertex ${keepVertex} moved to collapse position`);
-      console.log(`   Vertex ${removeVertex} will be removed and compacted`);
+      positions[vertexIndex2 * 3] = collapsePosition.x;
+      positions[vertexIndex2 * 3 + 1] = collapsePosition.y;
+      positions[vertexIndex2 * 3 + 2] = collapsePosition.z;
 
-      // STEP 2: Update all indices that reference removeVertex to reference keepVertex
-      let indices = geometry.index ? new Array(...geometry.index.array) : null;
-      if (indices) {
+      console.log(`   Both vertices moved to collapse position`);
+
+      // STEP 2: Update all indices - replace vertex2 references with vertex1
+      if (resultGeometry.index) {
+        const indices = resultGeometry.index.array;
         for (let i = 0; i < indices.length; i++) {
-          if (indices[i] === removeVertex) {
-            indices[i] = keepVertex;
-            console.log(`     Merged index ${i}: ${removeVertex} ��� ${keepVertex}`);
+          if (indices[i] === vertexIndex2) {
+            indices[i] = vertexIndex1;
+            console.log(`     Updated index ${i}: ${vertexIndex2} → ${vertexIndex1}`);
           }
         }
+        resultGeometry.index.needsUpdate = true;
       }
 
-      // STEP 3: Remove degenerate faces BEFORE compacting vertices
-      const validIndices: number[] = [];
-      let degenerateFaces = 0;
+      // STEP 3: Remove degenerate faces (triangles with duplicate vertices)
+      this.removeDegenerateFaces(resultGeometry);
 
-      if (indices) {
-        for (let i = 0; i < indices.length; i += 3) {
-          const a = indices[i];
-          const b = indices[i + 1];
-          const c = indices[i + 2];
-
-          // Keep triangle if all vertices are different
-          if (a !== b && b !== c && a !== c) {
-            validIndices.push(a, b, c);
-          } else {
-            degenerateFaces++;
-            console.log(`     Removed degenerate face: [${a}, ${b}, ${c}]`);
-          }
-        }
-        indices = validIndices;
-      }
-
-      // STEP 4: Compact vertex array by removing removeVertex
-      const newVertexCount = originalVertexCount - 1;
-      const newPositions = new Float32Array(newVertexCount * 3);
-
-      // Copy vertices before removeVertex
-      for (let i = 0; i < removeVertex; i++) {
-        newPositions[i * 3] = positions[i * 3];
-        newPositions[i * 3 + 1] = positions[i * 3 + 1];
-        newPositions[i * 3 + 2] = positions[i * 3 + 2];
-      }
-
-      // Copy vertices after removeVertex (shift indices down by 1)
-      for (let i = removeVertex + 1; i < originalVertexCount; i++) {
-        const newIndex = i - 1;
-        newPositions[newIndex * 3] = positions[i * 3];
-        newPositions[newIndex * 3 + 1] = positions[i * 3 + 1];
-        newPositions[newIndex * 3 + 2] = positions[i * 3 + 2];
-      }
-
-      // STEP 5: Update all indices to account for removed vertex (critical step!)
-      if (indices) {
-        for (let i = 0; i < indices.length; i++) {
-          if (indices[i] > removeVertex) {
-            const oldIndex = indices[i];
-            indices[i]--; // Shift down indices above the removed vertex
-            console.log(`     Shifted index ${i}: ${oldIndex} → ${indices[i]} (due to removal of vertex ${removeVertex})`);
-          }
-        }
-      }
-
-      // STEP 6: Create new geometry with compacted vertices
-      const resultGeometry = new THREE.BufferGeometry();
-      resultGeometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
-
-      if (indices && indices.length > 0) {
-        resultGeometry.setIndex(indices);
-      }
-
-      // Copy other attributes if they exist (normals, UVs, etc.)
-      for (const attributeName in geometry.attributes) {
-        if (attributeName !== 'position') {
-          const attribute = geometry.attributes[attributeName];
-          const newAttribute = this.compactAttribute(attribute, removeVertex, originalVertexCount);
-          if (newAttribute) {
-            resultGeometry.setAttribute(attributeName, newAttribute);
-          }
-        }
-      }
-
-      // Update polygon faces metadata if it exists
+      // STEP 4: Update polygon faces metadata if it exists
       if ((geometry as any).polygonFaces) {
-        const updatedPolygonFaces = this.updatePolygonFacesAfterVertexRemoval(
+        const updatedPolygonFaces = this.updatePolygonFacesSimple(
           (geometry as any).polygonFaces,
-          keepVertex,
-          removeVertex,
+          vertexIndex1,
+          vertexIndex2,
           collapsePosition,
           positions
         );
 
         (resultGeometry as any).polygonFaces = updatedPolygonFaces;
         (resultGeometry as any).polygonType = (geometry as any).polygonType;
-        (resultGeometry as any).isPolygonPreserved = true; // Ensure polygon structure is preserved
+        (resultGeometry as any).isPolygonPreserved = true;
 
-        console.log(`   Updated ${updatedPolygonFaces.length} polygon faces after vertex removal`);
+        console.log(`   Updated ${updatedPolygonFaces.length} polygon faces`);
       }
+
+      // Update position attribute
+      resultGeometry.attributes.position.needsUpdate = true;
 
       // Recompute normals
       resultGeometry.computeVertexNormals();
 
-      // Force geometry to refresh
+      // Force geometry refresh
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
-      console.log(`✅ TRUE EDGE COLLAPSE COMPLETED`);
-      console.log(`   Vertices: ${originalVertexCount} → ${newVertexCount} (removed ${originalVertexCount - newVertexCount})`);
-      console.log(`   Degenerate faces removed: ${degenerateFaces}`);
-      console.log(`   Remaining faces: ${indices ? indices.length / 3 : 'non-indexed'}`);
-      console.log(`   Final result: vertex ${removeVertex} merged into vertex ${keepVertex}`);
+      console.log(`✅ SIMPLE EDGE COLLAPSE COMPLETED`);
+      console.log(`   Vertices: ${geometry.attributes.position.count} (unchanged - just repositioned)`);
+      console.log(`   Merged vertex ${vertexIndex2} into vertex ${vertexIndex1}`);
 
       return {
         success: true,
-        message: `Edge collapsed: vertex ${removeVertex} merged into vertex ${keepVertex}`,
+        message: `Edge collapsed: vertices ${vertexIndex1} and ${vertexIndex2} merged`,
         geometry: resultGeometry
       };
 
     } catch (error) {
-      console.error('❌ True edge collapse failed:', error);
+      console.error('❌ Simple edge collapse failed:', error);
       return {
         success: false,
         message: `Edge collapse failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -2656,7 +2589,7 @@ export class VertexRemovalStitcher {
     (newGeometry as any).isPolygonPreserved = true;
 
     // DO NOT set indices to prevent triangulation
-    console.log(`   �� NO INDICES SET - preventing triangulation`);
+    console.log(`   🚫 NO INDICES SET - preventing triangulation`);
 
     // Force geometry updates
     positionAttribute.needsUpdate = true;
@@ -2827,7 +2760,7 @@ export class VertexRemovalStitcher {
             ];
 
             mergeableVertices.push({ v1: i, v2: j, newPos });
-            console.log(`     ✅ EXACT DUPLICATE: v${i} = v${j} (distance: ${distance.toFixed(6)})`);
+            console.log(`     ��� EXACT DUPLICATE: v${i} = v${j} (distance: ${distance.toFixed(6)})`);
           } else if (distance < 2.0 && mergeableVertices.length < 5) {
             // Also try close vertices if we need more merges
             const newPos = [
