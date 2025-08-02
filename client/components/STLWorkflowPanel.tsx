@@ -489,7 +489,7 @@ export default function STLWorkflowPanel({
         {/* 3. TOOLS SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="3. INTELLIGENT SIMPLIFICATION"
+            title="3. SIMPLIFICATION"
             isExpanded={expandedSections.tools}
             onToggle={() => toggleSection('tools')}
           />
