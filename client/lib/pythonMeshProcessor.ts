@@ -116,7 +116,8 @@ export class PythonMeshProcessor {
 
       // Get decimated mesh data
       const contentType = response.headers.get('content-type') || '';
-      const isOBJ = contentType.includes('text') || objData; // Check if we sent OBJ
+      const filename = response.headers.get('content-disposition')?.includes('.obj') || false;
+      const isOBJ = contentType.includes('text') || filename || polygonFaces; // Check if we sent OBJ
 
       let decimatedGeometry: THREE.BufferGeometry;
 
