@@ -22,9 +22,9 @@ const hasRealFirebaseConfig = import.meta.env.VITE_FIREBASE_API_KEY &&
 // Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "3dtools-demo.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "3dtools-demo",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "3dtools-demo.appspot.com",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "intellimesh-pro.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "intellimesh-pro",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "intellimesh-pro.appspot.com",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef123456789"
 };
