@@ -130,7 +130,7 @@ export class VertexRemovalStitcher {
           keepVertex,
           removeVertex,
           collapsePosition,
-          originalVertexCount
+          positions
         );
 
         (resultGeometry as any).polygonFaces = updatedPolygonFaces;
@@ -2287,7 +2287,7 @@ export class VertexRemovalStitcher {
         modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 2.0;
         modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 2.0;
 
-        console.log(`   🔧 SUBTLE SMOOTH vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] ��� [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
+        console.log(`   🔧 SUBTLE SMOOTH vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
       }
     }
 
@@ -2525,7 +2525,7 @@ export class VertexRemovalStitcher {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`�� === PURE POLYGON REDUCTION WITH VERTEX REMOVAL ===`);
+    console.log(`🚫 === PURE POLYGON REDUCTION WITH VERTEX REMOVAL ===`);
 
     const polygonFaces = (geometry as any).polygonFaces;
     const originalPositions = new Float32Array(geometry.attributes.position.array);
