@@ -29,28 +29,51 @@ export class VertexRemovalStitcher {
       const resultGeometry = geometry.clone();
       const positions = resultGeometry.attributes.position.array as Float32Array;
 
+      // DETAILED TRACKING: Show original state
+      console.log(`📍 === ORIGINAL VERTEX POSITIONS ===`);
+      console.log(`   Vertex ${vertexIndex1} (KEEP): [${positions[vertexIndex1 * 3].toFixed(3)}, ${positions[vertexIndex1 * 3 + 1].toFixed(3)}, ${positions[vertexIndex1 * 3 + 2].toFixed(3)}]`);
+      console.log(`   Vertex ${vertexIndex2} (MERGE): [${positions[vertexIndex2 * 3].toFixed(3)}, ${positions[vertexIndex2 * 3 + 1].toFixed(3)}, ${positions[vertexIndex2 * 3 + 2].toFixed(3)}]`);
+      console.log(`   Target collapse position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
+
       // STEP 1: Update both vertices to the collapse position
+      console.log(`🔄 === UPDATING VERTEX POSITIONS ===`);
+
+      // Update vertex1
+      const oldVertex1 = [positions[vertexIndex1 * 3], positions[vertexIndex1 * 3 + 1], positions[vertexIndex1 * 3 + 2]];
       positions[vertexIndex1 * 3] = collapsePosition.x;
       positions[vertexIndex1 * 3 + 1] = collapsePosition.y;
       positions[vertexIndex1 * 3 + 2] = collapsePosition.z;
+      console.log(`   Updated vertex ${vertexIndex1}: [${oldVertex1[0].toFixed(3)}, ${oldVertex1[1].toFixed(3)}, ${oldVertex1[2].toFixed(3)}] → [${positions[vertexIndex1 * 3].toFixed(3)}, ${positions[vertexIndex1 * 3 + 1].toFixed(3)}, ${positions[vertexIndex1 * 3 + 2].toFixed(3)}]`);
 
+      // Update vertex2
+      const oldVertex2 = [positions[vertexIndex2 * 3], positions[vertexIndex2 * 3 + 1], positions[vertexIndex2 * 3 + 2]];
       positions[vertexIndex2 * 3] = collapsePosition.x;
       positions[vertexIndex2 * 3 + 1] = collapsePosition.y;
       positions[vertexIndex2 * 3 + 2] = collapsePosition.z;
-
-      console.log(`   Both vertices moved to collapse position`);
+      console.log(`   Updated vertex ${vertexIndex2}: [${oldVertex2[0].toFixed(3)}, ${oldVertex2[1].toFixed(3)}, ${oldVertex2[2].toFixed(3)}] → [${positions[vertexIndex2 * 3].toFixed(3)}, ${positions[vertexIndex2 * 3 + 1].toFixed(3)}, ${positions[vertexIndex2 * 3 + 2].toFixed(3)}]`);
 
       // STEP 2: Update all indices - replace vertex2 references with vertex1
+      console.log(`🔗 === UPDATING INDEX REFERENCES ===`);
+      let indexUpdates = 0;
+
       if (resultGeometry.index) {
         const indices = resultGeometry.index.array;
+        console.log(`   Scanning ${indices.length} indices for references to vertex ${vertexIndex2}...`);
+
         for (let i = 0; i < indices.length; i++) {
           if (indices[i] === vertexIndex2) {
+            const oldIndex = indices[i];
             indices[i] = vertexIndex1;
-            console.log(`     Updated index ${i}: ${vertexIndex2} → ${vertexIndex1}`);
+            indexUpdates++;
+            console.log(`     Index ${i}: ${oldIndex} → ${indices[i]} (face ${Math.floor(i/3)}, vertex ${i%3})`);
           }
         }
         resultGeometry.index.needsUpdate = true;
+      } else {
+        console.log(`   No index buffer - geometry is non-indexed`);
       }
+
+      console.log(`   Total index updates: ${indexUpdates}`);
 
       // STEP 3: Remove degenerate faces (triangles with duplicate vertices)
       this.removeDegenerateFaces(resultGeometry);
