@@ -113,7 +113,7 @@ export function AdSenseSetupInstructions() {
           <ol className="list-decimal list-inside space-y-1 text-sm text-green-800">
             <li>Go to <a href="https://www.adsense.google.com" className="underline font-medium" target="_blank">adsense.google.com</a></li>
             <li>Click "Get started" and sign in with your Google account</li>
-            <li>Add your website: <strong>3dtools.netlify.app</strong></li>
+            <li>Add your website: <strong>intellimesh.pro</strong></li>
             <li>Choose your country and payment currency</li>
             <li>Wait for approval (usually 1-14 days)</li>
           </ol>
