@@ -399,6 +399,7 @@ export class VertexRemovalStitcher {
 
   /**
    * Collapse an edge by merging two vertices into one (proper quadric decimation)
+   * This should visibly change the shape by moving vertices to new positions
    */
   private static collapseEdge(
     edge: {v1: number, v2: number},
@@ -410,42 +411,78 @@ export class VertexRemovalStitcher {
 
     // Validate edge
     if (v1 === v2) {
-      return false; // Can't collapse edge to itself
+      return false;
     }
 
-    // Step 1: Calculate optimal position for merged vertex (using midpoint)
-    const v1OriginalX = positions[v1 * 3];
-    const v1OriginalY = positions[v1 * 3 + 1];
-    const v1OriginalZ = positions[v1 * 3 + 2];
-    const v2OriginalX = positions[v2 * 3];
-    const v2OriginalY = positions[v2 * 3 + 1];
-    const v2OriginalZ = positions[v2 * 3 + 2];
+    console.log(`🔗 COLLAPSING EDGE ${v1}-${v2}: This should visibly change the model shape`);
 
-    const newX = (v1OriginalX + v2OriginalX) * 0.5;
-    const newY = (v1OriginalY + v2OriginalY) * 0.5;
-    const newZ = (v1OriginalZ + v2OriginalZ) * 0.5;
+    // Get original positions
+    const v1x = positions[v1 * 3];
+    const v1y = positions[v1 * 3 + 1];
+    const v1z = positions[v1 * 3 + 2];
+    const v2x = positions[v2 * 3];
+    const v2y = positions[v2 * 3 + 1];
+    const v2z = positions[v2 * 3 + 2];
 
-    // Step 2: Move v1 to the optimal position
+    console.log(`   Before: v${v1}=[${v1x.toFixed(3)}, ${v1y.toFixed(3)}, ${v1z.toFixed(3)}], v${v2}=[${v2x.toFixed(3)}, ${v2y.toFixed(3)}, ${v2z.toFixed(3)}]`);
+
+    // Calculate new merged position (this is where the magic happens)
+    const newX = (v1x + v2x) * 0.5;
+    const newY = (v1y + v2y) * 0.5;
+    const newZ = (v1z + v2z) * 0.5;
+
+    const moveDistance = Math.sqrt((newX - v1x)**2 + (newY - v1y)**2 + (newZ - v1z)**2);
+    console.log(`   New merged position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}] (moved ${moveDistance.toFixed(3)} units)`);
+
+    // CRITICAL: Actually move the vertex to the new position
     positions[v1 * 3] = newX;
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Step 3: Replace ALL occurrences of v2 with v1 in the index array
+    // Also move v2 to the same position (merge them)
+    positions[v2 * 3] = newX;
+    positions[v2 * 3 + 1] = newY;
+    positions[v2 * 3 + 2] = newZ;
+
+    console.log(`   ✅ Both vertices moved to merged position`);
+
+    // Count references before replacement
+    let v1Refs = 0, v2Refs = 0;
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === v1) v1Refs++;
+      if (indices[i] === v2) v2Refs++;
+    }
+    console.log(`   Before merge: v${v1} used ${v1Refs} times, v${v2} used ${v2Refs} times`);
+
+    // Replace all v2 references with v1 (merge the vertices)
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
         indices[i] = v1;
       }
     }
 
-    // Step 4: Remove degenerate triangles that naturally result from merging
-    this.removeOnlyDegenerateTriangles(indices);
+    // Count references after replacement
+    let v1RefsAfter = 0, v2RefsAfter = 0;
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === v1) v1RefsAfter++;
+      if (indices[i] === v2) v2RefsAfter++;
+    }
+    console.log(`   After merge: v${v1} used ${v1RefsAfter} times, v${v2} used ${v2RefsAfter} times`);
 
-    // Step 5: Update vertex-to-faces mapping
+    // Remove triangles that became degenerate (have duplicate vertices)
+    const trianglesBefore = indices.length / 3;
+    this.removeOnlyDegenerateTriangles(indices);
+    const trianglesAfter = indices.length / 3;
+
+    console.log(`   Triangles: ${trianglesBefore} → ${trianglesAfter} (removed ${trianglesBefore - trianglesAfter} degenerate)`);
+
+    // Update vertex-to-faces mapping
     const v1Faces = vertexToFaces.get(v1) || [];
     const v2Faces = vertexToFaces.get(v2) || [];
     vertexToFaces.set(v1, [...new Set([...v1Faces, ...v2Faces])]);
     vertexToFaces.delete(v2);
 
+    console.log(`   ✅ Edge collapse complete - model shape should have changed!`);
     return true;
   }
 
