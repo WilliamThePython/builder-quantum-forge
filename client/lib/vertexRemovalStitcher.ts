@@ -2341,10 +2341,24 @@ export class VertexRemovalStitcher {
     const actualReduction = (vertexCount - finalVertexCount) / vertexCount;
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Polygon vertex removal complete:`);
-    console.log(`   📊 Vertices: ${vertexCount} → ${finalVertexCount} (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`   📐 Polygon faces: ${updatedPolygonFaces.length} (structure preserved)`);
+    console.log(`✅ === POLYGON VERTEX REMOVAL COMPLETE ===`);
+    console.log(`   📊 FINAL RESULTS:`);
+    console.log(`     Original vertices: ${vertexCount}`);
+    console.log(`     Final vertices: ${finalVertexCount}`);
+    console.log(`     Vertices removed: ${vertexCount - finalVertexCount}`);
+    console.log(`     Actual reduction: ${(actualReduction * 100).toFixed(1)}%`);
+    console.log(`     Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
+    console.log(`     Processing time: ${processingTime}ms`);
+    console.log(`   📐 Polygon faces maintained: ${updatedPolygonFaces.length}`);
     console.log(`   🚫 NO triangulation applied`);
+
+    if (actualReduction === 0) {
+      console.warn(`   ⚠️ NO REDUCTION ACHIEVED!`);
+      console.warn(`   This could mean:`);
+      console.warn(`   1. No vertices were close enough to merge`);
+      console.warn(`   2. Model is already optimally reduced`);
+      console.warn(`   3. Distance thresholds need adjustment`);
+    }
 
     return Promise.resolve({
       simplifiedGeometry: newGeometry,
