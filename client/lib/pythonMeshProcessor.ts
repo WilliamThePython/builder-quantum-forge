@@ -1,6 +1,7 @@
 /**
  * Python mesh processing client using Open3D backend
  */
+import * as THREE from 'three';
 
 export interface PythonDecimationResult {
   geometry: THREE.BufferGeometry;
