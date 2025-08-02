@@ -5,6 +5,63 @@ import * as THREE from 'three';
 import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
 
+// Helper function to find the nearest edge to a click point
+function findNearestEdge(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): { vertexIndex1: number, vertexIndex2: number } {
+  if (!intersection.face) {
+    return { vertexIndex1: 0, vertexIndex2: 1 };
+  }
+
+  const face = intersection.face;
+  const point = intersection.point;
+
+  // Get the three vertices of the intersected triangle
+  const vertices = [
+    { index: face.a, position: new THREE.Vector3() },
+    { index: face.b, position: new THREE.Vector3() },
+    { index: face.c, position: new THREE.Vector3() }
+  ];
+
+  // Get vertex positions
+  const positions = geometry.attributes.position.array as Float32Array;
+  vertices.forEach(vertex => {
+    vertex.position.set(
+      positions[vertex.index * 3],
+      positions[vertex.index * 3 + 1],
+      positions[vertex.index * 3 + 2]
+    );
+  });
+
+  // Calculate distances from click point to each edge of the triangle
+  const edges = [
+    { v1: vertices[0], v2: vertices[1] },
+    { v1: vertices[1], v2: vertices[2] },
+    { v1: vertices[2], v2: vertices[0] }
+  ];
+
+  let nearestEdge = edges[0];
+  let minDistance = Number.MAX_VALUE;
+
+  edges.forEach(edge => {
+    // Calculate distance from point to line segment (edge)
+    const line = new THREE.Line3(edge.v1.position, edge.v2.position);
+    const closestPoint = new THREE.Vector3();
+    line.closestPointToPoint(point, true, closestPoint);
+    const distance = point.distanceTo(closestPoint);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestEdge = edge;
+    }
+  });
+
+  console.log(`   Edge distances calculated, nearest: ${nearestEdge.v1.index} ↔ ${nearestEdge.v2.index} (dist: ${minDistance.toFixed(3)})`);
+
+  return {
+    vertexIndex1: nearestEdge.v1.index,
+    vertexIndex2: nearestEdge.v2.index
+  };
+}
+
 function HighlightMesh() {
   // No longer needed - highlighting is handled in the main mesh
   return null;
