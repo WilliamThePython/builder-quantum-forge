@@ -120,7 +120,7 @@ export default function About() {
                     <Zap className="w-5 h-5 mr-3 text-gray-400" />
                     <div>
                       <p className="font-medium">Feature Requests</p>
-                      <p className="text-sm text-gray-400">features@3dtools.com</p>
+                      <p className="text-sm text-gray-400">features@intellimesh.pro</p>
                     </div>
                   </div>
                 </div>
