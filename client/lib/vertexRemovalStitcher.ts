@@ -101,42 +101,23 @@ export class VertexRemovalStitcher {
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
 
-    // Calculate face quality scores (simpler than vertex errors)
-    const indices = indexedGeometry.index!.array;
-    const positions = indexedGeometry.attributes.position.array as Float32Array;
-    const faceCount = indices.length / 3;
+    // Get unique vertices and build adjacency information
+    const { vertices, faces, vertexToFaces } = this.analyzeGeometry(indexedGeometry);
 
-    const faceQuality: { index: number; quality: number }[] = [];
+    console.log(`📊 Geometry analysis: ${vertices.length} unique vertices, ${faces.length} faces`);
 
-    for (let faceIndex = 0; faceIndex < faceCount; faceIndex++) {
-      const i = faceIndex * 3;
-      const v1 = [positions[indices[i] * 3], positions[indices[i] * 3 + 1], positions[indices[i] * 3 + 2]];
-      const v2 = [positions[indices[i + 1] * 3], positions[indices[i + 1] * 3 + 1], positions[indices[i + 1] * 3 + 2]];
-      const v3 = [positions[indices[i + 2] * 3], positions[indices[i + 2] * 3 + 1], positions[indices[i + 2] * 3 + 2]];
+    // Calculate vertex importance scores (similar to quadric error)
+    const vertexScores = this.calculateVertexImportance(vertices, faces, vertexToFaces);
 
-      // Calculate triangle area as quality metric
-      const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
-      const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
-      const cross = [
-        edge1[1] * edge2[2] - edge1[2] * edge2[1],
-        edge1[2] * edge2[0] - edge1[0] * edge2[2],
-        edge1[0] * edge2[1] - edge1[1] * edge2[0]
-      ];
-      const area = Math.sqrt(cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]) * 0.5;
+    // Select vertices with lowest importance scores
+    const verticesToRemoveSet = this.selectLeastImportantVertices(vertexScores, verticesToRemove);
+    console.log(`🐍 Selected ${verticesToRemoveSet.size} least important vertices for removal`);
 
-      faceQuality.push({ index: faceIndex, quality: area });
-    }
+    // Remove vertices and stitch holes
+    const newFaces = this.removeVerticesAndStitch(faces, verticesToRemoveSet, vertexToFaces, vertices);
 
-    // Sort by quality (keep higher quality faces)
-    faceQuality.sort((a, b) => b.quality - a.quality);
-
-    const targetFaces = Math.floor(faceCount * (1 - (verticesToRemove / indexedGeometry.attributes.position.count)));
-    const facesToKeep = Math.max(4, targetFaces);
-    const selectedFaces = faceQuality.slice(0, facesToKeep).map(f => f.index);
-
-    console.log(`Python-style: Keeping ${facesToKeep} highest quality faces out of ${faceCount}`);
-
-    return this.buildGeometryFromFaces(indexedGeometry, selectedFaces);
+    // Rebuild geometry
+    return this.rebuildGeometry(vertices, newFaces, verticesToRemoveSet);
   }
 
   /**
