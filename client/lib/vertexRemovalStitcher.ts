@@ -27,11 +27,29 @@ export class VertexRemovalStitcher {
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
 
-    // Clone and ensure geometry is indexed for processing
+    // Clone geometry but preserve original structure
     let workingGeometry = geometry.clone();
-    if (!workingGeometry.index) {
-      console.log('🔧 Converting geometry to indexed format...');
-      workingGeometry = this.ensureIndexedGeometry(workingGeometry);
+
+    // Check if this is a solid geometry with polygon faces
+    const hasPolygonStructure = (geometry as any).polygonFaces;
+
+    if (hasPolygonStructure) {
+      console.log('📊 PRESERVING SOLID STRUCTURE: Model has polygon faces, avoiding triangulation');
+      console.log(`   Original structure: ${(geometry as any).polygonFaces.length} polygon faces`);
+
+      // For polygon geometries, work directly with the existing structure
+      // Don't convert to indexed triangles - this breaks the solid
+      if (!workingGeometry.index) {
+        // Only index if absolutely necessary, but warn about structure loss
+        console.warn('⚠️ Converting polygon geometry to indexed - this may break solid structure');
+        workingGeometry = this.ensureIndexedGeometry(workingGeometry);
+      }
+    } else {
+      // For triangle-based geometries, indexing is safe
+      if (!workingGeometry.index) {
+        console.log('🔧 Converting triangle geometry to indexed format...');
+        workingGeometry = this.ensureIndexedGeometry(workingGeometry);
+      }
     }
 
     // Calculate target face count with safeguards for small models
