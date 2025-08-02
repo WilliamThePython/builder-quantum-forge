@@ -616,7 +616,9 @@ window.addEventListener('error', (event) => {
       event.filename?.includes('analytics.ts') ||
       event.filename?.includes('/api/analytics/') ||
       event.message?.includes('sendToCustomAnalytics') ||
-      event.message?.includes('trackEvent')) {
+      event.message?.includes('trackEvent') ||
+      event.error?.stack?.includes('fullstory') ||
+      event.error?.stack?.includes('fs.js')) {
     console.warn('🔄 Skipping analytics-related error to prevent loop');
     return;
   }
