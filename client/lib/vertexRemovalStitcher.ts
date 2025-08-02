@@ -41,6 +41,34 @@ export class VertexRemovalStitcher {
     // Clone geometry but preserve original structure
     let workingGeometry = geometry.clone();
 
+    // Calculate target face count with safeguards for small models
+    const currentFaces = originalStats.faces;
+    const currentVertices = originalStats.vertices;
+
+    // For very small models, be much more conservative
+    let actualReduction = targetReduction;
+    if (currentVertices <= 20) {
+      actualReduction = Math.min(targetReduction, 0.3); // Max 30% reduction for small models
+      console.log(`⚠️ Small model detected (${currentVertices} vertices), limiting reduction to ${(actualReduction * 100).toFixed(1)}%`);
+    }
+
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - actualReduction))); // Minimum 4 faces (tetrahedron)
+
+    // Ensure we don't reduce too aggressively
+    if (targetFaces >= currentFaces * 0.9) {
+      console.log(`⚠️ Target would remove less than 10% of faces, skipping decimation`);
+      return {
+        simplifiedGeometry: workingGeometry,
+        originalStats,
+        newStats: originalStats,
+        reductionAchieved: 0,
+        processingTime: Date.now() - startTime
+      };
+    }
+
+    console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
+    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+
     // Check if this is a solid geometry with polygon faces
     const polygonFaces = (geometry as any).polygonFaces;
     const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
@@ -54,7 +82,7 @@ export class VertexRemovalStitcher {
       console.log('   🎯 Using polygon-preserving vertex merging instead');
 
       // Use direct polygon-preserving reduction - NO indexing, NO triangulation
-      resultGeometry = this.polygonAwareDecimation(workingGeometry, targetReduction);
+      resultGeometry = this.polygonAwareDecimation(workingGeometry, actualReduction);
     } else {
       // For triangle-based geometries, use proper QEM decimation
       console.log('🔗 Triangle model detected, using QEM-based decimation');
