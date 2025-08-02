@@ -123,11 +123,21 @@ export class VertexRemovalStitcher {
         }
       }
 
-      // Preserve polygon faces metadata if it exists
+      // Update polygon faces metadata if it exists
       if ((geometry as any).polygonFaces) {
-        (resultGeometry as any).polygonFaces = (geometry as any).polygonFaces;
+        const updatedPolygonFaces = this.updatePolygonFacesAfterVertexRemoval(
+          (geometry as any).polygonFaces,
+          keepVertex,
+          removeVertex,
+          collapsePosition,
+          originalVertexCount
+        );
+
+        (resultGeometry as any).polygonFaces = updatedPolygonFaces;
         (resultGeometry as any).polygonType = (geometry as any).polygonType;
-        (resultGeometry as any).isPolygonPreserved = (geometry as any).isPolygonPreserved;
+        (resultGeometry as any).isPolygonPreserved = true; // Ensure polygon structure is preserved
+
+        console.log(`   Updated ${updatedPolygonFaces.length} polygon faces after vertex removal`);
       }
 
       // Recompute normals
