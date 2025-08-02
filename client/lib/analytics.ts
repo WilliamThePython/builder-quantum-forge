@@ -429,33 +429,8 @@ class Analytics {
 
   // Get custom analytics data from any endpoint - completely silent
   async getCustomData(endpoint: string) {
-    // Check if we should skip entirely
-    if (this.shouldSkipAnalytics() || this.globallyDisabled) {
-      return {};
-    }
-
-    try {
-      // Wrap fetch in its own promise to prevent any escape
-      const result = await new Promise((resolve) => {
-        try {
-          fetch(endpoint)
-            .then(response => {
-              if (response.ok) {
-                return response.json();
-              }
-              resolve({});
-            })
-            .then(data => resolve(data || {}))
-            .catch(() => resolve({}));
-        } catch (fetchError) {
-          resolve({});
-        }
-      });
-      return result;
-    } catch (error) {
-      // Ultimate fallback
-      return {};
-    }
+    // Always return empty object - disable all external data fetching
+    return {};
   }
 
   private shouldSkipAnalytics(): boolean {
