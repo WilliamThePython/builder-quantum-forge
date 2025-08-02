@@ -45,8 +45,9 @@ function STLMesh() {
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
-      // Fallback to standard wireframe for non-polygon geometries
-      return null;
+      // Fallback to standard edge wireframe for non-polygon geometries
+      console.log('🔗 Creating standard wireframe (no polygon data)');
+      return new THREE.EdgesGeometry(geometry);
     }
 
     console.log('🔗 Creating polygon-aware wireframe');
