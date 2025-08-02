@@ -2023,12 +2023,12 @@ export class VertexRemovalStitcher {
           (pos2[2] - pos1[2]) ** 2
         );
 
-        // More aggressive merging - larger distance threshold
-        if (distance < 20.0) {
+        // Conservative merging to preserve shape integrity
+        if (distance < 8.0) { // Reduced distance threshold
           const newPos = [
-            (pos1[0] + pos2[0]) * 0.5 + (Math.random() - 0.5) * 4.0, // Add random offset for visibility
-            (pos1[1] + pos2[1]) * 0.5 + (Math.random() - 0.5) * 4.0,
-            (pos1[2] + pos2[2]) * 0.5 + (Math.random() - 0.5) * 4.0
+            (pos1[0] + pos2[0]) * 0.5 + (Math.random() - 0.5) * 1.0, // Small random offset
+            (pos1[1] + pos2[1]) * 0.5 + (Math.random() - 0.5) * 1.0,
+            (pos1[2] + pos2[2]) * 0.5 + (Math.random() - 0.5) * 1.0
           ];
 
           mergeableVertices.push({ v1, v2, newPos });
