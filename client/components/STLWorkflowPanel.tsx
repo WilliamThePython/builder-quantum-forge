@@ -1420,6 +1420,8 @@ function MobileWorkflowContent(props: any) {
               <Button
                 onClick={() => {
                   const methodMapping: Record<string, string> = {
+                    'random_vertex_removal': 'random_vertex',
+                    'python_vertex_removal': 'python_vertex',
                     'random_vertex': 'random',
                     'quadric': 'quadric_edge_collapse',
                     'grid_based': 'vertex_clustering',
