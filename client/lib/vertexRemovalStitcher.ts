@@ -50,7 +50,13 @@ export class VertexRemovalStitcher {
     // Ensure we don't reduce too aggressively
     if (targetFaces >= currentFaces * 0.9) {
       console.log(`⚠️ Target would remove less than 10% of faces, skipping decimation`);
-      return workingGeometry; // Return original if reduction is too small
+      return {
+        simplifiedGeometry: workingGeometry,
+        originalStats,
+        newStats: originalStats,
+        reductionAchieved: 0,
+        processingTime: Date.now() - startTime
+      };
     }
 
     console.log(`📊 Plan: Reduce faces ${currentFaces} → ${targetFaces} (${(actualReduction * 100).toFixed(1)}% reduction)`);
