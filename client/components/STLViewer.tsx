@@ -442,6 +442,9 @@ function STLMesh() {
         key={geometry.uuid}
         geometry={geometry}
         material={material}
+        style={{
+          cursor: decimationPainterMode ? 'crosshair' : 'default'
+        }}
       />
 
       {/* Polygon-aware wireframe overlay */}
