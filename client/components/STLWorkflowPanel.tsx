@@ -484,44 +484,11 @@ export default function STLWorkflowPanel({
               {/* Reduction Settings */}
               <div className="p-4 bg-white/10 rounded-lg border border-white/20">
                   <div className="text-white text-sm font-medium mb-2">
-                      Vertex Removal & Stitching
-                  </div>
-                  <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                    🔧 <span className="font-medium">Vertex Reduction:</span> Remove vertices and automatically stitch geometry back together.
-                    Maintains model topology while reducing complexity.
-                  </div>
-
-                    {/* Method Selection - Two vertex removal approaches */}
-                    <div className="mb-4">
-                      <div className="text-white text-xs mb-2">Simplification Method</div>
-                      <div className="grid grid-cols-1 gap-2">
-                        <Button
-                          onClick={() => setReductionMethod('random_vertex_removal')}
-                          className={`text-xs py-2 px-3 h-8 ${
-                            reductionMethod === 'random_vertex_removal'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          🎲 Random Vertex Removal
-                        </Button>
-                        <Button
-                          onClick={() => setReductionMethod('python_vertex_removal')}
-                          className={`text-xs py-2 px-3 h-8 ${
-                            reductionMethod === 'python_vertex_removal'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
-                          }`}
-                        >
-                          🐍 Python-Style Removal
-                        </Button>
-                      </div>
-                      <div className="text-xs text-white/60 mt-2 bg-white/5 rounded p-2">
-                        {reductionMethod === 'random_vertex_removal' && '🎲 Randomly selects vertices to remove, then stitches holes closed. Simple but effective for general reduction.'}
-                        {reductionMethod === 'python_vertex_removal' && '🐍 Uses quadric decimation like the Python code. Intelligent vertex selection with topology preservation.'}
-                        {!reductionMethod && 'Select a method to see details...'}
-                      </div>
-                    </div>
+                    Quadric Edge Collapse
+                </div>
+                <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
+                  🔧 <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features. Same algorithm as Open3D's quadric decimation.
+                </div>
 
                     {/* Reduction Amount */}
                     <div className="mb-3">
