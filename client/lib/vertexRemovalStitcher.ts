@@ -362,26 +362,16 @@ export class VertexRemovalStitcher {
    * Check if an edge is still valid for collapse
    */
   private static isEdgeValid(edge: {v1: number, v2: number}, indices: number[]): boolean {
-    // Check if both vertices still exist in the mesh
+    // Simply check if both vertices still exist in the mesh
     let hasV1 = false, hasV2 = false;
-    let sharedTriangles = 0;
 
-    for (let i = 0; i < indices.length; i += 3) {
-      const v1 = indices[i];
-      const v2 = indices[i + 1];
-      const v3 = indices[i + 2];
-
-      const triangle = [v1, v2, v3];
-      const hasEdgeV1 = triangle.includes(edge.v1);
-      const hasEdgeV2 = triangle.includes(edge.v2);
-
-      if (hasEdgeV1) hasV1 = true;
-      if (hasEdgeV2) hasV2 = true;
-      if (hasEdgeV1 && hasEdgeV2) sharedTriangles++;
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === edge.v1) hasV1 = true;
+      if (indices[i] === edge.v2) hasV2 = true;
+      if (hasV1 && hasV2) return true;
     }
 
-    // Edge is valid if both vertices exist and they share exactly 1 or 2 triangles
-    return hasV1 && hasV2 && sharedTriangles > 0 && sharedTriangles <= 2;
+    return false;
   }
 
   /**
@@ -400,32 +390,9 @@ export class VertexRemovalStitcher {
       return false; // Can't collapse edge to itself
     }
 
-    // Check for boundary conditions that would create invalid topology
-    const v1Faces = vertexToFaces.get(v1) || [];
-    const v2Faces = vertexToFaces.get(v2) || [];
+    console.log(`🔗 Collapsing edge ${v1}-${v2}: merging vertex ${v2} into ${v1}`);
 
-    // Prevent collapse if it would create too many degenerate faces
-    let sharedFaces = 0;
-    for (const faceIdx of v1Faces) {
-      if (v2Faces.includes(faceIdx)) {
-        sharedFaces++;
-      }
-    }
-
-    // Only collapse if vertices share 1 or 2 faces (proper edge on manifold mesh)
-    if (sharedFaces < 1 || sharedFaces > 2) {
-      return false;
-    }
-
-    // Additional check: prevent collapse that would create non-manifold geometry
-    if (!this.wouldPreserveManifold(v1, v2, indices, vertexToFaces)) {
-      return false;
-    }
-
-    console.log(`🔗 Collapsing vertices ${v2} → ${v1} (merging two points into one)`);
-
-    // Step 1: Calculate optimal position for merged vertex
-    // Using midpoint for simplicity (in full quadric decimation, this would use quadric error minimization)
+    // Step 1: Calculate optimal position for merged vertex (using midpoint)
     const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
     const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
     const newZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) * 0.5;
@@ -435,52 +402,79 @@ export class VertexRemovalStitcher {
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Step 3: MERGE vertices by replacing all v2 references with v1
-    // This is the core of vertex collapsing - we're making v2 and v1 the same point
+    // Step 3: CRITICAL - Replace ALL occurrences of v2 with v1 in the index array
+    // This is true vertex merging - we're making v2 and v1 the same point
+    let replacements = 0;
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
-        indices[i] = v1; // Merge: v2 now points to v1's location
+        indices[i] = v1;
+        replacements++;
       }
     }
 
-    // Step 4: Clean up degenerate triangles that naturally result from merging
-    // When two vertices become one, some triangles become invalid (e.g., [v1, v1, v3])
-    this.removeDegenerateFaces(indices);
+    console.log(`   → Replaced ${replacements} references of vertex ${v2} with ${v1}`);
 
-    // Step 5: Update vertex-to-faces mapping (v2 no longer exists as a separate vertex)
-    const mergedFaces = new Set([...v1Faces, ...v2Faces]);
-    vertexToFaces.set(v1, Array.from(mergedFaces));
-    vertexToFaces.delete(v2); // v2 no longer exists as a separate vertex
+    // Step 4: ONLY remove triangles that have become degenerate (same vertex repeated)
+    // This is the natural result of merging vertices, not arbitrary face removal
+    const initialTriangles = indices.length / 3;
+    this.removeOnlyDegenerateTriangles(indices);
+    const finalTriangles = indices.length / 3;
+    const removedTriangles = initialTriangles - finalTriangles;
 
-    console.log(`✅ Vertices merged successfully, degenerate faces cleaned up`);
+    console.log(`   → Removed ${removedTriangles} degenerate triangles (natural result of vertex merge)`);
+
+    // Step 5: Update vertex-to-faces mapping
+    const v1Faces = vertexToFaces.get(v1) || [];
+    const v2Faces = vertexToFaces.get(v2) || [];
+    vertexToFaces.set(v1, [...new Set([...v1Faces, ...v2Faces])]);
+    vertexToFaces.delete(v2);
+
+    console.log(`✅ Edge collapse complete: vertices merged, ${removedTriangles} degenerate triangles removed`);
     return true;
   }
 
 
 
   /**
-   * Remove faces that have duplicate vertices (degenerate triangles)
+   * Remove ONLY triangles that have duplicate vertices (degenerate triangles)
+   * This is conservative - only removes triangles that are mathematically invalid
    */
-  private static removeDegenerateFaces(indices: number[]) {
+  private static removeOnlyDegenerateTriangles(indices: number[]) {
     let writeIndex = 0;
+    let removedCount = 0;
 
-    // Process faces in place to avoid creating a large temporary array
+    // Process faces in place - only remove truly degenerate triangles
     for (let readIndex = 0; readIndex < indices.length; readIndex += 3) {
       const v1 = indices[readIndex];
       const v2 = indices[readIndex + 1];
       const v3 = indices[readIndex + 2];
 
-      // Only keep faces where all three vertices are different
+      // ONLY remove triangles where vertices are identical (truly degenerate)
       if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
+        // Triangle is valid - keep it
         indices[writeIndex] = v1;
         indices[writeIndex + 1] = v2;
         indices[writeIndex + 2] = v3;
         writeIndex += 3;
+      } else {
+        // Triangle is degenerate (has repeated vertices) - remove it
+        removedCount++;
       }
     }
 
     // Trim the array to the new size
     indices.length = writeIndex;
+
+    if (removedCount > 0) {
+      console.log(`   → Removed ${removedCount} degenerate triangles (had duplicate vertices)`);
+    }
+  }
+
+  /**
+   * Legacy method for compatibility
+   */
+  private static removeDegenerateFaces(indices: number[]) {
+    this.removeOnlyDegenerateTriangles(indices);
   }
 
   /**
