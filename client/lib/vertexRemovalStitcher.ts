@@ -31,11 +31,12 @@ export class VertexRemovalStitcher {
     let workingGeometry = geometry.clone();
 
     // Check if this is a solid geometry with polygon faces
-    const hasPolygonStructure = (geometry as any).polygonFaces;
+    const polygonFaces = (geometry as any).polygonFaces;
+    const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
 
     if (hasPolygonStructure) {
       console.log('🚫 POLYGON MODEL DETECTED: Completely avoiding triangulation-based decimation');
-      console.log(`   Original structure: ${(geometry as any).polygonFaces.length} polygon faces`);
+      console.log(`   Original structure: ${polygonFaces.length} polygon faces`);
       console.log('   🎯 Using polygon-preserving vertex merging instead');
 
       // Use direct polygon-preserving reduction - NO indexing, NO triangulation
@@ -1726,7 +1727,7 @@ export class VertexRemovalStitcher {
     try {
       // Check basic attributes
       if (!geometry.attributes.position) {
-        console.error('��� Geometry missing position attribute');
+        console.error('❌ Geometry missing position attribute');
         return false;
       }
 
@@ -2031,7 +2032,7 @@ export class VertexRemovalStitcher {
 
     // Second pass: Any close vertices if not enough found
     if (mergeableVertices.length < Math.min(targetMerges, 10)) {
-      console.log(`   🔍 Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
+      console.log(`   ���� Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
 
       const vertexCount = positions.length / 3;
       for (let i = 0; i < vertexCount - 1 && mergeableVertices.length < targetMerges; i++) {
