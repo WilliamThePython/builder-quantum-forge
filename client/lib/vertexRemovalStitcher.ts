@@ -542,11 +542,17 @@ export class VertexRemovalStitcher {
     positions: Float32Array,
     indices: number[]
   ): THREE.BufferGeometry {
+    console.log(`🔧 Rebuilding geometry from arrays...`);
+    console.log(`   Input: ${positions.length / 3} position vertices, ${indices.length / 3} triangles`);
+
     // Create mapping from old vertices to new vertices (removing unused ones)
     const usedVertices = new Set<number>();
     for (const index of indices) {
       usedVertices.add(index);
     }
+
+    console.log(`   Used vertices: ${usedVertices.size} out of ${positions.length / 3}`);
+    console.log(`   Unused vertices: ${(positions.length / 3) - usedVertices.size}`);
 
     const vertexMapping = new Map<number, number>();
     const newPositions: number[] = [];
@@ -563,8 +569,12 @@ export class VertexRemovalStitcher {
       newVertexIndex++;
     }
 
+    console.log(`   Vertex mapping created: ${sortedVertices.length} vertices mapped`);
+
     // Remap indices and validate each triangle
     const newIndices: number[] = [];
+    let skippedTriangles = 0;
+
     for (let i = 0; i < indices.length; i += 3) {
       const v1 = vertexMapping.get(indices[i]);
       const v2 = vertexMapping.get(indices[i + 1]);
@@ -574,8 +584,15 @@ export class VertexRemovalStitcher {
       if (v1 !== undefined && v2 !== undefined && v3 !== undefined &&
           v1 !== v2 && v2 !== v3 && v3 !== v1) {
         newIndices.push(v1, v2, v3);
+      } else {
+        skippedTriangles++;
+        if (v1 === undefined || v2 === undefined || v3 === undefined) {
+          console.warn(`   ⚠️ Skipping triangle with unmapped vertices: [${indices[i]}, ${indices[i+1]}, ${indices[i+2]}] → [${v1}, ${v2}, ${v3}]`);
+        }
       }
     }
+
+    console.log(`   Triangle remapping: ${indices.length / 3} → ${newIndices.length / 3} (skipped ${skippedTriangles})`);
 
     // Create new geometry
     const newGeometry = new THREE.BufferGeometry();
