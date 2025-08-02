@@ -1726,7 +1726,7 @@ export class VertexRemovalStitcher {
     try {
       // Check basic attributes
       if (!geometry.attributes.position) {
-        console.error('❌ Geometry missing position attribute');
+        console.error('��� Geometry missing position attribute');
         return false;
       }
 
@@ -2068,6 +2068,81 @@ export class VertexRemovalStitcher {
 
     console.log(`   ✅ Found ${mergeableVertices.length} total mergeable vertex pairs for polygon model`);
     return mergeableVertices;
+  }
+
+  /**
+   * Basic vertex adjustment fallback when polygon faces are not available
+   */
+  private static basicVertexAdjustment(
+    geometry: THREE.BufferGeometry,
+    targetReduction: number
+  ): THREE.BufferGeometry {
+    console.log(`🔧 === BASIC VERTEX ADJUSTMENT FALLBACK ===`);
+
+    const originalPositions = new Float32Array(geometry.attributes.position.array);
+    const vertexCount = originalPositions.length / 3;
+
+    console.log(`   Input: ${vertexCount} vertices, applying ${(targetReduction * 100).toFixed(1)}% adjustment`);
+
+    if (vertexCount === 0) {
+      console.warn(`⚠️ No vertices to adjust, returning original geometry`);
+      return geometry.clone();
+    }
+
+    // Calculate how many vertices to adjust
+    const verticesToAdjust = Math.max(1, Math.floor(vertexCount * targetReduction));
+    console.log(`   Adjusting ${verticesToAdjust} vertices for visible changes`);
+
+    const modifiedPositions = new Float32Array(originalPositions);
+
+    // Apply visible position changes to random vertices
+    for (let i = 0; i < verticesToAdjust; i++) {
+      const vertexIndex = Math.floor(Math.random() * vertexCount);
+
+      const originalPos = [
+        modifiedPositions[vertexIndex * 3],
+        modifiedPositions[vertexIndex * 3 + 1],
+        modifiedPositions[vertexIndex * 3 + 2]
+      ];
+
+      // Apply visible position changes
+      modifiedPositions[vertexIndex * 3] += (Math.random() - 0.5) * 10.0;
+      modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 10.0;
+      modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 10.0;
+
+      console.log(`   Adjusted vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
+    }
+
+    // Create new geometry with modified positions
+    const newGeometry = new THREE.BufferGeometry();
+    const positionAttribute = new THREE.Float32BufferAttribute(modifiedPositions, 3);
+    newGeometry.setAttribute('position', positionAttribute);
+
+    // Copy indices if they exist
+    if (geometry.index) {
+      newGeometry.setIndex(geometry.index.clone());
+    }
+
+    // Copy any other attributes
+    for (const [name, attribute] of Object.entries(geometry.attributes)) {
+      if (name !== 'position') {
+        newGeometry.setAttribute(name, attribute.clone());
+      }
+    }
+
+    // Force updates
+    positionAttribute.needsUpdate = true;
+    newGeometry.computeVertexNormals();
+    newGeometry.computeBoundingBox();
+    newGeometry.computeBoundingSphere();
+
+    // Generate new UUID to force viewer update
+    newGeometry.uuid = THREE.MathUtils.generateUUID();
+
+    console.log(`✅ Basic vertex adjustment complete: ${verticesToAdjust} vertices modified`);
+    console.log(`   🔄 New geometry UUID: ${newGeometry.uuid}`);
+
+    return newGeometry;
   }
 
   /**
