@@ -136,6 +136,83 @@ function findVertexIndex(positions: Float32Array, targetVertex: THREE.Vector3): 
   return 0;
 }
 
+// Validate that an edge is a proper polygon boundary (not internal triangulation)
+function isValidPolygonBoundaryEdge(
+  polygonFaces: any[],
+  vertex1: THREE.Vector3,
+  vertex2: THREE.Vector3
+): boolean {
+  const tolerance = 0.001;
+  let faceCount = 0;
+
+  // Count how many polygon faces contain this edge
+  for (const face of polygonFaces) {
+    if (!face.originalVertices) continue;
+
+    let hasVertex1 = false;
+    let hasVertex2 = false;
+
+    // Check if this polygon face contains both vertices of the edge
+    for (const vertex of face.originalVertices) {
+      const vertexPos = vertex instanceof THREE.Vector3
+        ? vertex
+        : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+
+      if (vertexPos.distanceTo(vertex1) < tolerance) {
+        hasVertex1 = true;
+      }
+      if (vertexPos.distanceTo(vertex2) < tolerance) {
+        hasVertex2 = true;
+      }
+    }
+
+    // If this face contains both vertices, check if they're consecutive (proper edge)
+    if (hasVertex1 && hasVertex2) {
+      if (areVerticesConsecutiveInPolygon(face.originalVertices, vertex1, vertex2, tolerance)) {
+        faceCount++;
+      }
+    }
+  }
+
+  // A valid polygon boundary edge should be shared by exactly 1 or 2 faces
+  // (1 = exterior edge, 2 = interior edge between adjacent faces)
+  const isValid = faceCount >= 1 && faceCount <= 2;
+
+  if (!isValid) {
+    console.warn(`Invalid edge: found in ${faceCount} faces (expected 1-2)`);
+  }
+
+  return isValid;
+}
+
+// Check if two vertices are consecutive in a polygon perimeter
+function areVerticesConsecutiveInPolygon(
+  vertices: any[],
+  vertex1: THREE.Vector3,
+  vertex2: THREE.Vector3,
+  tolerance: number
+): boolean {
+  for (let i = 0; i < vertices.length; i++) {
+    const current = vertices[i];
+    const next = vertices[(i + 1) % vertices.length];
+
+    const currentPos = current instanceof THREE.Vector3
+      ? current
+      : new THREE.Vector3(current.x, current.y, current.z);
+    const nextPos = next instanceof THREE.Vector3
+      ? next
+      : new THREE.Vector3(next.x, next.y, next.z);
+
+    // Check if current->next matches vertex1->vertex2 or vertex2->vertex1
+    if ((currentPos.distanceTo(vertex1) < tolerance && nextPos.distanceTo(vertex2) < tolerance) ||
+        (currentPos.distanceTo(vertex2) < tolerance && nextPos.distanceTo(vertex1) < tolerance)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // Helper function to count triangles in a polygon face
 function getTriangleCountForPolygon(face: any): number {
   if (!face.originalVertices) {
