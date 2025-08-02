@@ -60,7 +60,7 @@ export class VertexRemovalStitcher {
     }
 
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
+    console.log(`���� Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
     // Debug geometry state before decimation
     console.log(`📊 Before decimation:`);
@@ -617,15 +617,26 @@ export class VertexRemovalStitcher {
 
     // Create new geometry
     const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    const positionAttribute = new THREE.Float32BufferAttribute(newPositions, 3);
+    newGeometry.setAttribute('position', positionAttribute);
     newGeometry.setIndex(newIndices);
+
+    // Force position attribute to update
+    positionAttribute.needsUpdate = true;
 
     // Ensure geometry is valid before computing normals
     if (newIndices.length >= 3) {
       newGeometry.computeVertexNormals();
     }
 
+    // Force geometry to update
+    newGeometry.computeBoundingBox();
+    newGeometry.computeBoundingSphere();
+
     console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
+    console.log(`   Bounding box: min=[${newGeometry.boundingBox?.min.x.toFixed(3)}, ${newGeometry.boundingBox?.min.y.toFixed(3)}, ${newGeometry.boundingBox?.min.z.toFixed(3)}]`);
+    console.log(`   Bounding box: max=[${newGeometry.boundingBox?.max.x.toFixed(3)}, ${newGeometry.boundingBox?.max.y.toFixed(3)}, ${newGeometry.boundingBox?.max.z.toFixed(3)}]`);
+
     return newGeometry;
   }
 
