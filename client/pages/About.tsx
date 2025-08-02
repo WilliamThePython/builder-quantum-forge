@@ -106,7 +106,7 @@ export default function About() {
                     <Mail className="w-5 h-5 mr-3 text-gray-400" />
                     <div>
                       <p className="font-medium">General Inquiries</p>
-                      <p className="text-sm text-gray-400">hello@3dtools.com</p>
+                      <p className="text-sm text-gray-400">hello@intellimesh.pro</p>
                     </div>
                   </div>
                   <div className="flex items-center">
