@@ -400,6 +400,62 @@ function STLMesh() {
     };
   }, [decimationPainterMode]);
 
+  // Handle edge highlighting on hover in decimation painter mode
+  useEffect(() => {
+    if (!decimationPainterMode || !meshRef.current) {
+      setHighlightedEdge(null);
+      return;
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      // Update pointer position
+      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Perform raycasting to find intersection
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObject(meshRef.current!);
+
+      if (intersects.length > 0 && geometry) {
+        const intersection = intersects[0];
+
+        if (intersection.face) {
+          // Find the nearest edge to the hover point
+          const { vertexIndex1, vertexIndex2 } = findNearestEdge(geometry, intersection);
+
+          // Get vertex positions for highlighting
+          const positions = geometry.attributes.position.array as Float32Array;
+          const position1 = new THREE.Vector3(
+            positions[vertexIndex1 * 3],
+            positions[vertexIndex1 * 3 + 1],
+            positions[vertexIndex1 * 3 + 2]
+          );
+          const position2 = new THREE.Vector3(
+            positions[vertexIndex2 * 3],
+            positions[vertexIndex2 * 3 + 1],
+            positions[vertexIndex2 * 3 + 2]
+          );
+
+          setHighlightedEdge({
+            vertexIndex1,
+            vertexIndex2,
+            position1,
+            position2
+          });
+        }
+      } else {
+        setHighlightedEdge(null);
+      }
+    };
+
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('mousemove', handleMouseMove);
+      return () => canvas.removeEventListener('mousemove', handleMouseMove);
+    }
+  }, [decimationPainterMode, geometry, camera, raycaster, pointer]);
+
   // Handle decimation painter mode clicks
   useEffect(() => {
     if (!decimationPainterMode || !meshRef.current) return;
