@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MeshStats } from './meshSimplifier';
+import { CoplanarMerger, PolygonFace } from './coplanarMerger';
 
 /**
  * Clean vertex removal implementation for decimation painter
