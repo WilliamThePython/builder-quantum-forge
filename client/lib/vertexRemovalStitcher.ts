@@ -48,7 +48,7 @@ export class VertexRemovalStitcher {
         for (let i = 0; i < indices.length; i++) {
           if (indices[i] === removeVertex) {
             indices[i] = keepVertex;
-            console.log(`     Merged index ${i}: ${removeVertex} → ${keepVertex}`);
+            console.log(`     Merged index ${i}: ${removeVertex} ��� ${keepVertex}`);
           }
         }
       }
@@ -175,7 +175,7 @@ export class VertexRemovalStitcher {
     keepVertex: number,
     removeVertex: number,
     collapsePosition: THREE.Vector3,
-    originalVertexCount: number
+    positions: Float32Array
   ): any[] {
     console.log(`🔄 === UPDATING POLYGON FACES METADATA ===`);
     console.log(`   Updating polygon faces for vertex removal: ${removeVertex} → ${keepVertex}`);
@@ -195,7 +195,7 @@ export class VertexRemovalStitcher {
 
       for (let i = 0; i < originalVertices.length; i++) {
         const vertex = originalVertices[i];
-        const vertexIndex = this.findVertexIndexFromPosition(vertex, originalVertexCount);
+        const vertexIndex = this.findVertexIndexFromPosition(vertex, positions);
 
         if (vertexIndex === keepVertex) {
           keepVertexInFace = i;
@@ -204,43 +204,27 @@ export class VertexRemovalStitcher {
         }
       }
 
-      // If this face doesn't contain either vertex, just update indices for compaction
-      if (keepVertexInFace === -1 && removeVertexInFace === -1) {
-        console.log(`     Face ${faceIndex} unaffected, updating indices for compaction`);
-        return {
-          ...face,
-          originalVertices: originalVertices.map(vertex => {
-            const vertexIndex = this.findVertexIndexFromPosition(vertex, originalVertexCount);
-            // Shift indices down if above removed vertex
-            if (vertexIndex > removeVertex) {
-              console.log(`       Shifted vertex index ${vertexIndex} → ${vertexIndex - 1}`);
-            }
-            return vertex; // Position stays the same, just index mapping changes
-          })
-        };
-      }
-
       // If this face contains the edge being collapsed
       if (keepVertexInFace !== -1 && removeVertexInFace !== -1) {
-        console.log(`     Face ${faceIndex} contains collapsed edge: vertices ${keepVertexInFace} and ${removeVertexInFace}`);
+        console.log(`     ✅ Face ${faceIndex} contains collapsed edge: polygon vertices ${keepVertexInFace} and ${removeVertexInFace}`);
 
-        // Remove the removeVertex from the polygon and update keepVertex position
+        // Remove the removeVertex from the polygon perimeter
         const newVertices = [];
         for (let i = 0; i < originalVertices.length; i++) {
           if (i === removeVertexInFace) {
-            console.log(`       Removing vertex ${i} from polygon perimeter`);
-            continue; // Skip the removed vertex
+            console.log(`       🗑️ Removing vertex ${i} from polygon perimeter`);
+            continue; // Skip the removed vertex - this reduces polygon vertex count
           } else if (i === keepVertexInFace) {
-            console.log(`       Updating vertex ${i} position to collapse point`);
+            console.log(`       📍 Updating vertex ${i} position to collapse point`);
             newVertices.push(collapsePosition.clone());
           } else {
             newVertices.push(originalVertices[i].clone());
           }
         }
 
-        console.log(`     ${face.type} face ${faceIndex}: ${originalVertices.length} → ${newVertices.length} vertices`);
+        console.log(`     📐 ${face.type} face ${faceIndex}: ${originalVertices.length} → ${newVertices.length} vertices`);
 
-        // Update face type if vertex count changed
+        // Update face type based on new vertex count
         let newType = face.type;
         if (newVertices.length === 3) newType = 'triangle';
         else if (newVertices.length === 4) newType = 'quad';
@@ -253,9 +237,9 @@ export class VertexRemovalStitcher {
         };
       }
 
-      // If face only contains one of the vertices, update that vertex
+      // If face only contains keepVertex, update its position
       if (keepVertexInFace !== -1) {
-        console.log(`     Face ${faceIndex} contains keepVertex, updating position`);
+        console.log(`     📍 Face ${faceIndex} contains keepVertex, updating position`);
         const newVertices = originalVertices.map((vertex, i) => {
           if (i === keepVertexInFace) {
             return collapsePosition.clone();
@@ -269,19 +253,30 @@ export class VertexRemovalStitcher {
         };
       }
 
-      // This shouldn't happen, but handle gracefully
-      console.warn(`     Unexpected case for face ${faceIndex}`);
-      return face;
+      // Face doesn't contain either vertex - return unchanged
+      console.log(`     ➡️ Face ${faceIndex} unaffected by vertex removal`);
+      return {
+        ...face,
+        originalVertices: originalVertices.map(v => v.clone())
+      };
     });
   }
 
   /**
    * Helper to find vertex index from 3D position
    */
-  private static findVertexIndexFromPosition(targetPosition: THREE.Vector3, totalVertices: number): number {
-    // Since we don't have direct access to positions array here, we'll need to use a different approach
-    // This is a simplified version - in practice, you'd need to pass the positions array
-    return 0; // Placeholder - needs proper implementation
+  private static findVertexIndexFromPosition(targetPosition: THREE.Vector3, positions: Float32Array): number {
+    const tolerance = 0.001;
+
+    for (let i = 0; i < positions.length; i += 3) {
+      const vertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+      if (vertex.distanceTo(targetPosition) < tolerance) {
+        return i / 3;
+      }
+    }
+
+    console.warn('⚠️ Could not find vertex index for position:', targetPosition);
+    return -1;
   }
 
   /**
@@ -2661,7 +2656,7 @@ export class VertexRemovalStitcher {
     (newGeometry as any).isPolygonPreserved = true;
 
     // DO NOT set indices to prevent triangulation
-    console.log(`   🚫 NO INDICES SET - preventing triangulation`);
+    console.log(`   �� NO INDICES SET - preventing triangulation`);
 
     // Force geometry updates
     positionAttribute.needsUpdate = true;
