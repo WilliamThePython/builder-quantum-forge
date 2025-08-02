@@ -273,15 +273,14 @@ export class PythonMeshProcessor {
   }
 
   /**
-   * Convert OBJ data to Three.js BufferGeometry preserving polygon structure
+   * Convert OBJ data to Three.js BufferGeometry preserving polygon structure - NO TRIANGULATION!
    */
   private static async objToGeometry(objData: string): Promise<THREE.BufferGeometry> {
     const lines = objData.split('\n');
     const vertices: number[] = [];
     const polygonFaces: any[] = [];
-    const triangleIndices: number[] = [];
 
-    console.log('   🔍 Parsing OBJ data...');
+    console.log('   🔍 Parsing OBJ data with ZERO triangulation...');
 
     for (const line of lines) {
       const parts = line.trim().split(/\s+/);
@@ -300,43 +299,37 @@ export class PythonMeshProcessor {
           return parseInt(v.split('/')[0]) - 1; // Convert to 0-based
         });
 
-        // Store polygon face information
+        // Store polygon face information WITHOUT triangulation
         polygonFaces.push({
           vertices: faceVertices,
+          originalVertices: faceVertices, // Store original polygon vertices
           type: faceVertices.length === 3 ? 'triangle' :
                 faceVertices.length === 4 ? 'quad' :
                 faceVertices.length === 5 ? 'pentagon' : 'polygon'
         });
-
-        // Triangulate for Three.js rendering (but keep polygon metadata)
-        if (faceVertices.length >= 3) {
-          for (let i = 1; i < faceVertices.length - 1; i++) {
-            triangleIndices.push(
-              faceVertices[0],
-              faceVertices[i],
-              faceVertices[i + 1]
-            );
-          }
-        }
       }
     }
 
-    console.log(`   ✅ Parsed OBJ: ${vertices.length / 3} vertices, ${polygonFaces.length} polygon faces`);
+    console.log(`   ✅ Parsed OBJ: ${vertices.length / 3} vertices, ${polygonFaces.length} SOLID polygon faces`);
+    console.log(`   🚫 NO TRIANGULATION APPLIED - Preserving solid structure!`);
     console.log(`   🔸 Polygon types: ${polygonFaces.map(f => f.type).join(', ')}`);
 
+    // Create geometry without triangulation
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setIndex(triangleIndices);
 
-    // CRITICAL: Preserve polygon face information
+    // CRITICAL: DO NOT set triangulated indices - preserve polygon structure
+    // The original geometry should maintain its polygon-based structure
+
+    // Store polygon face information
     (geometry as any).polygonFaces = polygonFaces;
-    (geometry as any).polygonType = 'mixed';
+    (geometry as any).polygonType = 'preserved';
+    (geometry as any).isPolygonPreserved = true;
 
-    geometry.computeVertexNormals();
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
-    console.log(`   ✅ Created geometry with PRESERVED polygon structure!`);
+    console.log(`   ✅ Created NON-TRIANGULATED geometry with ${polygonFaces.length} solid polygon faces!`);
     return geometry;
   }
 
