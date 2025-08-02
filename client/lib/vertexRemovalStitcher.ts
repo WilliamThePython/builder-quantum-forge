@@ -8,6 +8,119 @@ import { MeshStats } from './meshSimplifier';
 export class VertexRemovalStitcher {
 
   /**
+   * Collapse a single edge by merging two vertices
+   */
+  static async collapseSingleEdge(
+    geometry: THREE.BufferGeometry,
+    vertexIndex1: number,
+    vertexIndex2: number,
+    collapsePosition: THREE.Vector3
+  ): Promise<{
+    success: boolean;
+    message: string;
+    geometry?: THREE.BufferGeometry;
+  }> {
+    console.log(`🎯 === SINGLE EDGE COLLAPSE ===`);
+    console.log(`   Merging vertex ${vertexIndex1} → vertex ${vertexIndex2}`);
+    console.log(`   New position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
+
+    try {
+      // Clone the geometry to avoid modifying the original
+      const resultGeometry = geometry.clone();
+      const positions = resultGeometry.attributes.position.array as Float32Array;
+      const vertexCount = resultGeometry.attributes.position.count;
+
+      // Update vertex positions: merge vertex2 into vertex1 at collapse position
+      positions[vertexIndex1 * 3] = collapsePosition.x;
+      positions[vertexIndex1 * 3 + 1] = collapsePosition.y;
+      positions[vertexIndex1 * 3 + 2] = collapsePosition.z;
+
+      // Mark vertex2 for removal by moving it to same position
+      positions[vertexIndex2 * 3] = collapsePosition.x;
+      positions[vertexIndex2 * 3 + 1] = collapsePosition.y;
+      positions[vertexIndex2 * 3 + 2] = collapsePosition.z;
+
+      // Update position attribute
+      resultGeometry.attributes.position.needsUpdate = true;
+
+      // For indexed geometry, we need to update indices to merge vertices
+      if (resultGeometry.index) {
+        const indices = resultGeometry.index.array;
+
+        // Replace all references to vertexIndex2 with vertexIndex1
+        for (let i = 0; i < indices.length; i++) {
+          if (indices[i] === vertexIndex2) {
+            indices[i] = vertexIndex1;
+          }
+        }
+
+        resultGeometry.index.needsUpdate = true;
+      }
+
+      // Remove degenerate faces (faces with duplicate vertices)
+      this.removeDegenerateFaces(resultGeometry);
+
+      // Preserve polygon faces metadata if it exists
+      if ((geometry as any).polygonFaces) {
+        (resultGeometry as any).polygonFaces = (geometry as any).polygonFaces;
+        (resultGeometry as any).polygonType = (geometry as any).polygonType;
+        (resultGeometry as any).isPolygonPreserved = (geometry as any).isPolygonPreserved;
+      }
+
+      // Recompute normals
+      resultGeometry.computeVertexNormals();
+
+      // Force geometry to refresh
+      resultGeometry.uuid = THREE.MathUtils.generateUUID();
+
+      console.log(`✅ Single edge collapse completed`);
+      console.log(`   Vertices before: ${vertexCount}`);
+      console.log(`   Vertices after: ${resultGeometry.attributes.position.count}`);
+
+      return {
+        success: true,
+        message: `Edge ${vertexIndex1}↔${vertexIndex2} collapsed successfully`,
+        geometry: resultGeometry
+      };
+
+    } catch (error) {
+      console.error('❌ Single edge collapse failed:', error);
+      return {
+        success: false,
+        message: `Edge collapse failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Remove degenerate faces (triangles with duplicate vertices)
+   */
+  private static removeDegenerateFaces(geometry: THREE.BufferGeometry): void {
+    if (!geometry.index) return;
+
+    const indices = geometry.index.array;
+    const validIndices: number[] = [];
+
+    // Check each triangle for degeneracy
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i];
+      const b = indices[i + 1];
+      const c = indices[i + 2];
+
+      // Keep triangle if all vertices are different
+      if (a !== b && b !== c && a !== c) {
+        validIndices.push(a, b, c);
+      }
+    }
+
+    // Update geometry with non-degenerate faces
+    if (validIndices.length !== indices.length) {
+      console.log(`   Removed ${(indices.length - validIndices.length) / 3} degenerate faces`);
+      geometry.setIndex(validIndices);
+    }
+  }
+
+  /**
    * Main vertex removal function
    */
   static async removeVertices(
@@ -201,7 +314,7 @@ export class VertexRemovalStitcher {
     // Create priority queue of edges sorted by collapse cost
     const edgeQueue = this.createEdgeQueue(edges, positions, indices, vertexQuadrics, useQuadricError);
 
-    console.log(`🔧 Built ${edges.length} edges, starting collapse process...`);
+    console.log(`��� Built ${edges.length} edges, starting collapse process...`);
 
     let currentFaces = indices.length / 3;
     let collapsedEdges = 0;
