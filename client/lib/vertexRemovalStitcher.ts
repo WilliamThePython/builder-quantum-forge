@@ -40,16 +40,32 @@ export class VertexRemovalStitcher {
 
     // CRITICAL DECISION POINT: Check for polygon structure FIRST
     const polygonFaces = (geometry as any).polygonFaces;
+    const polygonType = (geometry as any).polygonType;
+    const isPolygonPreserved = (geometry as any).isPolygonPreserved;
+
+    console.log(`🔍 POLYGON DETECTION:`, {
+      hasPolygonFaces: !!polygonFaces,
+      polygonFacesLength: polygonFaces?.length || 0,
+      polygonType: polygonType,
+      isPolygonPreserved: isPolygonPreserved,
+      polygonFacesValid: polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0
+    });
+
     const hasPolygonStructure = polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0;
 
     if (hasPolygonStructure) {
       console.log('🚫 === POLYGON MODEL PATH === NO TRIANGULATION ALLOWED');
-      console.log(`   Detected ${polygonFaces.length} polygon faces - using pure polygon reduction`);
+      console.log(`   ✅ Detected ${polygonFaces.length} polygon faces - using pure polygon reduction`);
       console.log(`   🚫 COMPLETELY BYPASSING all triangle-based logic`);
+      console.log(`   📊 Polygon types: ${polygonFaces.map((f: any) => f.type || 'unknown').join(', ')}`);
 
       // Go directly to polygon-only reduction - skip ALL triangle logic
       return this.polygonOnlyReduction(geometry, targetReduction, originalStats, startTime);
     }
+
+    // If no polygon structure detected, warn user
+    console.warn('⚠️ NO POLYGON STRUCTURE DETECTED - Model may be triangulated');
+    console.warn('   If this should be a solid model, check that polygon metadata is preserved during loading');
 
     // TRIANGLE MODEL PATH - only if no polygon structure detected
     console.log('🔗 === TRIANGLE MODEL PATH === Using QEM decimation');
@@ -979,7 +995,7 @@ export class VertexRemovalStitcher {
       processedFaces.add(faceIndex);
     }
 
-    console.log(`✅ Stitching complete: ${faces.length} → ${newFaces.length} faces`);
+    console.log(`✅ Stitching complete: ${faces.length} �� ${newFaces.length} faces`);
     return newFaces;
   }
 
