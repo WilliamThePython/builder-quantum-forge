@@ -2397,14 +2397,24 @@ export class VertexRemovalStitcher {
     const allVertices: number[] = [];
 
     // Collect all vertices used in polygon faces
-    for (const face of polygonFaces) {
-      if (face.vertices) {
-        console.log(`     Polygon face vertices: [${face.vertices.join(', ')}]`);
+    for (let i = 0; i < polygonFaces.length; i++) {
+      const face = polygonFaces[i];
+      console.log(`     📐 Polygon face ${i}:`, face);
+      console.log(`       - Type: ${face.type || 'unknown'}`);
+      console.log(`       - Has vertices: ${!!face.vertices}`);
+      console.log(`       - Vertices array: ${Array.isArray(face.vertices)}`);
+      console.log(`       - Vertices length: ${face.vertices?.length || 0}`);
+      console.log(`       - Vertices content: [${face.vertices?.join(', ') || 'none'}]`);
+
+      if (face.vertices && Array.isArray(face.vertices) && face.vertices.length > 0) {
+        console.log(`     ✅ Adding ${face.vertices.length} vertices from face ${i}`);
         for (const v of face.vertices) {
-          if (!allVertices.includes(v)) {
+          if (typeof v === 'number' && !allVertices.includes(v)) {
             allVertices.push(v);
           }
         }
+      } else {
+        console.log(`     ❌ Face ${i} has no valid vertices array`);
       }
     }
 
