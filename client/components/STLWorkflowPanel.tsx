@@ -1034,7 +1034,9 @@ function MobileWorkflowContent(props: any) {
     updateViewerSettings,
     getDetailedGeometryStats,
     hasBackup,
-    restoreFromBackup
+    restoreFromBackup,
+    decimationPainterMode,
+    setDecimationPainterMode
   } = useSTL();
 
   // Get other props
