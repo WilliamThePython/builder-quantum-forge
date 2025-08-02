@@ -311,6 +311,7 @@ export class VertexRemovalStitcher {
       const tolerance = 0.001;
       const newVertices = [];
       let edgeVerticesFound = 0;
+      let verticesRemoved = 0;
 
       // Process each vertex in the polygon
       for (let i = 0; i < face.originalVertices.length; i++) {
