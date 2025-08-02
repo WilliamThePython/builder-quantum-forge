@@ -321,6 +321,54 @@ function STLMesh() {
     }
   }, [toolMode, geometry, camera, raycaster, pointer]);
 
+  // Handle decimation painter mode clicks
+  useEffect(() => {
+    if (!decimationPainterMode || !meshRef.current) return;
+
+    const handleClick = async (event: MouseEvent) => {
+      // Update pointer position
+      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      console.log('🎯 === DECIMATION PAINTER CLICK ===');
+      console.log(`   Click position: [${pointer.x.toFixed(3)}, ${pointer.y.toFixed(3)}]`);
+
+      // Perform raycasting to find intersection
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObject(meshRef.current!);
+
+      if (intersects.length > 0) {
+        const intersection = intersects[0];
+
+        if (intersection.face && geometry) {
+          console.log(`   Face intersected: ${intersection.face.a}, ${intersection.face.b}, ${intersection.face.c}`);
+
+          // Find the nearest edge to the click point
+          const { vertexIndex1, vertexIndex2 } = findNearestEdge(geometry, intersection);
+
+          console.log(`   Nearest edge: ${vertexIndex1} ↔ ${vertexIndex2}`);
+
+          try {
+            // Perform single edge decimation
+            await decimateEdge(vertexIndex1, vertexIndex2);
+            console.log('✅ Edge decimation completed successfully');
+          } catch (error) {
+            console.error('❌ Edge decimation failed:', error);
+          }
+        }
+      } else {
+        console.log('   No intersection found');
+      }
+    };
+
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.addEventListener('click', handleClick);
+      return () => canvas.removeEventListener('click', handleClick);
+    }
+  }, [decimationPainterMode, geometry, camera, raycaster, pointer, decimateEdge]);
+
   // Subtle rotation animation (disabled when highlighting)
   useFrame((state) => {
     if (meshRef.current && toolMode !== STLToolMode.Highlight) {
