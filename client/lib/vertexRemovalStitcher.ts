@@ -99,12 +99,17 @@ export class VertexRemovalStitcher {
       this.removeDegenerateFaces(resultGeometry);
 
       // STEP 6: Update polygon metadata
-      (resultGeometry as any).polygonFaces = this.updatePolygonFaces(
+      const updatedPolygonFaces = this.updatePolygonFaces(
         polygonFaces,
         vertex1Pos,
         vertex2Pos,
         collapsePosition
       );
+
+      // STEP 7: Validate and fix coplanarity after decimation
+      const validatedFaces = this.validatePostDecimationCoplanarity(updatedPolygonFaces);
+
+      (resultGeometry as any).polygonFaces = validatedFaces;
       (resultGeometry as any).polygonType = (geometry as any).polygonType;
       (resultGeometry as any).isPolygonPreserved = true;
 
