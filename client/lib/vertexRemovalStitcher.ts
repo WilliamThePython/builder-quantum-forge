@@ -121,6 +121,292 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Analyze geometry to extract unique vertices and face relationships
+   */
+  private static analyzeGeometry(geometry: THREE.BufferGeometry): {
+    vertices: THREE.Vector3[];
+    faces: number[][];
+    vertexToFaces: Map<number, number[]>;
+  } {
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = geometry.index!.array;
+
+    // Extract unique vertices
+    const vertices: THREE.Vector3[] = [];
+    for (let i = 0; i < positions.length; i += 3) {
+      vertices.push(new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]));
+    }
+
+    // Extract faces as arrays of vertex indices
+    const faces: number[][] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      faces.push([indices[i], indices[i + 1], indices[i + 2]]);
+    }
+
+    // Build vertex-to-faces mapping
+    const vertexToFaces = new Map<number, number[]>();
+    for (let faceIndex = 0; faceIndex < faces.length; faceIndex++) {
+      for (const vertexIndex of faces[faceIndex]) {
+        if (!vertexToFaces.has(vertexIndex)) {
+          vertexToFaces.set(vertexIndex, []);
+        }
+        vertexToFaces.get(vertexIndex)!.push(faceIndex);
+      }
+    }
+
+    return { vertices, faces, vertexToFaces };
+  }
+
+  /**
+   * Select random vertices for removal
+   */
+  private static selectRandomVerticesForRemoval(totalVertices: number, targetCount: number): Set<number> {
+    const verticesToRemove = new Set<number>();
+    const maxToRemove = Math.min(targetCount, Math.floor(totalVertices * 0.8)); // Don't remove more than 80%
+
+    while (verticesToRemove.size < maxToRemove) {
+      const randomVertex = Math.floor(Math.random() * totalVertices);
+      verticesToRemove.add(randomVertex);
+    }
+
+    return verticesToRemove;
+  }
+
+  /**
+   * Calculate vertex importance scores
+   */
+  private static calculateVertexImportance(
+    vertices: THREE.Vector3[],
+    faces: number[][],
+    vertexToFaces: Map<number, number[]>
+  ): Map<number, number> {
+    const scores = new Map<number, number>();
+
+    for (let vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
+      const adjacentFaces = vertexToFaces.get(vertexIndex) || [];
+
+      // Score based on:
+      // 1. Number of adjacent faces (more faces = more important)
+      // 2. Total area of adjacent faces
+      let totalArea = 0;
+      for (const faceIndex of adjacentFaces) {
+        const face = faces[faceIndex];
+        const v1 = vertices[face[0]];
+        const v2 = vertices[face[1]];
+        const v3 = vertices[face[2]];
+
+        // Calculate triangle area
+        const edge1 = new THREE.Vector3().subVectors(v2, v1);
+        const edge2 = new THREE.Vector3().subVectors(v3, v1);
+        const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+        totalArea += cross.length() * 0.5;
+      }
+
+      // Higher score = more important (harder to remove)
+      const importance = adjacentFaces.length * totalArea;
+      scores.set(vertexIndex, importance);
+    }
+
+    return scores;
+  }
+
+  /**
+   * Select least important vertices for removal
+   */
+  private static selectLeastImportantVertices(
+    vertexScores: Map<number, number>,
+    targetCount: number
+  ): Set<number> {
+    // Sort vertices by importance (lowest first)
+    const sortedVertices = Array.from(vertexScores.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(entry => entry[0]);
+
+    const maxToRemove = Math.min(targetCount, Math.floor(sortedVertices.length * 0.8));
+    return new Set(sortedVertices.slice(0, maxToRemove));
+  }
+
+  /**
+   * Remove vertices and stitch the resulting holes
+   */
+  private static removeVerticesAndStitch(
+    faces: number[][],
+    verticesToRemove: Set<number>,
+    vertexToFaces: Map<number, number[]>,
+    vertices: THREE.Vector3[]
+  ): number[][] {
+    console.log(`🧵 Stitching holes from ${verticesToRemove.size} removed vertices...`);
+
+    const newFaces: number[][] = [];
+    const processedFaces = new Set<number>();
+
+    // Process each face
+    for (let faceIndex = 0; faceIndex < faces.length; faceIndex++) {
+      if (processedFaces.has(faceIndex)) continue;
+
+      const face = faces[faceIndex];
+      const removedVerticesInFace = face.filter(v => verticesToRemove.has(v));
+
+      if (removedVerticesInFace.length === 0) {
+        // Face has no removed vertices, keep as-is
+        newFaces.push([...face]);
+      } else if (removedVerticesInFace.length < face.length) {
+        // Face has some removed vertices, need to stitch
+        const stitchedFaces = this.stitchFaceWithRemovedVertices(
+          face,
+          verticesToRemove,
+          vertices,
+          vertexToFaces
+        );
+        newFaces.push(...stitchedFaces);
+      }
+      // If all vertices in face are removed, skip the face entirely
+
+      processedFaces.add(faceIndex);
+    }
+
+    console.log(`✅ Stitching complete: ${faces.length} → ${newFaces.length} faces`);
+    return newFaces;
+  }
+
+  /**
+   * Stitch a face that has some removed vertices
+   */
+  private static stitchFaceWithRemovedVertices(
+    face: number[],
+    verticesToRemove: Set<number>,
+    vertices: THREE.Vector3[],
+    vertexToFaces: Map<number, number[]>
+  ): number[][] {
+    const keptVertices = face.filter(v => !verticesToRemove.has(v));
+
+    if (keptVertices.length >= 3) {
+      // Enough vertices to form a face, triangulate if needed
+      const triangulatedFaces: number[][] = [];
+      for (let i = 1; i < keptVertices.length - 1; i++) {
+        triangulatedFaces.push([keptVertices[0], keptVertices[i], keptVertices[i + 1]]);
+      }
+      return triangulatedFaces;
+    } else if (keptVertices.length === 2) {
+      // Only 2 vertices left, connect to a nearby vertex
+      const nearbyVertex = this.findNearbyVertex(keptVertices, vertices, verticesToRemove);
+      if (nearbyVertex !== -1) {
+        return [[keptVertices[0], keptVertices[1], nearbyVertex]];
+      }
+    } else if (keptVertices.length === 1) {
+      // Only 1 vertex left, connect to two nearby vertices
+      const nearbyVertices = this.findTwoNearbyVertices(keptVertices[0], vertices, verticesToRemove);
+      if (nearbyVertices.length === 2) {
+        return [[keptVertices[0], nearbyVertices[0], nearbyVertices[1]]];
+      }
+    }
+
+    return []; // Cannot stitch, return empty
+  }
+
+  /**
+   * Find a nearby vertex to complete a triangle
+   */
+  private static findNearbyVertex(
+    existingVertices: number[],
+    vertices: THREE.Vector3[],
+    verticesToRemove: Set<number>
+  ): number {
+    const center = new THREE.Vector3();
+    for (const vIndex of existingVertices) {
+      center.add(vertices[vIndex]);
+    }
+    center.divideScalar(existingVertices.length);
+
+    let closestVertex = -1;
+    let closestDistance = Infinity;
+
+    for (let i = 0; i < vertices.length; i++) {
+      if (existingVertices.includes(i) || verticesToRemove.has(i)) continue;
+
+      const distance = center.distanceTo(vertices[i]);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestVertex = i;
+      }
+    }
+
+    return closestVertex;
+  }
+
+  /**
+   * Find two nearby vertices to complete a triangle
+   */
+  private static findTwoNearbyVertices(
+    vertex: number,
+    vertices: THREE.Vector3[],
+    verticesToRemove: Set<number>
+  ): number[] {
+    const center = vertices[vertex];
+    const distances: { index: number; distance: number }[] = [];
+
+    for (let i = 0; i < vertices.length; i++) {
+      if (i === vertex || verticesToRemove.has(i)) continue;
+
+      const distance = center.distanceTo(vertices[i]);
+      distances.push({ index: i, distance });
+    }
+
+    distances.sort((a, b) => a.distance - b.distance);
+    return distances.slice(0, 2).map(d => d.index);
+  }
+
+  /**
+   * Rebuild geometry from vertices and faces
+   */
+  private static rebuildGeometry(
+    originalVertices: THREE.Vector3[],
+    newFaces: number[][],
+    verticesToRemove: Set<number>
+  ): THREE.BufferGeometry {
+    // Create mapping from old vertex indices to new ones (excluding removed vertices)
+    const vertexMapping = new Map<number, number>();
+    const keptVertices: THREE.Vector3[] = [];
+    let newVertexIndex = 0;
+
+    for (let i = 0; i < originalVertices.length; i++) {
+      if (!verticesToRemove.has(i)) {
+        vertexMapping.set(i, newVertexIndex);
+        keptVertices.push(originalVertices[i].clone());
+        newVertexIndex++;
+      }
+    }
+
+    // Convert faces to use new vertex indices
+    const newIndices: number[] = [];
+    for (const face of newFaces) {
+      if (face.length === 3) {
+        const mappedFace = face.map(v => vertexMapping.get(v)).filter(v => v !== undefined) as number[];
+        if (mappedFace.length === 3) {
+          newIndices.push(...mappedFace);
+        }
+      }
+    }
+
+    // Build new geometry
+    const positions = new Float32Array(keptVertices.length * 3);
+    for (let i = 0; i < keptVertices.length; i++) {
+      const vertex = keptVertices[i];
+      positions[i * 3] = vertex.x;
+      positions[i * 3 + 1] = vertex.y;
+      positions[i * 3 + 2] = vertex.z;
+    }
+
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    newGeometry.setIndex(newIndices);
+    newGeometry.computeVertexNormals();
+
+    console.log(`✅ Rebuilt geometry: ${keptVertices.length} vertices, ${newFaces.length} faces`);
+    return newGeometry;
+  }
+
+  /**
    * Ensure geometry is indexed for easier manipulation
    */
   private static ensureIndexedGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
