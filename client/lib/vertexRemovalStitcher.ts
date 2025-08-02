@@ -891,6 +891,412 @@ export class VertexRemovalStitcher {
 
 
   /**
+   * Post-process mesh: validate stitching and merge coplanar triangles
+   */
+  private static postProcessMesh(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    const startTime = Date.now();
+
+    // Step 1: Validate and fix any stitching issues
+    const stitchedGeometry = this.validateAndFixStitching(geometry);
+
+    // Step 2: Merge coplanar triangles into larger polygons
+    const mergedGeometry = this.mergeCoplanarTriangles(stitchedGeometry);
+
+    console.log(`✅ Post-processing complete in ${Date.now() - startTime}ms`);
+    return mergedGeometry;
+  }
+
+  /**
+   * Validate mesh connectivity and fix any stitching issues
+   */
+  private static validateAndFixStitching(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log(`🔍 Validating mesh connectivity...`);
+
+    if (!geometry.index) {
+      console.warn('Geometry not indexed, skipping stitching validation');
+      return geometry;
+    }
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = Array.from(geometry.index.array);
+
+    // Check for degenerate triangles
+    const validIndices: number[] = [];
+    let removedDegenerates = 0;
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      // Check if triangle is degenerate (has duplicate vertices or zero area)
+      if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
+        // Check triangle area
+        const p1 = new THREE.Vector3(positions[v1 * 3], positions[v1 * 3 + 1], positions[v1 * 3 + 2]);
+        const p2 = new THREE.Vector3(positions[v2 * 3], positions[v2 * 3 + 1], positions[v2 * 3 + 2]);
+        const p3 = new THREE.Vector3(positions[v3 * 3], positions[v3 * 3 + 1], positions[v3 * 3 + 2]);
+
+        const edge1 = new THREE.Vector3().subVectors(p2, p1);
+        const edge2 = new THREE.Vector3().subVectors(p3, p1);
+        const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+        const area = cross.length() * 0.5;
+
+        if (area > 1e-6) { // Triangle has significant area
+          validIndices.push(v1, v2, v3);
+        } else {
+          removedDegenerates++;
+        }
+      } else {
+        removedDegenerates++;
+      }
+    }
+
+    if (removedDegenerates > 0) {
+      console.log(`🔧 Removed ${removedDegenerates} degenerate triangles`);
+
+      // Create new geometry with valid triangles
+      const newGeometry = new THREE.BufferGeometry();
+      newGeometry.setAttribute('position', geometry.attributes.position.clone());
+      newGeometry.setIndex(validIndices);
+      newGeometry.computeVertexNormals();
+      return newGeometry;
+    }
+
+    return geometry;
+  }
+
+  /**
+   * Merge coplanar triangles into larger polygons
+   */
+  private static mergeCoplanarTriangles(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log(`🔗 Merging coplanar triangles...`);
+
+    if (!geometry.index) {
+      return geometry;
+    }
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = Array.from(geometry.index.array);
+
+    // Build adjacency information
+    const triangleAdjacency = this.buildTriangleAdjacency(indices);
+    const triangleNormals = this.calculateTriangleNormals(positions, indices);
+
+    // Group coplanar triangles
+    const coplanarGroups = this.findCoplanarTriangleGroups(
+      indices,
+      positions,
+      triangleNormals,
+      triangleAdjacency
+    );
+
+    // Merge groups into polygons
+    const polygons = this.mergeTriangleGroups(indices, positions, coplanarGroups);
+
+    // Convert polygons back to triangulated geometry with polygon metadata
+    const result = this.triangulatePolygons(positions, polygons);
+
+    console.log(`✅ Merged ${coplanarGroups.length} coplanar groups into polygons`);
+    return result;
+  }
+
+  /**
+   * Build triangle adjacency information
+   */
+  private static buildTriangleAdjacency(indices: number[]): Map<number, number[]> {
+    const adjacency = new Map<number, number[]>();
+    const edgeToTriangles = new Map<string, number[]>();
+
+    // Build edge-to-triangle mapping
+    for (let i = 0; i < indices.length; i += 3) {
+      const triangleIndex = i / 3;
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const edges = [
+        this.getEdgeKey(v1, v2),
+        this.getEdgeKey(v2, v3),
+        this.getEdgeKey(v3, v1)
+      ];
+
+      for (const edge of edges) {
+        if (!edgeToTriangles.has(edge)) {
+          edgeToTriangles.set(edge, []);
+        }
+        edgeToTriangles.get(edge)!.push(triangleIndex);
+      }
+    }
+
+    // Build triangle-to-triangle adjacency
+    for (let i = 0; i < indices.length; i += 3) {
+      const triangleIndex = i / 3;
+      const adjacent: number[] = [];
+
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const edges = [
+        this.getEdgeKey(v1, v2),
+        this.getEdgeKey(v2, v3),
+        this.getEdgeKey(v3, v1)
+      ];
+
+      for (const edge of edges) {
+        const trianglesOnEdge = edgeToTriangles.get(edge) || [];
+        for (const otherTriangle of trianglesOnEdge) {
+          if (otherTriangle !== triangleIndex && !adjacent.includes(otherTriangle)) {
+            adjacent.push(otherTriangle);
+          }
+        }
+      }
+
+      adjacency.set(triangleIndex, adjacent);
+    }
+
+    return adjacency;
+  }
+
+  /**
+   * Get consistent edge key for two vertices
+   */
+  private static getEdgeKey(v1: number, v2: number): string {
+    return v1 < v2 ? `${v1}-${v2}` : `${v2}-${v1}`;
+  }
+
+  /**
+   * Calculate normals for all triangles
+   */
+  private static calculateTriangleNormals(positions: Float32Array, indices: number[]): THREE.Vector3[] {
+    const normals: THREE.Vector3[] = [];
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const p1 = new THREE.Vector3(positions[v1 * 3], positions[v1 * 3 + 1], positions[v1 * 3 + 2]);
+      const p2 = new THREE.Vector3(positions[v2 * 3], positions[v2 * 3 + 1], positions[v2 * 3 + 2]);
+      const p3 = new THREE.Vector3(positions[v3 * 3], positions[v3 * 3 + 1], positions[v3 * 3 + 2]);
+
+      const edge1 = new THREE.Vector3().subVectors(p2, p1);
+      const edge2 = new THREE.Vector3().subVectors(p3, p1);
+      const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+      normals.push(normal);
+    }
+
+    return normals;
+  }
+
+  /**
+   * Find groups of coplanar triangles
+   */
+  private static findCoplanarTriangleGroups(
+    indices: number[],
+    positions: Float32Array,
+    normals: THREE.Vector3[],
+    adjacency: Map<number, number[]>
+  ): number[][] {
+    const visited = new Set<number>();
+    const groups: number[][] = [];
+    const angleTolerance = Math.cos(Math.PI / 180 * 5); // 5 degree tolerance
+
+    for (let i = 0; i < normals.length; i++) {
+      if (visited.has(i)) continue;
+
+      const group = this.expandCoplanarGroup(i, normals, adjacency, visited, angleTolerance);
+      if (group.length > 1) { // Only groups with multiple triangles
+        groups.push(group);
+      }
+    }
+
+    return groups;
+  }
+
+  /**
+   * Expand a coplanar group using flood-fill
+   */
+  private static expandCoplanarGroup(
+    startTriangle: number,
+    normals: THREE.Vector3[],
+    adjacency: Map<number, number[]>,
+    visited: Set<number>,
+    angleTolerance: number
+  ): number[] {
+    const group: number[] = [];
+    const queue: number[] = [startTriangle];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+
+      visited.add(current);
+      group.push(current);
+
+      const currentNormal = normals[current];
+      const adjacent = adjacency.get(current) || [];
+
+      for (const neighbor of adjacent) {
+        if (!visited.has(neighbor)) {
+          const neighborNormal = normals[neighbor];
+          const dot = currentNormal.dot(neighborNormal);
+
+          if (dot >= angleTolerance) { // Coplanar within tolerance
+            queue.push(neighbor);
+          }
+        }
+      }
+    }
+
+    return group;
+  }
+
+  /**
+   * Merge triangle groups into polygons
+   */
+  private static mergeTriangleGroups(
+    indices: number[],
+    positions: Float32Array,
+    groups: number[][]
+  ): Array<{vertices: number[], type: string}> {
+    const polygons: Array<{vertices: number[], type: string}> = [];
+
+    for (const group of groups) {
+      const polygon = this.trianglesToPolygon(group, indices);
+      if (polygon.length >= 3) {
+        const type = polygon.length === 3 ? 'triangle' :
+                    polygon.length === 4 ? 'quad' :
+                    polygon.length === 5 ? 'pentagon' :
+                    polygon.length === 6 ? 'hexagon' : 'polygon';
+
+        polygons.push({vertices: polygon, type});
+      }
+    }
+
+    return polygons;
+  }
+
+  /**
+   * Convert triangle group to polygon boundary
+   */
+  private static trianglesToPolygon(triangleGroup: number[], indices: number[]): number[] {
+    // Collect all edges from triangles in the group
+    const edges = new Map<string, number>();
+
+    for (const triangleIndex of triangleGroup) {
+      const i = triangleIndex * 3;
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const triangleEdges = [
+        this.getEdgeKey(v1, v2),
+        this.getEdgeKey(v2, v3),
+        this.getEdgeKey(v3, v1)
+      ];
+
+      for (const edge of triangleEdges) {
+        edges.set(edge, (edges.get(edge) || 0) + 1);
+      }
+    }
+
+    // Find boundary edges (edges that appear only once)
+    const boundaryEdges: Array<[number, number]> = [];
+    for (const [edgeKey, count] of edges) {
+      if (count === 1) {
+        const [v1, v2] = edgeKey.split('-').map(Number);
+        boundaryEdges.push([v1, v2]);
+      }
+    }
+
+    // Order boundary edges to form a polygon
+    return this.orderBoundaryEdges(boundaryEdges);
+  }
+
+  /**
+   * Order boundary edges to form a continuous polygon
+   */
+  private static orderBoundaryEdges(edges: Array<[number, number]>): number[] {
+    if (edges.length === 0) return [];
+
+    const polygon: number[] = [];
+    const remaining = [...edges];
+
+    // Start with first edge
+    let current = remaining.shift()!;
+    polygon.push(current[0], current[1]);
+
+    // Connect remaining edges
+    while (remaining.length > 0) {
+      const lastVertex = polygon[polygon.length - 1];
+      const nextEdgeIndex = remaining.findIndex(edge =>
+        edge[0] === lastVertex || edge[1] === lastVertex
+      );
+
+      if (nextEdgeIndex === -1) break; // Can't continue
+
+      const nextEdge = remaining.splice(nextEdgeIndex, 1)[0];
+      const nextVertex = nextEdge[0] === lastVertex ? nextEdge[1] : nextEdge[0];
+      polygon.push(nextVertex);
+    }
+
+    // Remove last vertex if it connects back to first (close loop)
+    if (polygon.length > 3 && polygon[polygon.length - 1] === polygon[0]) {
+      polygon.pop();
+    }
+
+    return polygon;
+  }
+
+  /**
+   * Triangulate polygons back to geometry with metadata
+   */
+  private static triangulatePolygons(
+    positions: Float32Array,
+    polygons: Array<{vertices: number[], type: string}>
+  ): THREE.BufferGeometry {
+    const triangulatedIndices: number[] = [];
+    const polygonMetadata: Array<{type: string, vertices: number[], triangleIndices: number[]}> = [];
+
+    for (const polygon of polygons) {
+      const triangleIndices: number[] = [];
+
+      // Fan triangulation from first vertex
+      for (let i = 1; i < polygon.vertices.length - 1; i++) {
+        const startIndex = triangulatedIndices.length / 3;
+        triangulatedIndices.push(
+          polygon.vertices[0],
+          polygon.vertices[i],
+          polygon.vertices[i + 1]
+        );
+        triangleIndices.push(startIndex);
+      }
+
+      polygonMetadata.push({
+        type: polygon.type,
+        vertices: polygon.vertices,
+        triangleIndices
+      });
+    }
+
+    // Create geometry
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setIndex(triangulatedIndices);
+    geometry.computeVertexNormals();
+
+    // Store polygon metadata for export
+    (geometry as any).polygonFaces = polygonMetadata;
+    (geometry as any).polygonType = 'mixed';
+
+    console.log(`📊 Created ${polygons.length} polygons: ${polygonMetadata.map(p => p.type).join(', ')}`);
+
+    return geometry;
+  }
+
+  /**
    * Get mesh statistics
    */
   private static getMeshStats(geometry: THREE.BufferGeometry): MeshStats {
