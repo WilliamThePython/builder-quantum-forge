@@ -189,6 +189,7 @@ export class OBJConverter {
     const vertices: number[] = [];
     const faces: number[] = [];
     const normals: number[] = [];
+    let polygonFaces: any[] = [];
     
     const lines = objString.split('\n');
     
