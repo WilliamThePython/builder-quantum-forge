@@ -57,7 +57,10 @@ export default function Index() {
         backendMethod = 'random';
         break;
       case 'best':
-        backendMethod = 'adaptive';
+        backendMethod = 'quadric_edge_collapse'; // Use proper QEM
+        break;
+      case 'quadric_edge_collapse':
+        backendMethod = 'quadric_edge_collapse'; // Direct QEM
         break;
       case 'random_vertex':
         backendMethod = 'random_vertex';
@@ -66,7 +69,7 @@ export default function Index() {
         backendMethod = 'python_vertex';
         break;
       default:
-        backendMethod = 'adaptive';
+        backendMethod = 'quadric_edge_collapse'; // Default to proper QEM
     }
 
     console.log('🎯 Final backend method:', backendMethod);
