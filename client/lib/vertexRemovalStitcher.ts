@@ -1979,11 +1979,19 @@ export class VertexRemovalStitcher {
     const mergeableVertices: Array<{v1: number, v2: number, newPos: number[]}> = [];
     const usedVertices = new Set<number>();
 
+    // Validate inputs
+    if (!polygonFaces || !Array.isArray(polygonFaces) || polygonFaces.length === 0) {
+      console.warn(`⚠️ Invalid polygon faces provided, returning empty merge list`);
+      return mergeableVertices;
+    }
+
     console.log(`   🔍 Searching for ${targetMerges} mergeable vertex pairs in ${polygonFaces.length} polygon faces...`);
 
     // First pass: Adjacent vertices in polygon faces
     for (const face of polygonFaces) {
-      if (!face.vertices || face.vertices.length < 3) continue;
+      if (!face || !face.vertices || !Array.isArray(face.vertices) || face.vertices.length < 3) {
+        continue;
+      }
 
       for (let i = 0; i < face.vertices.length; i++) {
         const v1 = face.vertices[i];
