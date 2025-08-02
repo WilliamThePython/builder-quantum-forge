@@ -68,24 +68,26 @@ export class VertexRemovalStitcher {
     geometry: THREE.BufferGeometry,
     verticesToRemove: number
   ): Promise<THREE.BufferGeometry> {
-    console.log('🎲 Applying random vertex removal...');
-    
+    console.log('🎲 Applying simplified random vertex removal...');
+
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
-    
-    // Build vertex-face adjacency information
-    const vertexFaceMap = this.buildVertexFaceAdjacency(indexedGeometry);
-    
-    // Get removable vertices (excluding those that would break topology)
-    const removableVertices = this.findRemovableVertices(indexedGeometry, vertexFaceMap);
-    console.log(`🔍 Found ${removableVertices.length} removable vertices out of ${indexedGeometry.attributes.position.count} total`);
 
-    // Randomly select vertices to remove
-    const toRemove = this.selectRandomVertices(removableVertices, Math.min(verticesToRemove, removableVertices.length));
-    console.log(`🎲 Selected ${toRemove.length} vertices to remove:`, toRemove);
-    
-    // Remove vertices and stitch holes
-    return this.removeVerticesAndStitch(indexedGeometry, toRemove, vertexFaceMap);
+    // Simple approach: randomly remove faces instead of vertices to avoid complex stitching
+    const indices = indexedGeometry.index!.array;
+    const faceCount = indices.length / 3;
+    const targetFaces = Math.floor(faceCount * (1 - (verticesToRemove / indexedGeometry.attributes.position.count)));
+    const facesToKeep = Math.max(4, targetFaces); // Keep at least 4 faces (tetrahedron)
+
+    console.log(`🎲 Reducing faces from ${faceCount} to ${facesToKeep}`);
+
+    // Randomly select faces to keep
+    const faceIndices = Array.from({ length: faceCount }, (_, i) => i);
+    const shuffledFaces = faceIndices.sort(() => Math.random() - 0.5);
+    const facesToKeepIndices = shuffledFaces.slice(0, facesToKeep);
+
+    // Build new geometry with selected faces
+    return this.buildGeometryFromFaces(indexedGeometry, facesToKeepIndices);
   }
 
   /**
