@@ -73,7 +73,7 @@ function STLMesh() {
         }
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
-        console.warn('⚠️ Face missing original vertices, using fallback for face:', faceIndex);
+        console.warn('⚠�� Face missing original vertices, using fallback for face:', faceIndex);
       }
     }
 
@@ -111,8 +111,19 @@ function STLMesh() {
   // Trigger spinning animation when a new model loads
   useEffect(() => {
     if (geometry) {
-      console.log('🌀 Starting initial model spin animation');
-      console.log(`🔄 Geometry updated in viewer: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+      console.log('=== VIEWER GEOMETRY UPDATE ===');
+      console.log(`🎆 Viewer received geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+      console.log(`🎆 Geometry UUID: ${geometry.uuid}`);
+
+      // Log first few vertices
+      const positions = geometry.attributes.position.array;
+      console.log('🎆 VIEWER first 3 vertices:', [
+        [positions[0], positions[1], positions[2]],
+        [positions[3], positions[4], positions[5]],
+        [positions[6], positions[7], positions[8]]
+      ]);
+
+      console.log('🌀 Starting model spin animation');
       spinState.current = {
         ...spinState.current,
         isSpinning: true,
