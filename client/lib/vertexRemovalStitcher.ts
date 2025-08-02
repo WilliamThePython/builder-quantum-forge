@@ -452,7 +452,3 @@ export class VertexRemovalStitcher {
     };
   }
 }
-
-/**
- * Mesh statistics interface
- */
