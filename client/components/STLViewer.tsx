@@ -565,6 +565,70 @@ function STLMesh() {
     };
   }, [decimationPainterMode]);
 
+  // Create edge geometry for raycasting (polygon perimeter edges only)
+  const edgeGeometry = useMemo(() => {
+    if (!geometry || !decimationPainterMode) return null;
+
+    const polygonFaces = (geometry as any).polygonFaces;
+    if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      return null;
+    }
+
+    const edgeData: {
+      line: THREE.Line;
+      vertexIndex1: number;
+      vertexIndex2: number;
+      position1: THREE.Vector3;
+      position2: THREE.Vector3
+    }[] = [];
+    const positions = geometry.attributes.position.array as Float32Array;
+
+    // Create individual line objects for each polygon perimeter edge
+    for (const face of polygonFaces) {
+      if (!face.originalVertices || face.originalVertices.length < 3) continue;
+
+      const vertices = face.originalVertices;
+      for (let i = 0; i < vertices.length; i++) {
+        const currentVertex = vertices[i];
+        const nextVertex = vertices[(i + 1) % vertices.length];
+
+        const currentPos = currentVertex instanceof THREE.Vector3
+          ? currentVertex
+          : new THREE.Vector3(currentVertex.x, currentVertex.y, currentVertex.z);
+        const nextPos = nextVertex instanceof THREE.Vector3
+          ? nextVertex
+          : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
+
+        // Find vertex indices in the buffer
+        const vertexIndex1 = findVertexIndex(positions, currentPos);
+        const vertexIndex2 = findVertexIndex(positions, nextPos);
+
+        // Create a line object for this edge
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+          currentPos.x, currentPos.y, currentPos.z,
+          nextPos.x, nextPos.y, nextPos.z
+        ], 3));
+
+        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0 // Invisible - only for raycasting
+        }));
+
+        edgeData.push({
+          line,
+          vertexIndex1,
+          vertexIndex2,
+          position1: currentPos.clone(),
+          position2: nextPos.clone()
+        });
+      }
+    }
+
+    return edgeData;
+  }, [geometry, decimationPainterMode]);
+
   // Handle edge highlighting on hover in decimation painter mode
   useEffect(() => {
     if (!decimationPainterMode || !meshRef.current) {
