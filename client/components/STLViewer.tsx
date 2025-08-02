@@ -378,6 +378,20 @@ function STLMesh() {
     }
   }, [toolMode, geometry, camera, raycaster, pointer]);
 
+  // Update canvas cursor for decimation painter mode
+  useEffect(() => {
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      canvas.style.cursor = decimationPainterMode ? 'crosshair' : 'default';
+    }
+
+    return () => {
+      if (canvas) {
+        canvas.style.cursor = 'default';
+      }
+    };
+  }, [decimationPainterMode]);
+
   // Handle decimation painter mode clicks
   useEffect(() => {
     if (!decimationPainterMode || !meshRef.current) return;
