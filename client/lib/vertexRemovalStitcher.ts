@@ -74,30 +74,32 @@ export class VertexRemovalStitcher {
         indices = validIndices;
       }
 
-      // STEP 4: Compact vertex array by removing vertex2
+      // STEP 4: Compact vertex array by removing removeVertex
       const newVertexCount = originalVertexCount - 1;
       const newPositions = new Float32Array(newVertexCount * 3);
 
-      // Copy vertices before vertexIndex2
-      for (let i = 0; i < vertexIndex2; i++) {
+      // Copy vertices before removeVertex
+      for (let i = 0; i < removeVertex; i++) {
         newPositions[i * 3] = positions[i * 3];
         newPositions[i * 3 + 1] = positions[i * 3 + 1];
         newPositions[i * 3 + 2] = positions[i * 3 + 2];
       }
 
-      // Copy vertices after vertexIndex2 (shift indices down by 1)
-      for (let i = vertexIndex2 + 1; i < originalVertexCount; i++) {
+      // Copy vertices after removeVertex (shift indices down by 1)
+      for (let i = removeVertex + 1; i < originalVertexCount; i++) {
         const newIndex = i - 1;
         newPositions[newIndex * 3] = positions[i * 3];
         newPositions[newIndex * 3 + 1] = positions[i * 3 + 1];
         newPositions[newIndex * 3 + 2] = positions[i * 3 + 2];
       }
 
-      // STEP 5: Update all indices to account for removed vertex
+      // STEP 5: Update all indices to account for removed vertex (critical step!)
       if (indices) {
         for (let i = 0; i < indices.length; i++) {
-          if (indices[i] > vertexIndex2) {
+          if (indices[i] > removeVertex) {
+            const oldIndex = indices[i];
             indices[i]--; // Shift down indices above the removed vertex
+            console.log(`     Shifted index ${i}: ${oldIndex} → ${indices[i]} (due to removal of vertex ${removeVertex})`);
           }
         }
       }
