@@ -106,6 +106,324 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Quadric edge collapse simplification (like Open3D's quadric decimation)
+   */
+  private static quadricEdgeCollapse(
+    geometry: THREE.BufferGeometry,
+    targetFaces: number,
+    useQuadricError: boolean = true
+  ): THREE.BufferGeometry {
+    console.log(`🔧 Starting quadric edge collapse to ${targetFaces} faces...`);
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = Array.from(geometry.index!.array);
+
+    // Build edge list and adjacency information
+    const edges = this.buildEdgeList(indices);
+    const vertexToFaces = this.buildVertexToFaceMap(indices);
+
+    // Calculate quadric errors for each vertex if using quadric method
+    let vertexQuadrics: Map<number, any> | null = null;
+    if (useQuadricError) {
+      vertexQuadrics = this.calculateVertexQuadrics(positions, indices, vertexToFaces);
+    }
+
+    // Create priority queue of edges sorted by collapse cost
+    const edgeQueue = this.createEdgeQueue(edges, positions, indices, vertexQuadrics, useQuadricError);
+
+    console.log(`🔧 Built ${edges.length} edges, starting collapse process...`);
+
+    let currentFaces = indices.length / 3;
+    let collapsedEdges = 0;
+
+    // Collapse edges until we reach target face count
+    while (currentFaces > targetFaces && edgeQueue.length > 0) {
+      const edge = edgeQueue.shift()!;
+
+      // Check if edge is still valid (vertices haven't been merged already)
+      if (!this.isEdgeValid(edge, indices)) {
+        continue;
+      }
+
+      // Perform edge collapse
+      const success = this.collapseEdge(edge, positions, indices, vertexToFaces);
+      if (success) {
+        currentFaces -= 2; // Each edge collapse removes 2 faces
+        collapsedEdges++;
+
+        if (collapsedEdges % 100 === 0) {
+          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
+        }
+      }
+    }
+
+    // Clean up and rebuild geometry
+    const cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
+
+    console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
+    return cleanedGeometry;
+  }
+
+  /**
+   * Build list of all edges in the mesh
+   */
+  private static buildEdgeList(indices: number[]): Array<{v1: number, v2: number, faces: number[]}> {
+    const edgeMap = new Map<string, {v1: number, v2: number, faces: number[]}>();
+
+    for (let faceIndex = 0; faceIndex < indices.length; faceIndex += 3) {
+      const v1 = indices[faceIndex];
+      const v2 = indices[faceIndex + 1];
+      const v3 = indices[faceIndex + 2];
+
+      // Add all three edges of the face
+      this.addEdgeToMap(edgeMap, v1, v2, Math.floor(faceIndex / 3));
+      this.addEdgeToMap(edgeMap, v2, v3, Math.floor(faceIndex / 3));
+      this.addEdgeToMap(edgeMap, v3, v1, Math.floor(faceIndex / 3));
+    }
+
+    return Array.from(edgeMap.values());
+  }
+
+  /**
+   * Add an edge to the edge map
+   */
+  private static addEdgeToMap(
+    edgeMap: Map<string, {v1: number, v2: number, faces: number[]}>,
+    v1: number,
+    v2: number,
+    faceIndex: number
+  ) {
+    const key = v1 < v2 ? `${v1}-${v2}` : `${v2}-${v1}`;
+    if (!edgeMap.has(key)) {
+      edgeMap.set(key, { v1: Math.min(v1, v2), v2: Math.max(v1, v2), faces: [] });
+    }
+    edgeMap.get(key)!.faces.push(faceIndex);
+  }
+
+  /**
+   * Build vertex-to-faces mapping
+   */
+  private static buildVertexToFaceMap(indices: number[]): Map<number, number[]> {
+    const vertexToFaces = new Map<number, number[]>();
+
+    for (let faceIndex = 0; faceIndex < indices.length; faceIndex += 3) {
+      const faceNum = Math.floor(faceIndex / 3);
+      const v1 = indices[faceIndex];
+      const v2 = indices[faceIndex + 1];
+      const v3 = indices[faceIndex + 2];
+
+      [v1, v2, v3].forEach(vertex => {
+        if (!vertexToFaces.has(vertex)) {
+          vertexToFaces.set(vertex, []);
+        }
+        vertexToFaces.get(vertex)!.push(faceNum);
+      });
+    }
+
+    return vertexToFaces;
+  }
+
+  /**
+   * Calculate quadric error matrices for each vertex
+   */
+  private static calculateVertexQuadrics(
+    positions: Float32Array,
+    indices: number[],
+    vertexToFaces: Map<number, number[]>
+  ): Map<number, any> {
+    const quadrics = new Map<number, any>();
+
+    // For simplicity, use a basic error metric based on face areas
+    for (const [vertexIndex, faceIndices] of vertexToFaces) {
+      let totalArea = 0;
+      let faceCount = faceIndices.length;
+
+      for (const faceIndex of faceIndices) {
+        const i = faceIndex * 3;
+        if (i + 2 < indices.length) {
+          const v1Pos = new THREE.Vector3(
+            positions[indices[i] * 3],
+            positions[indices[i] * 3 + 1],
+            positions[indices[i] * 3 + 2]
+          );
+          const v2Pos = new THREE.Vector3(
+            positions[indices[i + 1] * 3],
+            positions[indices[i + 1] * 3 + 1],
+            positions[indices[i + 1] * 3 + 2]
+          );
+          const v3Pos = new THREE.Vector3(
+            positions[indices[i + 2] * 3],
+            positions[indices[i + 2] * 3 + 1],
+            positions[indices[i + 2] * 3 + 2]
+          );
+
+          const edge1 = new THREE.Vector3().subVectors(v2Pos, v1Pos);
+          const edge2 = new THREE.Vector3().subVectors(v3Pos, v1Pos);
+          const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+          totalArea += cross.length() * 0.5;
+        }
+      }
+
+      // Store error metric (vertices with more/larger faces are more important)
+      quadrics.set(vertexIndex, { area: totalArea, faceCount });
+    }
+
+    return quadrics;
+  }
+
+  /**
+   * Create priority queue of edges sorted by collapse cost
+   */
+  private static createEdgeQueue(
+    edges: Array<{v1: number, v2: number, faces: number[]}>,
+    positions: Float32Array,
+    indices: number[],
+    vertexQuadrics: Map<number, any> | null,
+    useQuadricError: boolean
+  ): Array<{v1: number, v2: number, cost: number}> {
+    const queue: Array<{v1: number, v2: number, cost: number}> = [];
+
+    for (const edge of edges) {
+      let cost: number;
+
+      if (useQuadricError && vertexQuadrics) {
+        // Use quadric error (lower cost = less important vertices)
+        const q1 = vertexQuadrics.get(edge.v1) || { area: 0, faceCount: 0 };
+        const q2 = vertexQuadrics.get(edge.v2) || { area: 0, faceCount: 0 };
+        cost = Math.min(q1.area + q1.faceCount, q2.area + q2.faceCount);
+      } else {
+        // Use random cost for random method
+        cost = Math.random();
+      }
+
+      queue.push({ v1: edge.v1, v2: edge.v2, cost });
+    }
+
+    // Sort by cost (lowest first)
+    queue.sort((a, b) => a.cost - b.cost);
+    return queue;
+  }
+
+  /**
+   * Check if an edge is still valid for collapse
+   */
+  private static isEdgeValid(edge: {v1: number, v2: number}, indices: number[]): boolean {
+    // Check if both vertices still exist in the mesh
+    let hasV1 = false, hasV2 = false;
+
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === edge.v1) hasV1 = true;
+      if (indices[i] === edge.v2) hasV2 = true;
+      if (hasV1 && hasV2) return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Collapse an edge by merging v2 into v1
+   */
+  private static collapseEdge(
+    edge: {v1: number, v2: number},
+    positions: Float32Array,
+    indices: number[],
+    vertexToFaces: Map<number, number[]>
+  ): boolean {
+    const { v1, v2 } = edge;
+
+    // Calculate new position (midpoint of the edge)
+    const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
+    const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
+    const newZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) * 0.5;
+
+    // Update v1 position to the new position
+    positions[v1 * 3] = newX;
+    positions[v1 * 3 + 1] = newY;
+    positions[v1 * 3 + 2] = newZ;
+
+    // Replace all occurrences of v2 with v1 in the index array
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === v2) {
+        indices[i] = v1;
+      }
+    }
+
+    // Remove degenerate faces (faces with duplicate vertices)
+    this.removeDegenerateFaces(indices);
+
+    // Update vertex-to-faces mapping
+    const v2Faces = vertexToFaces.get(v2) || [];
+    const v1Faces = vertexToFaces.get(v1) || [];
+    vertexToFaces.set(v1, [...v1Faces, ...v2Faces]);
+    vertexToFaces.delete(v2);
+
+    return true;
+  }
+
+  /**
+   * Remove faces that have duplicate vertices (degenerate triangles)
+   */
+  private static removeDegenerateFaces(indices: number[]) {
+    const validFaces: number[] = [];
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      // Only keep faces where all three vertices are different
+      if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
+        validFaces.push(v1, v2, v3);
+      }
+    }
+
+    // Replace the original indices array
+    indices.length = 0;
+    indices.push(...validFaces);
+  }
+
+  /**
+   * Rebuild geometry from position and index arrays
+   */
+  private static rebuildGeometryFromArrays(
+    positions: Float32Array,
+    indices: number[]
+  ): THREE.BufferGeometry {
+    // Create mapping from old vertices to new vertices (removing unused ones)
+    const usedVertices = new Set<number>();
+    for (const index of indices) {
+      usedVertices.add(index);
+    }
+
+    const vertexMapping = new Map<number, number>();
+    const newPositions: number[] = [];
+    let newVertexIndex = 0;
+
+    const sortedVertices = Array.from(usedVertices).sort((a, b) => a - b);
+    for (const oldIndex of sortedVertices) {
+      vertexMapping.set(oldIndex, newVertexIndex);
+      newPositions.push(
+        positions[oldIndex * 3],
+        positions[oldIndex * 3 + 1],
+        positions[oldIndex * 3 + 2]
+      );
+      newVertexIndex++;
+    }
+
+    // Remap indices
+    const newIndices = indices.map(oldIndex => vertexMapping.get(oldIndex)!);
+
+    // Create new geometry
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.setIndex(newIndices);
+    newGeometry.computeVertexNormals();
+
+    console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
+    return newGeometry;
+  }
+
+  /**
    * Analyze geometry to extract unique vertices and face relationships
    */
   private static analyzeGeometry(geometry: THREE.BufferGeometry): {
