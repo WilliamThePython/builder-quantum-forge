@@ -62,8 +62,20 @@ export class VertexRemovalStitcher {
     console.log(`📊 Plan: Reduce vertices by merging edges (${(actualReduction * 100).toFixed(1)}% reduction)`);
     console.log(`📊 Target: Reduce faces ${currentFaces} → ${targetFaces} by collapsing vertices`);
 
+    // Debug geometry state before decimation
+    console.log(`📊 Before decimation:`);
+    console.log(`   Vertices: ${workingGeometry.attributes.position.count}`);
+    console.log(`   Indices: ${workingGeometry.index?.count || 0}`);
+    console.log(`   Triangles: ${workingGeometry.index ? workingGeometry.index.count / 3 : 0}`);
+
     // Apply quadric edge collapse (vertex merging)
     const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
+
+    // Debug geometry state after decimation
+    console.log(`📊 After decimation:`);
+    console.log(`   Vertices: ${resultGeometry.attributes.position.count}`);
+    console.log(`   Indices: ${resultGeometry.index?.count || 0}`);
+    console.log(`   Triangles: ${resultGeometry.index ? resultGeometry.index.count / 3 : 0}`);
 
     // Validate result geometry
     if (!this.validateGeometry(resultGeometry)) {
@@ -420,6 +432,10 @@ export class VertexRemovalStitcher {
 
     console.log(`🔗 Collapsing edge ${v1}-${v2}: merging vertex ${v2} into ${v1}`);
 
+    // Debug: Show positions before merge
+    console.log(`   v1 position: [${positions[v1 * 3].toFixed(3)}, ${positions[v1 * 3 + 1].toFixed(3)}, ${positions[v1 * 3 + 2].toFixed(3)}]`);
+    console.log(`   v2 position: [${positions[v2 * 3].toFixed(3)}, ${positions[v2 * 3 + 1].toFixed(3)}, ${positions[v2 * 3 + 2].toFixed(3)}]`);
+
     // Step 1: Calculate optimal position for merged vertex (using midpoint)
     const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
     const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
@@ -430,8 +446,17 @@ export class VertexRemovalStitcher {
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Step 3: CRITICAL - Replace ALL occurrences of v2 with v1 in the index array
-    // This is true vertex merging - we're making v2 and v1 the same point
+    console.log(`   merged position: [${newX.toFixed(3)}, ${newY.toFixed(3)}, ${newZ.toFixed(3)}]`);
+
+    // Step 3: Count current references before replacement
+    let v1RefsBefore = 0, v2RefsBefore = 0;
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === v1) v1RefsBefore++;
+      if (indices[i] === v2) v2RefsBefore++;
+    }
+    console.log(`   Before: v1 referenced ${v1RefsBefore} times, v2 referenced ${v2RefsBefore} times`);
+
+    // Step 4: Replace ALL occurrences of v2 with v1 in the index array
     let replacements = 0;
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
@@ -440,18 +465,23 @@ export class VertexRemovalStitcher {
       }
     }
 
-    console.log(`   → Replaced ${replacements} references of vertex ${v2} with ${v1}`);
+    // Step 5: Count references after replacement
+    let v1RefsAfter = 0, v2RefsAfter = 0;
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === v1) v1RefsAfter++;
+      if (indices[i] === v2) v2RefsAfter++;
+    }
+    console.log(`   After: v1 referenced ${v1RefsAfter} times, v2 referenced ${v2RefsAfter} times (${replacements} replacements)`);
 
-    // Step 4: ONLY remove triangles that have become degenerate (same vertex repeated)
-    // This is the natural result of merging vertices, not arbitrary face removal
+    // Step 6: ONLY remove triangles that have become degenerate (same vertex repeated)
     const initialTriangles = indices.length / 3;
     this.removeOnlyDegenerateTriangles(indices);
     const finalTriangles = indices.length / 3;
     const removedTriangles = initialTriangles - finalTriangles;
 
-    console.log(`   → Removed ${removedTriangles} degenerate triangles (natural result of vertex merge)`);
+    console.log(`   → Removed ${removedTriangles} degenerate triangles (${initialTriangles} → ${finalTriangles})`);
 
-    // Step 5: Update vertex-to-faces mapping
+    // Step 7: Update vertex-to-faces mapping
     const v1Faces = vertexToFaces.get(v1) || [];
     const v2Faces = vertexToFaces.get(v2) || [];
     vertexToFaces.set(v1, [...new Set([...v1Faces, ...v2Faces])]);
