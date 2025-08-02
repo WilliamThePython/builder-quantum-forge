@@ -41,12 +41,17 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
+    console.log('🔗 === WIREFRAME UPDATE ===');
+    console.log(`🔗 Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
-      console.log('🔗 Creating standard wireframe (no polygon data)');
-      return new THREE.EdgesGeometry(geometry);
+      console.log('🔗 Creating standard edge wireframe (no polygon data)');
+      const edgeGeometry = new THREE.EdgesGeometry(geometry);
+      console.log(`🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`);
+      return edgeGeometry;
     }
 
     console.log('🔗 Creating polygon-aware wireframe');
@@ -73,7 +78,7 @@ function STLMesh() {
         }
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
-        console.warn('⚠�� Face missing original vertices, using fallback for face:', faceIndex);
+        console.warn('⚠️ Face missing original vertices, using fallback for face:', faceIndex);
       }
     }
 
