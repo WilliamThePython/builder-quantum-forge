@@ -51,6 +51,11 @@ interface STLContextType {
   highlightedTriangle: number | null;
   triangleStats: any;
 
+  // Decimation Painter Mode
+  decimationPainterMode: boolean;
+  setDecimationPainterMode: (enabled: boolean) => void;
+  decimateEdge: (vertexIndex1: number, vertexIndex2: number) => Promise<ToolOperationResult>;
+
   loadModelFromFile: (file: File) => Promise<void>; // Renamed to support both formats
   loadDefaultSTL: () => Promise<void>;
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
@@ -228,6 +233,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Highlighting state
   const [highlightedTriangle, setHighlightedTriangleState] = useState<number | null>(null);
   const [triangleStats, setTriangleStats] = useState<any>(null);
+
+  // Decimation Painter Mode state
+  const [decimationPainterMode, setDecimationPainterMode] = useState<boolean>(false);
 
   // Helper function to update loading progress
   const updateProgress = (percentage: number, stage: string, details: string = '') => {
