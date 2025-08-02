@@ -1436,9 +1436,9 @@ function MobileWorkflowContent(props: any) {
                   onReducePoints(reductionAmount, backendMethod as any);
                 }}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white text-base py-3 h-auto"
-                disabled={isProcessing}
+                disabled={isProcessing || !reductionMethod}
               >
-                🧠 Apply Intelligent Optimization
+                🔧 Apply Vertex Reduction
               </Button>
             </div>
           </div>
