@@ -307,12 +307,19 @@ function STLMesh() {
 
   return (
     <group ref={meshRef}>
-      {/* Main mesh */}
-      <mesh geometry={geometry} material={material} />
+      {/* Main mesh - key forces re-render when geometry changes */}
+      <mesh
+        key={geometry.uuid}
+        geometry={geometry}
+        material={material}
+      />
 
       {/* Polygon-aware wireframe overlay */}
       {viewerSettings.wireframe && wireframeGeometry && (
-        <lineSegments geometry={wireframeGeometry}>
+        <lineSegments
+          key={`wireframe-${geometry.uuid}`}
+          geometry={wireframeGeometry}
+        >
           <lineBasicMaterial color={0x00ff88} linewidth={2} />
         </lineSegments>
       )}
