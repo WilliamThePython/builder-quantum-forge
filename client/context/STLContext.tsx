@@ -1067,6 +1067,49 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [geometry]);
 
+  // Single edge decimation function
+  const decimateEdge = useCallback(async (vertexIndex1: number, vertexIndex2: number): Promise<ToolOperationResult> => {
+    console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
+    console.log(`   Decimating edge between vertices: ${vertexIndex1} ↔ ${vertexIndex2}`);
+
+    if (!geometry) {
+      throw new Error('No geometry loaded for edge decimation');
+    }
+
+    try {
+      setIsProcessingTool(true);
+
+      // Create backup before operation
+      createBackup();
+
+      // Use STLManipulator for single edge decimation
+      const manipulator = new STLManipulator(geometry);
+      const result = await manipulator.decimateSingleEdge(vertexIndex1, vertexIndex2);
+
+      if (result.success && result.geometry) {
+        console.log(`✅ Edge decimation successful`);
+
+        // Update geometry with UUID change to force viewer refresh
+        result.geometry.uuid = THREE.MathUtils.generateUUID();
+        setGeometry(result.geometry);
+
+        console.log('=== VIEWER GEOMETRY UPDATE ===');
+        console.log(`🎆 Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
+        console.log(`🎆 Geometry UUID: ${result.geometry.uuid}`);
+
+        return result;
+      } else {
+        console.error('❌ Edge decimation failed:', result.message);
+        throw new Error(result.message || 'Edge decimation failed');
+      }
+    } catch (error) {
+      console.error('❌ Single edge decimation error:', error);
+      throw error;
+    } finally {
+      setIsProcessingTool(false);
+    }
+  }, [geometry, createBackup]);
+
   const value: STLContextType = {
     geometry,
     fileName,
