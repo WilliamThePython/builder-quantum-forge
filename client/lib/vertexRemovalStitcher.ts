@@ -364,22 +364,25 @@ export class VertexRemovalStitcher {
    * Remove faces that have duplicate vertices (degenerate triangles)
    */
   private static removeDegenerateFaces(indices: number[]) {
-    const validFaces: number[] = [];
+    let writeIndex = 0;
 
-    for (let i = 0; i < indices.length; i += 3) {
-      const v1 = indices[i];
-      const v2 = indices[i + 1];
-      const v3 = indices[i + 2];
+    // Process faces in place to avoid creating a large temporary array
+    for (let readIndex = 0; readIndex < indices.length; readIndex += 3) {
+      const v1 = indices[readIndex];
+      const v2 = indices[readIndex + 1];
+      const v3 = indices[readIndex + 2];
 
       // Only keep faces where all three vertices are different
       if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
-        validFaces.push(v1, v2, v3);
+        indices[writeIndex] = v1;
+        indices[writeIndex + 1] = v2;
+        indices[writeIndex + 2] = v3;
+        writeIndex += 3;
       }
     }
 
-    // Replace the original indices array
-    indices.length = 0;
-    indices.push(...validFaces);
+    // Trim the array to the new size
+    indices.length = writeIndex;
   }
 
   /**
