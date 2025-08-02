@@ -1068,7 +1068,7 @@ function MobileWorkflowContent(props: any) {
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
-  const [reductionMethod, setReductionMethod] = useState<'random_vertex' | 'quadric' | 'grid_based' | 'triangle_collapse'>('quadric');
+  const [reductionMethod, setReductionMethod] = useState<'random_vertex_removal' | 'python_vertex_removal' | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     upload: false,
     visualization: false,
@@ -1095,7 +1095,7 @@ function MobileWorkflowContent(props: any) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log(`�� Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      console.log(`🚀 Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       loadModelFromFile(file).catch(err => {
         console.error('❌ Upload failed:', err);
         alert(`Upload failed: ${err.message}`);
