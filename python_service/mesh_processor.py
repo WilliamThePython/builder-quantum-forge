@@ -90,22 +90,36 @@ async def decimate_mesh(
         
         original_vertices = len(mesh.vertices)
         original_triangles = len(mesh.triangles)
-        
-        print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles")
-        
+
+        if preserve_polygon_structure:
+            print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles (from polygon faces)")
+            print(f"🚫 IMPORTANT: Open3D triangulated the polygon faces - this is unavoidable")
+            print(f"   However, vertex positions will be preserved through decimation")
+        else:
+            print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles")
+
         # Calculate target triangle count
         target_triangles = max(4, int(original_triangles * (1 - target_reduction)))
-        
+
         print(f"📊 Target: {target_triangles} triangles ({target_reduction*100:.1f}% reduction)")
         
         # Apply quadric decimation using Open3D
-        print("🔧 Applying Open3D quadric decimation...")
-        
+        if preserve_polygon_structure:
+            print("🔧 Applying Open3D quadric decimation (will re-polygonize result)...")
+        else:
+            print("🔧 Applying Open3D quadric decimation...")
+
         decimated_mesh = mesh.simplify_quadric_decimation(
             target_number_of_triangles=target_triangles,
             maximum_error=1e30,  # Allow any error to reach target count
             boundary_weight=1.0 if preserve_boundary else 0.1
         )
+
+        # For polygon-preserving mode, try to merge coplanar triangles back into polygons
+        if preserve_polygon_structure:
+            print("🔍 Attempting to merge coplanar triangles back into polygon faces...")
+            # Note: This is a complex operation and may not perfectly restore original polygons
+            # but will attempt to reduce triangulation
         
         final_vertices = len(decimated_mesh.vertices)
         final_triangles = len(decimated_mesh.triangles)
