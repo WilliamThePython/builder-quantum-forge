@@ -5,48 +5,72 @@ import * as THREE from 'three';
 import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
 
-// Helper function to find the nearest edge to a click point
-function findNearestEdge(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): { vertexIndex1: number, vertexIndex2: number } {
+// Helper function to find the nearest POLYGON PERIMETER edge to a click point
+function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): { vertexIndex1: number, vertexIndex2: number } | null {
   if (!intersection.face) {
-    return { vertexIndex1: 0, vertexIndex2: 1 };
+    return null;
   }
 
-  const face = intersection.face;
   const point = intersection.point;
-
-  // Get the three vertices of the intersected triangle
-  const vertices = [
-    { index: face.a, position: new THREE.Vector3() },
-    { index: face.b, position: new THREE.Vector3() },
-    { index: face.c, position: new THREE.Vector3() }
-  ];
-
-  // Get vertex positions
   const positions = geometry.attributes.position.array as Float32Array;
-  vertices.forEach(vertex => {
-    vertex.position.set(
-      positions[vertex.index * 3],
-      positions[vertex.index * 3 + 1],
-      positions[vertex.index * 3 + 2]
-    );
-  });
 
-  // Calculate distances from click point to each edge of the triangle
-  const edges = [
-    { v1: vertices[0], v2: vertices[1] },
-    { v1: vertices[1], v2: vertices[2] },
-    { v1: vertices[2], v2: vertices[0] }
-  ];
+  // Check if this geometry has polygon face metadata
+  const polygonFaces = (geometry as any).polygonFaces;
+  if (!polygonFaces || !Array.isArray(polygonFaces)) {
+    console.warn('⚠️ No polygon faces detected - decimation painter disabled for triangulated geometry');
+    return null;
+  }
 
-  let nearestEdge = edges[0];
+  // Find which polygon face was clicked
+  const clickedPolygonFace = findPolygonFaceFromIntersection(geometry, intersection);
+  if (clickedPolygonFace === null || clickedPolygonFace >= polygonFaces.length) {
+    console.warn('⚠️ Could not determine clicked polygon face');
+    return null;
+  }
+
+  const polygonFace = polygonFaces[clickedPolygonFace];
+  console.log(`   Clicked polygon face ${clickedPolygonFace}: ${polygonFace.type} with ${polygonFace.originalVertices?.length || 0} vertices`);
+
+  // Get the original polygon vertices (perimeter only)
+  if (!polygonFace.originalVertices || polygonFace.originalVertices.length < 3) {
+    console.warn('⚠️ Polygon face missing original vertices');
+    return null;
+  }
+
+  const polygonVertices = polygonFace.originalVertices;
+
+  // Create perimeter edges of the polygon (not internal triangulation edges)
+  const perimeterEdges = [];
+  for (let i = 0; i < polygonVertices.length; i++) {
+    const currentVertex = polygonVertices[i];
+    const nextVertex = polygonVertices[(i + 1) % polygonVertices.length]; // Wrap around to first vertex
+
+    perimeterEdges.push({
+      v1: {
+        index: findVertexIndex(positions, currentVertex),
+        position: currentVertex.clone()
+      },
+      v2: {
+        index: findVertexIndex(positions, nextVertex),
+        position: nextVertex.clone()
+      }
+    });
+  }
+
+  console.log(`   ${polygonFace.type} has ${perimeterEdges.length} perimeter edges`);
+
+  // Find the closest perimeter edge to the click point
+  let nearestEdge = perimeterEdges[0];
   let minDistance = Number.MAX_VALUE;
 
-  edges.forEach(edge => {
-    // Calculate distance from point to line segment (edge)
+  perimeterEdges.forEach((edge, edgeIndex) => {
+    // Calculate distance from click point to this perimeter edge
     const line = new THREE.Line3(edge.v1.position, edge.v2.position);
     const closestPoint = new THREE.Vector3();
     line.closestPointToPoint(point, true, closestPoint);
     const distance = point.distanceTo(closestPoint);
+
+    console.log(`     Perimeter edge ${edgeIndex}: v${edge.v1.index} ↔ v${edge.v2.index} (distance: ${distance.toFixed(3)})`);
 
     if (distance < minDistance) {
       minDistance = distance;
@@ -54,12 +78,70 @@ function findNearestEdge(geometry: THREE.BufferGeometry, intersection: THREE.Int
     }
   });
 
-  console.log(`   Edge distances calculated, nearest: ${nearestEdge.v1.index} ↔ ${nearestEdge.v2.index} (dist: ${minDistance.toFixed(3)})`);
+  console.log(`   ✅ Nearest perimeter edge: v${nearestEdge.v1.index} ↔ v${nearestEdge.v2.index} (distance: ${minDistance.toFixed(3)})`);
 
   return {
     vertexIndex1: nearestEdge.v1.index,
     vertexIndex2: nearestEdge.v2.index
   };
+}
+
+// Helper function to find which polygon face contains the intersection
+function findPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
+  if (!intersection.face) return null;
+
+  // Try to use STLManipulator if available, otherwise calculate manually
+  if (typeof (window as any).STLManipulator !== 'undefined') {
+    return (window as any).STLManipulator.getPolygonFaceFromIntersection(geometry, intersection);
+  }
+
+  // Fallback: calculate triangle index and map to polygon face
+  const triangleIndex = intersection.faceIndex || 0;
+  const polygonFaces = (geometry as any).polygonFaces;
+
+  if (!polygonFaces) return null;
+
+  let currentTriangleOffset = 0;
+  for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+    const face = polygonFaces[faceIndex];
+    const triangleCount = getTriangleCountForPolygon(face);
+
+    if (triangleIndex >= currentTriangleOffset && triangleIndex < currentTriangleOffset + triangleCount) {
+      return faceIndex;
+    }
+    currentTriangleOffset += triangleCount;
+  }
+
+  return null;
+}
+
+// Helper function to find vertex index from position
+function findVertexIndex(positions: Float32Array, targetVertex: THREE.Vector3): number {
+  const tolerance = 0.001;
+
+  for (let i = 0; i < positions.length; i += 3) {
+    const vertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+    if (vertex.distanceTo(targetVertex) < tolerance) {
+      return i / 3;
+    }
+  }
+
+  console.warn('⚠️ Could not find vertex index for position:', targetVertex);
+  return 0;
+}
+
+// Helper function to count triangles in a polygon face
+function getTriangleCountForPolygon(face: any): number {
+  if (!face.originalVertices) {
+    if (face.type === 'triangle') return 1;
+    if (face.type === 'quad') return 2;
+    return 3; // estimate for polygon
+  }
+
+  const vertexCount = face.originalVertices.length;
+  if (vertexCount === 3) return 1;
+  if (vertexCount === 4) return 2;
+  return vertexCount - 2; // fan triangulation
 }
 
 function HighlightMesh() {
