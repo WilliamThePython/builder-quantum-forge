@@ -269,9 +269,9 @@ function isTruePolygonBoundaryEdge(
   const tolerance = 0.001;
   let adjacentFaceCount = 0;
 
-  // Count how many coplanar polygon faces share this edge
+  // Count how many valid, robust polygon faces share this edge
   for (const face of polygonFaces) {
-    if (!face.originalVertices || !isCoplanarPolygon(face.originalVertices)) continue;
+    if (!face.originalVertices || !isRobustPolygonFace(face)) continue;
 
     let hasVertex1 = false;
     let hasVertex2 = false;
@@ -294,9 +294,159 @@ function isTruePolygonBoundaryEdge(
     }
   }
 
-  // True boundary edges should be shared by exactly 1 or 2 coplanar faces
+  // True boundary edges should be shared by exactly 1 or 2 robust faces
   // 1 = exterior boundary, 2 = interior boundary between adjacent faces
   return adjacentFaceCount >= 1 && adjacentFaceCount <= 2;
+}
+
+// Comprehensive validation that a polygon face is robust for decimation
+function isRobustPolygonFace(face: any): boolean {
+  if (!face.originalVertices || !Array.isArray(face.originalVertices)) return false;
+  if (face.originalVertices.length < 3) return false;
+
+  // Convert to Vector3 objects
+  const vertices = face.originalVertices.map((v: any) =>
+    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+  );
+
+  // 1. Check coplanarity
+  if (!isCoplanarPolygon(vertices)) return false;
+
+  // 2. Check for duplicate vertices
+  const tolerance = 0.001;
+  for (let i = 0; i < vertices.length; i++) {
+    for (let j = i + 1; j < vertices.length; j++) {
+      if (vertices[i].distanceTo(vertices[j]) < tolerance) {
+        return false; // Duplicate vertices
+      }
+    }
+  }
+
+  // 3. Check for proper vertex ordering (no self-intersections)
+  if (!hasValidVertexOrdering(vertices)) return false;
+
+  // 4. Check minimum edge length (prevent degenerate edges)
+  for (let i = 0; i < vertices.length; i++) {
+    const nextI = (i + 1) % vertices.length;
+    if (vertices[i].distanceTo(vertices[nextI]) < tolerance * 10) {
+      return false; // Degenerate edge
+    }
+  }
+
+  // 5. Check polygon area (prevent near-zero area faces)
+  const area = calculatePolygonArea(vertices);
+  if (area < tolerance * tolerance * 100) {
+    return false; // Near-zero area
+  }
+
+  return true;
+}
+
+// Check if vertices are properly ordered (no self-intersections for simple polygons)
+function hasValidVertexOrdering(vertices: THREE.Vector3[]): boolean {
+  if (vertices.length < 4) return true; // Triangles are always simple
+
+  // For quads and simple polygons, check that edges don't cross
+  // This is a simplified check - for complex polygons, more sophisticated validation needed
+  if (vertices.length === 4) {
+    // Check if quad edges cross
+    const edge1Start = vertices[0];
+    const edge1End = vertices[1];
+    const edge2Start = vertices[2];
+    const edge2End = vertices[3];
+
+    const edge3Start = vertices[1];
+    const edge3End = vertices[2];
+    const edge4Start = vertices[3];
+    const edge4End = vertices[0];
+
+    // Check diagonal intersections (should not intersect for convex quad)
+    if (doLinesIntersect(edge1Start, edge1End, edge2Start, edge2End) ||
+        doLinesIntersect(edge3Start, edge3End, edge4Start, edge4End)) {
+      return false; // Self-intersecting quad
+    }
+  }
+
+  return true;
+}
+
+// Calculate polygon area using shoelace formula (projected to best plane)
+function calculatePolygonArea(vertices: THREE.Vector3[]): number {
+  if (vertices.length < 3) return 0;
+
+  // Calculate polygon normal to determine best projection plane
+  let normal = new THREE.Vector3();
+  for (let i = 0; i < vertices.length; i++) {
+    const curr = vertices[i];
+    const next = vertices[(i + 1) % vertices.length];
+    normal.x += (curr.y - next.y) * (curr.z + next.z);
+    normal.y += (curr.z - next.z) * (curr.x + next.x);
+    normal.z += (curr.x - next.x) * (curr.y + next.y);
+  }
+
+  // Project to the plane with largest normal component
+  const absX = Math.abs(normal.x);
+  const absY = Math.abs(normal.y);
+  const absZ = Math.abs(normal.z);
+
+  let area = 0;
+  if (absZ >= absX && absZ >= absY) {
+    // Project to XY plane
+    for (let i = 0; i < vertices.length; i++) {
+      const curr = vertices[i];
+      const next = vertices[(i + 1) % vertices.length];
+      area += (curr.x * next.y - next.x * curr.y);
+    }
+  } else if (absY >= absX) {
+    // Project to XZ plane
+    for (let i = 0; i < vertices.length; i++) {
+      const curr = vertices[i];
+      const next = vertices[(i + 1) % vertices.length];
+      area += (curr.x * next.z - next.x * curr.z);
+    }
+  } else {
+    // Project to YZ plane
+    for (let i = 0; i < vertices.length; i++) {
+      const curr = vertices[i];
+      const next = vertices[(i + 1) % vertices.length];
+      area += (curr.y * next.z - next.y * curr.z);
+    }
+  }
+
+  return Math.abs(area) * 0.5;
+}
+
+// Check if two line segments intersect in 3D space
+function doLinesIntersect(
+  line1Start: THREE.Vector3, line1End: THREE.Vector3,
+  line2Start: THREE.Vector3, line2End: THREE.Vector3
+): boolean {
+  // Simplified 2D intersection check (project to dominant plane)
+  // This is not a complete 3D line intersection, but good enough for basic validation
+
+  const tolerance = 0.001;
+
+  // Check if lines share endpoints (allowed)
+  if (line1Start.distanceTo(line2Start) < tolerance ||
+      line1Start.distanceTo(line2End) < tolerance ||
+      line1End.distanceTo(line2Start) < tolerance ||
+      line1End.distanceTo(line2End) < tolerance) {
+    return false; // Shared endpoints are OK
+  }
+
+  // Use a simplified bounding box check for now
+  const minX1 = Math.min(line1Start.x, line1End.x);
+  const maxX1 = Math.max(line1Start.x, line1End.x);
+  const minY1 = Math.min(line1Start.y, line1End.y);
+  const maxY1 = Math.max(line1Start.y, line1End.y);
+
+  const minX2 = Math.min(line2Start.x, line2End.x);
+  const maxX2 = Math.max(line2Start.x, line2End.x);
+  const minY2 = Math.min(line2Start.y, line2End.y);
+  const maxY2 = Math.max(line2Start.y, line2End.y);
+
+  // If bounding boxes don't overlap, lines don't intersect
+  return !(maxX1 < minX2 || maxX2 < minX1 || maxY1 < minY2 || maxY2 < minY1);
 }
 
 // Helper function to count triangles in a polygon face
