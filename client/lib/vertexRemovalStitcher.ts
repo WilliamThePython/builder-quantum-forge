@@ -92,6 +92,12 @@ export class VertexRemovalStitcher {
   ): THREE.BufferGeometry {
     console.log(`🔧 Starting quadric edge collapse to ${targetFaces} faces...`);
 
+    // Ensure geometry is indexed
+    if (!geometry.index) {
+      console.log('🔧 Geometry is not indexed, converting...');
+      geometry = this.ensureIndexedGeometry(geometry);
+    }
+
     const positions = geometry.attributes.position.array as Float32Array;
     const indices = Array.from(geometry.index!.array);
 
