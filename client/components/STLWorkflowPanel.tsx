@@ -579,16 +579,13 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
-                          console.log('🔄 Button clicked! Method:', reductionMethod, 'Amount:', reductionAmount);
-                          // Use the selected vertex removal method
-                          const method = reductionMethod === 'random_vertex_removal' ? 'random_vertex' : 'python_vertex';
-                          console.log('🔄 Mapped method:', method);
-                          onReducePoints(reductionAmount, method as any);
+                          console.log('🔄 Button clicked! Amount:', reductionAmount);
+                          onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
                         }}
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
-                        disabled={isProcessing || !reductionMethod}
+                        disabled={isProcessing}
                       >
-                        🔧 Apply Vertex Reduction
+                        🔧 Apply Quadric Decimation
                       </Button>
 
                       <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
