@@ -13,7 +13,7 @@ export class VertexRemovalStitcher {
   static async removeVertices(
     geometry: THREE.BufferGeometry,
     targetReduction: number,
-    method: 'random_vertex' | 'python_vertex'
+    method: 'quadric_edge_collapse' = 'quadric_edge_collapse'
   ): Promise<{
     simplifiedGeometry: THREE.BufferGeometry;
     originalStats: MeshStats;
@@ -22,29 +22,23 @@ export class VertexRemovalStitcher {
     processingTime: number;
   }> {
     const startTime = Date.now();
-    console.log(`🔧 Starting vertex removal: ${method}, ${(targetReduction * 100).toFixed(1)}% reduction`);
+    console.log(`🔧 Starting quadric edge collapse: ${(targetReduction * 100).toFixed(1)}% reduction`);
 
     // Get original stats
     const originalStats = this.getMeshStats(geometry);
-    
+
     // Clone geometry for processing
     const workingGeometry = geometry.clone();
-    
-    // Calculate target vertex count
-    const currentVertices = originalStats.vertices;
-    const targetVertices = Math.max(4, Math.floor(currentVertices * (1 - targetReduction))); // Minimum 4 vertices (tetrahedron)
-    const verticesToRemove = Math.max(0, currentVertices - targetVertices);
-    
-    console.log(`📊 Plan: Remove ${verticesToRemove} vertices (${currentVertices} → ${targetVertices})`);
-    
-    let resultGeometry: THREE.BufferGeometry;
-    
-    if (method === 'random_vertex') {
-      resultGeometry = await this.randomVertexRemoval(workingGeometry, verticesToRemove);
-    } else {
-      resultGeometry = await this.pythonStyleRemoval(workingGeometry, verticesToRemove);
-    }
-    
+
+    // Calculate target face count
+    const currentFaces = originalStats.faces;
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - targetReduction))); // Minimum 4 faces (tetrahedron)
+
+    console.log(`📊 Plan: Reduce faces ${currentFaces} → ${targetFaces}`);
+
+    // Apply quadric edge collapse
+    const resultGeometry = this.quadricEdgeCollapse(workingGeometry, targetFaces, true);
+
     // Get final stats
     const newStats = this.getMeshStats(resultGeometry);
     const reductionAchieved = Math.max(0, 1 - (newStats.vertices / originalStats.vertices));
