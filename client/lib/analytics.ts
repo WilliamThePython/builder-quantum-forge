@@ -645,10 +645,13 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  // Don't track analytics-related promise rejections
+  // Don't track analytics-related promise rejections or third-party service errors
   if (event.reason?.message?.includes('Failed to fetch') ||
-      event.reason?.toString?.()?.includes('analytics')) {
-    console.warn('Skipping analytics promise rejection to prevent loop:', event.reason);
+      event.reason?.toString?.()?.includes('analytics') ||
+      event.reason?.toString?.()?.includes('fullstory') ||
+      event.reason?.toString?.()?.includes('fs.js') ||
+      event.reason?.toString?.()?.includes('edge.fullstory.com')) {
+    console.warn('Skipping analytics/third-party promise rejection to prevent loop:', event.reason);
     return;
   }
 
