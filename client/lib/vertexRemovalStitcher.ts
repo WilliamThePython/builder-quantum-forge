@@ -204,8 +204,8 @@ export class VertexRemovalStitcher {
         continue;
       }
 
-      // Perform edge collapse
-      const success = this.collapseEdge(edge, positions, indices, vertexToFaces);
+      // Perform QEM-optimal edge collapse
+      const success = this.collapseEdgeQEM(edge, positions, indices, vertexToFaces);
       if (success) {
         currentFaces = indices.length / 3;
         collapsedEdges++;
@@ -217,7 +217,7 @@ export class VertexRemovalStitcher {
         }
 
         if (collapsedEdges <= 3 || collapsedEdges % 20 === 0) {
-          console.log(`🔧 Collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
+          console.log(`🧮 QEM collapsed ${collapsedEdges} edges, ${currentFaces} faces remaining`);
         }
       }
     }
