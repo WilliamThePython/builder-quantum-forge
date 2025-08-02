@@ -181,7 +181,21 @@ export class VertexRemovalStitcher {
 
     // Post-processing: validate stitching and merge coplanar triangles
     console.log(`🔧 Post-processing: validating stitching and merging coplanar triangles...`);
-    cleanedGeometry = this.postProcessMesh(cleanedGeometry);
+
+    try {
+      const postProcessedGeometry = this.postProcessMesh(cleanedGeometry);
+
+      // Validate that post-processing didn't break the geometry
+      if (postProcessedGeometry.attributes.position.count > 0 &&
+          postProcessedGeometry.index &&
+          postProcessedGeometry.index.count > 0) {
+        cleanedGeometry = postProcessedGeometry;
+      } else {
+        console.warn(`⚠️ Post-processing failed, using pre-processed geometry`);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Post-processing failed:`, error, `- using pre-processed geometry`);
+    }
 
     return cleanedGeometry;
   }
