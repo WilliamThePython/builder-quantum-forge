@@ -819,8 +819,12 @@ export class VertexRemovalStitcher {
     geometry: THREE.BufferGeometry,
     vertexFaceMap: Map<number, number[]>
   ): number[] {
+    if (!geometry.index) {
+      throw new Error('Geometry must be indexed for vertex error calculation');
+    }
+
     const positions = geometry.attributes.position;
-    const indices = geometry.index!.array;
+    const indices = geometry.index.array;
     const vertexCount = positions.count;
     const errors = new Array(vertexCount).fill(0);
     
