@@ -21,28 +21,34 @@ export class VertexRemovalStitcher {
     geometry?: THREE.BufferGeometry;
   }> {
     console.log(`🎯 === TRUE EDGE COLLAPSE ===`);
-    console.log(`   Collapsing edge: vertex ${vertexIndex2} → vertex ${vertexIndex1}`);
+
+    // CRITICAL: Always merge higher index into lower index to avoid index shifting issues
+    const keepVertex = Math.min(vertexIndex1, vertexIndex2);
+    const removeVertex = Math.max(vertexIndex1, vertexIndex2);
+
+    console.log(`   Original request: merge ${vertexIndex1} ↔ ${vertexIndex2}`);
+    console.log(`   Normalized: keeping vertex ${keepVertex}, removing vertex ${removeVertex}`);
     console.log(`   New position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
     try {
       const originalVertexCount = geometry.attributes.position.count;
 
-      // STEP 1: Move vertex1 to the collapse position (this vertex will remain)
+      // STEP 1: Move the vertex we're keeping to the collapse position
       const positions = new Float32Array(geometry.attributes.position.array);
-      positions[vertexIndex1 * 3] = collapsePosition.x;
-      positions[vertexIndex1 * 3 + 1] = collapsePosition.y;
-      positions[vertexIndex1 * 3 + 2] = collapsePosition.z;
+      positions[keepVertex * 3] = collapsePosition.x;
+      positions[keepVertex * 3 + 1] = collapsePosition.y;
+      positions[keepVertex * 3 + 2] = collapsePosition.z;
 
-      console.log(`   Vertex ${vertexIndex1} moved to collapse position`);
-      console.log(`   Vertex ${vertexIndex2} will be removed`);
+      console.log(`   Vertex ${keepVertex} moved to collapse position`);
+      console.log(`   Vertex ${removeVertex} will be removed and compacted`);
 
-      // STEP 2: Update all indices that reference vertexIndex2 to reference vertexIndex1
+      // STEP 2: Update all indices that reference removeVertex to reference keepVertex
       let indices = geometry.index ? new Array(...geometry.index.array) : null;
       if (indices) {
         for (let i = 0; i < indices.length; i++) {
-          if (indices[i] === vertexIndex2) {
-            indices[i] = vertexIndex1;
-            console.log(`     Updated index ${i}: ${vertexIndex2} → ${vertexIndex1}`);
+          if (indices[i] === removeVertex) {
+            indices[i] = keepVertex;
+            console.log(`     Merged index ${i}: ${removeVertex} → ${keepVertex}`);
           }
         }
       }
