@@ -392,6 +392,23 @@ export class VertexRemovalStitcher {
       return false; // Can't collapse edge to itself
     }
 
+    // Check for boundary conditions that would create invalid topology
+    const v1Faces = vertexToFaces.get(v1) || [];
+    const v2Faces = vertexToFaces.get(v2) || [];
+
+    // Prevent collapse if it would create too many degenerate faces
+    let sharedFaces = 0;
+    for (const faceIdx of v1Faces) {
+      if (v2Faces.includes(faceIdx)) {
+        sharedFaces++;
+      }
+    }
+
+    // Only collapse if vertices share exactly 2 faces (proper edge)
+    if (sharedFaces !== 2) {
+      return false;
+    }
+
     console.log(`🔗 Collapsing vertices ${v2} → ${v1} (merging two points into one)`);
 
     // Step 1: Calculate optimal position for merged vertex
@@ -418,9 +435,8 @@ export class VertexRemovalStitcher {
     this.removeDegenerateFaces(indices);
 
     // Step 5: Update vertex-to-faces mapping (v2 no longer exists as a separate vertex)
-    const v2Faces = vertexToFaces.get(v2) || [];
-    const v1Faces = vertexToFaces.get(v1) || [];
-    vertexToFaces.set(v1, [...v1Faces, ...v2Faces]);
+    const mergedFaces = new Set([...v1Faces, ...v2Faces]);
+    vertexToFaces.set(v1, Array.from(mergedFaces));
     vertexToFaces.delete(v2); // v2 no longer exists as a separate vertex
 
     console.log(`✅ Vertices merged successfully, degenerate faces cleaned up`);
@@ -482,14 +498,29 @@ export class VertexRemovalStitcher {
       newVertexIndex++;
     }
 
-    // Remap indices
-    const newIndices = indices.map(oldIndex => vertexMapping.get(oldIndex)!);
+    // Remap indices and validate each triangle
+    const newIndices: number[] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = vertexMapping.get(indices[i]);
+      const v2 = vertexMapping.get(indices[i + 1]);
+      const v3 = vertexMapping.get(indices[i + 2]);
+
+      // Only add triangle if all vertices are valid and different
+      if (v1 !== undefined && v2 !== undefined && v3 !== undefined &&
+          v1 !== v2 && v2 !== v3 && v3 !== v1) {
+        newIndices.push(v1, v2, v3);
+      }
+    }
 
     // Create new geometry
     const newGeometry = new THREE.BufferGeometry();
     newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
     newGeometry.setIndex(newIndices);
-    newGeometry.computeVertexNormals();
+
+    // Ensure geometry is valid before computing normals
+    if (newIndices.length >= 3) {
+      newGeometry.computeVertexNormals();
+    }
 
     console.log(`✅ Rebuilt geometry: ${newPositions.length / 3} vertices, ${newIndices.length / 3} faces`);
     return newGeometry;
@@ -967,11 +998,10 @@ export class VertexRemovalStitcher {
     // Step 1: Validate and fix any stitching issues
     const stitchedGeometry = this.validateAndFixStitching(geometry);
 
-    // Step 2: Merge coplanar triangles into larger polygons
-    const mergedGeometry = this.mergeCoplanarTriangles(stitchedGeometry);
-
-    console.log(`✅ Post-processing complete in ${Date.now() - startTime}ms`);
-    return mergedGeometry;
+    // Step 2: For now, skip coplanar triangle merging to prevent geometry corruption
+    // This preserves the mesh integrity while we have proper vertex merging
+    console.log(`✅ Post-processing complete in ${Date.now() - startTime}ms (stitching validation only)`);
+    return stitchedGeometry;
   }
 
   /**
@@ -987,17 +1017,26 @@ export class VertexRemovalStitcher {
 
     const positions = geometry.attributes.position.array as Float32Array;
     const indices = Array.from(geometry.index.array);
+    const vertexCount = geometry.attributes.position.count;
 
-    // Check for degenerate triangles
+    // Check for degenerate triangles and out-of-bounds indices
     const validIndices: number[] = [];
     let removedDegenerates = 0;
+    let removedOutOfBounds = 0;
 
     for (let i = 0; i < indices.length; i += 3) {
       const v1 = indices[i];
       const v2 = indices[i + 1];
       const v3 = indices[i + 2];
 
-      // Check if triangle is degenerate (has duplicate vertices or zero area)
+      // Check for out-of-bounds indices
+      if (v1 >= vertexCount || v2 >= vertexCount || v3 >= vertexCount ||
+          v1 < 0 || v2 < 0 || v3 < 0) {
+        removedOutOfBounds++;
+        continue;
+      }
+
+      // Check if triangle is degenerate (has duplicate vertices)
       if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
         // Check triangle area
         const p1 = new THREE.Vector3(positions[v1 * 3], positions[v1 * 3 + 1], positions[v1 * 3 + 2]);
@@ -1009,7 +1048,8 @@ export class VertexRemovalStitcher {
         const cross = new THREE.Vector3().crossVectors(edge1, edge2);
         const area = cross.length() * 0.5;
 
-        if (area > 1e-6) { // Triangle has significant area
+        // Use more lenient area threshold
+        if (area > 1e-8) { // Triangle has significant area
           validIndices.push(v1, v2, v3);
         } else {
           removedDegenerates++;
@@ -1019,14 +1059,37 @@ export class VertexRemovalStitcher {
       }
     }
 
-    if (removedDegenerates > 0) {
-      console.log(`🔧 Removed ${removedDegenerates} degenerate triangles`);
+    if (removedDegenerates > 0 || removedOutOfBounds > 0) {
+      console.log(`🔧 Removed ${removedDegenerates} degenerate triangles and ${removedOutOfBounds} out-of-bounds triangles`);
+
+      // Ensure we have enough triangles remaining
+      if (validIndices.length < 9) { // Less than 3 triangles
+        console.warn('⚠️ Too few valid triangles remaining, returning minimal geometry');
+        // Create a minimal valid geometry (single triangle)
+        const minimalGeometry = new THREE.BufferGeometry();
+        const minimalPositions = new Float32Array([
+          0, 0, 0,  // vertex 0
+          1, 0, 0,  // vertex 1
+          0, 1, 0   // vertex 2
+        ]);
+        minimalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(minimalPositions, 3));
+        minimalGeometry.setIndex([0, 1, 2]);
+        minimalGeometry.computeVertexNormals();
+        return minimalGeometry;
+      }
 
       // Create new geometry with valid triangles
       const newGeometry = new THREE.BufferGeometry();
       newGeometry.setAttribute('position', geometry.attributes.position.clone());
       newGeometry.setIndex(validIndices);
-      newGeometry.computeVertexNormals();
+
+      // Safely compute normals
+      try {
+        newGeometry.computeVertexNormals();
+      } catch (error) {
+        console.warn('⚠️ Failed to compute normals, using default:', error);
+      }
+
       return newGeometry;
     }
 
