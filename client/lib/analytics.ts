@@ -591,22 +591,45 @@ class Analytics {
 
 // Wrap the native fetch to catch FullStory errors
 const originalFetch = window.fetch;
+let fetchWrapperActive = false; // Prevent recursion
+
 window.fetch = function(...args) {
-  return originalFetch.apply(this, args).catch(error => {
-    // Check if this is a FullStory or other third-party analytics service call
-    const url = args[0]?.toString() || '';
-    if (url.includes('fullstory.com') ||
-        url.includes('fs.') ||
-        url.includes('edge.fullstory.com') ||
-        error.stack?.includes('fullstory') ||
-        error.stack?.includes('fs.js')) {
-      // Silently ignore FullStory fetch errors
-      console.debug('Ignoring FullStory fetch error:', error.message);
-      return Promise.reject(error); // Still reject but don't let it bubble up as unhandled
-    }
-    // Re-throw other errors
-    throw error;
-  });
+  // Prevent infinite recursion
+  if (fetchWrapperActive) {
+    return originalFetch.apply(this, args);
+  }
+
+  fetchWrapperActive = true;
+
+  try {
+    return originalFetch.apply(this, args).catch(error => {
+      // Check if this is a FullStory or other third-party analytics service call
+      const url = args[0]?.toString() || '';
+      const isThirdPartyAnalytics = url.includes('fullstory.com') ||
+          url.includes('fs.') ||
+          url.includes('edge.fullstory.com') ||
+          url.includes('gtag') ||
+          url.includes('googletagmanager') ||
+          error.stack?.includes('fullstory') ||
+          error.stack?.includes('fs.js') ||
+          error.stack?.includes('gtag');
+
+      if (isThirdPartyAnalytics) {
+        // Silently ignore third-party analytics fetch errors
+        console.debug('Ignoring third-party analytics fetch error:', error.message);
+        // Return a resolved promise to prevent unhandled rejection
+        return Promise.resolve(new Response('', { status: 204 }));
+      }
+
+      // Re-throw other errors
+      throw error;
+    }).finally(() => {
+      fetchWrapperActive = false;
+    });
+  } catch (syncError) {
+    fetchWrapperActive = false;
+    throw syncError;
+  }
 };
 
 // Create singleton instance
