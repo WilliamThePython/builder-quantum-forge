@@ -11,8 +11,7 @@ export class STLManipulator {
 
   
   /**
-   * Mesh simplification using Python Open3D (preferred method)
-   * Falls back to JavaScript implementation if Python service unavailable
+   * Simple mesh decimation using JavaScript implementation
    */
   static async reducePoints(
     geometry: THREE.BufferGeometry,
@@ -29,50 +28,18 @@ export class STLManipulator {
 
     const originalStats = this.calculateMeshStats(geometry);
 
-    try {
-      console.log('🐍 Attempting Python Open3D decimation...');
+    // Use JavaScript implementation
+    const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
-      // Try Python Open3D service first (much more reliable)
-      const pythonResult = await PythonMeshProcessor.decimateMesh(
-        geometry,
-        targetReduction,
-        true // preserve boundary
-      );
+    console.log(`✅ Decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
 
-      console.log('✅ Python Open3D decimation completed successfully!');
-
-      return {
-        geometry: pythonResult.geometry,
-        originalStats,
-        newStats: this.calculateMeshStats(pythonResult.geometry),
-        reductionAchieved: pythonResult.reductionAchieved,
-        processingTime: pythonResult.processingTime
-      };
-
-    } catch (pythonError) {
-      console.warn('⚠️ Python service failed, falling back to JavaScript implementation:', pythonError);
-      console.log('🔄 Using JavaScript quadric edge collapse fallback...');
-
-      // Fallback to JavaScript implementation
-      const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
-
-      console.log('✅ JavaScript decimation completed:', {
-        originalVertices: result.originalStats.vertices,
-        newVertices: result.newStats.vertices,
-        originalFaces: result.originalStats.faces,
-        newFaces: result.newStats.faces,
-        reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
-        processingTime: `${result.processingTime}ms`
-      });
-
-      return {
-        geometry: result.simplifiedGeometry,
-        originalStats: result.originalStats,
-        newStats: result.newStats,
-        reductionAchieved: result.reductionAchieved,
-        processingTime: result.processingTime
-      };
-    }
+    return {
+      geometry: result.simplifiedGeometry,
+      originalStats: result.originalStats,
+      newStats: result.newStats,
+      reductionAchieved: result.reductionAchieved,
+      processingTime: result.processingTime
+    };
   }
 
   /**
