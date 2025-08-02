@@ -69,10 +69,14 @@ export default function Index() {
         backendMethod = 'adaptive';
     }
 
+    console.log('🎯 Final backend method:', backendMethod);
     const result = await reducePoints(reduction, backendMethod);
+    console.log('🎯 Reduction result:', result);
     if (result.success) {
       // Success message will be shown in console logs
+      console.log('✅ Reduction successful:', result.message);
     } else {
+      console.error('❌ Reduction failed:', result.message);
       addError(result.message);
     }
   };
