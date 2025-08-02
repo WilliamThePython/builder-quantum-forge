@@ -2120,10 +2120,10 @@ export class VertexRemovalStitcher {
         modifiedPositions[vertexIndex * 3 + 2]
       ];
 
-      // Apply visible position changes
-      modifiedPositions[vertexIndex * 3] += (Math.random() - 0.5) * 10.0;
-      modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 10.0;
-      modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 10.0;
+      // Apply conservative position changes to avoid spikes
+      modifiedPositions[vertexIndex * 3] += (Math.random() - 0.5) * 3.0;
+      modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 3.0;
+      modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 3.0;
 
       console.log(`   Adjusted vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
     }
