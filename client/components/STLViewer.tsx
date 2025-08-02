@@ -80,6 +80,14 @@ function STLMesh() {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
+  // Edge highlighting state for decimation painter
+  const [highlightedEdge, setHighlightedEdge] = useState<{
+    vertexIndex1: number;
+    vertexIndex2: number;
+    position1: THREE.Vector3;
+    position2: THREE.Vector3;
+  } | null>(null);
+
   // Spinning animation state
   const spinState = useRef({
     isSpinning: false,
