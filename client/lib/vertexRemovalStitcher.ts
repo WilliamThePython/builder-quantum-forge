@@ -375,7 +375,7 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Collapse an edge by merging v2 into v1
+   * Collapse an edge by merging v2 into v1 (proper quadric decimation)
    */
   private static collapseEdge(
     edge: {v1: number, v2: number},
@@ -390,42 +390,75 @@ export class VertexRemovalStitcher {
       return false; // Can't collapse edge to itself
     }
 
-    const originalFaceCount = indices.length / 3;
+    // Step 1: Find the faces that share this edge (these will be removed)
+    const facesToRemove = this.findFacesSharingEdge(v1, v2, indices);
+    console.log(`🔧 Collapsing edge ${v1}-${v2}, removing ${facesToRemove.length} faces that share this edge`);
 
-    // Calculate new position (midpoint of the edge)
+    // Step 2: Calculate new position (midpoint of the edge)
     const newX = (positions[v1 * 3] + positions[v2 * 3]) * 0.5;
     const newY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) * 0.5;
     const newZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) * 0.5;
 
-    // Update v1 position to the new position
+    // Step 3: Update v1 position to the new position
     positions[v1 * 3] = newX;
     positions[v1 * 3 + 1] = newY;
     positions[v1 * 3 + 2] = newZ;
 
-    // Replace all occurrences of v2 with v1 in the index array
+    // Step 4: Replace all occurrences of v2 with v1 in the index array
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] === v2) {
         indices[i] = v1;
       }
     }
 
-    // Remove degenerate faces (faces with duplicate vertices)
-    this.removeDegenerateFaces(indices);
+    // Step 5: Remove ONLY the faces that shared the collapsed edge
+    this.removeSpecificFaces(indices, facesToRemove);
 
-    // Validate that we still have faces after degenerate removal
-    const newFaceCount = indices.length / 3;
-    if (newFaceCount === 0) {
-      console.error(`❌ Edge collapse removed all faces! Stopping decimation.`);
-      return false;
-    }
-
-    // Update vertex-to-faces mapping
+    // Step 6: Update vertex-to-faces mapping
     const v2Faces = vertexToFaces.get(v2) || [];
     const v1Faces = vertexToFaces.get(v1) || [];
     vertexToFaces.set(v1, [...v1Faces, ...v2Faces]);
     vertexToFaces.delete(v2);
 
     return true;
+  }
+
+  /**
+   * Find faces that share a specific edge
+   */
+  private static findFacesSharingEdge(v1: number, v2: number, indices: number[]): number[] {
+    const sharedFaces: number[] = [];
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const faceIndex = i / 3;
+      const face = [indices[i], indices[i + 1], indices[i + 2]];
+
+      // Check if this face contains both vertices of the edge
+      const hasV1 = face.includes(v1);
+      const hasV2 = face.includes(v2);
+
+      if (hasV1 && hasV2) {
+        sharedFaces.push(faceIndex);
+      }
+    }
+
+    return sharedFaces;
+  }
+
+  /**
+   * Remove specific faces by their indices
+   */
+  private static removeSpecificFaces(indices: number[], facesToRemove: number[]) {
+    // Sort face indices in descending order to remove from the end first
+    const sortedFaces = [...facesToRemove].sort((a, b) => b - a);
+
+    for (const faceIndex of sortedFaces) {
+      const startIndex = faceIndex * 3;
+      // Remove 3 indices (1 triangle)
+      indices.splice(startIndex, 3);
+    }
+
+    console.log(`🔧 Removed ${facesToRemove.length} specific faces, ${indices.length / 3} faces remaining`);
   }
 
   /**
