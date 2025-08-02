@@ -108,13 +108,15 @@ export class VertexRemovalStitcher {
     
     // Sort vertices by error (remove lowest error vertices first)
     const removableVertices = this.findRemovableVertices(indexedGeometry, vertexFaceMap);
+    console.log(`🔍 Python-style: Found ${removableVertices.length} removable vertices out of ${indexedGeometry.attributes.position.count} total`);
     const sortedVertices = removableVertices
       .map(v => ({ vertex: v, error: vertexErrors[v] || 0 }))
       .sort((a, b) => a.error - b.error)
       .map(v => v.vertex);
-    
+
     // Select vertices with lowest error
     const toRemove = sortedVertices.slice(0, Math.min(verticesToRemove, sortedVertices.length));
+    console.log(`🐍 Selected ${toRemove.length} vertices to remove:`, toRemove);
     
     // Remove vertices and stitch holes
     return this.removeVerticesAndStitch(indexedGeometry, toRemove, vertexFaceMap);
