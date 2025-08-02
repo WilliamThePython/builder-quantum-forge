@@ -68,25 +68,19 @@ export class VertexRemovalStitcher {
     geometry: THREE.BufferGeometry,
     verticesToRemove: number
   ): Promise<THREE.BufferGeometry> {
-    console.log('🎲 Applying proper vertex removal with stitching...');
+    console.log('🎲 Applying random edge collapse simplification...');
 
     // Convert to indexed geometry if not already
     const indexedGeometry = this.ensureIndexedGeometry(geometry);
 
-    // Get unique vertices and build adjacency information
-    const { vertices, faces, vertexToFaces } = this.analyzeGeometry(indexedGeometry);
+    // Calculate target number of faces (triangles)
+    const currentFaces = indexedGeometry.index!.count / 3;
+    const reductionRatio = verticesToRemove / indexedGeometry.attributes.position.count;
+    const targetFaces = Math.max(4, Math.floor(currentFaces * (1 - reductionRatio)));
 
-    console.log(`📊 Geometry analysis: ${vertices.length} unique vertices, ${faces.length} faces`);
+    console.log(`🎲 Target: ${currentFaces} → ${targetFaces} faces (${(reductionRatio * 100).toFixed(1)}% reduction)`);
 
-    // Select vertices to remove randomly
-    const verticesToRemoveSet = this.selectRandomVerticesForRemoval(vertices.length, verticesToRemove);
-    console.log(`🎲 Selected ${verticesToRemoveSet.size} vertices for removal: [${Array.from(verticesToRemoveSet).slice(0, 5).join(', ')}...]`);
-
-    // Remove vertices and stitch holes
-    const newFaces = this.removeVerticesAndStitch(faces, verticesToRemoveSet, vertexToFaces, vertices);
-
-    // Rebuild geometry
-    return this.rebuildGeometry(vertices, newFaces, verticesToRemoveSet);
+    return this.quadricEdgeCollapse(indexedGeometry, targetFaces, false);
   }
 
   /**
