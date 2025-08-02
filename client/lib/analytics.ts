@@ -506,7 +506,8 @@ class Analytics {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-          const response = await fetch('/api/analytics/track', {
+          // Use original fetch to avoid our wrapper
+          const response = await originalFetch('/api/analytics/track', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
