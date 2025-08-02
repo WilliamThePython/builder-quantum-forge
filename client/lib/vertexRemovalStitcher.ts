@@ -168,6 +168,123 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Update polygon face metadata after vertex removal
+   */
+  private static updatePolygonFacesAfterVertexRemoval(
+    polygonFaces: any[],
+    keepVertex: number,
+    removeVertex: number,
+    collapsePosition: THREE.Vector3,
+    originalVertexCount: number
+  ): any[] {
+    console.log(`🔄 === UPDATING POLYGON FACES METADATA ===`);
+    console.log(`   Updating polygon faces for vertex removal: ${removeVertex} → ${keepVertex}`);
+
+    return polygonFaces.map((face, faceIndex) => {
+      if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
+        console.warn(`   ⚠️ Face ${faceIndex} missing originalVertices`);
+        return face;
+      }
+
+      const originalVertices = face.originalVertices;
+      console.log(`   Processing ${face.type} face ${faceIndex} with ${originalVertices.length} vertices`);
+
+      // Find vertex indices in this polygon face
+      let keepVertexInFace = -1;
+      let removeVertexInFace = -1;
+
+      for (let i = 0; i < originalVertices.length; i++) {
+        const vertex = originalVertices[i];
+        const vertexIndex = this.findVertexIndexFromPosition(vertex, originalVertexCount);
+
+        if (vertexIndex === keepVertex) {
+          keepVertexInFace = i;
+        } else if (vertexIndex === removeVertex) {
+          removeVertexInFace = i;
+        }
+      }
+
+      // If this face doesn't contain either vertex, just update indices for compaction
+      if (keepVertexInFace === -1 && removeVertexInFace === -1) {
+        console.log(`     Face ${faceIndex} unaffected, updating indices for compaction`);
+        return {
+          ...face,
+          originalVertices: originalVertices.map(vertex => {
+            const vertexIndex = this.findVertexIndexFromPosition(vertex, originalVertexCount);
+            // Shift indices down if above removed vertex
+            if (vertexIndex > removeVertex) {
+              console.log(`       Shifted vertex index ${vertexIndex} → ${vertexIndex - 1}`);
+            }
+            return vertex; // Position stays the same, just index mapping changes
+          })
+        };
+      }
+
+      // If this face contains the edge being collapsed
+      if (keepVertexInFace !== -1 && removeVertexInFace !== -1) {
+        console.log(`     Face ${faceIndex} contains collapsed edge: vertices ${keepVertexInFace} and ${removeVertexInFace}`);
+
+        // Remove the removeVertex from the polygon and update keepVertex position
+        const newVertices = [];
+        for (let i = 0; i < originalVertices.length; i++) {
+          if (i === removeVertexInFace) {
+            console.log(`       Removing vertex ${i} from polygon perimeter`);
+            continue; // Skip the removed vertex
+          } else if (i === keepVertexInFace) {
+            console.log(`       Updating vertex ${i} position to collapse point`);
+            newVertices.push(collapsePosition.clone());
+          } else {
+            newVertices.push(originalVertices[i].clone());
+          }
+        }
+
+        console.log(`     ${face.type} face ${faceIndex}: ${originalVertices.length} → ${newVertices.length} vertices`);
+
+        // Update face type if vertex count changed
+        let newType = face.type;
+        if (newVertices.length === 3) newType = 'triangle';
+        else if (newVertices.length === 4) newType = 'quad';
+        else if (newVertices.length > 4) newType = 'polygon';
+
+        return {
+          ...face,
+          type: newType,
+          originalVertices: newVertices
+        };
+      }
+
+      // If face only contains one of the vertices, update that vertex
+      if (keepVertexInFace !== -1) {
+        console.log(`     Face ${faceIndex} contains keepVertex, updating position`);
+        const newVertices = originalVertices.map((vertex, i) => {
+          if (i === keepVertexInFace) {
+            return collapsePosition.clone();
+          }
+          return vertex.clone();
+        });
+
+        return {
+          ...face,
+          originalVertices: newVertices
+        };
+      }
+
+      // This shouldn't happen, but handle gracefully
+      console.warn(`     Unexpected case for face ${faceIndex}`);
+      return face;
+    });
+  }
+
+  /**
+   * Helper to find vertex index from 3D position
+   */
+  private static findVertexIndexFromPosition(targetPosition: THREE.Vector3, totalVertices: number): number {
+    // Since we don't have direct access to positions array here, we'll need to use a different approach
+    // This is a simplified version - in practice, you'd need to pass the positions array
+    return 0; // Placeholder - needs proper implementation
+  }
+
+  /**
    * Helper method to compact vertex attributes when removing a vertex
    */
   private static compactAttribute(
@@ -2170,7 +2287,7 @@ export class VertexRemovalStitcher {
         modifiedPositions[vertexIndex * 3 + 1] += (Math.random() - 0.5) * 2.0;
         modifiedPositions[vertexIndex * 3 + 2] += (Math.random() - 0.5) * 2.0;
 
-        console.log(`   🔧 SUBTLE SMOOTH vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] → [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
+        console.log(`   🔧 SUBTLE SMOOTH vertex ${vertexIndex}: [${originalPos.map(v => v.toFixed(3)).join(',')}] ��� [${modifiedPositions[vertexIndex * 3].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 1].toFixed(3)}, ${modifiedPositions[vertexIndex * 3 + 2].toFixed(3)}]`);
       }
     }
 
@@ -2408,7 +2525,7 @@ export class VertexRemovalStitcher {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`🚫 === PURE POLYGON REDUCTION WITH VERTEX REMOVAL ===`);
+    console.log(`�� === PURE POLYGON REDUCTION WITH VERTEX REMOVAL ===`);
 
     const polygonFaces = (geometry as any).polygonFaces;
     const originalPositions = new Float32Array(geometry.attributes.position.array);
