@@ -150,13 +150,18 @@ export class VertexRemovalStitcher {
     }
 
     // Clean up and rebuild geometry
-    const cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
+    let cleanedGeometry = this.rebuildGeometryFromArrays(positions, indices);
 
     if (iterations >= maxIterations) {
       console.warn(`⚠️ Hit safety limit of ${maxIterations} iterations, stopping early`);
     }
 
     console.log(`✅ Edge collapse complete: ${collapsedEdges} edges collapsed, ${currentFaces} faces remaining`);
+
+    // Post-processing: validate stitching and merge coplanar triangles
+    console.log(`🔧 Post-processing: validating stitching and merging coplanar triangles...`);
+    cleanedGeometry = this.postProcessMesh(cleanedGeometry);
+
     return cleanedGeometry;
   }
 
