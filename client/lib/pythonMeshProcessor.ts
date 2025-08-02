@@ -62,6 +62,7 @@ export class PythonMeshProcessor {
 
     // Check if geometry has polygon structure
     const polygonFaces = (geometry as any).polygonFaces;
+    let formData: FormData;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
       console.log(`   🔸 PRESERVING POLYGON STRUCTURE: Converting to OBJ format with ${polygonFaces.length} polygon faces`);
@@ -71,7 +72,7 @@ export class PythonMeshProcessor {
       console.log(`   Generated OBJ data: ${objData.length} bytes`);
 
       // Create form data for upload
-      const formData = new FormData();
+      formData = new FormData();
       const objBlob = new Blob([objData], { type: 'text/plain' });
       formData.append('file', objBlob, 'mesh.obj');
     } else {
@@ -82,14 +83,14 @@ export class PythonMeshProcessor {
       console.log(`   Generated STL data: ${stlData.length} bytes`);
 
       // Create form data for upload
-      const formData = new FormData();
+      formData = new FormData();
       const stlBlob = new Blob([stlData], { type: 'application/octet-stream' });
       formData.append('file', stlBlob, 'mesh.stl');
     }
     formData.append('target_reduction', targetReduction.toString());
     formData.append('preserve_boundary', preserveBoundary.toString());
 
-    console.log('📤 Sending mesh to Python service...');
+    console.log('�� Sending mesh to Python service...');
 
     try {
       const response = await fetch(`${this.SERVICE_URL}/decimate`, {
