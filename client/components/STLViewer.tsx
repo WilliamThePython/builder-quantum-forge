@@ -631,7 +631,7 @@ function STLMesh() {
 
   // Handle edge highlighting on hover in decimation painter mode
   useEffect(() => {
-    if (!decimationPainterMode || !meshRef.current) {
+    if (!decimationPainterMode || !edgeGeometry) {
       setHighlightedEdge(null);
       return;
     }
@@ -642,44 +642,33 @@ function STLMesh() {
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      // Perform raycasting to find intersection
+      // Perform raycasting directly against polygon edge lines
       raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObject(meshRef.current!);
+      raycaster.params.Line.threshold = 3; // Increase threshold for easier edge selection
 
-      if (intersects.length > 0 && geometry) {
-        const intersection = intersects[0];
+      let nearestEdge = null;
+      let minDistance = Number.MAX_VALUE;
 
-        if (intersection.face) {
-          // Find the nearest POLYGON PERIMETER edge to the hover point
-          const edgeResult = findNearestPolygonEdge(geometry, intersection);
+      // Test intersection with each polygon perimeter edge line
+      for (const edgeData of edgeGeometry) {
+        const intersects = raycaster.intersectObject(edgeData.line);
 
-          if (edgeResult) {
-            const { vertexIndex1, vertexIndex2 } = edgeResult;
-
-            // Get vertex positions for highlighting
-            const positions = geometry.attributes.position.array as Float32Array;
-            const position1 = new THREE.Vector3(
-              positions[vertexIndex1 * 3],
-              positions[vertexIndex1 * 3 + 1],
-              positions[vertexIndex1 * 3 + 2]
-            );
-            const position2 = new THREE.Vector3(
-              positions[vertexIndex2 * 3],
-              positions[vertexIndex2 * 3 + 1],
-              positions[vertexIndex2 * 3 + 2]
-            );
-
-            setHighlightedEdge({
-              vertexIndex1,
-              vertexIndex2,
-              position1,
-              position2
-            });
-          } else {
-            // No valid polygon edge found (probably triangulated geometry)
-            setHighlightedEdge(null);
+        if (intersects.length > 0) {
+          const distance = intersects[0].distance;
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestEdge = edgeData;
           }
         }
+      }
+
+      if (nearestEdge) {
+        setHighlightedEdge({
+          vertexIndex1: nearestEdge.vertexIndex1,
+          vertexIndex2: nearestEdge.vertexIndex2,
+          position1: nearestEdge.position1,
+          position2: nearestEdge.position2
+        });
       } else {
         setHighlightedEdge(null);
       }
@@ -690,7 +679,7 @@ function STLMesh() {
       canvas.addEventListener('mousemove', handleMouseMove);
       return () => canvas.removeEventListener('mousemove', handleMouseMove);
     }
-  }, [decimationPainterMode, geometry, camera, raycaster, pointer]);
+  }, [decimationPainterMode, edgeGeometry, camera, raycaster, pointer]);
 
   // Handle decimation painter mode clicks
   useEffect(() => {
