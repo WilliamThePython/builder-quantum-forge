@@ -366,14 +366,24 @@ export class VertexRemovalStitcher {
   private static isEdgeValid(edge: {v1: number, v2: number}, indices: number[]): boolean {
     // Check if both vertices still exist in the mesh
     let hasV1 = false, hasV2 = false;
+    let sharedTriangles = 0;
 
-    for (let i = 0; i < indices.length; i++) {
-      if (indices[i] === edge.v1) hasV1 = true;
-      if (indices[i] === edge.v2) hasV2 = true;
-      if (hasV1 && hasV2) return true;
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = indices[i];
+      const v2 = indices[i + 1];
+      const v3 = indices[i + 2];
+
+      const triangle = [v1, v2, v3];
+      const hasEdgeV1 = triangle.includes(edge.v1);
+      const hasEdgeV2 = triangle.includes(edge.v2);
+
+      if (hasEdgeV1) hasV1 = true;
+      if (hasEdgeV2) hasV2 = true;
+      if (hasEdgeV1 && hasEdgeV2) sharedTriangles++;
     }
 
-    return false;
+    // Edge is valid if both vertices exist and they share exactly 1 or 2 triangles
+    return hasV1 && hasV2 && sharedTriangles > 0 && sharedTriangles <= 2;
   }
 
   /**
@@ -404,8 +414,13 @@ export class VertexRemovalStitcher {
       }
     }
 
-    // Only collapse if vertices share exactly 2 faces (proper edge)
-    if (sharedFaces !== 2) {
+    // Only collapse if vertices share 1 or 2 faces (proper edge on manifold mesh)
+    if (sharedFaces < 1 || sharedFaces > 2) {
+      return false;
+    }
+
+    // Additional check: prevent collapse that would create non-manifold geometry
+    if (!this.wouldPreserveManifold(v1, v2, indices, vertexToFaces)) {
       return false;
     }
 
