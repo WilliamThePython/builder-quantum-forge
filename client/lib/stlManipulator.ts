@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { FormatConverter } from './formatConverter';
 import { MeshSimplifier, MeshStats } from './meshSimplifier';
 import { VertexRemovalStitcher } from './vertexRemovalStitcher';
+import { PythonMeshProcessor } from './pythonMeshProcessor';
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
@@ -12,8 +13,8 @@ export class STLManipulator {
 
   
   /**
-   * Mesh simplification using direct Python implementation
-   * Prevents internal triangles and model deletion
+   * Mesh simplification using Python Open3D (preferred method)
+   * Falls back to JavaScript implementation if Python service unavailable
    */
   static async reducePoints(
     geometry: THREE.BufferGeometry,
@@ -26,26 +27,71 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`🔄 Starting quadric edge collapse (${(targetReduction * 100).toFixed(1)}% reduction)...`);
+    console.log(`🔄 Starting mesh decimation (${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
-    // Use quadric edge collapse method
-    const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
+    const originalStats = this.calculateMeshStats(geometry);
 
-    console.log('✅ Quadric decimation completed:', {
-      originalVertices: result.originalStats.vertices,
-      newVertices: result.newStats.vertices,
-      originalFaces: result.originalStats.faces,
-      newFaces: result.newStats.faces,
-      reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
-      processingTime: `${result.processingTime}ms`
-    });
+    try {
+      console.log('🐍 Attempting Python Open3D decimation...');
+
+      // Try Python Open3D service first (much more reliable)
+      const pythonResult = await PythonMeshProcessor.decimateMesh(
+        geometry,
+        targetReduction,
+        true // preserve boundary
+      );
+
+      console.log('✅ Python Open3D decimation completed successfully!');
+
+      return {
+        geometry: pythonResult.geometry,
+        originalStats,
+        newStats: this.calculateMeshStats(pythonResult.geometry),
+        reductionAchieved: pythonResult.reductionAchieved,
+        processingTime: pythonResult.processingTime
+      };
+
+    } catch (pythonError) {
+      console.warn('⚠️ Python service failed, falling back to JavaScript implementation:', pythonError);
+      console.log('🔄 Using JavaScript quadric edge collapse fallback...');
+
+      // Fallback to JavaScript implementation
+      const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
+
+      console.log('✅ JavaScript decimation completed:', {
+        originalVertices: result.originalStats.vertices,
+        newVertices: result.newStats.vertices,
+        originalFaces: result.originalStats.faces,
+        newFaces: result.newStats.faces,
+        reductionAchieved: `${(result.reductionAchieved * 100).toFixed(1)}%`,
+        processingTime: `${result.processingTime}ms`
+      });
+
+      return {
+        geometry: result.simplifiedGeometry,
+        originalStats: result.originalStats,
+        newStats: result.newStats,
+        reductionAchieved: result.reductionAchieved,
+        processingTime: result.processingTime
+      };
+    }
+  }
+
+  /**
+   * Calculate mesh statistics
+   */
+  private static calculateMeshStats(geometry: THREE.BufferGeometry): MeshStats {
+    const vertices = geometry.attributes.position ? geometry.attributes.position.count : 0;
+    const faces = geometry.index ? geometry.index.count / 3 : Math.floor(vertices / 3);
 
     return {
-      geometry: result.simplifiedGeometry,
-      originalStats: result.originalStats,
-      newStats: result.newStats,
-      reductionAchieved: result.reductionAchieved,
-      processingTime: result.processingTime
+      vertices,
+      faces,
+      edges: vertices + faces - 2, // Euler's formula approximation
+      volume: 0,
+      hasNormals: !!geometry.attributes.normal,
+      hasUVs: !!geometry.attributes.uv,
+      isIndexed: !!geometry.index
     };
   }
 
