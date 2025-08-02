@@ -531,6 +531,28 @@ function STLMesh() {
           <lineBasicMaterial color={0x00ff88} linewidth={2} />
         </lineSegments>
       )}
+
+      {/* Highlighted edge for decimation painter */}
+      {decimationPainterMode && highlightedEdge && (
+        <line key={`highlighted-edge-${highlightedEdge.vertexIndex1}-${highlightedEdge.vertexIndex2}`}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              array={new Float32Array([
+                highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
+                highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
+              ])}
+              count={2}
+              itemSize={3}
+            />
+          </bufferGeometry>
+          <lineBasicMaterial
+            color="#00ff00"
+            linewidth={4}
+            transparent={false}
+          />
+        </line>
+      )}
     </group>
   );
 }
