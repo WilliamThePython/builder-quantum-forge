@@ -115,7 +115,9 @@ export class VertexRemovalStitcher {
           originalVertices: face.originalVertices.map((v: any) =>
             v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
           ),
-          normal: face.normal,
+          normal: face.normal instanceof THREE.Vector3
+            ? face.normal
+            : new THREE.Vector3(face.normal.x, face.normal.y, face.normal.z),
           triangleIndices: face.triangleIndices || []
         }))
       );
