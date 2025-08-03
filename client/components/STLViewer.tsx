@@ -1165,25 +1165,36 @@ function STLMesh() {
       {/* Decimation painter mode indicator */}
       {decimationPainterMode && (
         <group>
-          {/* Floating mode indicator */}
+          {console.log('🟢 Rendering green circle indicator')}
+          {/* Main visible indicator - larger and more opaque */}
           <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.5, 0.6, 32]} />
+            <ringGeometry args={[1.0, 1.2, 32]} />
             <meshBasicMaterial
               color="#00ff00"
               transparent={true}
-              opacity={0.2}
+              opacity={0.6}
               side={THREE.DoubleSide}
             />
           </mesh>
 
-          {/* Subtle pulsing animation */}
+          {/* Inner pulsing ring */}
           <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.4, 0.45, 32]} />
+            <ringGeometry args={[0.8, 0.9, 32]} />
             <meshBasicMaterial
               color="#00ff00"
               transparent={true}
-              opacity={Math.sin(Date.now() * 0.003) * 0.1 + 0.2}
+              opacity={Math.sin(Date.now() * 0.005) * 0.3 + 0.4}
               side={THREE.DoubleSide}
+            />
+          </mesh>
+
+          {/* Center dot for visibility */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.05, 16, 16]} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={0.8}
             />
           </mesh>
         </group>
