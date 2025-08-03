@@ -1091,6 +1091,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (result.success && result.geometry) {
         console.log(`✅ Edge decimation successful`);
 
+        // Reset decimation flag BEFORE geometry update to prevent spinning
+        setIsDecimating(false);
+
         // Update geometry with UUID change to force viewer refresh
         result.geometry.uuid = THREE.MathUtils.generateUUID();
         setGeometry(result.geometry);
