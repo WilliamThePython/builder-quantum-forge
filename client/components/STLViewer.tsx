@@ -580,13 +580,28 @@ function STLMesh() {
     decimateEdge
   } = useSTL();
 
-  // Debug decimation painter mode
-  console.log('🎯 STLMesh render state:', {
-    decimationPainterMode,
-    hasGeometry: !!geometry,
-    geometryVertices: geometry?.attributes?.position?.count || 0,
-    isDecimating
-  });
+  // Debug decimation painter mode and geometry
+  useEffect(() => {
+    if (geometry) {
+      console.log('🔍 GEOMETRY ANALYSIS:', {
+        decimationPainterMode,
+        hasGeometry: !!geometry,
+        geometryVertices: geometry.attributes.position.count,
+        geometryFaces: geometry.index ? geometry.index.count / 3 : 'NON-INDEXED',
+        hasIndex: !!geometry.index,
+        hasPolygonFaces: !!(geometry as any).polygonFaces,
+        polygonFacesCount: (geometry as any).polygonFaces?.length || 0,
+        isDecimating,
+        geometryType: geometry.constructor.name
+      });
+
+      // For non-indexed geometry, calculate face count manually
+      if (!geometry.index) {
+        const faceCount = geometry.attributes.position.count / 3;
+        console.log(`📐 Non-indexed geometry: ${faceCount} triangular faces inferred from vertices`);
+      }
+    }
+  }, [geometry, decimationPainterMode, isDecimating]);
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
