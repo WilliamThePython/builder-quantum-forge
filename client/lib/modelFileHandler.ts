@@ -120,39 +120,131 @@ export class ModelFileHandler {
   }
   
   /**
-   * Load OBJ file using Three.js OBJLoader
+   * Load OBJ file using enhanced OBJConverter for proper polygon preservation
+   * ENHANCED: Ensures consistent indexing and polygon structure preservation
    */
   private static async loadOBJFile(file: File): Promise<THREE.BufferGeometry> {
-    console.log('📖 Loading OBJ file...');
-    
-    const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
-    const loader = new OBJLoader();
-    
+    console.log('📖 === ENHANCED OBJ LOADING ===');
+    console.log('📖 Loading OBJ file with polygon preservation...');
+
     const text = await file.text();
-    const object = loader.parse(text);
-    
-    // Extract geometry from the loaded object
-    let geometry: THREE.BufferGeometry | null = null;
-    
-    object.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.geometry) {
-        if (!geometry) {
-          geometry = child.geometry.clone();
-        } else {
-          // Merge multiple geometries if present
-          const merged = geometry.clone();
-          merged.merge(child.geometry);
-          geometry = merged;
-        }
+
+    // Use enhanced OBJConverter instead of Three.js OBJLoader for better control
+    try {
+      const geometry = OBJConverter.parseOBJ(text);
+
+      // Validate the parsed geometry
+      if (!geometry || !geometry.attributes.position || geometry.attributes.position.count === 0) {
+        throw new Error('OBJ file contains no valid geometry data');
       }
-    });
-    
-    if (!geometry || !geometry.attributes.position || geometry.attributes.position.count === 0) {
-      throw new Error('OBJ file contains no valid geometry data');
+
+      // CRITICAL: Ensure geometry is properly indexed for decimation
+      if (!geometry.index) {
+        console.warn('⚠️ OBJ geometry not indexed - converting for decimation compatibility...');
+        const indexedGeometry = this.ensureIndexedGeometry(geometry);
+
+        // Preserve any polygon metadata
+        if ((geometry as any).polygonFaces) {
+          (indexedGeometry as any).polygonFaces = (geometry as any).polygonFaces;
+        }
+        if ((geometry as any).polygonType) {
+          (indexedGeometry as any).polygonType = (geometry as any).polygonType;
+        }
+
+        console.log('✅ OBJ geometry converted to indexed format');
+        return indexedGeometry;
+      }
+
+      const vertexCount = geometry.attributes.position.count;
+      const faceCount = geometry.index ? geometry.index.count / 3 : 0;
+      const polygonFaces = (geometry as any).polygonFaces;
+
+      console.log(`✅ ENHANCED OBJ LOADED SUCCESSFULLY`);
+      console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`);
+      console.log(`   🔗 Indexing: ${geometry.index ? 'INDEXED (decimation-ready)' : 'NON-INDEXED'}`);
+      console.log(`   📰 Polygons: ${polygonFaces ? polygonFaces.length + ' preserved' : 'none'}`);
+
+      return geometry;
+
+    } catch (parseError) {
+      console.error('❌ Enhanced OBJ parsing failed, falling back to Three.js OBJLoader:', parseError);
+
+      // Fallback to Three.js OBJLoader
+      const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
+      const loader = new OBJLoader();
+      const object = loader.parse(text);
+
+      let geometry: THREE.BufferGeometry | null = null;
+
+      object.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.geometry) {
+          if (!geometry) {
+            geometry = child.geometry.clone();
+          } else {
+            console.warn('⚠️ Multiple meshes found - using first mesh only');
+          }
+        }
+      });
+
+      if (!geometry || !geometry.attributes.position || geometry.attributes.position.count === 0) {
+        throw new Error('OBJ file contains no valid geometry data');
+      }
+
+      // Ensure fallback geometry is also indexed
+      if (!geometry.index) {
+        geometry = this.ensureIndexedGeometry(geometry);
+      }
+
+      console.log(`✅ OBJ loaded via fallback: ${geometry.attributes.position.count} vertices`);
+      return geometry;
     }
-    
-    console.log(`✅ OBJ loaded: ${geometry.attributes.position.count / 3} vertices`);
-    return geometry;
+  }
+
+  /**
+   * Ensure geometry has proper indexing for decimation compatibility
+   */
+  private static ensureIndexedGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log('🔧 Converting to indexed geometry...');
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const vertexMap = new Map<string, number>();
+    const newPositions: number[] = [];
+    const indices: number[] = [];
+
+    // Merge duplicate vertices
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i];
+      const y = positions[i + 1];
+      const z = positions[i + 2];
+      const key = `${x.toFixed(6)},${y.toFixed(6)},${z.toFixed(6)}`;
+
+      let index = vertexMap.get(key);
+      if (index === undefined) {
+        index = newPositions.length / 3;
+        vertexMap.set(key, index);
+        newPositions.push(x, y, z);
+      }
+
+      indices.push(index);
+    }
+
+    const indexedGeometry = new THREE.BufferGeometry();
+    indexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    indexedGeometry.setIndex(indices);
+
+    // Copy other attributes if they exist
+    if (geometry.attributes.normal) {
+      indexedGeometry.setAttribute('normal', geometry.attributes.normal);
+    } else {
+      indexedGeometry.computeVertexNormals();
+    }
+
+    if (geometry.attributes.uv) {
+      indexedGeometry.setAttribute('uv', geometry.attributes.uv);
+    }
+
+    console.log(`✅ Indexed geometry created: ${newPositions.length / 3} unique vertices, ${indices.length / 3} faces`);
+    return indexedGeometry;
   }
   
   /**
