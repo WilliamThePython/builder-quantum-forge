@@ -766,7 +766,7 @@ function STLMesh() {
   // Debug decimation painter mode and geometry
   useEffect(() => {
     if (geometry) {
-      console.log('🔍 GEOMETRY ANALYSIS:', {
+      console.log('��� GEOMETRY ANALYSIS:', {
         decimationPainterMode,
         hasGeometry: !!geometry,
         geometryVertices: geometry.attributes.position.count,
@@ -1214,7 +1214,7 @@ function STLMesh() {
     return edgeData;
   }, [geometry, decimationPainterMode]);
 
-  // Enhanced edge highlighting with multiple detection methods and throttling
+  // IMPROVED: Edge highlighting with precise control and visual feedback
   useEffect(() => {
     if (!decimationPainterMode || !edgeGeometry) {
       setHighlightedEdge(null);
@@ -1222,43 +1222,77 @@ function STLMesh() {
     }
 
     let lastUpdate = 0;
-    const throttleMs = 16; // ~60fps for smooth but performant updates
+    let animationFrameId: number | null = null;
+    const throttleMs = 8; // Faster response for better control
 
     const handleMouseMove = (event: MouseEvent) => {
       const now = performance.now();
       if (now - lastUpdate < throttleMs) return;
       lastUpdate = now;
 
-      // Update pointer position
-      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      // Enhanced edge detection with multiple methods
-      const nearestEdge = findNearestEdgeEnhanced(
-        edgeGeometry,
-        pointer,
-        camera,
-        raycaster,
-        rect
-      );
-
-      if (nearestEdge) {
-        setHighlightedEdge({
-          vertexIndex1: nearestEdge.vertexIndex1,
-          vertexIndex2: nearestEdge.vertexIndex2,
-          position1: nearestEdge.position1,
-          position2: nearestEdge.position2
-        });
-      } else {
-        setHighlightedEdge(null);
+      // Cancel any pending update
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
+
+      // Schedule update on next frame for smoother performance
+      animationFrameId = requestAnimationFrame(() => {
+        // Update pointer position with higher precision
+        const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+        const newPointer = {
+          x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+          y: -((event.clientY - rect.top) / rect.height) * 2 + 1
+        };
+
+        pointer.x = newPointer.x;
+        pointer.y = newPointer.y;
+
+        // IMPROVED: Enhanced edge detection with better feedback
+        const nearestEdge = findNearestEdgeEnhanced(
+          edgeGeometry,
+          pointer,
+          camera,
+          raycaster,
+          rect
+        );
+
+        if (nearestEdge) {
+          setHighlightedEdge({
+            vertexIndex1: nearestEdge.vertexIndex1,
+            vertexIndex2: nearestEdge.vertexIndex2,
+            position1: nearestEdge.position1,
+            position2: nearestEdge.position2
+          });
+
+          // IMPROVED: Change cursor to indicate hovering over valid edge
+          const canvas = event.target as HTMLCanvasElement;
+          canvas.style.cursor = 'crosshair';
+        } else {
+          setHighlightedEdge(null);
+
+          // Reset cursor when no edge is highlighted
+          const canvas = event.target as HTMLCanvasElement;
+          canvas.style.cursor = decimationPainterMode ? 'default' : 'grab';
+        }
+
+        animationFrameId = null;
+      });
     };
 
     const canvas = document.querySelector('canvas');
     if (canvas) {
+      // Set initial cursor style
+      canvas.style.cursor = decimationPainterMode ? 'default' : 'grab';
+
       canvas.addEventListener('mousemove', handleMouseMove);
-      return () => canvas.removeEventListener('mousemove', handleMouseMove);
+      return () => {
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        // Reset cursor on cleanup
+        canvas.style.cursor = 'grab';
+      };
     }
   }, [decimationPainterMode, edgeGeometry, camera, raycaster, pointer]);
 
