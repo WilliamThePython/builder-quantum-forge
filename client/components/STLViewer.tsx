@@ -703,8 +703,8 @@ function STLMesh() {
         [positions[6], positions[7], positions[8]]
       ]);
 
-      // Only start spinning animation if NOT in decimation painter mode
-      if (!decimationPainterMode) {
+      // Only start spinning animation if NOT currently decimating
+      if (!isDecimating) {
         console.log('🌀 Starting model spin animation');
         spinState.current = {
           ...spinState.current,
@@ -712,10 +712,10 @@ function STLMesh() {
           startTime: Date.now()
         };
       } else {
-        console.log('🎯 Skipping spin animation - decimation painter mode active');
+        console.log('🎯 Skipping spin animation - decimation operation in progress');
       }
     }
-  }, [geometry, decimationPainterMode]);
+  }, [geometry, isDecimating]);
 
   // Spinning animation frame loop
   useFrame(() => {
