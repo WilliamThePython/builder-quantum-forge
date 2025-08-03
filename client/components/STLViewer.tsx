@@ -687,7 +687,7 @@ function STLMesh() {
     });
   }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
-  // Trigger spinning animation when a new model loads
+  // Trigger spinning animation when a new model loads (but not during decimation)
   useEffect(() => {
     if (geometry) {
       console.log('=== VIEWER GEOMETRY UPDATE ===');
@@ -702,14 +702,19 @@ function STLMesh() {
         [positions[6], positions[7], positions[8]]
       ]);
 
-      console.log('🌀 Starting model spin animation');
-      spinState.current = {
-        ...spinState.current,
-        isSpinning: true,
-        startTime: Date.now()
-      };
+      // Only start spinning animation if NOT in decimation painter mode
+      if (!decimationPainterMode) {
+        console.log('🌀 Starting model spin animation');
+        spinState.current = {
+          ...spinState.current,
+          isSpinning: true,
+          startTime: Date.now()
+        };
+      } else {
+        console.log('🎯 Skipping spin animation - decimation painter mode active');
+      }
     }
-  }, [geometry]);
+  }, [geometry, decimationPainterMode]);
 
   // Spinning animation frame loop
   useFrame(() => {
