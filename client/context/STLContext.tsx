@@ -1112,7 +1112,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       throw error;
     } finally {
       setIsProcessingTool(false);
-      setIsDecimating(false); // Reset decimation flag
+      setIsDecimating(false); // Reset decimation flag (fallback for error cases)
     }
   }, [geometry, createBackup]);
 
