@@ -57,12 +57,10 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
       }
     });
   } else {
-    console.warn('⚠️ No valid vertex data found in polygon face:', polygonFace);
     return null;
   }
 
   if (!polygonVertices || polygonVertices.length < 3) {
-    console.warn('⚠️ Insufficient polygon vertices:', polygonVertices?.length || 0);
     return null;
   }
 
