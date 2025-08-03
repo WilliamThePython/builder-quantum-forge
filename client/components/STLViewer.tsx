@@ -1302,7 +1302,7 @@ function STLMesh() {
           // Clear the highlighted edge after decimation
           setHighlightedEdge(null);
         } catch (error) {
-          console.error('�� Edge decimation failed:', error);
+          console.error('❌ Edge decimation failed:', error);
         }
       } else {
         console.log('   No edge highlighted for decimation');
@@ -1404,7 +1404,6 @@ function STLMesh() {
       {/* Decimation painter mode indicator */}
       {decimationPainterMode && (
         <group>
-          {console.log('🟢 Rendering green circle indicator')}
 
           {/* Main visible indicator - positioned above model */}
           <mesh position={[0, 3, 0]}>
