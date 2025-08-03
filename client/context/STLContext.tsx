@@ -54,6 +54,7 @@ interface STLContextType {
   // Decimation Painter Mode
   decimationPainterMode: boolean;
   setDecimationPainterMode: (enabled: boolean) => void;
+  isDecimating: boolean; // Track when decimation is in progress
   decimateEdge: (vertexIndex1: number, vertexIndex2: number) => Promise<ToolOperationResult>;
 
   loadModelFromFile: (file: File) => Promise<void>; // Renamed to support both formats
