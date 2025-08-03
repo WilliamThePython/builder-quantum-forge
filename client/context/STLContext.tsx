@@ -1136,6 +1136,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Decimation Painter Mode
     decimationPainterMode,
     setDecimationPainterMode,
+    isDecimating,
     decimateEdge,
 
     loadModelFromFile: loadSTLFromFile, // TODO: Update to use new unified loader
