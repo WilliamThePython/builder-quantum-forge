@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
 
-// Helper function to find the nearest POLYGON PERIMETER edge to a click point
+// ENHANCED: Helper function to find the nearest POLYGON PERIMETER edge to a click point
+// Supports both STL (reconstructed polygons) and OBJ (preserved polygons) files
 function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): { vertexIndex1: number, vertexIndex2: number } | null {
   if (!intersection.face) {
     return null;
@@ -14,11 +15,16 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   const point = intersection.point;
   const positions = geometry.attributes.position.array as Float32Array;
 
-  // Check if this geometry has polygon face metadata
+  // Check if this geometry has polygon face metadata (both STL reconstructed and OBJ preserved)
   const polygonFaces = (geometry as any).polygonFaces;
+  const originalFormat = (geometry as any).originalFormat;
+
   if (!polygonFaces || !Array.isArray(polygonFaces)) {
+    console.log('🔍 No polygon faces found - geometry may be pure triangulated mesh');
     return null;
   }
+
+  console.log(`🔍 Processing ${originalFormat || 'unknown'} format with ${polygonFaces.length} polygon faces`);
 
   // Find which polygon face was clicked
   const clickedPolygonFace = findPolygonFaceFromIntersection(geometry, intersection);
