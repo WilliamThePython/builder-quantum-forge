@@ -704,6 +704,7 @@ function STLMesh() {
       ]);
 
       // Only start spinning animation if NOT currently decimating
+      console.log(`🔍 Spin check: isDecimating=${isDecimating}`);
       if (!isDecimating) {
         console.log('🌀 Starting model spin animation');
         spinState.current = {
@@ -1046,7 +1047,7 @@ function STLMesh() {
       console.log('🎯 === DECIMATION PAINTER CLICK ===');
 
       if (highlightedEdge) {
-        console.log(`   Decimating highlighted edge: ${highlightedEdge.vertexIndex1} ↔ ${highlightedEdge.vertexIndex2}`);
+        console.log(`   Decimating highlighted edge: ${highlightedEdge.vertexIndex1} �� ${highlightedEdge.vertexIndex2}`);
         console.log(`   Edge positions:`);
         console.log(`     v${highlightedEdge.vertexIndex1}: [${highlightedEdge.position1.x.toFixed(3)}, ${highlightedEdge.position1.y.toFixed(3)}, ${highlightedEdge.position1.z.toFixed(3)}]`);
         console.log(`     v${highlightedEdge.vertexIndex2}: [${highlightedEdge.position2.x.toFixed(3)}, ${highlightedEdge.position2.y.toFixed(3)}, ${highlightedEdge.position2.z.toFixed(3)}]`);
