@@ -530,6 +530,201 @@ export class STLManipulator {
       boundingBox: geometry.boundingBox
     };
   }
+
+  /**
+   * Calculate optimal collapse position by analyzing connected faces
+   */
+  private static calculateOptimalCollapsePosition(
+    geometry: THREE.BufferGeometry,
+    v1: THREE.Vector3,
+    v2: THREE.Vector3,
+    vertexIndex1: number,
+    vertexIndex2: number
+  ): THREE.Vector3 {
+    const polygonFaces = (geometry as any).polygonFaces;
+
+    if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      console.log(`   No polygon data - using simple midpoint`);
+      return v1.clone().add(v2).multiplyScalar(0.5);
+    }
+
+    // Find all polygon faces that contain both vertices (the edge)
+    const connectedFaces: any[] = [];
+    const tolerance = 0.001;
+
+    for (const face of polygonFaces) {
+      if (!face.originalVertices) continue;
+
+      let hasV1 = false;
+      let hasV2 = false;
+
+      for (const vertex of face.originalVertices) {
+        const vertexPos = vertex instanceof THREE.Vector3
+          ? vertex
+          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+
+        if (vertexPos.distanceTo(v1) < tolerance) hasV1 = true;
+        if (vertexPos.distanceTo(v2) < tolerance) hasV2 = true;
+      }
+
+      if (hasV1 && hasV2) {
+        connectedFaces.push(face);
+      }
+    }
+
+    console.log(`   Found ${connectedFaces.length} faces connected to this edge`);
+
+    if (connectedFaces.length === 0) {
+      console.log(`   No connected faces found - using simple midpoint`);
+      return v1.clone().add(v2).multiplyScalar(0.5);
+    }
+
+    // For proper geometric collapse, we need to ensure the collapse point
+    // preserves the planarity of connected faces as much as possible
+
+    if (connectedFaces.length === 2) {
+      // Most common case: edge is shared by exactly 2 faces
+      return this.calculateCollapseForTwoFaces(connectedFaces[0], connectedFaces[1], v1, v2);
+    } else if (connectedFaces.length === 1) {
+      // Boundary edge: only one face
+      return this.calculateCollapseForBoundaryEdge(connectedFaces[0], v1, v2);
+    } else {
+      // Complex case: more than 2 faces (non-manifold)
+      console.warn(`   Complex edge with ${connectedFaces.length} faces - using centroid approach`);
+      return this.calculateCollapseForMultipleFaces(connectedFaces, v1, v2);
+    }
+  }
+
+  /**
+   * Calculate collapse position for edge shared by two faces
+   */
+  private static calculateCollapseForTwoFaces(face1: any, face2: any, v1: THREE.Vector3, v2: THREE.Vector3): THREE.Vector3 {
+    console.log(`   Analyzing two-face edge collapse`);
+
+    // For two coplanar faces, the optimal position maintains planarity
+    // For non-coplanar faces, we need to find a position that minimizes distortion
+
+    const normal1 = face1.normal instanceof THREE.Vector3
+      ? face1.normal
+      : new THREE.Vector3(face1.normal.x, face1.normal.y, face1.normal.z);
+    const normal2 = face2.normal instanceof THREE.Vector3
+      ? face2.normal
+      : new THREE.Vector3(face2.normal.x, face2.normal.y, face2.normal.z);
+
+    // Check if faces are coplanar
+    const normalDot = Math.abs(normal1.dot(normal2));
+    const coplanar = normalDot > 0.99; // ~8 degree tolerance
+
+    if (coplanar) {
+      console.log(`     Faces are coplanar - using midpoint`);
+      return v1.clone().add(v2).multiplyScalar(0.5);
+    } else {
+      console.log(`     Faces are non-coplanar (dot=${normalDot.toFixed(3)}) - using weighted position`);
+      // For non-coplanar faces, bias towards the face with larger area
+      const area1 = this.calculateFaceArea(face1);
+      const area2 = this.calculateFaceArea(face2);
+
+      const totalArea = area1 + area2;
+      if (totalArea > 0) {
+        const weight1 = area1 / totalArea;
+        const weight2 = area2 / totalArea;
+        console.log(`     Area weighting: face1=${weight1.toFixed(3)}, face2=${weight2.toFixed(3)}`);
+
+        // Weight towards larger face to preserve more geometry
+        return v1.clone().multiplyScalar(weight2).add(v2.clone().multiplyScalar(weight1));
+      } else {
+        return v1.clone().add(v2).multiplyScalar(0.5);
+      }
+    }
+  }
+
+  /**
+   * Calculate collapse position for boundary edge (one face)
+   */
+  private static calculateCollapseForBoundaryEdge(face: any, v1: THREE.Vector3, v2: THREE.Vector3): THREE.Vector3 {
+    console.log(`   Analyzing boundary edge collapse`);
+    // For boundary edges, preserve the face shape by using midpoint
+    return v1.clone().add(v2).multiplyScalar(0.5);
+  }
+
+  /**
+   * Calculate collapse position for multiple faces (non-manifold)
+   */
+  private static calculateCollapseForMultipleFaces(faces: any[], v1: THREE.Vector3, v2: THREE.Vector3): THREE.Vector3 {
+    console.log(`   Analyzing multi-face edge collapse`);
+
+    // Calculate weighted average based on face areas
+    let totalArea = 0;
+    let weightedPosition = new THREE.Vector3();
+
+    faces.forEach(face => {
+      const area = this.calculateFaceArea(face);
+      totalArea += area;
+
+      // Weight towards larger faces
+      const faceCenter = this.calculateFaceCenter(face);
+      const edgeCenter = v1.clone().add(v2).multiplyScalar(0.5);
+
+      // Project edge center onto face plane for optimal position
+      const normal = face.normal instanceof THREE.Vector3
+        ? face.normal
+        : new THREE.Vector3(face.normal.x, face.normal.y, face.normal.z);
+
+      weightedPosition.add(edgeCenter.clone().multiplyScalar(area));
+    });
+
+    if (totalArea > 0) {
+      weightedPosition.divideScalar(totalArea);
+      return weightedPosition;
+    } else {
+      return v1.clone().add(v2).multiplyScalar(0.5);
+    }
+  }
+
+  /**
+   * Calculate face area
+   */
+  private static calculateFaceArea(face: any): number {
+    if (!face.originalVertices || face.originalVertices.length < 3) return 0;
+
+    const vertices = face.originalVertices.map((v: any) =>
+      v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+    );
+
+    if (vertices.length === 3) {
+      // Triangle area
+      const edge1 = vertices[1].clone().sub(vertices[0]);
+      const edge2 = vertices[2].clone().sub(vertices[0]);
+      return edge1.cross(edge2).length() * 0.5;
+    } else {
+      // Polygon area using shoelace formula (simplified)
+      let area = 0;
+      for (let i = 0; i < vertices.length; i++) {
+        const curr = vertices[i];
+        const next = vertices[(i + 1) % vertices.length];
+        area += (curr.x * next.y - next.x * curr.y);
+      }
+      return Math.abs(area) * 0.5;
+    }
+  }
+
+  /**
+   * Calculate face center
+   */
+  private static calculateFaceCenter(face: any): THREE.Vector3 {
+    if (!face.originalVertices || face.originalVertices.length === 0) {
+      return new THREE.Vector3();
+    }
+
+    const center = new THREE.Vector3();
+    face.originalVertices.forEach((v: any) => {
+      const vertex = v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z);
+      center.add(vertex);
+    });
+    center.divideScalar(face.originalVertices.length);
+
+    return center;
+  }
 }
 
 /**
