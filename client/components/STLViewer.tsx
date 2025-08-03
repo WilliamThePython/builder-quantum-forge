@@ -595,7 +595,7 @@ function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
   return edgeData;
 }
 
-// Enhanced edge detection with multiple methods for better reliability
+// IMPROVED: Enhanced edge detection with precise control and visual feedback
 function findNearestEdgeEnhanced(
   edgeGeometry: any[],
   pointer: THREE.Vector2,
@@ -605,9 +605,19 @@ function findNearestEdgeEnhanced(
 ): any | null {
   if (!edgeGeometry || edgeGeometry.length === 0) return null;
 
-  // Method 1: Direct raycasting with generous threshold
+  console.log(`🔍 Searching ${edgeGeometry.length} edges for mouse at (${pointer.x.toFixed(2)}, ${pointer.y.toFixed(2)})`);
+
+  // IMPROVED Method 1: Precise 2D screen-space detection first (more predictable)
+  const screenSpaceEdge = findNearestEdgeScreenSpacePrecise(edgeGeometry, pointer, camera, canvasRect);
+
+  if (screenSpaceEdge) {
+    console.log(`✅ Found edge via screen-space: ${screenSpaceEdge.vertexIndex1} ↔ ${screenSpaceEdge.vertexIndex2}`);
+    return screenSpaceEdge;
+  }
+
+  // IMPROVED Method 2: Fallback to 3D raycasting with tighter control
   raycaster.setFromCamera(pointer, camera);
-  raycaster.params.Line.threshold = 8; // Very generous threshold
+  raycaster.params.Line.threshold = 3; // Tighter threshold for better precision
 
   let bestEdge = null;
   let minDistance = Number.MAX_VALUE;
@@ -624,9 +634,10 @@ function findNearestEdgeEnhanced(
     }
   }
 
-  // Method 2: If raycasting fails, use 2D screen-space distance
-  if (!bestEdge) {
-    bestEdge = findNearestEdgeScreenSpace(edgeGeometry, pointer, camera, canvasRect);
+  if (bestEdge) {
+    console.log(`✅ Found edge via raycasting: ${bestEdge.vertexIndex1} ↔ ${bestEdge.vertexIndex2} (distance: ${minDistance.toFixed(2)})`);
+  } else {
+    console.log(`❌ No edge found within detection range`);
   }
 
   return bestEdge;
