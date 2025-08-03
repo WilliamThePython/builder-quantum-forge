@@ -414,6 +414,164 @@ export class CoplanarMerger {
   }
 
   /**
+   * Analyze symmetry structure of faces for debugging
+   */
+  private static analyzeSymmetryStructure(faces: PolygonFace[]): void {
+    console.log('🔍 SYMMETRY ANALYSIS');
+
+    const facesByVertexCount = new Map<number, PolygonFace[]>();
+    const facesByNormal = new Map<string, PolygonFace[]>();
+
+    faces.forEach(face => {
+      // Group by vertex count
+      const vertexCount = face.originalVertices.length;
+      if (!facesByVertexCount.has(vertexCount)) {
+        facesByVertexCount.set(vertexCount, []);
+      }
+      facesByVertexCount.get(vertexCount)!.push(face);
+
+      // Group by normal direction (rounded for comparison)
+      const normal = this.ensureVector3(face.normal);
+      const normalKey = `${normal.x.toFixed(3)},${normal.y.toFixed(3)},${normal.z.toFixed(3)}`;
+      if (!facesByNormal.has(normalKey)) {
+        facesByNormal.set(normalKey, []);
+      }
+      facesByNormal.get(normalKey)!.push(face);
+    });
+
+    console.log('   Face distribution by vertex count:');
+    facesByVertexCount.forEach((faces, count) => {
+      console.log(`     ${count}-vertex faces: ${faces.length}`);
+    });
+
+    console.log('   Face distribution by normal direction:');
+    facesByNormal.forEach((faces, normalKey) => {
+      if (faces.length > 1) {
+        console.log(`     Normal ${normalKey}: ${faces.length} faces`);
+        faces.forEach((face, idx) => {
+          console.log(`       Face ${idx}: ${face.type} with ${face.originalVertices.length} vertices`);
+        });
+      }
+    });
+
+    // Check for potential symmetry pairs
+    this.detectSymmetryPairs(faces);
+  }
+
+  /**
+   * Detect potential symmetry pairs in faces
+   */
+  private static detectSymmetryPairs(faces: PolygonFace[]): void {
+    console.log('🔍 SYMMETRY PAIR DETECTION');
+
+    const symmetryPairs: Array<{face1: PolygonFace, face2: PolygonFace, similarity: number}> = [];
+
+    for (let i = 0; i < faces.length; i++) {
+      for (let j = i + 1; j < faces.length; j++) {
+        const face1 = faces[i];
+        const face2 = faces[j];
+
+        // Check if faces might be symmetric
+        const similarity = this.calculateFaceSimilarity(face1, face2);
+        if (similarity > 0.8) { // High similarity threshold
+          symmetryPairs.push({ face1, face2, similarity });
+        }
+      }
+    }
+
+    console.log(`   Found ${symmetryPairs.length} potential symmetry pairs:`);
+    symmetryPairs.forEach((pair, idx) => {
+      console.log(`     Pair ${idx}: similarity ${pair.similarity.toFixed(3)}`);
+      console.log(`       Face 1: ${pair.face1.type} with ${pair.face1.originalVertices.length} vertices`);
+      console.log(`       Face 2: ${pair.face2.type} with ${pair.face2.originalVertices.length} vertices`);
+    });
+  }
+
+  /**
+   * Calculate similarity between two faces for symmetry detection
+   */
+  private static calculateFaceSimilarity(face1: PolygonFace, face2: PolygonFace): number {
+    // Must have same vertex count
+    if (face1.originalVertices.length !== face2.originalVertices.length) return 0;
+
+    // Must have similar normal directions (parallel or opposite)
+    const normal1 = this.ensureVector3(face1.normal);
+    const normal2 = this.ensureVector3(face2.normal);
+    const normalSimilarity = Math.abs(normal1.dot(normal2));
+
+    // Must have similar face areas
+    const area1 = this.calculatePolygonArea(face1.originalVertices);
+    const area2 = this.calculatePolygonArea(face2.originalVertices);
+    const areaSimilarity = area1 > 0 && area2 > 0 ?
+      Math.min(area1, area2) / Math.max(area1, area2) : 0;
+
+    // Combined similarity score
+    return (normalSimilarity * 0.6) + (areaSimilarity * 0.4);
+  }
+
+  /**
+   * Enhanced face optimization with symmetry preservation
+   */
+  private static optimizeFacesWithSymmetry(faces: PolygonFace[]): PolygonFace[] {
+    console.log('⚡ SYMMETRY-AWARE OPTIMIZATION');
+
+    // First detect symmetry groups
+    const symmetryGroups = this.groupSymmetricFaces(faces);
+
+    return faces.map(face => {
+      // Ensure normal is Vector3
+      const normal = this.ensureVector3(face.normal);
+
+      // Ensure proper vertex ordering
+      const optimizedVertices = this.orderPolygonVertices(face.originalVertices, normal);
+
+      // Recalculate type based on vertex count
+      const faceType = optimizedVertices.length === 3 ? 'triangle' :
+                       optimizedVertices.length === 4 ? 'quad' : 'polygon';
+
+      return {
+        ...face,
+        type: faceType,
+        originalVertices: optimizedVertices,
+        normal: normal
+      };
+    });
+  }
+
+  /**
+   * Group faces that should be symmetric
+   */
+  private static groupSymmetricFaces(faces: PolygonFace[]): PolygonFace[][] {
+    const groups: PolygonFace[][] = [];
+    const processed = new Set<number>();
+
+    faces.forEach((face1, i) => {
+      if (processed.has(i)) return;
+
+      const group = [face1];
+      processed.add(i);
+
+      faces.forEach((face2, j) => {
+        if (i !== j && !processed.has(j)) {
+          const similarity = this.calculateFaceSimilarity(face1, face2);
+          if (similarity > 0.9) { // Very high threshold for symmetry grouping
+            group.push(face2);
+            processed.add(j);
+          }
+        }
+      });
+
+      if (group.length > 1) {
+        console.log(`   Symmetry group: ${group.length} faces with ${group[0].originalVertices.length} vertices each`);
+      }
+
+      groups.push(group);
+    });
+
+    return groups;
+  }
+
+  /**
    * Convenience method: Merge coplanar triangles from Three.js geometry
    */
   static mergeGeometryTriangles(geometry: THREE.BufferGeometry): PolygonFace[] {
