@@ -961,8 +961,8 @@ function STLMesh() {
     });
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
-      console.warn('❌ No polygon faces found - edge detection will not work');
-      return null;
+      console.warn('❌ No polygon faces found - creating fallback edge detection from triangles');
+      return createFallbackEdgeGeometry(geometry);
     }
 
     const edgeData: {
