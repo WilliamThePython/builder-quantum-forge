@@ -34,12 +34,39 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
 
   const polygonFace = polygonFaces[clickedPolygonFace];
 
-  // Get the original polygon vertices (perimeter only)
-  if (!polygonFace.originalVertices || polygonFace.originalVertices.length < 3) {
+  // ENHANCED: Handle different polygon vertex formats (STL reconstructed vs OBJ preserved)
+  let polygonVertices;
+
+  if (polygonFace.originalVertices && polygonFace.originalVertices.length >= 3) {
+    // STL reconstructed format or OBJ with originalVertices
+    polygonVertices = polygonFace.originalVertices;
+    console.log(`🔍 Using originalVertices: ${polygonVertices.length} vertices`);
+  } else if (polygonFace.vertices && polygonFace.vertices.length >= 3) {
+    // OBJ preserved format with indexed vertices
+    console.log(`🔍 Converting indexed vertices to positions for ${polygonFace.vertices.length} vertices`);
+    polygonVertices = polygonFace.vertices.map((v: any) => {
+      if (typeof v === 'number') {
+        // Direct vertex index
+        const idx = v * 3;
+        return new THREE.Vector3(positions[idx], positions[idx + 1], positions[idx + 2]);
+      } else if (v && typeof v.index === 'number') {
+        // Vertex object with index
+        const idx = v.index * 3;
+        return new THREE.Vector3(positions[idx], positions[idx + 1], positions[idx + 2]);
+      } else {
+        console.warn('⚠️ Invalid vertex format in polygon face:', v);
+        return new THREE.Vector3();
+      }
+    });
+  } else {
+    console.warn('⚠️ No valid vertex data found in polygon face:', polygonFace);
     return null;
   }
 
-  const polygonVertices = polygonFace.originalVertices;
+  if (!polygonVertices || polygonVertices.length < 3) {
+    console.warn('⚠️ Insufficient polygon vertices:', polygonVertices?.length || 0);
+    return null;
+  }
 
   // Create perimeter edges of the polygon (not internal triangulation edges)
   const perimeterEdges = [];
