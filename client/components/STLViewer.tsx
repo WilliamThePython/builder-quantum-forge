@@ -1188,35 +1188,49 @@ function STLMesh() {
       {decimationPainterMode && (
         <group>
           {console.log('🟢 Rendering green circle indicator')}
-          {/* Main visible indicator - larger and more opaque */}
-          <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[1.0, 1.2, 32]} />
-            <meshBasicMaterial
-              color="#00ff00"
-              transparent={true}
-              opacity={0.6}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
 
-          {/* Inner pulsing ring */}
-          <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.8, 0.9, 32]} />
-            <meshBasicMaterial
-              color="#00ff00"
-              transparent={true}
-              opacity={Math.sin(Date.now() * 0.005) * 0.3 + 0.4}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-
-          {/* Center dot for visibility */}
-          <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[0.05, 16, 16]} />
+          {/* Main visible indicator - positioned above model */}
+          <mesh position={[0, 3, 0]}>
+            <ringGeometry args={[2.0, 2.5, 32]} />
             <meshBasicMaterial
               color="#00ff00"
               transparent={true}
               opacity={0.8}
+              side={THREE.DoubleSide}
+              depthTest={false} // Always visible
+            />
+          </mesh>
+
+          {/* Inner pulsing ring */}
+          <mesh position={[0, 3, 0]}>
+            <ringGeometry args={[1.5, 1.8, 32]} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={Math.sin(Date.now() * 0.005) * 0.4 + 0.6}
+              side={THREE.DoubleSide}
+              depthTest={false} // Always visible
+            />
+          </mesh>
+
+          {/* Center indicator */}
+          <mesh position={[0, 3, 0]}>
+            <sphereGeometry args={[0.2, 16, 16]} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={0.9}
+              depthTest={false} // Always visible
+            />
+          </mesh>
+
+          {/* Text indicator */}
+          <mesh position={[0, 4, 0]}>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshBasicMaterial
+              color="#ffffff"
+              transparent={true}
+              opacity={0.9}
             />
           </mesh>
         </group>
