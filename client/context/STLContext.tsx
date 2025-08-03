@@ -237,6 +237,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Decimation Painter Mode state
   const [decimationPainterMode, setDecimationPainterMode] = useState<boolean>(false);
+  const [isDecimating, setIsDecimating] = useState<boolean>(false);
 
   // Helper function to update loading progress
   const updateProgress = (percentage: number, stage: string, details: string = '') => {
