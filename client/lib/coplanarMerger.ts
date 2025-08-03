@@ -15,10 +15,13 @@ export class CoplanarMerger {
    * Main entry point: Merge coplanar triangles/polygons with comprehensive validation
    */
   static mergeCoplanarFaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log('🔄 UNIFIED COPLANAR MERGER');
+    console.log('🔄 UNIFIED COPLANAR MERGER - SYMMETRY ANALYSIS');
     console.log(`   Input: ${faces.length} faces`);
 
-    // Step 1: Enhanced iterative merging
+    // Step 0: Analyze potential symmetry issues
+    this.analyzeSymmetryStructure(faces);
+
+    // Step 1: Enhanced iterative merging with symmetry awareness
     const mergedFaces = this.performIterativeMerging(faces);
     console.log(`   After iterative merging: ${mergedFaces.length} faces`);
 
@@ -26,9 +29,12 @@ export class CoplanarMerger {
     const validatedFaces = this.validateCoplanarity(mergedFaces);
     console.log(`   After coplanarity validation: ${validatedFaces.length} faces`);
 
-    // Step 3: Final optimization
-    const optimizedFaces = this.optimizeFaces(validatedFaces);
+    // Step 3: Final optimization with symmetry preservation
+    const optimizedFaces = this.optimizeFacesWithSymmetry(validatedFaces);
     console.log(`✅ Final result: ${optimizedFaces.length} robust faces`);
+
+    // Step 4: Final symmetry check
+    this.analyzeSymmetryStructure(optimizedFaces);
 
     return optimizedFaces;
   }
