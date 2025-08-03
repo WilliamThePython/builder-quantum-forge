@@ -654,8 +654,6 @@ function findNearestEdgeScreenSpacePrecise(
   const cameraDistance = camera.position.length();
   const adaptiveMaxDistance = Math.max(8, Math.min(20, cameraDistance * 2)); // 8-20 pixels based on zoom
 
-  console.log(`🎯 Screen-space detection: mouse at (${mouseScreenPos.x.toFixed(0)}, ${mouseScreenPos.y.toFixed(0)}), max distance: ${adaptiveMaxDistance.toFixed(1)}px`);
-
   for (const edgeData of edgeGeometry) {
     // Project edge endpoints to screen space
     const screenStart = new THREE.Vector3();
