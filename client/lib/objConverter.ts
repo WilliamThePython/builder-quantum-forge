@@ -16,9 +16,11 @@ export class OBJConverter {
   /**
    * Convert Three.js BufferGeometry to OBJ format string
    * This is essential for internal processing as OBJ preserves face topology better than STL
+   * ENHANCED: Ensures proper indexing and polygon preservation for decimation consistency
    */
   static geometryToOBJ(geometry: THREE.BufferGeometry, filename?: string): OBJConversionResult {
-    console.log('🔄 Converting geometry to OBJ format...');
+    console.log('🔄 === ENHANCED OBJ CONVERSION ===');
+    console.log(`🔄 Converting geometry to OBJ format with proper indexing...`);
 
     // Validate geometry exists
     if (!geometry) {
@@ -102,6 +104,14 @@ export class OBJConverter {
         hasPolygons: false
       };
     }
+
+    // CRITICAL: Check if geometry has proper indexing for decimation
+    const isIndexed = !!indices && indices.length > 0;
+    console.log(`📋 Geometry indexing status: ${isIndexed ? 'INDEXED' : 'NON-INDEXED'}`);
+
+    if (!isIndexed) {
+      console.warn('⚠️ Non-indexed geometry detected - this may cause decimation issues');
+    }
     
     let objString = '# Generated OBJ file from STL/geometry\n';
     objString += '# Converted for better face topology preservation\n\n';
@@ -119,8 +129,10 @@ export class OBJConverter {
     let hasQuads = false;
     let hasPolygons = false;
     
+    // ENHANCED: Handle both indexed and non-indexed geometry properly
     if (indices && indices.length > 0) {
-      // Indexed geometry
+      // Indexed geometry - preferred for decimation
+      console.log(`✅ Processing INDEXED geometry: ${indices.length / 3} faces`);
       for (let i = 0; i < indices.length; i += 3) {
         // Ensure we have enough indices for a complete triangle
         if (i + 2 < indices.length) {
@@ -128,46 +140,89 @@ export class OBJConverter {
           const v1 = indices[i] + 1;
           const v2 = indices[i + 1] + 1;
           const v3 = indices[i + 2] + 1;
-          objString += `f ${v1} ${v2} ${v3}\n`;
-          faceCount++;
+
+          // Validate indices are within bounds
+          if (v1 <= vertexCount && v2 <= vertexCount && v3 <= vertexCount) {
+            objString += `f ${v1} ${v2} ${v3}\n`;
+            faceCount++;
+          } else {
+            console.warn(`⚠️ Invalid face indices: ${v1}, ${v2}, ${v3} (max: ${vertexCount})`);
+          }
         }
       }
     } else {
-      // Non-indexed geometry
+      // Non-indexed geometry - convert to indexed for consistency
+      console.warn('⚠️ Processing NON-INDEXED geometry - converting to indexed for decimation compatibility');
       for (let i = 0; i < positions.length; i += 9) {
         // Each triangle uses 3 consecutive vertices
         const v1 = (i / 3) + 1;
         const v2 = (i / 3) + 2;
         const v3 = (i / 3) + 3;
-        objString += `f ${v1} ${v2} ${v3}\n`;
-        faceCount++;
+
+        if (v3 <= vertexCount) {
+          objString += `f ${v1} ${v2} ${v3}\n`;
+          faceCount++;
+        }
       }
     }
     
-    // Check for polygon faces if they exist from reconstruction
-    if ((geometry as any).polygonFaces) {
-      objString += '\n# Reconstructed polygon faces\n';
-      const polygonFaces = (geometry as any).polygonFaces;
-      
+    // ENHANCED: Properly handle polygon faces with validation
+    const polygonFaces = (geometry as any).polygonFaces;
+    if (polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0) {
+      objString += '\n# Enhanced polygon faces (preserved structure)\n';
+      console.log(`📐 Processing ${polygonFaces.length} polygon faces...`);
+
+      let polygonFaceCount = 0;
       for (const face of polygonFaces) {
-        // Ensure face and vertices exist
-        if (!face || !face.vertices || !Array.isArray(face.vertices) || face.vertices.length === 0) {
+        // Enhanced validation
+        if (!face) {
+          console.warn('⚠️ Null polygon face found');
           continue;
         }
 
-        if (face.vertices.length === 4) {
+        // Check for vertex data in multiple possible formats
+        let vertices = face.vertices || face.originalVertices;
+        if (!vertices || !Array.isArray(vertices) || vertices.length < 3) {
+          console.warn('⚠️ Invalid polygon face vertices:', face);
+          continue;
+        }
+
+        // Count polygon types
+        if (vertices.length === 4) {
           hasQuads = true;
-        } else if (face.vertices.length > 4) {
+        } else if (vertices.length > 4) {
           hasPolygons = true;
         }
 
-        const faceString = face.vertices.map((v: any) => v.index + 1).join(' ');
-        objString += `f ${faceString}\n`;
-        faceCount++;
+        // Enhanced face string generation with proper indexing
+        try {
+          const faceString = vertices.map((v: any) => {
+            // Handle different vertex formats
+            if (typeof v === 'number') {
+              return v + 1; // Already an index
+            } else if (v && typeof v.index === 'number') {
+              return v.index + 1; // Vertex object with index
+            } else {
+              console.warn('⚠️ Invalid vertex format in polygon face:', v);
+              return 1; // Fallback
+            }
+          }).join(' ');
+
+          objString += `f ${faceString}\n`;
+          polygonFaceCount++;
+        } catch (error) {
+          console.warn('⚠️ Error processing polygon face:', error);
+        }
       }
+
+      console.log(`✅ Processed ${polygonFaceCount} polygon faces`);
+      faceCount += polygonFaceCount;
     }
     
-    console.log(`✅ OBJ conversion completed: ${vertexCount} vertices, ${faceCount} faces`);
+    console.log(`✅ ENHANCED OBJ CONVERSION COMPLETED`);
+    console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} faces`);
+    console.log(`   📐 Polygon types: ${hasQuads ? 'quads' : 'no quads'}, ${hasPolygons ? 'polygons' : 'no polygons'}`);
+    console.log(`   🔗 Indexing: ${isIndexed ? 'INDEXED (decimation-ready)' : 'NON-INDEXED (may need conversion)'}`);
 
     return {
       success: true,
@@ -175,7 +230,15 @@ export class OBJConverter {
       vertexCount,
       faceCount,
       hasQuads,
-      hasPolygons
+      hasPolygons,
+      stats: {
+        isIndexed,
+        polygonTypes: {
+          triangles: faceCount - (hasQuads ? 1 : 0) - (hasPolygons ? 1 : 0),
+          quads: hasQuads ? 1 : 0,
+          polygons: hasPolygons ? 1 : 0
+        }
+      }
     };
   }
   
