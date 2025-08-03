@@ -581,7 +581,12 @@ function STLMesh() {
   } = useSTL();
 
   // Debug decimation painter mode
-  console.log('🎯 STLMesh render - decimationPainterMode:', decimationPainterMode);
+  console.log('🎯 STLMesh render state:', {
+    decimationPainterMode,
+    hasGeometry: !!geometry,
+    geometryVertices: geometry?.attributes?.position?.count || 0,
+    isDecimating
+  });
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
