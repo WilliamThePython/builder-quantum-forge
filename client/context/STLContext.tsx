@@ -1080,6 +1080,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     try {
       setIsProcessingTool(true);
+      setIsDecimating(true); // Mark decimation in progress
 
       // Create backup before operation
       createBackup();
