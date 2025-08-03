@@ -178,15 +178,34 @@ function isValidPolygonBoundaryEdge(
   const tolerance = 0.001;
   let faceCount = 0;
 
-  // Count how many polygon faces contain this edge
+  // ENHANCED: Count how many polygon faces contain this edge (supports both STL and OBJ)
   for (const face of polygonFaces) {
-    if (!face.originalVertices) continue;
+    // Handle different polygon vertex formats
+    let faceVertices;
+
+    if (face.originalVertices && face.originalVertices.length >= 3) {
+      faceVertices = face.originalVertices;
+    } else if (face.vertices && face.vertices.length >= 3) {
+      // OBJ format may use indexed vertices - convert to positions
+      faceVertices = face.vertices.map((v: any) => {
+        if (v instanceof THREE.Vector3) {
+          return v;
+        } else if (v && typeof v.x === 'number') {
+          return new THREE.Vector3(v.x, v.y, v.z);
+        }
+        return null;
+      }).filter(v => v !== null);
+    } else {
+      continue; // Skip invalid faces
+    }
+
+    if (!faceVertices || faceVertices.length < 3) continue;
 
     let hasVertex1 = false;
     let hasVertex2 = false;
 
     // Check if this polygon face contains both vertices of the edge
-    for (const vertex of face.originalVertices) {
+    for (const vertex of faceVertices) {
       const vertexPos = vertex instanceof THREE.Vector3
         ? vertex
         : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
@@ -201,7 +220,7 @@ function isValidPolygonBoundaryEdge(
 
     // If this face contains both vertices, check if they're consecutive (proper edge)
     if (hasVertex1 && hasVertex2) {
-      if (areVerticesConsecutiveInPolygon(face.originalVertices, vertex1, vertex2, tolerance)) {
+      if (areVerticesConsecutiveInPolygon(faceVertices, vertex1, vertex2, tolerance)) {
         faceCount++;
       }
     }
