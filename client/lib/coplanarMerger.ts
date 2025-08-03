@@ -6,10 +6,10 @@ import * as THREE from 'three';
  */
 export class CoplanarMerger {
   
-  // Configuration constants
-  private static readonly DISTANCE_TOLERANCE = 0.001;
-  private static readonly NORMAL_TOLERANCE = 0.999; // Cos of ~2.5 degrees
-  private static readonly MAX_MERGE_ITERATIONS = 10;
+  // Configuration constants - more aggressive for symmetry preservation
+  private static readonly DISTANCE_TOLERANCE = 0.01; // Increased for better merging
+  private static readonly NORMAL_TOLERANCE = 0.995; // Cos of ~5.7 degrees (slightly more permissive)
+  private static readonly MAX_MERGE_ITERATIONS = 15; // More iterations for thorough merging
 
   /**
    * Main entry point: Merge coplanar triangles/polygons with comprehensive validation
