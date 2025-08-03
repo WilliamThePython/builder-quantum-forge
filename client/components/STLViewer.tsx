@@ -576,6 +576,7 @@ function STLMesh() {
     highlightedTriangle,
     setHighlightedTriangle,
     decimationPainterMode,
+    isDecimating,
     decimateEdge
   } = useSTL();
   const meshRef = useRef<THREE.Mesh>(null);
