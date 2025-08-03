@@ -24,7 +24,7 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     return null;
   }
 
-  console.log(`🔍 Processing ${originalFormat || 'unknown'} format with ${polygonFaces.length} polygon faces`);
+  // Processing polygon faces for edge detection
 
   // Find which polygon face was clicked
   const clickedPolygonFace = findPolygonFaceFromIntersection(geometry, intersection);
