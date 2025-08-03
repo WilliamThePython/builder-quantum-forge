@@ -201,6 +201,120 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   console.log('✅ Solid object display ensured');
 };
 
+// Helper function to ensure geometry is properly indexed
+const ensureIndexedGeometry = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+  console.log('🔧 Ensuring geometry has proper indexing...');
+
+  if (geometry.index) {
+    console.log('✅ Geometry already has indices');
+    return geometry;
+  }
+
+  const positions = geometry.attributes.position.array as Float32Array;
+  const vertexMap = new Map<string, number>();
+  const newPositions: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i];
+    const y = positions[i + 1];
+    const z = positions[i + 2];
+    const key = `${x.toFixed(6)},${y.toFixed(6)},${z.toFixed(6)}`;
+
+    let index = vertexMap.get(key);
+    if (index === undefined) {
+      index = newPositions.length / 3;
+      vertexMap.set(key, index);
+      newPositions.push(x, y, z);
+    }
+
+    indices.push(index);
+  }
+
+  const indexedGeometry = new THREE.BufferGeometry();
+  indexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+  indexedGeometry.setIndex(indices);
+
+  // Copy other attributes if they exist
+  if (geometry.attributes.normal) {
+    indexedGeometry.setAttribute('normal', geometry.attributes.normal);
+  }
+  if (geometry.attributes.uv) {
+    indexedGeometry.setAttribute('uv', geometry.attributes.uv);
+  }
+
+  // Copy metadata if it exists
+  if ((geometry as any).polygonFaces) {
+    (indexedGeometry as any).polygonFaces = (geometry as any).polygonFaces;
+  }
+  if ((geometry as any).polygonType) {
+    (indexedGeometry as any).polygonType = (geometry as any).polygonType;
+  }
+
+  console.log(`✅ Created indexed geometry: ${newPositions.length / 3} unique vertices, ${indices.length / 3} faces`);
+  return indexedGeometry;
+};
+
+// Helper function to parse OBJ polygon faces
+const parseOBJPolygonFaces = (objString: string): any[] => {
+  console.log('🔧 Parsing OBJ polygon faces...');
+
+  const polygonFaces: any[] = [];
+  const vertices: THREE.Vector3[] = [];
+  const lines = objString.split('\n');
+
+  // First pass: collect vertices
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('v ')) {
+      const parts = trimmed.split(/\s+/);
+      if (parts.length >= 4) {
+        vertices.push(new THREE.Vector3(
+          parseFloat(parts[1]),
+          parseFloat(parts[2]),
+          parseFloat(parts[3])
+        ));
+      }
+    }
+  }
+
+  // Second pass: collect faces
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('f ')) {
+      const parts = trimmed.split(/\s+/).slice(1);
+
+      if (parts.length >= 3) {
+        const faceVertices = parts.map(part => {
+          const indices = part.split('/');
+          const vertexIndex = parseInt(indices[0]) - 1; // Convert to 0-based
+          return vertices[vertexIndex];
+        }).filter(v => v !== undefined);
+
+        if (faceVertices.length >= 3) {
+          // Calculate face normal
+          const edge1 = new THREE.Vector3().subVectors(faceVertices[1], faceVertices[0]);
+          const edge2 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
+          const normal = edge1.cross(edge2).normalize();
+
+          polygonFaces.push({
+            originalVertices: faceVertices,
+            vertices: faceVertices.map((_, idx) => ({ index: idx })), // Placeholder indices
+            type: faceVertices.length === 3 ? 'triangle' :
+                  faceVertices.length === 4 ? 'quad' :
+                  faceVertices.length === 5 ? 'pentagon' :
+                  faceVertices.length === 6 ? 'hexagon' : 'polygon',
+            normal: normal
+          });
+        }
+      }
+    }
+  }
+
+  console.log(`✅ Parsed ${polygonFaces.length} polygon faces from OBJ`);
+  return polygonFaces;
+};
+
 export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
