@@ -926,10 +926,27 @@ function STLMesh() {
 
   // Create edge geometry for raycasting (polygon perimeter edges only)
   const edgeGeometry = useMemo(() => {
-    if (!geometry || !decimationPainterMode) return null;
+    console.log('🔍 Creating edge geometry:', {
+      hasGeometry: !!geometry,
+      decimationPainterMode,
+      geometryFaces: geometry?.index ? geometry.index.count / 3 : 'non-indexed',
+      geometryVertices: geometry?.attributes?.position?.count || 0
+    });
+
+    if (!geometry || !decimationPainterMode) {
+      console.log('❌ Edge geometry creation skipped - no geometry or painter mode off');
+      return null;
+    }
 
     const polygonFaces = (geometry as any).polygonFaces;
+    console.log('🔍 Polygon faces:', {
+      hasPolygonFaces: !!polygonFaces,
+      isArray: Array.isArray(polygonFaces),
+      count: polygonFaces?.length || 0
+    });
+
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      console.warn('❌ No polygon faces found - edge detection will not work');
       return null;
     }
 
