@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Info, BarChart3 } from 'lucide-react';
 import { Button } from '../components/ui/button';
