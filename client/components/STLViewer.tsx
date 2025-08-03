@@ -40,10 +40,8 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   if (polygonFace.originalVertices && polygonFace.originalVertices.length >= 3) {
     // STL reconstructed format or OBJ with originalVertices
     polygonVertices = polygonFace.originalVertices;
-    console.log(`🔍 Using originalVertices: ${polygonVertices.length} vertices`);
   } else if (polygonFace.vertices && polygonFace.vertices.length >= 3) {
     // OBJ preserved format with indexed vertices
-    console.log(`🔍 Converting indexed vertices to positions for ${polygonFace.vertices.length} vertices`);
     polygonVertices = polygonFace.vertices.map((v: any) => {
       if (typeof v === 'number') {
         // Direct vertex index
