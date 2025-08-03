@@ -107,20 +107,37 @@ export class CoplanarMerger {
   private static mergeTwoFaces(face1: PolygonFace, face2: PolygonFace): PolygonFace {
     // Combine and deduplicate vertices
     const uniqueVertices = this.getCombinedUniqueVertices(face1, face2);
-    
+
+    // Ensure normal is Vector3
+    const normal = this.ensureVector3(face1.normal);
+
     // Order vertices properly around the perimeter
-    const orderedVertices = this.orderPolygonVertices(uniqueVertices, face1.normal);
-    
+    const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
+
     // Determine face type
-    const faceType = orderedVertices.length === 3 ? 'triangle' : 
+    const faceType = orderedVertices.length === 3 ? 'triangle' :
                      orderedVertices.length === 4 ? 'quad' : 'polygon';
-    
+
     return {
       type: faceType,
       originalVertices: orderedVertices,
-      normal: face1.normal.clone().normalize(),
+      normal: normal.clone().normalize(),
       triangleIndices: [...(face1.triangleIndices || []), ...(face2.triangleIndices || [])]
     };
+  }
+
+  /**
+   * Ensure a value is a THREE.Vector3 object
+   */
+  private static ensureVector3(vector: any): THREE.Vector3 {
+    if (vector instanceof THREE.Vector3) {
+      return vector;
+    }
+    if (vector && typeof vector.x === 'number' && typeof vector.y === 'number' && typeof vector.z === 'number') {
+      return new THREE.Vector3(vector.x, vector.y, vector.z);
+    }
+    console.warn('Invalid vector data, using default normal');
+    return new THREE.Vector3(0, 0, 1);
   }
 
   /**
