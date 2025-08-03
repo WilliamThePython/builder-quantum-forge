@@ -17,22 +17,7 @@ export default function Index() {
   const isMobile = useIsMobile();
   const [showWelcome, setShowWelcome] = useState(true);
 
-  // Defensive STL context access
-  let stlContext;
-  try {
-    stlContext = useSTL();
-  } catch (error) {
-    console.error('Failed to access STL context:', error);
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-          <p>Initializing Intellimesh...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Access STL context - hooks must be called unconditionally
   const {
     toolMode,
     setToolMode,
@@ -42,7 +27,7 @@ export default function Index() {
     addError,
     viewerSettings,
     updateViewerSettings
-  } = stlContext;
+  } = useSTL();
 
   const handleToolModeChange = (mode: STLToolMode) => {
     setToolMode(mode);
