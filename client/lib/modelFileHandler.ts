@@ -79,6 +79,15 @@ export class ModelFileHandler {
     // Convert to OBJ format for internal processing (always maintain OBJ)
     console.log('📄 Converting to OBJ format for internal processing...');
     const objConversion = OBJConverter.geometryToOBJ(geometry);
+
+    // Validate OBJ conversion was successful
+    if (!objConversion.success) {
+      throw new Error(`Failed to convert geometry to OBJ: ${objConversion.error}`);
+    }
+
+    console.log(`✅ OBJ conversion successful: ${objConversion.vertexCount} vertices, ${objConversion.faceCount} faces`);
+    if (objConversion.hasQuads) console.log('   📰 Contains quad faces');
+    if (objConversion.hasPolygons) console.log('   📰 Contains polygon faces');
     
     // Validate geometry
     console.log('✅ Validating processed geometry...');
