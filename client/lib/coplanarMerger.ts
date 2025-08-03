@@ -40,9 +40,10 @@ export class CoplanarMerger {
   }
 
   /**
-   * Enhanced iterative merging with multiple passes
+   * Enhanced iterative merging with multiple passes and symmetry awareness
    */
   private static performIterativeMerging(faces: PolygonFace[]): PolygonFace[] {
+    console.log('🔄 SYMMETRY-AWARE ITERATIVE MERGING');
     let mergedFaces = [...faces];
     let iterationCount = 0;
     let changesMade = true;
@@ -50,7 +51,14 @@ export class CoplanarMerger {
     while (changesMade && iterationCount < this.MAX_MERGE_ITERATIONS) {
       changesMade = false;
       iterationCount++;
-      
+
+      // Sort faces by area to process larger faces first (more stable merging)
+      mergedFaces.sort((a, b) => {
+        const areaA = this.calculatePolygonArea(a.originalVertices);
+        const areaB = this.calculatePolygonArea(b.originalVertices);
+        return areaB - areaA;
+      });
+
       for (let i = 0; i < mergedFaces.length; i++) {
         for (let j = i + 1; j < mergedFaces.length; j++) {
           const face1 = mergedFaces[i];
@@ -58,7 +66,7 @@ export class CoplanarMerger {
 
           if (this.canMergeFaces(face1, face2)) {
             const mergedFace = this.mergeTwoFaces(face1, face2);
-            
+
             // Replace the two faces with the merged one
             mergedFaces = [
               ...mergedFaces.slice(0, i),
@@ -66,13 +74,13 @@ export class CoplanarMerger {
               ...mergedFaces.slice(i + 1, j),
               ...mergedFaces.slice(j + 1)
             ];
-            
+
             changesMade = true;
-            console.log(`     Iteration ${iterationCount}: Merged 2 faces into ${mergedFace.type}`);
+            console.log(`     Iteration ${iterationCount}: Merged 2 ${face1.type}s into ${mergedFace.type} (${mergedFace.originalVertices.length} vertices)`);
             break;
           }
         }
-        
+
         if (changesMade) break;
       }
     }
