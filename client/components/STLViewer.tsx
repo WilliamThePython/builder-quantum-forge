@@ -449,6 +449,100 @@ function doLinesIntersect(
   return !(maxX1 < minX2 || maxX2 < minX1 || maxY1 < minY2 || maxY2 < minY1);
 }
 
+// Create fallback edge geometry from triangulated mesh
+function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
+  console.log('🔧 Creating fallback edge geometry from triangulated mesh');
+
+  const positions = geometry.attributes.position.array as Float32Array;
+  const edgeData: any[] = [];
+
+  if (geometry.index) {
+    // Indexed geometry - use index to find edges
+    const indices = geometry.index.array;
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i];
+      const b = indices[i + 1];
+      const c = indices[i + 2];
+
+      // Create edges for this triangle
+      const edges = [[a, b], [b, c], [c, a]];
+
+      edges.forEach(([idx1, idx2]) => {
+        const pos1 = new THREE.Vector3(
+          positions[idx1 * 3],
+          positions[idx1 * 3 + 1],
+          positions[idx1 * 3 + 2]
+        );
+        const pos2 = new THREE.Vector3(
+          positions[idx2 * 3],
+          positions[idx2 * 3 + 1],
+          positions[idx2 * 3 + 2]
+        );
+
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+          pos1.x, pos1.y, pos1.z,
+          pos2.x, pos2.y, pos2.z
+        ], 3));
+
+        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0
+        }));
+
+        edgeData.push({
+          line,
+          vertexIndex1: idx1,
+          vertexIndex2: idx2,
+          position1: pos1.clone(),
+          position2: pos2.clone()
+        });
+      });
+    }
+  } else {
+    // Non-indexed geometry - create edges from consecutive triangles
+    for (let i = 0; i < positions.length; i += 9) { // 9 values per triangle
+      const triangle = [
+        new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]),
+        new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]),
+        new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8])
+      ];
+
+      // Create edges for this triangle
+      const edges = [[0, 1], [1, 2], [2, 0]];
+
+      edges.forEach(([idx1, idx2]) => {
+        const pos1 = triangle[idx1];
+        const pos2 = triangle[idx2];
+
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+          pos1.x, pos1.y, pos1.z,
+          pos2.x, pos2.y, pos2.z
+        ], 3));
+
+        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0
+        }));
+
+        edgeData.push({
+          line,
+          vertexIndex1: i / 3 + idx1, // Convert to vertex index
+          vertexIndex2: i / 3 + idx2,
+          position1: pos1.clone(),
+          position2: pos2.clone()
+        });
+      });
+    }
+  }
+
+  console.log(`🔧 Created ${edgeData.length} fallback edges`);
+  return edgeData;
+}
+
 // Enhanced edge detection with multiple methods for better reliability
 function findNearestEdgeEnhanced(
   edgeGeometry: any[],
@@ -961,7 +1055,7 @@ function STLMesh() {
     });
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
-      console.warn('❌ No polygon faces found - creating fallback edge detection from triangles');
+      console.warn('��� No polygon faces found - creating fallback edge detection from triangles');
       return createFallbackEdgeGeometry(geometry);
     }
 
