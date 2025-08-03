@@ -273,29 +273,7 @@ export class CoplanarMerger {
     return triangles;
   }
 
-  /**
-   * Final optimization of polygon faces
-   */
-  private static optimizeFaces(faces: PolygonFace[]): PolygonFace[] {
-    return faces.map(face => {
-      // Ensure normal is Vector3
-      const normal = this.ensureVector3(face.normal);
 
-      // Ensure proper vertex ordering
-      const optimizedVertices = this.orderPolygonVertices(face.originalVertices, normal);
-
-      // Recalculate type based on vertex count
-      const faceType = optimizedVertices.length === 3 ? 'triangle' :
-                       optimizedVertices.length === 4 ? 'quad' : 'polygon';
-
-      return {
-        ...face,
-        type: faceType,
-        originalVertices: optimizedVertices,
-        normal: normal
-      };
-    });
-  }
 
   /**
    * Order polygon vertices around the perimeter
