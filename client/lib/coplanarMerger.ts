@@ -79,14 +79,18 @@ export class CoplanarMerger {
    * Check if two faces can be merged (coplanar and adjacent)
    */
   private static canMergeFaces(face1: PolygonFace, face2: PolygonFace): boolean {
+    // Ensure normals are Vector3 objects
+    const normal1 = this.ensureVector3(face1.normal);
+    const normal2 = this.ensureVector3(face2.normal);
+
     // Step 1: Check normal similarity
-    const normalDot = Math.abs(face1.normal.dot(face2.normal));
+    const normalDot = Math.abs(normal1.dot(normal2));
     if (normalDot < this.NORMAL_TOLERANCE) return false;
 
     // Step 2: Check if faces are on the same plane
     const face1Center = this.getFaceCenter(face1.originalVertices);
     const face2Center = this.getFaceCenter(face2.originalVertices);
-    const planeDistance = this.distanceToPlane(face1Center, face2Center, face2.normal);
+    const planeDistance = this.distanceToPlane(face1Center, face2Center, normal2);
     if (Math.abs(planeDistance) > this.DISTANCE_TOLERANCE) return false;
 
     // Step 3: Check if faces share vertices (are adjacent)
