@@ -58,13 +58,21 @@ export class ModelFileHandler {
     // Center and scale the geometry
     this.normalizeGeometry(geometry);
     
-    // Polygon face reconstruction (for better part detection)
+    // Different polygon handling for STL vs OBJ files
     if (originalFormat === 'stl') {
       console.log('🔄 Reconstructing polygon faces from STL triangulation...');
       const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
       if (reconstructedFaces.length > 0) {
         PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
         console.log(`✅ Reconstructed ${reconstructedFaces.length} polygon faces`);
+      }
+    } else {
+      // OBJ files should already have polygon structure preserved
+      const polygonFaces = (geometry as any).polygonFaces;
+      if (polygonFaces && polygonFaces.length > 0) {
+        console.log(`✅ OBJ polygon structure preserved: ${polygonFaces.length} faces`);
+      } else {
+        console.warn('⚠️ OBJ file loaded without polygon structure - may affect decimation');
       }
     }
     
