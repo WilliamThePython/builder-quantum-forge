@@ -62,7 +62,7 @@ export class STLManipulator {
         return { success: false, message: 'Invalid vertex indices' };
       }
 
-      // Get vertex positions and calculate midpoint
+      // Get vertex positions
       const v1 = new THREE.Vector3(
         positions[vertexIndex1 * 3],
         positions[vertexIndex1 * 3 + 1],
@@ -75,7 +75,14 @@ export class STLManipulator {
         positions[vertexIndex2 * 3 + 2]
       );
 
-      const collapsePosition = v1.clone().add(v2).multiplyScalar(0.5);
+      console.log(`🎯 GEOMETRIC EDGE COLLAPSE ANALYSIS`);
+      console.log(`   Edge vertices: v${vertexIndex1} [${v1.x.toFixed(3)}, ${v1.y.toFixed(3)}, ${v1.z.toFixed(3)}]`);
+      console.log(`                  v${vertexIndex2} [${v2.x.toFixed(3)}, ${v2.y.toFixed(3)}, ${v2.z.toFixed(3)}]`);
+
+      // Analyze faces connected to this edge to determine optimal collapse position
+      const collapsePosition = this.calculateOptimalCollapsePosition(geometry, v1, v2, vertexIndex1, vertexIndex2);
+
+      console.log(`   Optimal collapse position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
       // Perform edge collapse
       const result = await VertexRemovalStitcher.collapseSingleEdge(
