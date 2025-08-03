@@ -244,15 +244,22 @@ export class OBJConverter {
   
   /**
    * Parse OBJ format string and return Three.js BufferGeometry
+   * ENHANCED: Ensures proper indexing and polygon preservation for decimation consistency
    */
   static parseOBJ(objString: string): THREE.BufferGeometry {
-    console.log('📖 Parsing OBJ format...');
-    
+    console.log('📖 === ENHANCED OBJ PARSING ===');
+    console.log('📖 Parsing OBJ format with polygon preservation...');
+
     const geometry = new THREE.BufferGeometry();
     const vertices: number[] = [];
     const faces: number[] = [];
     const normals: number[] = [];
     let polygonFaces: any[] = [];
+
+    // Track parsing statistics
+    let vertexCount = 0;
+    let faceCount = 0;
+    let polygonFaceCount = 0;
     
     const lines = objString.split('\n');
     
@@ -263,11 +270,17 @@ export class OBJConverter {
         // Vertex position
         const parts = trimmed.split(/\s+/);
         if (parts.length >= 4) {
-          vertices.push(
-            parseFloat(parts[1]),
-            parseFloat(parts[2]),
-            parseFloat(parts[3])
-          );
+          const x = parseFloat(parts[1]);
+          const y = parseFloat(parts[2]);
+          const z = parseFloat(parts[3]);
+
+          // Validate vertex coordinates
+          if (isFinite(x) && isFinite(y) && isFinite(z)) {
+            vertices.push(x, y, z);
+            vertexCount++;
+          } else {
+            console.warn('⚠️ Invalid vertex coordinates:', parts);
+          }
         }
       } else if (trimmed.startsWith('vn ')) {
         // Vertex normal
@@ -280,74 +293,121 @@ export class OBJConverter {
           );
         }
       } else if (trimmed.startsWith('f ')) {
-        // Face
+        // Face - ENHANCED handling for decimation compatibility
         const parts = trimmed.split(/\s+/).slice(1);
-        
+
         if (parts.length >= 3) {
-          // Parse face vertices
-          const faceVertices = parts.map(part => {
+          // Parse face vertices with validation
+          const faceVertices: number[] = [];
+          const originalVertexPositions: THREE.Vector3[] = [];
+
+          for (const part of parts) {
             // Handle vertex/texture/normal format (v/vt/vn)
             const indices = part.split('/');
-            return parseInt(indices[0]) - 1; // Convert to 0-based indexing
-          });
+            const vertexIndex = parseInt(indices[0]) - 1; // Convert to 0-based indexing
 
-          console.log(`🚫 PRESERVING polygon face with ${faceVertices.length} vertices (NO triangulation)`);
+            // Validate vertex index
+            if (vertexIndex >= 0 && vertexIndex < vertexCount) {
+              faceVertices.push(vertexIndex);
 
-          // Store polygon face information to preserve structure
-          polygonFaces.push({
-            vertices: faceVertices,
-            originalVertices: [...faceVertices],
-            type: faceVertices.length === 3 ? 'triangle' :
-                  faceVertices.length === 4 ? 'quad' :
-                  faceVertices.length === 5 ? 'pentagon' :
-                  faceVertices.length === 6 ? 'hexagon' : 'polygon'
-          });
+              // Store actual vertex position for polygon faces
+              const vx = vertices[vertexIndex * 3];
+              const vy = vertices[vertexIndex * 3 + 1];
+              const vz = vertices[vertexIndex * 3 + 2];
+              originalVertexPositions.push(new THREE.Vector3(vx, vy, vz));
+            } else {
+              console.warn(`⚠️ Invalid vertex index ${vertexIndex + 1} in face (max: ${vertexCount})`);
+            }
+          }
 
-          // TEMPORARILY triangulate ONLY for Three.js rendering compatibility
-          // This is unfortunate but required for current Three.js mesh rendering
-          if (faceVertices.length === 3) {
-            faces.push(faceVertices[0], faceVertices[1], faceVertices[2]);
-          } else if (faceVertices.length === 4) {
-            // Quad - split into two triangles for rendering only
-            faces.push(
-              faceVertices[0], faceVertices[1], faceVertices[2],
-              faceVertices[0], faceVertices[2], faceVertices[3]
-            );
-          } else if (faceVertices.length > 4) {
-            // Polygon - fan triangulation for rendering only
-            for (let i = 1; i < faceVertices.length - 1; i++) {
-              faces.push(faceVertices[0], faceVertices[i], faceVertices[i + 1]);
+          if (faceVertices.length >= 3) {
+            console.log(`🔗 PRESERVING polygon face with ${faceVertices.length} vertices (INDEXED for decimation)`);
+
+            // Calculate face normal for polygon preservation
+            const normal = new THREE.Vector3();
+            if (originalVertexPositions.length >= 3) {
+              const edge1 = new THREE.Vector3().subVectors(originalVertexPositions[1], originalVertexPositions[0]);
+              const edge2 = new THREE.Vector3().subVectors(originalVertexPositions[2], originalVertexPositions[0]);
+              normal.crossVectors(edge1, edge2).normalize();
+            }
+
+            // Store polygon face information with proper indexing
+            polygonFaces.push({
+              vertices: faceVertices.map(idx => ({ index: idx })), // Proper indexing for decimation
+              originalVertices: originalVertexPositions, // Actual positions for calculations
+              type: faceVertices.length === 3 ? 'triangle' :
+                    faceVertices.length === 4 ? 'quad' :
+                    faceVertices.length === 5 ? 'pentagon' :
+                    faceVertices.length === 6 ? 'hexagon' : 'polygon',
+              normal: normal,
+              indices: faceVertices // Raw indices for internal use
+            });
+            polygonFaceCount++;
+
+            // TRIANGULATE for Three.js rendering compatibility (but preserve polygon structure)
+            if (faceVertices.length === 3) {
+              faces.push(faceVertices[0], faceVertices[1], faceVertices[2]);
+              faceCount++;
+            } else if (faceVertices.length === 4) {
+              // Quad - split into two triangles for rendering
+              faces.push(
+                faceVertices[0], faceVertices[1], faceVertices[2],
+                faceVertices[0], faceVertices[2], faceVertices[3]
+              );
+              faceCount += 2;
+            } else if (faceVertices.length > 4) {
+              // Polygon - fan triangulation for rendering
+              for (let i = 1; i < faceVertices.length - 1; i++) {
+                faces.push(faceVertices[0], faceVertices[i], faceVertices[i + 1]);
+                faceCount++;
+              }
             }
           }
         }
       }
     }
     
-    // Set geometry attributes
+    // ENHANCED: Set geometry attributes with proper validation
+    if (vertices.length === 0) {
+      throw new Error('No valid vertices found in OBJ file');
+    }
+
+    console.log(`📊 Parsing summary: ${vertexCount} vertices, ${polygonFaceCount} polygon faces, ${faceCount} triangulated faces`);
+
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    
+
+    // CRITICAL: Ensure geometry is indexed for decimation compatibility
     if (faces.length > 0) {
       geometry.setIndex(faces);
+      console.log('✅ Geometry properly INDEXED for decimation compatibility');
+    } else {
+      console.warn('⚠️ No faces found - geometry may not be valid');
     }
-    
+
+    // Handle normals
     if (normals.length > 0 && normals.length === vertices.length) {
       geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      console.log('✅ Using OBJ file normals');
     } else {
       geometry.computeVertexNormals();
+      console.log('✅ Computed vertex normals');
     }
-    
+
     geometry.computeBoundingBox();
 
-    // CRITICAL: Store polygon face metadata to preserve structure
+    // CRITICAL: Store polygon face metadata to preserve structure for decimation
     if (polygonFaces.length > 0) {
       (geometry as any).polygonFaces = polygonFaces;
-      (geometry as any).polygonType = 'preserved';
+      (geometry as any).polygonType = 'obj_preserved';
       (geometry as any).isPolygonPreserved = true;
+      (geometry as any).originalFormat = 'obj';
 
-      console.log(`✅ OBJ parsing completed: ${vertices.length / 3} vertices, ${faces.length / 3} triangulated faces`);
-      console.log(`🚫 PRESERVED ${polygonFaces.length} polygon faces:`, polygonFaces.map(f => f.type).join(', '));
+      console.log(`✅ ENHANCED OBJ PARSING COMPLETED`);
+      console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`);
+      console.log(`   🔗 PRESERVED ${polygonFaces.length} polygon faces:`, polygonFaces.map(f => f.type).join(', '));
+      console.log(`   🎯 Decimation-ready: INDEXED geometry with preserved polygon structure`);
     } else {
-      console.log(`✅ OBJ parsing completed: ${vertices.length / 3} vertices, ${faces.length / 3} triangle faces`);
+      console.log(`✅ OBJ parsing completed: ${vertexCount} vertices, ${faceCount} triangle faces (no polygons)`);
     }
 
     return geometry;
