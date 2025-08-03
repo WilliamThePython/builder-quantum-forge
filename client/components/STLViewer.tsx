@@ -696,10 +696,6 @@ function findNearestEdgeScreenSpacePrecise(
     }
   }
 
-  if (nearestEdge) {
-    console.log(`✅ Selected edge at ${(minScreenDistance - nearestEdge.lineLength * 0.001).toFixed(1)}px distance`);
-  }
-
   return nearestEdge;
 }
 
@@ -1306,7 +1302,7 @@ function STLMesh() {
           // Clear the highlighted edge after decimation
           setHighlightedEdge(null);
         } catch (error) {
-          console.error('❌ Edge decimation failed:', error);
+          console.error('�� Edge decimation failed:', error);
         }
       } else {
         console.log('   No edge highlighted for decimation');
