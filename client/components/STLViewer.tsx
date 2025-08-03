@@ -605,13 +605,10 @@ function findNearestEdgeEnhanced(
 ): any | null {
   if (!edgeGeometry || edgeGeometry.length === 0) return null;
 
-  console.log(`🔍 Searching ${edgeGeometry.length} edges for mouse at (${pointer.x.toFixed(2)}, ${pointer.y.toFixed(2)})`);
-
   // IMPROVED Method 1: Precise 2D screen-space detection first (more predictable)
   const screenSpaceEdge = findNearestEdgeScreenSpacePrecise(edgeGeometry, pointer, camera, canvasRect);
 
   if (screenSpaceEdge) {
-    console.log(`✅ Found edge via screen-space: ${screenSpaceEdge.vertexIndex1} ↔ ${screenSpaceEdge.vertexIndex2}`);
     return screenSpaceEdge;
   }
 
@@ -632,12 +629,6 @@ function findNearestEdgeEnhanced(
         bestEdge = edgeData;
       }
     }
-  }
-
-  if (bestEdge) {
-    console.log(`✅ Found edge via raycasting: ${bestEdge.vertexIndex1} ↔ ${bestEdge.vertexIndex2} (distance: ${minDistance.toFixed(2)})`);
-  } else {
-    console.log(`❌ No edge found within detection range`);
   }
 
   return bestEdge;
