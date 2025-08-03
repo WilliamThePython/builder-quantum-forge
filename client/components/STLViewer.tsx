@@ -643,21 +643,27 @@ function findNearestEdgeEnhanced(
   return bestEdge;
 }
 
-// Find nearest edge using 2D screen-space distance (more reliable for thin edges)
-function findNearestEdgeScreenSpace(
+// IMPROVED: Precise 2D screen-space detection with adaptive sensitivity
+function findNearestEdgeScreenSpacePrecise(
   edgeGeometry: any[],
   pointer: THREE.Vector2,
   camera: THREE.Camera,
   canvasRect: DOMRect
 ): any | null {
+  // Convert normalized device coordinates to pixel coordinates
   const mouseScreenPos = new THREE.Vector2(
-    pointer.x * canvasRect.width * 0.5 + canvasRect.width * 0.5,
-    -pointer.y * canvasRect.height * 0.5 + canvasRect.height * 0.5
+    (pointer.x + 1) * canvasRect.width * 0.5,
+    (-pointer.y + 1) * canvasRect.height * 0.5
   );
 
   let nearestEdge = null;
   let minScreenDistance = Number.MAX_VALUE;
-  const maxScreenDistance = 30; // Maximum 30 pixels away
+
+  // IMPROVED: Adaptive detection radius based on zoom level
+  const cameraDistance = camera.position.length();
+  const adaptiveMaxDistance = Math.max(8, Math.min(20, cameraDistance * 2)); // 8-20 pixels based on zoom
+
+  console.log(`🎯 Screen-space detection: mouse at (${mouseScreenPos.x.toFixed(0)}, ${mouseScreenPos.y.toFixed(0)}), max distance: ${adaptiveMaxDistance.toFixed(1)}px`);
 
   for (const edgeData of edgeGeometry) {
     // Project edge endpoints to screen space
@@ -666,6 +672,11 @@ function findNearestEdgeScreenSpace(
 
     screenStart.copy(edgeData.position1).project(camera);
     screenEnd.copy(edgeData.position2).project(camera);
+
+    // Skip edges that are behind the camera or clipped
+    if (screenStart.z > 1 || screenEnd.z > 1 || screenStart.z < -1 || screenEnd.z < -1) {
+      continue;
+    }
 
     // Convert to pixel coordinates
     const startPixel = new THREE.Vector2(
@@ -677,33 +688,48 @@ function findNearestEdgeScreenSpace(
       (-screenEnd.y + 1) * canvasRect.height * 0.5
     );
 
-    // Calculate distance from mouse to line segment in screen space
+    // Calculate line length in screen space
     const lineLength = startPixel.distanceTo(endPixel);
-    if (lineLength < 1) continue; // Skip degenerate edges
 
-    // Vector from start to end
-    const lineVec = new THREE.Vector2().subVectors(endPixel, startPixel);
-    const lineDir = lineVec.clone().normalize();
+    // IMPROVED: Skip very short edges and very long edges (likely artifacts)
+    if (lineLength < 2 || lineLength > canvasRect.width * 0.5) continue;
 
-    // Vector from start to mouse
-    const mouseVec = new THREE.Vector2().subVectors(mouseScreenPos, startPixel);
+    // Calculate distance from mouse to line segment
+    const distance = distanceToLineSegment(mouseScreenPos, startPixel, endPixel);
 
-    // Project mouse onto line
-    const projection = mouseVec.dot(lineDir);
-    const clampedProjection = Math.max(0, Math.min(lineLength, projection));
+    // IMPROVED: Prioritize shorter edges when distances are close (more precise selection)
+    const weightedDistance = distance + (lineLength * 0.001); // Slight bias toward shorter edges
 
-    // Find closest point on line segment
-    const closestPoint = startPixel.clone().add(lineDir.multiplyScalar(clampedProjection));
-    const distance = mouseScreenPos.distanceTo(closestPoint);
-
-    // Check if this edge is closer and within reasonable distance
-    if (distance < minScreenDistance && distance < maxScreenDistance) {
-      minScreenDistance = distance;
+    // Check if this edge is closer and within detection range
+    if (weightedDistance < minScreenDistance && distance < adaptiveMaxDistance) {
+      minScreenDistance = weightedDistance;
       nearestEdge = edgeData;
     }
   }
 
+  if (nearestEdge) {
+    console.log(`✅ Selected edge at ${(minScreenDistance - nearestEdge.lineLength * 0.001).toFixed(1)}px distance`);
+  }
+
   return nearestEdge;
+}
+
+// IMPROVED: More accurate distance calculation to line segment
+function distanceToLineSegment(point: THREE.Vector2, lineStart: THREE.Vector2, lineEnd: THREE.Vector2): number {
+  const lineVec = new THREE.Vector2().subVectors(lineEnd, lineStart);
+  const pointVec = new THREE.Vector2().subVectors(point, lineStart);
+
+  const lineLength = lineVec.length();
+  if (lineLength === 0) return pointVec.length(); // Degenerate line
+
+  // Project point onto line
+  const projection = pointVec.dot(lineVec) / lineLength;
+  const clampedProjection = Math.max(0, Math.min(lineLength, projection));
+
+  // Find closest point on line segment
+  const closestPoint = lineStart.clone().add(lineVec.normalize().multiplyScalar(clampedProjection));
+
+  return point.distanceTo(closestPoint);
 }
 
 // Helper function to count triangles in a polygon face
