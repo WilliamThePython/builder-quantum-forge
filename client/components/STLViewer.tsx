@@ -579,6 +579,9 @@ function STLMesh() {
     isDecimating,
     decimateEdge
   } = useSTL();
+
+  // Debug decimation painter mode
+  console.log('🎯 STLMesh render - decimationPainterMode:', decimationPainterMode);
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera, raycaster, pointer } = useThree();
 
