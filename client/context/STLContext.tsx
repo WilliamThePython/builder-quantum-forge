@@ -247,8 +247,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return new Promise(resolve => setTimeout(resolve, 50));
   };
 
-  const loadSTLFromFile = useCallback(async (file: File) => {
-    console.log('loadSTLFromFile called with:', file.name);
+  const loadModelFromFile = useCallback(async (file: File) => {
+    console.log('🚀 === UNIFIED MODEL LOADING ===');
+    console.log('loadModelFromFile called with:', file.name);
     setIsLoading(true);
     setError(null);
     updateProgress(0, 'Starting', 'Initializing upload...');
@@ -256,11 +257,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     try {
       await updateProgress(5, 'Validating', `Checking ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)...`);
 
-      // Basic file validation first
-      if (!file.name.toLowerCase().endsWith('.stl')) {
-        addError(`Invalid file format: "${file.name}". Please select a valid STL file.`);
+      // Enhanced file validation for both STL and OBJ
+      const fileName = file.name.toLowerCase();
+      const isSTL = fileName.endsWith('.stl');
+      const isOBJ = fileName.endsWith('.obj');
+
+      if (!isSTL && !isOBJ) {
+        addError(`Invalid file format: "${file.name}". Please select a valid STL or OBJ file.`);
         return;
       }
+
+      setOriginalFormat(isSTL ? 'stl' : 'obj');
+      console.log(`📁 File format detected: ${isSTL ? 'STL' : 'OBJ'}`);
 
       await updateProgress(10, 'Validating', 'File format validated successfully...');
 
@@ -281,27 +289,72 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
 
-      updateProgress(15, 'Loading', 'Preparing STL loader...');
-      console.log('Basic validation passed, proceeding with STL loading...');
-
-      const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
-      const loader = new STLLoader();
+      updateProgress(15, 'Loading', `Preparing ${isSTL ? 'STL' : 'OBJ'} loader...`);
+      console.log(`Basic validation passed, proceeding with ${isSTL ? 'STL' : 'OBJ'} loading...`);
 
       const uploadStartTime = Date.now();
       updateProgress(20, 'Reading', `Reading ${(file.size / 1024 / 1024).toFixed(1)}MB file...`);
-      console.log('Reading file as array buffer...');
-      const arrayBuffer = await file.arrayBuffer();
-      console.log('Array buffer size:', arrayBuffer.byteLength);
 
-      updateProgress(35, 'Parsing', 'Processing STL geometry...');
       let geometry: THREE.BufferGeometry;
-      try {
-        console.log('Parsing STL with Three.js STLLoader...');
-        geometry = loader.parse(arrayBuffer);
-        console.log('STL parsed successfully');
-      } catch (parseError) {
-        console.error('STL parsing error:', parseError);
-        throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+
+      if (isSTL) {
+        console.log('📖 Loading STL file...');
+        const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
+        const loader = new STLLoader();
+        const arrayBuffer = await file.arrayBuffer();
+
+        updateProgress(35, 'Parsing', 'Processing STL geometry...');
+        try {
+          geometry = loader.parse(arrayBuffer);
+          console.log('✅ STL parsed successfully');
+        } catch (parseError) {
+          console.error('❌ STL parsing error:', parseError);
+          throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+        }
+      } else {
+        console.log('📖 Loading OBJ file...');
+        const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
+        const loader = new OBJLoader();
+        const text = await file.text();
+
+        updateProgress(35, 'Parsing', 'Processing OBJ geometry...');
+        try {
+          const object = loader.parse(text);
+
+          // Extract and merge geometries from OBJ
+          let mergedGeometry: THREE.BufferGeometry | null = null;
+          object.traverse((child) => {
+            if (child instanceof THREE.Mesh && child.geometry) {
+              if (!mergedGeometry) {
+                mergedGeometry = child.geometry.clone();
+              } else {
+                // For multiple meshes, we need to merge them properly
+                const tempGeometry = mergedGeometry.clone();
+                // Note: Three.js merge method deprecated, using manual merge
+                console.warn('⚠️ Multiple meshes found in OBJ - using first mesh only');
+              }
+            }
+          });
+
+          if (!mergedGeometry) {
+            throw new Error('No valid mesh found in OBJ file');
+          }
+
+          geometry = mergedGeometry;
+
+          // CRITICAL: Ensure OBJ files have proper indexing
+          if (!geometry.index) {
+            console.log('🔧 Converting OBJ to indexed geometry for consistent decimation...');
+            geometry = this.ensureIndexedGeometry(geometry);
+          }
+
+          // Store OBJ string for internal processing
+          setObjString(text);
+          console.log('✅ OBJ parsed successfully with indexing');
+        } catch (parseError) {
+          console.error('❌ OBJ parsing error:', parseError);
+          throw new Error(`Failed to parse OBJ file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+        }
       }
 
       // Validate parsed geometry
@@ -358,25 +411,44 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       ensureSolidObjectDisplay(geometry);
 
       updateProgress(75, 'Reconstructing', 'Analyzing polygon faces...');
-      // Conditional polygon reconstruction based on model complexity
-      if (vertexCount < 100000) { // Only for models under 100K vertices
-        console.log('🔍 Reconstructing polygon faces from uploaded STL...');
-        try {
-          const reconstructionStart = Date.now();
-          const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
-          const reconstructionTime = Date.now() - reconstructionStart;
 
-          if (reconstructedFaces.length > 0) {
-            PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
-            console.log(`✅ Reconstructed ${reconstructedFaces.length} polygon faces in ${reconstructionTime}ms`);
+      // Different polygon handling for STL vs OBJ
+      if (isSTL) {
+        // STL files need polygon reconstruction from triangulation
+        if (vertexCount < 100000) {
+          console.log('🔍 Reconstructing polygon faces from uploaded STL...');
+          try {
+            const reconstructionStart = Date.now();
+            const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
+            const reconstructionTime = Date.now() - reconstructionStart;
+
+            if (reconstructedFaces.length > 0) {
+              PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
+              console.log(`✅ Reconstructed ${reconstructedFaces.length} polygon faces in ${reconstructionTime}ms`);
+            }
+          } catch (reconstructionError) {
+            console.warn('⚠️ Polygon reconstruction failed, using triangulated mesh:', reconstructionError);
           }
-        } catch (reconstructionError) {
-          console.warn('⚠️ Polygon reconstruction failed, using triangulated mesh:', reconstructionError);
-          // Continue without polygon reconstruction
+        } else {
+          console.log('⏭️ Skipping polygon reconstruction for high-poly model (performance optimization)');
+          addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
         }
       } else {
-        console.log('⏭️ Skipping polygon reconstruction for high-poly model (performance optimization)');
-        addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
+        // OBJ files should preserve their original polygon structure
+        console.log('🔍 Preserving original OBJ polygon structure...');
+        try {
+          // Convert OBJ string to proper polygon faces if not already done
+          const objString = await file.text();
+          const polygonFaces = this.parseOBJPolygonFaces(objString);
+          if (polygonFaces.length > 0) {
+            (geometry as any).polygonFaces = polygonFaces;
+            (geometry as any).polygonType = 'obj_preserved';
+            (geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Preserved ${polygonFaces.length} original OBJ polygon faces`);
+          }
+        } catch (objError) {
+          console.warn('⚠️ Failed to preserve OBJ polygon structure:', objError);
+        }
       }
 
       updateProgress(85, 'Validating', 'Checking geometry quality...');
@@ -1142,7 +1214,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     isDecimating,
     decimateEdge,
 
-    loadModelFromFile: loadSTLFromFile, // TODO: Update to use new unified loader
+    loadModelFromFile,
     loadDefaultSTL,
     updateViewerSettings,
     exportSTL,
