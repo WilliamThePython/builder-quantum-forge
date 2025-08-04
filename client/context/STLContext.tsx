@@ -398,46 +398,123 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   // Helper function to convert indexed geometry to non-indexed for viewing
+  // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (indexedGeom: THREE.BufferGeometry): THREE.BufferGeometry => {
+    console.log('🔄 === POLYGON-AWARE NON-INDEXED CONVERSION ===');
+
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
+      console.log('   ✅ Already non-indexed, preparing for viewing...');
       return prepareGeometryForViewing(indexedGeom, 'initial_load');
     }
 
     const indices = indexedGeom.index.array;
     const positions = indexedGeom.attributes.position.array as Float32Array;
+    const polygonFaces = (indexedGeom as any).polygonFaces;
+
+    console.log('   📊 Input:', {
+      indexedVertices: positions.length / 3,
+      indexedTriangles: indices.length / 3,
+      polygonFaces: polygonFaces ? polygonFaces.length : 'none'
+    });
 
     // Create new non-indexed arrays
     const newPositions: number[] = [];
+    const newPolygonFaces: any[] = [];
 
-    // For each triangle, duplicate the vertices
-    for (let i = 0; i < indices.length; i += 3) {
-      const a = indices[i];
-      const b = indices[i + 1];
-      const c = indices[i + 2];
+    if (polygonFaces && Array.isArray(polygonFaces)) {
+      console.log('   🔧 POLYGON-AWARE conversion: Preserving polygon grouping...');
 
-      // Copy vertex positions
-      newPositions.push(
-        positions[a * 3], positions[a * 3 + 1], positions[a * 3 + 2],
-        positions[b * 3], positions[b * 3 + 1], positions[b * 3 + 2],
-        positions[c * 3], positions[c * 3 + 1], positions[c * 3 + 2]
-      );
+      let triangleOffset = 0;
+
+      // Process each polygon face to maintain grouping
+      for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+        const face = polygonFaces[faceIndex];
+        const triangleCount = getTriangleCountForPolygon(face);
+
+        // Convert triangles for this polygon face
+        const startTriangleIndex = triangleOffset;
+        for (let t = 0; t < triangleCount; t++) {
+          const triangleIndexStart = (triangleOffset + t) * 3;
+          const a = indices[triangleIndexStart];
+          const b = indices[triangleIndexStart + 1];
+          const c = indices[triangleIndexStart + 2];
+
+          // Copy vertex positions
+          newPositions.push(
+            positions[a * 3], positions[a * 3 + 1], positions[a * 3 + 2],
+            positions[b * 3], positions[b * 3 + 1], positions[b * 3 + 2],
+            positions[c * 3], positions[c * 3 + 1], positions[c * 3 + 2]
+          );
+        }
+
+        // Create updated polygon face info for non-indexed geometry
+        const newFace = {
+          type: face.type,
+          startVertex: startTriangleIndex * 3, // 3 vertices per triangle
+          endVertex: (startTriangleIndex + triangleCount) * 3 - 1,
+          originalVertices: face.originalVertices,
+          normal: face.normal,
+          triangleCount: triangleCount
+        };
+
+        newPolygonFaces.push(newFace);
+        triangleOffset += triangleCount;
+      }
+
+      console.log('   ✅ Polygon grouping preserved:', {
+        originalPolygons: polygonFaces.length,
+        newPolygons: newPolygonFaces.length,
+        totalTriangles: triangleOffset
+      });
+    } else {
+      console.log('   ⚠️ No polygon faces - falling back to triangle duplication');
+
+      // Fallback: Just duplicate vertices for each triangle
+      for (let i = 0; i < indices.length; i += 3) {
+        const a = indices[i];
+        const b = indices[i + 1];
+        const c = indices[i + 2];
+
+        newPositions.push(
+          positions[a * 3], positions[a * 3 + 1], positions[a * 3 + 2],
+          positions[b * 3], positions[b * 3 + 1], positions[b * 3 + 2],
+          positions[c * 3], positions[c * 3 + 1], positions[c * 3 + 2]
+        );
+      }
     }
 
     // Create new non-indexed geometry
     const nonIndexedGeometry = new THREE.BufferGeometry();
     nonIndexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
 
-    // Copy polygon metadata
-    if ((indexedGeom as any).polygonFaces) {
-      (nonIndexedGeometry as any).polygonFaces = (indexedGeom as any).polygonFaces;
+    // Apply updated polygon metadata for non-indexed structure
+    if (newPolygonFaces.length > 0) {
+      (nonIndexedGeometry as any).polygonFaces = newPolygonFaces;
+      console.log('   ✅ Updated polygon faces for non-indexed geometry');
     }
     if ((indexedGeom as any).polygonType) {
       (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
     }
 
+    console.log('   📊 Output:', {
+      nonIndexedVertices: newPositions.length / 3,
+      nonIndexedTriangles: newPositions.length / 9,
+      polygonFaces: newPolygonFaces.length
+    });
+
     // Prepare for viewing (flat normals, etc.)
-    return prepareGeometryForViewing(nonIndexedGeometry, 'initial_load');
+    const prepared = prepareGeometryForViewing(nonIndexedGeometry, 'initial_load');
+    console.log('✅ Polygon-aware non-indexed conversion complete');
+    return prepared;
+  };
+
+  // Helper function to get triangle count for polygon
+  const getTriangleCountForPolygon = (face: any): number => {
+    if (!face.originalVertices) return 1;
+
+    const vertexCount = face.originalVertices.length;
+    return Math.max(1, vertexCount - 2); // Fan triangulation: n-2 triangles for n vertices
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
