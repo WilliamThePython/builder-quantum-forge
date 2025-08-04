@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MeshStats } from './meshSimplifier';
 import { CoplanarMerger, PolygonFace } from './coplanarMerger';
+import { computeFlatNormals } from './flatNormals';
 
 /**
  * Clean vertex removal implementation for decimation painter
@@ -576,7 +577,7 @@ export class VertexRemovalStitcher {
     this.computeFlatVertexNormals(cloned);
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
-    console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
+    console.log(`   ��️ All ${indices.length / 3} triangles preserved`);
     console.log(`   📊 Result: ${originalVertexCount} → ${originalVertexCount - mergedCount} vertices`);
     console.log(`   🎯 Returning decimated geometry...`);
 
