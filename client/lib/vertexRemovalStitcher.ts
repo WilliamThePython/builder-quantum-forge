@@ -449,11 +449,8 @@ export class VertexRemovalStitcher {
       return cloned;
     }
 
-    // Ensure minimum visible reduction for testing
-    if (targetReduction < 0.1) {
-      console.log(`⚠️ Small reduction (${(targetReduction * 100).toFixed(1)}%) - forcing to 10% for visible change`);
-      targetReduction = 0.1;
-    }
+    // Allow any reduction amount - no artificial limits
+    console.log(`🎯 Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
 
     const cloned = geometry.clone();
     const positions = cloned.attributes.position.array as Float32Array;
@@ -490,36 +487,55 @@ export class VertexRemovalStitcher {
     let mergedCount = 0;
     console.log(`   🎯 Starting edge collapse process...`);
 
-    // Perform edge collapses (merge vertices)
+    // Perform iterative edge collapses until target is reached
     console.log(`   🔧 Processing ${edges.length} edges for collapse...`);
-    for (const [v1, v2] of edges) {
-      if (mergedCount >= verticesToRemove) {
-        console.log(`   ✅ Reached target vertex removal count: ${mergedCount}`);
+    let iterationCount = 0;
+    const maxIterations = 5; // Allow multiple passes for aggressive reduction
+
+    while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
+      const initialMergeCount = mergedCount;
+      console.log(`   🔄 Iteration ${iterationCount + 1}/${maxIterations} - Progress: ${mergedCount}/${verticesToRemove}`);
+
+      for (const [v1, v2] of edges) {
+        if (mergedCount >= verticesToRemove) {
+          console.log(`   ✅ Reached target vertex removal count: ${mergedCount}`);
+          break;
+        }
+
+        // Skip if either vertex is already merged
+        if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
+
+        // Calculate collapse position (midpoint for simplicity)
+        const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
+        const midY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) / 2;
+        const midZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) / 2;
+
+        // Move v1 to collapse position, map v2 to v1
+        positions[v1 * 3] = midX;
+        positions[v1 * 3 + 1] = midY;
+        positions[v1 * 3 + 2] = midZ;
+
+        vertexMergeMap.set(v2, v1); // v2 now points to v1
+        mergedCount++;
+
+        if (mergedCount % 1000 === 0) {
+          console.log(`     Progress: ${mergedCount}/${verticesToRemove} vertices merged`);
+        }
+      }
+
+      // Check if we made progress in this iteration
+      if (mergedCount === initialMergeCount) {
+        console.log(`   ⚠️ No progress in iteration ${iterationCount + 1} - stopping early`);
         break;
       }
 
-      // Skip if either vertex is already merged
-      if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
-
-      // Calculate collapse position (midpoint for simplicity)
-      const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
-      const midY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) / 2;
-      const midZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) / 2;
-
-      // Move v1 to collapse position, map v2 to v1
-      positions[v1 * 3] = midX;
-      positions[v1 * 3 + 1] = midY;
-      positions[v1 * 3 + 2] = midZ;
-
-      vertexMergeMap.set(v2, v1); // v2 now points to v1
-      mergedCount++;
-
-      if (mergedCount % 10 === 0) {
-        console.log(`     Progress: ${mergedCount}/${verticesToRemove} vertices merged`);
-      }
+      iterationCount++;
     }
 
-    console.log(`   📊 Final merge count: ${mergedCount} vertex pairs merged`);
+    console.log(`   📊 Final merge count: ${mergedCount} vertex pairs merged (${iterationCount} iterations)`);
+    if (mergedCount < verticesToRemove) {
+      console.log(`   ⚠️ Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
+    }
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
     console.log(`   🔧 Remapping ${indices.length} triangle indices...`);
