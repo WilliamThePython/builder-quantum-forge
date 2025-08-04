@@ -1277,13 +1277,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         [outputPositions[6], outputPositions[7], outputPositions[8]]
       ]);
 
-      console.log('🔄 Setting geometry in viewer context...');
+      console.log('🔄 Setting dual geometry after decimation...');
 
-      // CRITICAL: Use unified geometry preparation to ensure consistent viewing
-      const preparedGeometry = prepareGeometryForViewing(result.geometry, 'decimation');
-
-      // Update the geometry
-      setGeometry(preparedGeometry);
+      // Update both indexed (for operations) and non-indexed (for viewing) geometries
+      setDualGeometry(result.geometry);
 
       const message = `Mesh simplification (${method}) completed: Reduced from ${result.originalStats.vertices.toLocaleString()} to ${result.newStats.vertices.toLocaleString()} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`;
 
