@@ -1377,24 +1377,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       console.log('🔄 Setting dual geometry after decimation...');
 
-      // CRITICAL: Perform coplanar merging after decimation to reconstruct polygons
+      // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
       if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
-        console.log('🔧 POST-DECIMATION: Running coplanar triangle merging...');
+        console.log('🔧 POST-DECIMATION: Running simple coplanar triangle merging...');
         try {
-          const { CoplanarMerger } = await import('../lib/coplanarMerger');
-          const mergedFaces = CoplanarMerger.mergeGeometryTriangles(result.geometry);
+          const { SimpleCoplanarMerger } = await import('../lib/simpleCoplanarMerger');
+          const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(result.geometry);
 
           if (mergedFaces.length > 0) {
-            const typeBreakdown = mergedFaces.reduce((acc: any, face: any) => {
-              acc[face.type] = (acc[face.type] || 0) + 1;
-              return acc;
-            }, {});
-
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
-            console.log(`✅ Post-decimation coplanar merging: Created ${mergedFaces.length} polygon faces`);
-            console.log('   Post-decimation polygon types:', typeBreakdown);
+            console.log(`✅ Post-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
           console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
