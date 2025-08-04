@@ -940,23 +940,51 @@ function STLMesh() {
   // Store original colors for highlighting
   const originalColors = useRef<Float32Array | null>(null);
 
-  // SIMPLIFIED: Add random colors to geometry - basic per-triangle coloring
+  // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      console.log('🎨 Applying simple per-triangle coloring...');
+      console.log('🎨 Applying polygon-aware coloring with flat shading...');
 
-      // Simple approach: one color per triangle (3 vertices = 9 color values)
-      const vertexCount = geometry.attributes.position.count;
-      const colors = new Float32Array(vertexCount * 3);
+      const colors = new Float32Array(geometry.attributes.position.count * 3);
+      const polygonFaces = (geometry as any).polygonFaces;
 
-      // Apply one random color per triangle
-      const color = new THREE.Color();
-      for (let i = 0; i < colors.length; i += 9) { // 9 = 3 vertices * 3 color components
-        color.setHSL(Math.random(), 0.8, 0.6);
+      if (polygonFaces && Array.isArray(polygonFaces)) {
+        console.log(`🔧 Coloring ${polygonFaces.length} polygon faces`);
+        let triangleOffset = 0;
 
-        // Apply same color to all 3 vertices of this triangle
-        for (let j = 0; j < 9; j += 3) {
-          if (i + j + 2 < colors.length) {
+        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+          const face = polygonFaces[faceIndex];
+          const triangleCount = getTriangleCountForPolygon(face);
+
+          // Generate one color per polygon face
+          const color = new THREE.Color();
+          color.setHSL(Math.random(), 0.8, 0.6);
+
+          // Apply this color to all triangles that make up this polygon face
+          for (let t = 0; t < triangleCount; t++) {
+            const triangleStart = (triangleOffset + t) * 9; // 9 values per triangle
+
+            // Apply same color to all 3 vertices of the triangle
+            for (let v = 0; v < 9; v += 3) {
+              if (triangleStart + v + 2 < colors.length) {
+                colors[triangleStart + v] = color.r;
+                colors[triangleStart + v + 1] = color.g;
+                colors[triangleStart + v + 2] = color.b;
+              }
+            }
+          }
+
+          triangleOffset += triangleCount;
+        }
+        console.log(`✅ Applied polygon-aware coloring to ${triangleOffset} triangles`);
+      } else {
+        // Fallback to triangle-based coloring if no polygon face data
+        console.log('🔧 No polygon faces found, using triangle-based coloring');
+        const color = new THREE.Color();
+        for (let i = 0; i < colors.length; i += 9) {
+          color.setHSL(Math.random(), 0.7, 0.6);
+
+          for (let j = 0; j < 9; j += 3) {
             colors[i + j] = color.r;
             colors[i + j + 1] = color.g;
             colors[i + j + 2] = color.b;
@@ -971,9 +999,9 @@ function STLMesh() {
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
 
-      // Force flat normals after setting colors
-      computeFlatNormals(geometry);
-      console.log('✅ Applied simple triangle coloring with flat normals');
+      // CRITICAL: Force flat normals per polygon face to prevent interpolation
+      console.log('🎨 Computing polygon-aware flat normals...');
+      computePolygonAwareFlatNormals(geometry, polygonFaces);
 
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
