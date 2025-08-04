@@ -986,6 +986,10 @@ function STLMesh() {
 
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
+
+      // CRITICAL: Recompute flat normals after setting colors to maintain crisp face shading
+      computeFlatNormals(geometry);
+      console.log('🎨 Recomputed flat normals after setting colors');
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute('color');
@@ -1115,7 +1119,7 @@ function STLMesh() {
     });
 
     if (!geometry || !decimationPainterMode) {
-      console.log('❌ Edge geometry creation skipped - no geometry or painter mode off');
+      console.log('�� Edge geometry creation skipped - no geometry or painter mode off');
       return null;
     }
 
