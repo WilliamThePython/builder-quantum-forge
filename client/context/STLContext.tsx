@@ -318,6 +318,10 @@ const parseOBJPolygonFaces = (objString: string): any[] => {
 };
 
 export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
+  // Dual geometry storage approach:
+  // - indexedGeometry: Used for operations like decimation (efficient)
+  // - geometry: Non-indexed version used for viewing (flat colors)
+  const [indexedGeometry, setIndexedGeometry] = useState<THREE.BufferGeometry | null>(null);
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
