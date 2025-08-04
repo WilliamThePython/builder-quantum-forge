@@ -367,6 +367,78 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return new Promise(resolve => setTimeout(resolve, 50));
   };
 
+  // Helper function to set both indexed and non-indexed geometries
+  const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
+    console.log('🔄 === DUAL GEOMETRY UPDATE ===');
+    console.log('   Setting indexed geometry for operations...');
+
+    // Store the indexed version for operations
+    setIndexedGeometry(newIndexedGeometry);
+
+    // Create non-indexed version for viewing
+    console.log('   Creating non-indexed version for viewing...');
+    const nonIndexedGeometry = convertToNonIndexedForViewing(newIndexedGeometry);
+
+    console.log('   Setting non-indexed geometry for viewer...');
+    setGeometry(nonIndexedGeometry);
+
+    console.log('✅ Dual geometry setup complete:', {
+      indexed: {
+        vertices: newIndexedGeometry.attributes.position.count,
+        faces: newIndexedGeometry.index ? newIndexedGeometry.index.count / 3 : 0,
+        hasPolygonFaces: !!(newIndexedGeometry as any).polygonFaces
+      },
+      nonIndexed: {
+        vertices: nonIndexedGeometry.attributes.position.count,
+        faces: nonIndexedGeometry.attributes.position.count / 3,
+        hasPolygonFaces: !!(nonIndexedGeometry as any).polygonFaces
+      }
+    });
+  };
+
+  // Helper function to convert indexed geometry to non-indexed for viewing
+  const convertToNonIndexedForViewing = (indexedGeom: THREE.BufferGeometry): THREE.BufferGeometry => {
+    if (!indexedGeom.index) {
+      // Already non-indexed, just prepare for viewing
+      return prepareGeometryForViewing(indexedGeom, 'initial_load');
+    }
+
+    const indices = indexedGeom.index.array;
+    const positions = indexedGeom.attributes.position.array as Float32Array;
+
+    // Create new non-indexed arrays
+    const newPositions: number[] = [];
+
+    // For each triangle, duplicate the vertices
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i];
+      const b = indices[i + 1];
+      const c = indices[i + 2];
+
+      // Copy vertex positions
+      newPositions.push(
+        positions[a * 3], positions[a * 3 + 1], positions[a * 3 + 2],
+        positions[b * 3], positions[b * 3 + 1], positions[b * 3 + 2],
+        positions[c * 3], positions[c * 3 + 1], positions[c * 3 + 2]
+      );
+    }
+
+    // Create new non-indexed geometry
+    const nonIndexedGeometry = new THREE.BufferGeometry();
+    nonIndexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+
+    // Copy polygon metadata
+    if ((indexedGeom as any).polygonFaces) {
+      (nonIndexedGeometry as any).polygonFaces = (indexedGeom as any).polygonFaces;
+    }
+    if ((indexedGeom as any).polygonType) {
+      (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
+    }
+
+    // Prepare for viewing (flat normals, etc.)
+    return prepareGeometryForViewing(nonIndexedGeometry, 'initial_load');
+  };
+
   const loadModelFromFile = useCallback(async (file: File) => {
     console.log('🚀 === UNIFIED MODEL LOADING ===');
     console.log('loadModelFromFile called with:', file.name);
