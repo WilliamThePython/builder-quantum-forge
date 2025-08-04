@@ -1362,6 +1362,26 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       console.log('🔄 Setting dual geometry after decimation...');
 
+      // CRITICAL: Perform coplanar merging after decimation to reconstruct polygons
+      if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
+        console.log('🔧 POST-DECIMATION: Running coplanar triangle merging...');
+        try {
+          const { CoplanarMerger } = await import('../lib/coplanarMerger');
+          const mergedFaces = CoplanarMerger.mergeGeometryTriangles(result.geometry);
+
+          if (mergedFaces.length > 0) {
+            (result.geometry as any).polygonFaces = mergedFaces;
+            (result.geometry as any).polygonType = 'post_decimation_merged';
+            (result.geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Post-decimation coplanar merging: Created ${mergedFaces.length} polygon faces`);
+          }
+        } catch (mergeError) {
+          console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
+        }
+      } else {
+        console.log('⏭️ Skipping post-decimation coplanar merging for high-poly model');
+      }
+
       // Update both indexed (for operations) and non-indexed (for viewing) geometries
       setDualGeometry(result.geometry);
 
