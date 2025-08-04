@@ -1225,24 +1225,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       createBackup();
 
       console.log('��� === DECIMATION DATA FLOW DEBUGGING ===');
-      console.log('📥 INPUT GEOMETRY from viewer:', {
-        vertices: geometry.attributes.position.count,
-        faces: geometry.index ? geometry.index.count / 3 : 0,
-        uuid: geometry.uuid,
-        boundingBox: geometry.boundingBox
+      console.log('📥 INPUT INDEXED GEOMETRY for operations:', {
+        vertices: indexedGeometry.attributes.position.count,
+        faces: indexedGeometry.index ? indexedGeometry.index.count / 3 : 0,
+        uuid: indexedGeometry.uuid,
+        boundingBox: indexedGeometry.boundingBox
       });
 
       // Log first few vertices for comparison
-      const inputPositions = geometry.attributes.position.array;
+      const inputPositions = indexedGeometry.attributes.position.array;
       console.log('📥 INPUT first 3 vertices:', [
         [inputPositions[0], inputPositions[1], inputPositions[2]],
         [inputPositions[3], inputPositions[4], inputPositions[5]],
         [inputPositions[6], inputPositions[7], inputPositions[8]]
       ]);
 
-      console.log('Starting professional mesh simplification...', { method, reductionAmount });
+      console.log('Starting professional mesh simplification on indexed geometry...', { method, reductionAmount });
 
-      const result = await STLManipulator.reducePoints(geometry, reductionAmount, method);
+      // Use indexed geometry for decimation operations
+      const result = await STLManipulator.reducePoints(indexedGeometry, reductionAmount, method);
 
       console.log('📤 OUTPUT GEOMETRY from decimation:', {
         vertices: result.geometry.attributes.position.count,
