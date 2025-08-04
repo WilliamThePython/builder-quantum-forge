@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
 import { computeFlatNormals } from '../lib/flatNormals';
+import { convertToNonIndexedForFlatColors } from '../lib/flatGeometry';
 
 // ENHANCED: Helper function to find the nearest POLYGON PERIMETER edge to a click point
 // Supports both STL (reconstructed polygons) and OBJ (preserved polygons) files
@@ -1119,7 +1120,7 @@ function STLMesh() {
     });
 
     if (!geometry || !decimationPainterMode) {
-      console.log('�� Edge geometry creation skipped - no geometry or painter mode off');
+      console.log('❌ Edge geometry creation skipped - no geometry or painter mode off');
       return null;
     }
 
