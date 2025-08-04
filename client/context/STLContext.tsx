@@ -1443,8 +1443,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
     console.log(`   Decimating edge between vertices: ${vertexIndex1} ↔ ${vertexIndex2}`);
 
-    if (!geometry) {
-      throw new Error('No geometry loaded for edge decimation');
+    if (!indexedGeometry) {
+      throw new Error('No indexed geometry loaded for edge decimation');
     }
 
     try {
@@ -1454,8 +1454,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Create backup before operation
       createBackup();
 
-      // Use STLManipulator for single edge decimation
-      const result = await STLManipulator.decimateSingleEdge(geometry, vertexIndex1, vertexIndex2);
+      // Use STLManipulator for single edge decimation on indexed geometry
+      const result = await STLManipulator.decimateSingleEdge(indexedGeometry, vertexIndex1, vertexIndex2);
 
       if (result.success && result.geometry) {
         console.log(`✅ Edge decimation successful`);
@@ -1463,9 +1463,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Reset decimation flag BEFORE geometry update to prevent spinning
         setIsDecimating(false);
 
-        // Update geometry with UUID change to force viewer refresh
+        // Update both indexed and non-indexed geometries using dual geometry approach
         result.geometry.uuid = THREE.MathUtils.generateUUID();
-        setGeometry(result.geometry);
+        setDualGeometry(result.geometry);
 
         console.log('=== VIEWER GEOMETRY UPDATE ===');
         console.log(`🎆 Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
@@ -1483,7 +1483,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setIsProcessingTool(false);
       setIsDecimating(false); // Reset decimation flag (fallback for error cases)
     }
-  }, [geometry, createBackup]);
+  }, [indexedGeometry, createBackup]);
 
   const value: STLContextType = {
     geometry,
