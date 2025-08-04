@@ -4,6 +4,7 @@ import { OrbitControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSTL } from '../context/STLContext';
 import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
+import { computeFlatNormals } from '../lib/flatNormals';
 
 // ENHANCED: Helper function to find the nearest POLYGON PERIMETER edge to a click point
 // Supports both STL (reconstructed polygons) and OBJ (preserved polygons) files
