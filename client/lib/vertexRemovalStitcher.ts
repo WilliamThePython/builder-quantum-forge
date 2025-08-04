@@ -762,8 +762,8 @@ export class VertexRemovalStitcher {
     newGeometry.setIndex(newIndices);
     newGeometry.uuid = THREE.MathUtils.generateUUID();
 
-    // Recompute normals
-    newGeometry.computeVertexNormals();
+    // Use flat normals to maintain crisp face shading
+    computeFlatNormals(newGeometry);
 
     const originalVertexCount = positions.length / 3;
     const newVertexCount = newPositions.length / 3;
