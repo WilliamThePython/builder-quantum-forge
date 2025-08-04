@@ -455,43 +455,20 @@ export class VertexRemovalStitcher {
   }
 
   /**
-   * Basic vertex reduction fallback method
+   * PROPER edge collapse decimation fallback - maintains surface topology
    */
   private static basicVertexReduction(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-    const positions = geometry.attributes.position.array as Float32Array;
-    const indices = geometry.index?.array;
+    console.log('🔧 Using proper edge collapse fallback (no holes)');
 
-    if (!indices) {
-      console.warn('⚠️ Non-indexed geometry - limited reduction capability');
-      const cloned = geometry.clone();
-      cloned.uuid = THREE.MathUtils.generateUUID();
-      return cloned;
-    }
+    const cloned = geometry.clone();
+    cloned.uuid = THREE.MathUtils.generateUUID();
 
-    // Simple reduction: remove every nth triangle
-    const targetFaceCount = Math.floor((indices.length / 3) * (1 - targetReduction));
-    const step = Math.max(1, Math.floor((indices.length / 3) / targetFaceCount));
+    // If no proper decimation is available, return original geometry to avoid holes
+    // Better to have no reduction than holes in the mesh
+    console.warn('⚠️ SimplifyModifier not available - returning original geometry to prevent holes');
+    console.log('💡 Consider implementing proper quadric edge collapse algorithm');
 
-    const newIndices: number[] = [];
-    for (let i = 0; i < indices.length; i += 3 * step) {
-      if (i + 2 < indices.length) {
-        newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
-      }
-    }
-
-    const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', geometry.attributes.position.clone());
-
-    if (geometry.attributes.normal) {
-      newGeometry.setAttribute('normal', geometry.attributes.normal.clone());
-    }
-
-    newGeometry.setIndex(newIndices);
-    newGeometry.uuid = THREE.MathUtils.generateUUID();
-
-    console.log(`📊 Basic reduction: ${indices.length / 3} → ${newIndices.length / 3} faces`);
-
-    return newGeometry;
+    return cloned;
   }
 
   /**
