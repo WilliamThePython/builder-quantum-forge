@@ -458,9 +458,10 @@ export class VertexRemovalStitcher {
     const indices = cloned.index?.array;
 
     if (!indices) {
-      console.warn('⚠️ Non-indexed geometry - cannot perform edge collapse');
-      cloned.uuid = THREE.MathUtils.generateUUID();
-      return cloned;
+      console.log('🔧 Converting non-indexed geometry to indexed for edge collapse...');
+      const indexedGeometry = this.convertToIndexed(cloned);
+      console.log('✅ Conversion complete - retrying edge collapse...');
+      return this.pureQuadricEdgeCollapse(indexedGeometry, targetReduction);
     }
 
     const originalVertexCount = positions.length / 3;
