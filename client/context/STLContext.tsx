@@ -1398,7 +1398,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     } finally {
       setIsProcessingTool(false);
     }
-  }, [geometry]);
+  }, [indexedGeometry]);
 
 
 
