@@ -191,8 +191,8 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(posArray, 3));
     }
 
-    // Recompute normals after flipping
-    geometry.computeVertexNormals();
+    // Use flat normals to maintain crisp face shading
+    this.computeFlatNormals(geometry);
   }
 
   // Ensure proper material-side settings will be respected
