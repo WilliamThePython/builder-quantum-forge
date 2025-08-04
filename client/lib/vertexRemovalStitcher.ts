@@ -481,8 +481,12 @@ export class VertexRemovalStitcher {
     console.log(`   🎯 Starting edge collapse process...`);
 
     // Perform edge collapses (merge vertices)
+    console.log(`   🔧 Processing ${edges.length} edges for collapse...`);
     for (const [v1, v2] of edges) {
-      if (mergedCount >= verticesToRemove) break;
+      if (mergedCount >= verticesToRemove) {
+        console.log(`   ✅ Reached target vertex removal count: ${mergedCount}`);
+        break;
+      }
 
       // Skip if either vertex is already merged
       if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
@@ -499,7 +503,13 @@ export class VertexRemovalStitcher {
 
       vertexMergeMap.set(v2, v1); // v2 now points to v1
       mergedCount++;
+
+      if (mergedCount % 10 === 0) {
+        console.log(`     Progress: ${mergedCount}/${verticesToRemove} vertices merged`);
+      }
     }
+
+    console.log(`   📊 Final merge count: ${mergedCount} vertex pairs merged`);
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
     const newIndices = new Uint32Array(indices.length);
