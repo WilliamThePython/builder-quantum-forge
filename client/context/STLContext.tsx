@@ -1214,7 +1214,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // STL Tool Methods
   const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' = 'quadric_edge_collapse'): Promise<ToolOperationResult> => {
-    if (!geometry) {
+    if (!indexedGeometry) {
       return { success: false, message: 'No model available for mesh simplification' };
     }
 
