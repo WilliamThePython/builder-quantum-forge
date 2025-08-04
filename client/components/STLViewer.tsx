@@ -962,6 +962,13 @@ function STLMesh() {
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
         console.log(`🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`);
+        console.log(`🎨 GEOMETRY TYPE DEBUG:`);
+        console.log(`   Is indexed: ${!!geometry.index}`);
+        console.log(`   Vertex count: ${geometry.attributes.position.count}`);
+        console.log(`   Index count: ${geometry.index ? geometry.index.count : 'N/A'}`);
+        console.log(`   Triangle count: ${geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3}`);
+        console.log(`   Colors array length will be: ${colors.length} (3 * ${geometry.attributes.position.count} vertices)`);
+
         let triangleOffset = 0;
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
