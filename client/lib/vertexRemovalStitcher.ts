@@ -571,9 +571,9 @@ export class VertexRemovalStitcher {
     cloned.uuid = newUUID;
     console.log(`   🆔 Generated new UUID: ${newUUID}`);
 
-    // Recompute normals
-    console.log(`   🔧 Recomputing normals...`);
-    cloned.computeVertexNormals();
+    // Recompute normals with flat shading to maintain crisp faces
+    console.log(`   🔧 Recomputing flat normals...`);
+    this.computeFlatVertexNormals(cloned);
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
     console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
