@@ -357,10 +357,17 @@ export class STLManipulator {
     if (!geometry || triangleIndex < 0) return null;
 
     const positions = geometry.attributes.position;
-    const i3 = triangleIndex * 3;
 
-    // Check bounds
-    if (i3 + 2 >= positions.count / 3) return null;
+    // Check bounds based on geometry type
+    if (geometry.index) {
+      // Indexed geometry: check triangle index against face count
+      const faceCount = geometry.index.count / 3;
+      if (triangleIndex >= faceCount) return null;
+    } else {
+      // Non-indexed geometry: check triangle index against vertex count
+      const faceCount = positions.count / 3;
+      if (triangleIndex >= faceCount) return null;
+    }
 
     // Get triangle vertices - handle both indexed and non-indexed geometry
     let v1, v2, v3;
