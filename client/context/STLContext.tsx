@@ -1338,12 +1338,27 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
 
       // CRITICAL: Check if polygon metadata is preserved
-      const inputPolygonFaces = (geometry as any).polygonFaces;
+      const inputPolygonFaces = (indexedGeometry as any).polygonFaces;
       const outputPolygonFaces = (result.geometry as any).polygonFaces;
 
       console.log('🔍 POLYGON METADATA PRESERVATION CHECK:');
       console.log('   Input had polygon faces:', !!inputPolygonFaces, inputPolygonFaces ? inputPolygonFaces.length : 'N/A');
+      if (inputPolygonFaces) {
+        const typeBreakdown = inputPolygonFaces.reduce((acc: any, face: any) => {
+          acc[face.type] = (acc[face.type] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('   Input polygon types:', typeBreakdown);
+      }
+
       console.log('   Output has polygon faces:', !!outputPolygonFaces, outputPolygonFaces ? outputPolygonFaces.length : 'N/A');
+      if (outputPolygonFaces) {
+        const typeBreakdown = outputPolygonFaces.reduce((acc: any, face: any) => {
+          acc[face.type] = (acc[face.type] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('   Output polygon types:', typeBreakdown);
+      }
 
       if (inputPolygonFaces && !outputPolygonFaces) {
         console.log('🚨 PROBLEM FOUND: Polygon metadata was LOST during decimation!');
