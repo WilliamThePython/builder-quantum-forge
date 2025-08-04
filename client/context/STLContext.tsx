@@ -843,7 +843,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addError(`Failed to create random model: ${errorMessage}`);
-      console.error('❌ Random model creation error:', err);
+      console.error('��� Random model creation error:', err);
       console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     } finally {
       setIsLoading(false);
@@ -1126,7 +1126,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         (restored as any).reconstructedFaces = JSON.parse(JSON.stringify((backupGeometry as any).reconstructedFaces));
       }
 
-      setGeometry(restored);
+      // Use unified geometry preparation for restored geometry
+      const preparedRestored = prepareGeometryForViewing(restored, 'restoration');
+      setGeometry(preparedRestored);
       setProcessedModel(backupProcessedModel);
       console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
