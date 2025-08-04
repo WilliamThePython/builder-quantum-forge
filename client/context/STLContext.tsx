@@ -769,8 +769,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const triangles = Math.floor(vertices / 3);
 
       updateProgress(95, 'Finalizing', 'Setting up model for viewing...');
-      // Set the new geometry and filename
-      setGeometry(geometry);
+      // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
+      setDualGeometry(geometry);
       setFileName(file.name);
 
       updateProgress(100, 'Complete', 'Model loaded successfully!');
