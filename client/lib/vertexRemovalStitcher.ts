@@ -129,8 +129,9 @@ export class VertexRemovalStitcher {
       // Update position attribute
       resultGeometry.attributes.position.needsUpdate = true;
 
-      // Recompute normals and refresh
-      resultGeometry.computeVertexNormals();
+      // IMPORTANT: Use computeFlatVertexNormals to maintain crisp face shading
+      // computeVertexNormals() creates smooth shading which blends colors
+      this.computeFlatVertexNormals(resultGeometry);
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
       console.log(`✅ POLYGON-AWARE VERTEX MERGE COMPLETE`);
@@ -207,7 +208,8 @@ export class VertexRemovalStitcher {
     // DISABLED: Do not remove faces (prevents holes)
     // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
     resultGeometry.attributes.position.needsUpdate = true;
-    resultGeometry.computeVertexNormals();
+    // Use flat normals to maintain crisp face shading
+    this.computeFlatVertexNormals(resultGeometry);
     resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
     return {
