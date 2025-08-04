@@ -14,7 +14,27 @@ export function prepareGeometryForViewing(
   console.log(`🔧 === UNIFIED GEOMETRY PREPARATION (${source.toUpperCase()}) ===`);
   
   const prepared = geometry.clone();
-  
+
+  // CRITICAL: Copy polygon metadata that clone() doesn't preserve
+  if ((geometry as any).polygonFaces) {
+    (prepared as any).polygonFaces = (geometry as any).polygonFaces;
+  }
+  if ((geometry as any).polygonType) {
+    (prepared as any).polygonType = (geometry as any).polygonType;
+  }
+  if ((geometry as any).isPolygonPreserved) {
+    (prepared as any).isPolygonPreserved = (geometry as any).isPolygonPreserved;
+  }
+  if ((geometry as any).isProcedurallyGenerated) {
+    (prepared as any).isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated;
+  }
+
+  console.log(`   🔧 Polygon metadata preservation:`, {
+    originalHasPolygonFaces: !!(geometry as any).polygonFaces,
+    preparedHasPolygonFaces: !!(prepared as any).polygonFaces,
+    polygonCount: (prepared as any).polygonFaces ? (prepared as any).polygonFaces.length : 'N/A'
+  });
+
   // Step 1: Ensure proper face orientation for solid display
   ensureSolidObjectDisplay(prepared);
   
