@@ -1385,10 +1385,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           const mergedFaces = CoplanarMerger.mergeGeometryTriangles(result.geometry);
 
           if (mergedFaces.length > 0) {
+            const typeBreakdown = mergedFaces.reduce((acc: any, face: any) => {
+              acc[face.type] = (acc[face.type] || 0) + 1;
+              return acc;
+            }, {});
+
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
             console.log(`✅ Post-decimation coplanar merging: Created ${mergedFaces.length} polygon faces`);
+            console.log('   Post-decimation polygon types:', typeBreakdown);
           }
         } catch (mergeError) {
           console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
