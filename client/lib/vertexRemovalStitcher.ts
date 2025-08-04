@@ -484,7 +484,7 @@ export class VertexRemovalStitcher {
     // Perform iterative edge collapses until target is reached
     console.log(`   🔧 Processing ${edges.length} edges for collapse...`);
     let iterationCount = 0;
-    const maxIterations = 5; // Allow multiple passes for aggressive reduction
+    const maxIterations = isAggressiveReduction ? 10 : 5; // More iterations for massive reductions
 
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
