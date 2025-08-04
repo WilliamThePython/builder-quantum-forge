@@ -390,8 +390,8 @@ export class OBJConverter {
       geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
       console.log('✅ Using OBJ file normals');
     } else {
-      geometry.computeVertexNormals();
-      console.log('✅ Computed vertex normals');
+      computeFlatNormals(geometry);
+      console.log('✅ Computed flat normals for crisp face shading');
     }
 
     geometry.computeBoundingBox();
