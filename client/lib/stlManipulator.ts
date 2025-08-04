@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { MeshStats } from './meshSimplifier';
 import { VertexRemovalStitcher } from './vertexRemovalStitcher';
-import { GeometryProcessor } from './systems/GeometryProcessor';
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
