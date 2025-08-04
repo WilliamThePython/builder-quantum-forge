@@ -111,52 +111,6 @@ const defaultSTLFiles = [
   '/default-stl/cylinder.stl'
 ];
 
-// Helper function to compute flat normals for crisp face shading
-const computeFlatNormals = (geometry: THREE.BufferGeometry): void => {
-  if (!geometry.index) {
-    // Non-indexed geometry - each triangle has its own vertices, already flat
-    geometry.computeVertexNormals();
-    return;
-  }
-
-  const positions = geometry.attributes.position.array as Float32Array;
-  const indices = geometry.index.array;
-  const normals = new Float32Array(positions.length);
-
-  // Calculate face normals and assign to vertices (flat shading)
-  for (let i = 0; i < indices.length; i += 3) {
-    const a = indices[i] * 3;
-    const b = indices[i + 1] * 3;
-    const c = indices[i + 2] * 3;
-
-    // Get triangle vertices
-    const vA = new THREE.Vector3(positions[a], positions[a + 1], positions[a + 2]);
-    const vB = new THREE.Vector3(positions[b], positions[b + 1], positions[b + 2]);
-    const vC = new THREE.Vector3(positions[c], positions[c + 1], positions[c + 2]);
-
-    // Calculate face normal
-    const cb = new THREE.Vector3().subVectors(vC, vB);
-    const ab = new THREE.Vector3().subVectors(vA, vB);
-    const faceNormal = cb.cross(ab).normalize();
-
-    // Assign same face normal to all three vertices (flat shading)
-    normals[a] = faceNormal.x;
-    normals[a + 1] = faceNormal.y;
-    normals[a + 2] = faceNormal.z;
-
-    normals[b] = faceNormal.x;
-    normals[b + 1] = faceNormal.y;
-    normals[b + 2] = faceNormal.z;
-
-    normals[c] = faceNormal.x;
-    normals[c + 1] = faceNormal.y;
-    normals[c + 2] = faceNormal.z;
-  }
-
-  geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  geometry.attributes.normal.needsUpdate = true;
-};
-
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   console.log('🔧 Ensuring solid object display...');
