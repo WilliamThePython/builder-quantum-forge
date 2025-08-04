@@ -204,7 +204,8 @@ export class VertexRemovalStitcher {
       resultPositions[vertexIndex * 3 + 2] = collapsePosition.z;
     });
 
-    this.removeDegenerateFaces(resultGeometry);
+    // DISABLED: Do not remove faces (prevents holes)
+    // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
     resultGeometry.attributes.position.needsUpdate = true;
     resultGeometry.computeVertexNormals();
     resultGeometry.uuid = THREE.MathUtils.generateUUID();
