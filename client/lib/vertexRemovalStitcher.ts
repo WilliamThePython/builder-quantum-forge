@@ -429,7 +429,14 @@ export class VertexRemovalStitcher {
     console.log(`   ✅ Pure edge collapse completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
     console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
     console.log(`   🛡️ Zero faces deleted - surface topology preserved`);
-    console.log(`   🆔 New geometry UUID: ${simplifiedGeometry.uuid}`);
+    console.log(`   ��� New geometry UUID: ${simplifiedGeometry.uuid}`);
+
+    console.log('📤 Output geometry polygon metadata:');
+    console.log('   Has polygonFaces:', !!(simplifiedGeometry as any).polygonFaces);
+    console.log('   PolygonFaces count:', (simplifiedGeometry as any).polygonFaces ? (simplifiedGeometry as any).polygonFaces.length : 'N/A');
+    console.log('   Has polygonType:', !!(simplifiedGeometry as any).polygonType);
+    console.log('   isPolygonPreserved:', !!(simplifiedGeometry as any).isPolygonPreserved);
+
     console.log(`   🔄 Returning to STLManipulator...`);
 
     return {
@@ -451,7 +458,7 @@ export class VertexRemovalStitcher {
     console.log('   Guarantee: ZERO faces deleted, ZERO holes created');
 
     if (targetReduction <= 0) {
-      console.log('⚠️ Zero reduction requested - returning original geometry');
+      console.log('⚠�� Zero reduction requested - returning original geometry');
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
       return cloned;
