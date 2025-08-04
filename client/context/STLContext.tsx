@@ -820,11 +820,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       setLoadingProgress({ percentage: 90, stage: 'Finalizing...', details: 'Setting up viewer' });
 
-      // Ensure solid object display
-      ensureSolidObjectDisplay(bufferGeometry);
+      // Prepare geometry for viewing with unified pipeline
+      const preparedGeometry = prepareGeometryForViewing(bufferGeometry, 'initial_load');
 
-      // Set the geometry
-      setGeometry(bufferGeometry);
+      // Set the prepared geometry
+      setGeometry(preparedGeometry);
       setFileName(selectedModel.name);
       setOriginalFormat('stl');
 
