@@ -413,6 +413,13 @@ export class VertexRemovalStitcher {
     console.log(`   Original geometry UUID: ${geometry.uuid}`);
     console.log(`   Method: Pure edge collapse - two vertices become one`);
 
+    console.log('🔧 === DECIMATION POLYGON METADATA CHECK ===');
+    console.log('📥 Input geometry polygon metadata:');
+    console.log('   Has polygonFaces:', !!(geometry as any).polygonFaces);
+    console.log('   PolygonFaces count:', (geometry as any).polygonFaces ? (geometry as any).polygonFaces.length : 'N/A');
+    console.log('   Has polygonType:', !!(geometry as any).polygonType);
+    console.log('   isPolygonPreserved:', !!(geometry as any).isPolygonPreserved);
+
     // Use our own pure edge collapse implementation
     console.log(`🔧 Calling pureQuadricEdgeCollapse...`);
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
@@ -543,7 +550,7 @@ export class VertexRemovalStitcher {
 
     console.log(`   📊 Final merge count: ${mergedCount} vertex pairs merged (${iterationCount} iterations)`);
     if (mergedCount < verticesToRemove) {
-      console.log(`   ⚠️ Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
+      console.log(`   ⚠��� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
     }
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
