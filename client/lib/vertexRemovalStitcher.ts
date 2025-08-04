@@ -403,12 +403,15 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
+    console.log(`🚀 === DECIMATION FUNCTION CALLED ===`);
     console.log(`🔄 === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
     console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
+    console.log(`   Original geometry UUID: ${geometry.uuid}`);
     console.log(`   Method: Pure edge collapse - two vertices become one`);
 
     // Use our own pure edge collapse implementation
+    console.log(`🔧 Calling pureQuadricEdgeCollapse...`);
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
     const newStats = this.getMeshStats(simplifiedGeometry);
     const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
@@ -416,6 +419,8 @@ export class VertexRemovalStitcher {
     console.log(`   ✅ Pure edge collapse completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
     console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
     console.log(`   🛡️ Zero faces deleted - surface topology preserved`);
+    console.log(`   🆔 New geometry UUID: ${simplifiedGeometry.uuid}`);
+    console.log(`   🔄 Returning to STLManipulator...`);
 
     return {
       simplifiedGeometry,
