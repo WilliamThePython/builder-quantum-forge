@@ -254,7 +254,7 @@ export class ModelFileHandler {
     if (geometry.attributes.normal) {
       indexedGeometry.setAttribute('normal', geometry.attributes.normal);
     } else {
-      indexedGeometry.computeVertexNormals();
+      computeFlatNormals(indexedGeometry);
     }
 
     if (geometry.attributes.uv) {
