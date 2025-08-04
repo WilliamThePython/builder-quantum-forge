@@ -843,7 +843,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addError(`Failed to create random model: ${errorMessage}`);
-      console.error('��� Random model creation error:', err);
+      console.error('❌ Random model creation error:', err);
       console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     } finally {
       setIsLoading(false);
@@ -1172,8 +1172,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         vertices: result.geometry.attributes.position.count,
         faces: result.geometry.index ? result.geometry.index.count / 3 : 0,
         uuid: result.geometry.uuid,
-        boundingBox: result.geometry.boundingBox
+        boundingBox: result.geometry.boundingBox,
+        hasPolygonFaces: !!(result.geometry as any).polygonFaces,
+        polygonFaceCount: (result.geometry as any).polygonFaces ? (result.geometry as any).polygonFaces.length : 'N/A'
       });
+
+      // CRITICAL: Check if polygon metadata is preserved
+      const inputPolygonFaces = (geometry as any).polygonFaces;
+      const outputPolygonFaces = (result.geometry as any).polygonFaces;
+
+      console.log('🔍 POLYGON METADATA PRESERVATION CHECK:');
+      console.log('   Input had polygon faces:', !!inputPolygonFaces, inputPolygonFaces ? inputPolygonFaces.length : 'N/A');
+      console.log('   Output has polygon faces:', !!outputPolygonFaces, outputPolygonFaces ? outputPolygonFaces.length : 'N/A');
+
+      if (inputPolygonFaces && !outputPolygonFaces) {
+        console.log('🚨 PROBLEM FOUND: Polygon metadata was LOST during decimation!');
+        console.log('🚨 This will cause fallback to triangle-based coloring!');
+      } else if (inputPolygonFaces && outputPolygonFaces) {
+        console.log('✅ Polygon metadata preserved during decimation');
+      }
 
       // Log first few vertices for comparison
       const outputPositions = result.geometry.attributes.position.array;
