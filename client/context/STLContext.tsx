@@ -1210,7 +1210,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     } else {
       console.warn('⚠️ No backup available to restore from');
     }
-  }, [backupGeometry, backupProcessedModel, hasBackup]);
+  }, [backupIndexedGeometry, backupProcessedModel, hasBackup]);
 
   // STL Tool Methods
   const reducePoints = useCallback(async (reductionAmount: number, method: 'quadric_edge_collapse' = 'quadric_edge_collapse'): Promise<ToolOperationResult> => {
