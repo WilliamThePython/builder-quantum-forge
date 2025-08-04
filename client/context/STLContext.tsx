@@ -523,8 +523,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry.scale(scale, scale, scale);
 
       updateProgress(70, 'Optimizing', 'Ensuring solid object display...');
-      // Ensure solid object appearance with proper face normals
-      ensureSolidObjectDisplay(geometry);
+      // Prepare geometry for viewing with unified pipeline
+      const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
+      // Update geometry reference for subsequent processing
+      geometry = preparedGeometry;
 
       updateProgress(75, 'Reconstructing', 'Analyzing polygon faces...');
 
