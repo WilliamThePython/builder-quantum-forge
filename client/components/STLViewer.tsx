@@ -804,7 +804,7 @@ function STLMesh() {
     if (!viewerSettings.wireframe || !geometry) return null;
 
     console.log('🔗 === WIREFRAME UPDATE ===');
-    console.log(`🔗 Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+    console.log(`��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
 
     const polygonFaces = (geometry as any).polygonFaces;
 
@@ -871,7 +871,8 @@ function STLMesh() {
       roughness: 0.6,
       side: THREE.FrontSide,
       transparent: false,
-      opacity: 1.0
+      opacity: 1.0,
+      flatShading: true // Maintain crisp face shading instead of smooth interpolation
     });
   }, [viewerSettings.wireframe, viewerSettings.randomColors]);
 
