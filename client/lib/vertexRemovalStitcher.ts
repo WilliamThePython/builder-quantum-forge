@@ -130,9 +130,9 @@ export class VertexRemovalStitcher {
       // Update position attribute
       resultGeometry.attributes.position.needsUpdate = true;
 
-      // IMPORTANT: Use computeFlatVertexNormals to maintain crisp face shading
+      // IMPORTANT: Use flat normals to maintain crisp face shading
       // computeVertexNormals() creates smooth shading which blends colors
-      this.computeFlatVertexNormals(resultGeometry);
+      computeFlatNormals(resultGeometry);
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
       console.log(`✅ POLYGON-AWARE VERTEX MERGE COMPLETE`);
@@ -577,7 +577,7 @@ export class VertexRemovalStitcher {
     this.computeFlatVertexNormals(cloned);
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
-    console.log(`   ��️ All ${indices.length / 3} triangles preserved`);
+    console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
     console.log(`   📊 Result: ${originalVertexCount} → ${originalVertexCount - mergedCount} vertices`);
     console.log(`   🎯 Returning decimated geometry...`);
 
