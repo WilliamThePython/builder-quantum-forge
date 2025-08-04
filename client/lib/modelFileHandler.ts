@@ -288,7 +288,7 @@ export class ModelFileHandler {
     const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
     geometry.scale(scale, scale, scale);
     
-    geometry.computeVertexNormals();
+    computeFlatNormals(geometry);
   }
   
   /**
