@@ -237,7 +237,7 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     }
 
     // Use flat normals to maintain crisp face shading
-    this.computeFlatNormals(geometry);
+    computeFlatNormals(geometry);
   }
 
   // Ensure proper material-side settings will be respected
