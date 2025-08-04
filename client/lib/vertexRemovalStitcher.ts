@@ -463,10 +463,14 @@ export class VertexRemovalStitcher {
     console.log(`   Target: Remove ${verticesToRemove} vertices via edge collapse`);
 
     // Build edge list for collapse candidates
+    console.log(`   🔧 Building edge list...`);
     const edges = this.buildEdgeList(indices);
+    console.log(`   📊 Found ${edges.length} edges for potential collapse`);
+
     const vertexMergeMap = new Map<number, number>(); // old vertex -> new vertex
 
     // Sort edges by length for optimal collapse order (shortest first)
+    console.log(`   🔧 Sorting edges by length...`);
     edges.sort((a, b) => {
       const lengthA = this.calculateEdgeLength(positions, a[0], a[1]);
       const lengthB = this.calculateEdgeLength(positions, b[0], b[1]);
@@ -474,6 +478,7 @@ export class VertexRemovalStitcher {
     });
 
     let mergedCount = 0;
+    console.log(`   🎯 Starting edge collapse process...`);
 
     // Perform edge collapses (merge vertices)
     for (const [v1, v2] of edges) {
