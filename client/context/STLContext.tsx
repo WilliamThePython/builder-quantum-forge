@@ -1183,8 +1183,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       console.log('🔄 Setting geometry in viewer context...');
 
+      // CRITICAL: Use unified geometry preparation to ensure consistent viewing
+      const preparedGeometry = prepareGeometryForViewing(result.geometry, 'decimation');
+
       // Update the geometry
-      setGeometry(result.geometry);
+      setGeometry(preparedGeometry);
 
       const message = `Mesh simplification (${method}) completed: Reduced from ${result.originalStats.vertices.toLocaleString()} to ${result.newStats.vertices.toLocaleString()} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`;
 
