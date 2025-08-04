@@ -853,7 +853,7 @@ function STLMesh() {
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
 
-  // Create materials based on settings
+  // Create materials based on settings - include geometry UUID to force refresh
   const material = useMemo(() => {
     if (viewerSettings.wireframe) {
       return new THREE.MeshBasicMaterial({
@@ -866,7 +866,7 @@ function STLMesh() {
 
     const baseColor = viewerSettings.randomColors ? 0xffffff : 0x606060;
 
-    return new THREE.MeshStandardMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       color: baseColor,
       vertexColors: viewerSettings.randomColors,
       metalness: 0.1,
@@ -876,7 +876,14 @@ function STLMesh() {
       opacity: 1.0,
       flatShading: true // Maintain crisp face shading instead of smooth interpolation
     });
-  }, [viewerSettings.wireframe, viewerSettings.randomColors]);
+
+    // Force material to refresh when geometry changes
+    if (geometry) {
+      mat.needsUpdate = true;
+    }
+
+    return mat;
+  }, [viewerSettings.wireframe, viewerSettings.randomColors, geometry?.uuid]);
 
   // Trigger spinning animation when a new model loads (but not during decimation)
   useEffect(() => {
