@@ -1498,17 +1498,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Reset decimation flag BEFORE geometry update to prevent spinning
         setIsDecimating(false);
 
-        // CRITICAL: Perform coplanar merging after edge decimation
-        console.log('🔧 POST-EDGE-DECIMATION: Running coplanar triangle merging...');
+        // CRITICAL: Perform simple coplanar merging after edge decimation
+        console.log('🔧 POST-EDGE-DECIMATION: Running simple coplanar triangle merging...');
         try {
-          const { CoplanarMerger } = await import('../lib/coplanarMerger');
-          const mergedFaces = CoplanarMerger.mergeGeometryTriangles(result.geometry);
+          const { SimpleCoplanarMerger } = await import('../lib/simpleCoplanarMerger');
+          const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(result.geometry);
 
           if (mergedFaces.length > 0) {
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_edge_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
-            console.log(`✅ Post-edge-decimation coplanar merging: Created ${mergedFaces.length} polygon faces`);
+            console.log(`✅ Post-edge-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
           console.warn('⚠️ Post-edge-decimation coplanar merging failed:', mergeError);
