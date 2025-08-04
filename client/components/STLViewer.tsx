@@ -961,7 +961,7 @@ function STLMesh() {
       }
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log(`🔧 Coloring ${polygonFaces.length} polygon faces`);
+        console.log(`🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`);
         let triangleOffset = 0;
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
@@ -988,10 +988,11 @@ function STLMesh() {
 
           triangleOffset += triangleCount;
         }
-        console.log(`✅ Applied polygon-aware coloring to ${triangleOffset} triangles`);
+        console.log(`🎨 ✅ Applied POLYGON-AWARE coloring to ${triangleOffset} triangles`);
       } else {
         // Fallback to triangle-based coloring if no polygon face data
-        console.log('🔧 No polygon faces found, using triangle-based coloring');
+        console.log('🎨 ❌ FALLBACK PATH: No polygon faces found, using triangle-based coloring');
+        console.log('🎨 ❌ This will break up polygon grouping and cause individual triangle colors!');
         const color = new THREE.Color();
         for (let i = 0; i < colors.length; i += 9) {
           color.setHSL(Math.random(), 0.7, 0.6);
@@ -1002,6 +1003,7 @@ function STLMesh() {
             colors[i + j + 2] = color.b;
           }
         }
+        console.log('🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!');
       }
 
       // Store original colors for highlighting
