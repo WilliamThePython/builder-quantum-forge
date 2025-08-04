@@ -400,7 +400,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Helper function to convert indexed geometry to non-indexed for viewing
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (indexedGeom: THREE.BufferGeometry): THREE.BufferGeometry => {
-    console.log('🔄 === POLYGON-AWARE NON-INDEXED CONVERSION ===');
+    console.log('��� === POLYGON-AWARE NON-INDEXED CONVERSION ===');
 
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
@@ -1482,6 +1482,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         // Reset decimation flag BEFORE geometry update to prevent spinning
         setIsDecimating(false);
+
+        // CRITICAL: Perform coplanar merging after edge decimation
+        console.log('🔧 POST-EDGE-DECIMATION: Running coplanar triangle merging...');
+        try {
+          const { CoplanarMerger } = await import('../lib/coplanarMerger');
+          const mergedFaces = CoplanarMerger.mergeGeometryTriangles(result.geometry);
+
+          if (mergedFaces.length > 0) {
+            (result.geometry as any).polygonFaces = mergedFaces;
+            (result.geometry as any).polygonType = 'post_edge_decimation_merged';
+            (result.geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Post-edge-decimation coplanar merging: Created ${mergedFaces.length} polygon faces`);
+          }
+        } catch (mergeError) {
+          console.warn('⚠️ Post-edge-decimation coplanar merging failed:', mergeError);
+        }
 
         // Update both indexed and non-indexed geometries using dual geometry approach
         result.geometry.uuid = THREE.MathUtils.generateUUID();
