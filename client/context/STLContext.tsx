@@ -717,7 +717,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         try {
           // Convert OBJ string to proper polygon faces if not already done
           const objString = await file.text();
-          const polygonFaces = this.parseOBJPolygonFaces(objString);
+          const polygonFaces = parseOBJPolygonFaces(objString);
           if (polygonFaces.length > 0) {
             (geometry as any).polygonFaces = polygonFaces;
             (geometry as any).polygonType = 'obj_preserved';
