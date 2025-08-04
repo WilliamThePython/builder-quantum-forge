@@ -1163,23 +1163,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Backup and restore functions
   const createBackup = useCallback(() => {
-    if (geometry) {
-      console.log('🔄 Creating backup of current model with polygon structure...');
-      // Clone the geometry to avoid reference issues
-      const backup = geometry.clone();
+    if (indexedGeometry) {
+      console.log('🔄 Creating backup of current indexed model with polygon structure...');
+      // Clone the indexed geometry to avoid reference issues
+      const backup = indexedGeometry.clone();
 
       // Preserve any polygon/face metadata that might be attached
-      if ((geometry as any).polygonFaces) {
-        (backup as any).polygonFaces = JSON.parse(JSON.stringify((geometry as any).polygonFaces));
+      if ((indexedGeometry as any).polygonFaces) {
+        (backup as any).polygonFaces = JSON.parse(JSON.stringify((indexedGeometry as any).polygonFaces));
       }
-      if ((geometry as any).originalPolygons) {
-        (backup as any).originalPolygons = JSON.parse(JSON.stringify((geometry as any).originalPolygons));
+      if ((indexedGeometry as any).originalPolygons) {
+        (backup as any).originalPolygons = JSON.parse(JSON.stringify((indexedGeometry as any).originalPolygons));
       }
-      if ((geometry as any).reconstructedFaces) {
-        (backup as any).reconstructedFaces = JSON.parse(JSON.stringify((geometry as any).reconstructedFaces));
+      if ((indexedGeometry as any).reconstructedFaces) {
+        (backup as any).reconstructedFaces = JSON.parse(JSON.stringify((indexedGeometry as any).reconstructedFaces));
       }
 
-      setBackupGeometry(backup);
+      setBackupIndexedGeometry(backup);
       setBackupProcessedModel(processedModel);
       setHasBackup(true);
       console.log('✅ Backup created successfully with polygon structure preserved');
