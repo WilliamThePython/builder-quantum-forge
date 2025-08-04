@@ -32,10 +32,10 @@ export default function Index() {
     setToolMode(mode);
   };
 
-  const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex') => {
+  const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex' | 'quadric_edge_collapse') => {
     console.log('🎯 handleReducePoints called with:', { reduction, method });
     // Map UI method names to backend method names
-    let backendMethod: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random' | 'random_vertex' | 'python_vertex';
+    let backendMethod: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random';
 
     switch (method) {
       case 'random':
@@ -48,10 +48,10 @@ export default function Index() {
         backendMethod = 'quadric_edge_collapse'; // Direct QEM
         break;
       case 'random_vertex':
-        backendMethod = 'random_vertex';
+        backendMethod = 'quadric_edge_collapse'; // Map to quadric for now
         break;
       case 'python_vertex':
-        backendMethod = 'python_vertex';
+        backendMethod = 'quadric_edge_collapse'; // Map to quadric for now
         break;
       default:
         backendMethod = 'quadric_edge_collapse'; // Default to proper QEM
