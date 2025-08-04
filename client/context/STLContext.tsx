@@ -1187,25 +1187,24 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [geometry, processedModel]);
 
   const restoreFromBackup = useCallback(() => {
-    if (backupGeometry && hasBackup) {
+    if (backupIndexedGeometry && hasBackup) {
       console.log('🔄 Restoring model from backup with polygon structure...');
       // Clone the backup to avoid reference issues
-      const restored = backupGeometry.clone();
+      const restored = backupIndexedGeometry.clone();
 
       // Restore polygon/face metadata
-      if ((backupGeometry as any).polygonFaces) {
-        (restored as any).polygonFaces = JSON.parse(JSON.stringify((backupGeometry as any).polygonFaces));
+      if ((backupIndexedGeometry as any).polygonFaces) {
+        (restored as any).polygonFaces = JSON.parse(JSON.stringify((backupIndexedGeometry as any).polygonFaces));
       }
-      if ((backupGeometry as any).originalPolygons) {
-        (restored as any).originalPolygons = JSON.parse(JSON.stringify((backupGeometry as any).originalPolygons));
+      if ((backupIndexedGeometry as any).originalPolygons) {
+        (restored as any).originalPolygons = JSON.parse(JSON.stringify((backupIndexedGeometry as any).originalPolygons));
       }
-      if ((backupGeometry as any).reconstructedFaces) {
-        (restored as any).reconstructedFaces = JSON.parse(JSON.stringify((backupGeometry as any).reconstructedFaces));
+      if ((backupIndexedGeometry as any).reconstructedFaces) {
+        (restored as any).reconstructedFaces = JSON.parse(JSON.stringify((backupIndexedGeometry as any).reconstructedFaces));
       }
 
-      // Use unified geometry preparation for restored geometry
-      const preparedRestored = prepareGeometryForViewing(restored, 'restoration');
-      setGeometry(preparedRestored);
+      // Use dual geometry setup for restored geometry
+      setDualGeometry(restored);
       setProcessedModel(backupProcessedModel);
       console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
