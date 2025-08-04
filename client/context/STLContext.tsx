@@ -114,8 +114,9 @@ const defaultSTLFiles = [
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   console.log('🔧 Ensuring solid object display...');
 
-  // First, compute basic vertex normals
-  geometry.computeVertexNormals();
+  // Use flat normals to maintain crisp face shading instead of smooth blending
+  // geometry.computeVertexNormals(); // DISABLED: Creates smooth shading that blends colors
+  this.computeFlatNormals(geometry);
 
   // Check if we need to flip faces by examining face normals
   const positions = geometry.attributes.position.array;
