@@ -441,9 +441,16 @@ export class VertexRemovalStitcher {
     console.log('   Guarantee: ZERO faces deleted, ZERO holes created');
 
     if (targetReduction <= 0) {
+      console.log('⚠️ Zero reduction requested - returning original geometry');
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
       return cloned;
+    }
+
+    // Ensure minimum visible reduction for testing
+    if (targetReduction < 0.1) {
+      console.log(`⚠️ Small reduction (${(targetReduction * 100).toFixed(1)}%) - forcing to 10% for visible change`);
+      targetReduction = 0.1;
     }
 
     const cloned = geometry.clone();
