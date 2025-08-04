@@ -115,7 +115,7 @@ const defaultSTLFiles = [
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
-  console.log('🔧 Ensuring solid object display...');
+  console.log('��� Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
@@ -1184,7 +1184,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setHasBackup(true);
       console.log('✅ Backup created successfully with polygon structure preserved');
     }
-  }, [geometry, processedModel]);
+  }, [indexedGeometry, processedModel]);
 
   const restoreFromBackup = useCallback(() => {
     if (backupIndexedGeometry && hasBackup) {
