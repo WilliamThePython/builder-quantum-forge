@@ -940,48 +940,23 @@ function STLMesh() {
   // Store original colors for highlighting
   const originalColors = useRef<Float32Array | null>(null);
 
-  // Add random colors to geometry if enabled - now works with polygon faces
+  // SIMPLIFIED: Add random colors to geometry - basic per-triangle coloring
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      const colors = new Float32Array(geometry.attributes.position.count * 3);
-      const polygonFaces = (geometry as any).polygonFaces;
+      console.log('🎨 Applying simple per-triangle coloring...');
 
-      if (polygonFaces && Array.isArray(polygonFaces)) {
-        // Color each polygon face with a unique color
-        let triangleOffset = 0;
+      // Simple approach: one color per triangle (3 vertices = 9 color values)
+      const vertexCount = geometry.attributes.position.count;
+      const colors = new Float32Array(vertexCount * 3);
 
-        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
-          const face = polygonFaces[faceIndex];
-          const triangleCount = getTriangleCountForPolygon(face);
+      // Apply one random color per triangle
+      const color = new THREE.Color();
+      for (let i = 0; i < colors.length; i += 9) { // 9 = 3 vertices * 3 color components
+        color.setHSL(Math.random(), 0.8, 0.6);
 
-          // Generate one color per polygon face
-          const color = new THREE.Color();
-          color.setHSL(Math.random(), 0.8, 0.6);
-
-          // Apply this color to all triangles that make up this polygon face
-          for (let t = 0; t < triangleCount; t++) {
-            const triangleStart = (triangleOffset + t) * 9; // 9 values per triangle (3 vertices * 3 color components)
-
-            // Apply same color to all 3 vertices of the triangle
-            for (let v = 0; v < 9; v += 3) {
-              if (triangleStart + v + 2 < colors.length) {
-                colors[triangleStart + v] = color.r;
-                colors[triangleStart + v + 1] = color.g;
-                colors[triangleStart + v + 2] = color.b;
-              }
-            }
-          }
-
-          triangleOffset += triangleCount;
-        }
-      } else {
-        // Fallback to triangle-based coloring if no polygon face data
-        console.log('No polygon faces found, using triangle-based coloring');
-        const color = new THREE.Color();
-        for (let i = 0; i < colors.length; i += 9) {
-          color.setHSL(Math.random(), 0.7, 0.6);
-
-          for (let j = 0; j < 9; j += 3) {
+        // Apply same color to all 3 vertices of this triangle
+        for (let j = 0; j < 9; j += 3) {
+          if (i + j + 2 < colors.length) {
             colors[i + j] = color.r;
             colors[i + j + 1] = color.g;
             colors[i + j + 2] = color.b;
@@ -992,24 +967,14 @@ function STLMesh() {
       // Store original colors for highlighting
       originalColors.current = new Float32Array(colors);
 
+      // Apply colors to geometry
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
 
-      // CRITICAL: For truly flat colors, convert indexed geometry to non-indexed
-      // This prevents Three.js from interpolating colors between shared vertices
-      if (geometry.index) {
-        console.log('🔧 Converting to non-indexed geometry for flat vertex colors...');
-        const nonIndexedGeometry = convertToNonIndexedForFlatColors(geometry);
+      // Force flat normals after setting colors
+      computeFlatNormals(geometry);
+      console.log('✅ Applied simple triangle coloring with flat normals');
 
-        // Replace the geometry with the non-indexed version
-        // Note: This updates the geometry in place by copying attributes
-        geometry.copy(nonIndexedGeometry);
-        console.log('✅ Converted to non-indexed geometry for crisp colors');
-      } else {
-        // CRITICAL: Recompute flat normals after setting colors to maintain crisp face shading
-        computeFlatNormals(geometry);
-        console.log('🎨 Recomputed flat normals after setting colors');
-      }
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute('color');
