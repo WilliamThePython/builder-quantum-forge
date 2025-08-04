@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { computeFlatNormals } from './flatNormals';
 
 export interface OBJConversionResult {
   success?: boolean;
