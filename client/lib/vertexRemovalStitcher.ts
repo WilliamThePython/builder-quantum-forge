@@ -602,6 +602,71 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Convert non-indexed geometry to indexed geometry for edge collapse
+   */
+  private static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+    console.log('🔧 === CONVERTING NON-INDEXED TO INDEXED ===');
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const vertexCount = positions.length / 3;
+
+    console.log(`   📊 Input: ${vertexCount} vertices (${vertexCount / 3} triangles)`);
+
+    // Build vertex map to merge duplicate vertices
+    const vertexMap = new Map<string, number>();
+    const newPositions: number[] = [];
+    const indices: number[] = [];
+
+    const tolerance = 0.0001; // Very small tolerance for vertex matching
+
+    for (let i = 0; i < vertexCount; i++) {
+      const x = positions[i * 3];
+      const y = positions[i * 3 + 1];
+      const z = positions[i * 3 + 2];
+
+      // Create key for vertex deduplication
+      const key = `${x.toFixed(6)},${y.toFixed(6)},${z.toFixed(6)}`;
+
+      let index = vertexMap.get(key);
+      if (index === undefined) {
+        index = newPositions.length / 3;
+        vertexMap.set(key, index);
+        newPositions.push(x, y, z);
+      }
+
+      indices.push(index);
+    }
+
+    // Create new indexed geometry
+    const indexedGeometry = new THREE.BufferGeometry();
+    indexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    indexedGeometry.setIndex(indices);
+
+    // Copy other attributes if they exist
+    if (geometry.attributes.normal) {
+      indexedGeometry.setAttribute('normal', geometry.attributes.normal.clone());
+    }
+    if (geometry.attributes.uv) {
+      indexedGeometry.setAttribute('uv', geometry.attributes.uv.clone());
+    }
+
+    // Copy polygon metadata if it exists
+    if ((geometry as any).polygonFaces) {
+      (indexedGeometry as any).polygonFaces = (geometry as any).polygonFaces;
+    }
+
+    indexedGeometry.uuid = THREE.MathUtils.generateUUID();
+
+    const uniqueVertices = newPositions.length / 3;
+    const triangles = indices.length / 3;
+
+    console.log(`   ✅ Conversion complete: ${uniqueVertices} unique vertices, ${triangles} triangles`);
+    console.log(`   📊 Vertex deduplication: ${vertexCount} → ${uniqueVertices} (saved ${vertexCount - uniqueVertices})`);
+
+    return indexedGeometry;
+  }
+
+  /**
    * DEPRECATED: Old basic vertex reduction method
    */
   private static basicVertexReduction(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
