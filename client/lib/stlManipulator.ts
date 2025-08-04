@@ -24,27 +24,21 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`🔄 Starting centralized mesh decimation (${(targetReduction * 100).toFixed(1)}% reduction)...`);
+    console.log(`🔄 Starting mesh decimation (${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
     const originalStats = this.calculateMeshStats(geometry);
 
-    // Use centralized GeometryProcessor for consistent results
-    const result = await GeometryProcessor.decimateQuadric(geometry, targetReduction);
+    // Use JavaScript implementation
+    const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
-    if (!result.success || !result.geometry) {
-      throw new Error(`Decimation failed: ${result.message}`);
-    }
-
-    const newStats = this.calculateMeshStats(result.geometry);
-
-    console.log(`✅ Centralized decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
+    console.log(`✅ Decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
 
     return {
-      geometry: result.geometry,
-      originalStats,
-      newStats,
-      reductionAchieved: result.stats?.reductionAchieved ?? 0,
-      processingTime: Date.now() - Date.now() // Will be calculated in GeometryProcessor
+      geometry: result.simplifiedGeometry,
+      originalStats: result.originalStats,
+      newStats: result.newStats,
+      reductionAchieved: result.reductionAchieved,
+      processingTime: result.processingTime
     };
   }
 
