@@ -407,7 +407,7 @@ export class VertexRemovalStitcher {
     const originalStats = this.getMeshStats(geometry);
 
     console.log(`🚀 === DECIMATION FUNCTION CALLED ===`);
-    console.log(`��� === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
+    console.log(`🔄 === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
     console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
     console.log(`   Original geometry UUID: ${geometry.uuid}`);
@@ -574,7 +574,7 @@ export class VertexRemovalStitcher {
 
     // Recompute normals with flat shading to maintain crisp faces
     console.log(`   🔧 Recomputing flat normals...`);
-    this.computeFlatVertexNormals(cloned);
+    computeFlatNormals(cloned);
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
     console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
