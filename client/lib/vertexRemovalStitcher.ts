@@ -210,7 +210,7 @@ export class VertexRemovalStitcher {
     // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
     resultGeometry.attributes.position.needsUpdate = true;
     // Use flat normals to maintain crisp face shading
-    this.computeFlatVertexNormals(resultGeometry);
+    computeFlatNormals(resultGeometry);
     resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
     return {
@@ -407,7 +407,7 @@ export class VertexRemovalStitcher {
     const originalStats = this.getMeshStats(geometry);
 
     console.log(`🚀 === DECIMATION FUNCTION CALLED ===`);
-    console.log(`🔄 === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
+    console.log(`��� === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
     console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
     console.log(`   Original geometry UUID: ${geometry.uuid}`);
