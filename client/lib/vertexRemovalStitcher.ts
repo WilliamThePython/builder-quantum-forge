@@ -402,15 +402,96 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-    // For single edge collapse via painter, just return original
-    // This method is primarily used by bulk decimation
-    return {
-      simplifiedGeometry: geometry.clone(),
-      originalStats,
-      newStats: originalStats,
-      reductionAchieved: 0,
-      processingTime: Date.now() - startTime
-    };
+    console.log(`🔄 IMPLEMENTING QUADRIC EDGE COLLAPSE DECIMATION`);
+    console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
+    console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
+
+    try {
+      // Import and use the enhanced mesh simplifier
+      const { SimplifyModifier } = await import('three/examples/jsm/modifiers/SimplifyModifier');
+
+      // Create simplified geometry
+      const simplifier = new SimplifyModifier();
+      const targetVertexCount = Math.floor(originalStats.vertices * (1 - targetReduction));
+
+      console.log(`   Targeting ${targetVertexCount} vertices (reduction of ${originalStats.vertices - targetVertexCount})`);
+
+      const simplifiedGeometry = simplifier.modify(geometry, targetVertexCount);
+
+      // Ensure the simplified geometry has a new UUID for React re-rendering
+      simplifiedGeometry.uuid = THREE.MathUtils.generateUUID();
+
+      // Calculate final stats
+      const newStats = this.getMeshStats(simplifiedGeometry);
+      const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
+
+      console.log(`   ✅ Decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
+      console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
+
+      return {
+        simplifiedGeometry,
+        originalStats,
+        newStats,
+        reductionAchieved: actualReduction,
+        processingTime: Date.now() - startTime
+      };
+
+    } catch (error) {
+      console.error('❌ SimplifyModifier failed, using basic vertex reduction:', error);
+
+      // Fallback to basic vertex reduction if SimplifyModifier fails
+      const simplifiedGeometry = this.basicVertexReduction(geometry, targetReduction);
+      const newStats = this.getMeshStats(simplifiedGeometry);
+      const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
+
+      return {
+        simplifiedGeometry,
+        originalStats,
+        newStats,
+        reductionAchieved: actualReduction,
+        processingTime: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * Basic vertex reduction fallback method
+   */
+  private static basicVertexReduction(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = geometry.index?.array;
+
+    if (!indices) {
+      console.warn('⚠️ Non-indexed geometry - limited reduction capability');
+      const cloned = geometry.clone();
+      cloned.uuid = THREE.MathUtils.generateUUID();
+      return cloned;
+    }
+
+    // Simple reduction: remove every nth triangle
+    const targetFaceCount = Math.floor((indices.length / 3) * (1 - targetReduction));
+    const step = Math.max(1, Math.floor((indices.length / 3) / targetFaceCount));
+
+    const newIndices: number[] = [];
+    for (let i = 0; i < indices.length; i += 3 * step) {
+      if (i + 2 < indices.length) {
+        newIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+      }
+    }
+
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', geometry.attributes.position.clone());
+
+    if (geometry.attributes.normal) {
+      newGeometry.setAttribute('normal', geometry.attributes.normal.clone());
+    }
+
+    newGeometry.setIndex(newIndices);
+    newGeometry.uuid = THREE.MathUtils.generateUUID();
+
+    console.log(`📊 Basic reduction: ${indices.length / 3} → ${newIndices.length / 3} faces`);
+
+    return newGeometry;
   }
 
   /**
