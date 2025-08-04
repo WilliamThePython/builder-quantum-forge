@@ -988,9 +988,21 @@ function STLMesh() {
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
 
-      // CRITICAL: Recompute flat normals after setting colors to maintain crisp face shading
-      computeFlatNormals(geometry);
-      console.log('🎨 Recomputed flat normals after setting colors');
+      // CRITICAL: For truly flat colors, convert indexed geometry to non-indexed
+      // This prevents Three.js from interpolating colors between shared vertices
+      if (geometry.index) {
+        console.log('🔧 Converting to non-indexed geometry for flat vertex colors...');
+        const nonIndexedGeometry = convertToNonIndexedForFlatColors(geometry);
+
+        // Replace the geometry with the non-indexed version
+        // Note: This updates the geometry in place by copying attributes
+        geometry.copy(nonIndexedGeometry);
+        console.log('✅ Converted to non-indexed geometry for crisp colors');
+      } else {
+        // CRITICAL: Recompute flat normals after setting colors to maintain crisp face shading
+        computeFlatNormals(geometry);
+        console.log('🎨 Recomputed flat normals after setting colors');
+      }
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute('color');
