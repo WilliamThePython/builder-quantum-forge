@@ -1021,39 +1021,10 @@ function STLMesh() {
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
 
-      // CRITICAL: Convert indexed geometry to non-indexed for truly flat colors
-      if (geometry.index) {
-        console.log('🎨 🔧 Converting indexed geometry to non-indexed for flat vertex colors...');
-        console.log('   Before conversion:', {
-          vertices: geometry.attributes.position.count,
-          triangles: geometry.index.count / 3,
-          isIndexed: true
-        });
-
-        // Convert to non-indexed to prevent vertex color interpolation
-        const nonIndexedGeometry = convertToNonIndexedForFlatColors(geometry);
-
-        // Copy the non-indexed attributes back to the original geometry
-        geometry.setIndex(null); // Remove index
-        geometry.setAttribute('position', nonIndexedGeometry.attributes.position);
-        geometry.setAttribute('normal', nonIndexedGeometry.attributes.normal);
-        geometry.setAttribute('color', nonIndexedGeometry.attributes.color);
-
-        // Copy polygon metadata
-        if ((nonIndexedGeometry as any).polygonFaces) {
-          (geometry as any).polygonFaces = (nonIndexedGeometry as any).polygonFaces;
-        }
-
-        console.log('   After conversion:', {
-          vertices: geometry.attributes.position.count,
-          triangles: geometry.attributes.position.count / 3,
-          isIndexed: !!geometry.index
-        });
-        console.log('✅ Converted to non-indexed geometry for crisp flat colors');
-      } else {
-        // Already non-indexed, just ensure flat normals
-        computePolygonAwareFlatNormals(geometry, polygonFaces);
-      }
+      // Since we now use non-indexed geometry for viewing, just ensure flat normals
+      console.log('🎨 Ensuring flat normals for crisp face shading...');
+      computePolygonAwareFlatNormals(geometry, polygonFaces);
+      console.log('✅ Applied polygon-aware coloring with flat normals');
 
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
