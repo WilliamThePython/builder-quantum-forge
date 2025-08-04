@@ -901,8 +901,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Prepare geometry for viewing with unified pipeline
       const preparedGeometry = prepareGeometryForViewing(bufferGeometry, 'initial_load');
 
-      // Set the prepared geometry
-      setGeometry(preparedGeometry);
+      // Set up dual geometry storage
+      setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
       setFileName(selectedModel.name);
       setOriginalFormat('stl');
 
