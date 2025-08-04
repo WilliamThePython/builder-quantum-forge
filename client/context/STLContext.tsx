@@ -676,8 +676,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
 
-      updateProgress(70, 'Optimizing', 'Ensuring solid object display...');
-      // Prepare geometry and set up dual storage
+      updateProgress(70, 'Optimizing', 'Ensuring geometry is indexed for operations...');
+      // CRITICAL: Ensure geometry is indexed for efficient operations like decimation
+      if (!geometry.index) {
+        console.log('🔧 Converting STL to indexed geometry for efficient operations...');
+        geometry = ensureIndexedGeometry(geometry);
+      }
+
+      // Prepare geometry for viewing
       const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
       // Update geometry reference for subsequent processing
       geometry = preparedGeometry;
