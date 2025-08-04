@@ -943,10 +943,22 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      console.log('🎨 Applying polygon-aware coloring with flat shading...');
+      console.log('🎨 === COLORING PIPELINE DEBUG ===');
+      console.log('🎨 Geometry UUID:', geometry.uuid);
+      console.log('🎨 Vertex count:', geometry.attributes.position.count);
+      console.log('🎨 Has index:', !!geometry.index);
+      console.log('🎨 Index count:', geometry.index ? geometry.index.count : 'N/A');
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
+
+      console.log('🎨 Polygon faces available:', !!polygonFaces);
+      console.log('🎨 Polygon faces type:', Array.isArray(polygonFaces) ? 'array' : typeof polygonFaces);
+      console.log('🎨 Polygon faces count:', polygonFaces ? polygonFaces.length : 'N/A');
+
+      if (polygonFaces && Array.isArray(polygonFaces)) {
+        console.log('🎨 First few polygon faces:', polygonFaces.slice(0, 3));
+      }
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
         console.log(`🔧 Coloring ${polygonFaces.length} polygon faces`);
