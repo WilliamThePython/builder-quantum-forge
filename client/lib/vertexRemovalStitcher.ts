@@ -402,80 +402,27 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-    console.log(`🔄 IMPLEMENTING QUADRIC EDGE COLLAPSE DECIMATION`);
+    console.log(`🔄 === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
     console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
+    console.log(`   Method: Pure edge collapse - two vertices become one`);
 
-    console.log('🔍 Attempting to use Three.js SimplifyModifier for proper decimation...');
+    // Use our own pure edge collapse implementation
+    const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
+    const newStats = this.getMeshStats(simplifiedGeometry);
+    const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
 
-    try {
-      // Try to import SimplifyModifier - may not be available in all Three.js versions
-      const modifierModule = await import('three/examples/jsm/modifiers/SimplifyModifier.js');
-      const SimplifyModifier = modifierModule.SimplifyModifier;
+    console.log(`   ✅ Pure edge collapse completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
+    console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
+    console.log(`   🛡️ Zero faces deleted - surface topology preserved`);
 
-      if (!SimplifyModifier) {
-        throw new Error('SimplifyModifier not found in module');
-      }
-
-      console.log('✅ SimplifyModifier loaded successfully');
-
-      // Create simplified geometry
-      const simplifier = new SimplifyModifier();
-      const targetVertexCount = Math.floor(originalStats.vertices * (1 - targetReduction));
-
-      console.log(`   Targeting ${targetVertexCount} vertices (reduction of ${originalStats.vertices - targetVertexCount})`);
-
-      // Ensure geometry has proper attributes before decimation
-      if (!geometry.attributes.normal) {
-        geometry.computeVertexNormals();
-      }
-
-      const simplifiedGeometry = simplifier.modify(geometry, targetVertexCount);
-
-      // Validate that decimation didn't create holes
-      if (!simplifiedGeometry || !simplifiedGeometry.attributes.position) {
-        throw new Error('SimplifyModifier returned invalid geometry');
-      }
-
-      // Ensure the simplified geometry has a new UUID for React re-rendering
-      simplifiedGeometry.uuid = THREE.MathUtils.generateUUID();
-
-      // Recompute normals for proper lighting
-      simplifiedGeometry.computeVertexNormals();
-
-      // Calculate final stats
-      const newStats = this.getMeshStats(simplifiedGeometry);
-      const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
-
-      console.log(`   ✅ Decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
-      console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
-      console.log(`   🔍 Topology check: Original faces: ${originalStats.faces}, New faces: ${newStats.faces}`);
-
-      return {
-        simplifiedGeometry,
-        originalStats,
-        newStats,
-        reductionAchieved: actualReduction,
-        processingTime: Date.now() - startTime
-      };
-
-    } catch (error) {
-      console.error('❌ SimplifyModifier failed or not available:', error);
-      console.log('🔄 Falling back to hole-free preservation method');
-
-      // Fallback to basic vertex reduction if SimplifyModifier fails
-      const simplifiedGeometry = this.basicVertexReduction(geometry, targetReduction);
-      const newStats = this.getMeshStats(simplifiedGeometry);
-      const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
-
-      return {
-        simplifiedGeometry,
-        originalStats,
-        newStats,
-        reductionAchieved: actualReduction,
-        processingTime: Date.now() - startTime
-      };
-    }
+    return {
+      simplifiedGeometry,
+      originalStats,
+      newStats,
+      reductionAchieved: actualReduction,
+      processingTime: Date.now() - startTime
+    };
   }
 
   /**
