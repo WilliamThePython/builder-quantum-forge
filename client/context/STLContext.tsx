@@ -599,7 +599,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry.scale(scale, scale, scale);
 
       updateProgress(70, 'Optimizing', 'Ensuring solid object display...');
-      // Prepare geometry for viewing with unified pipeline
+      // Prepare geometry and set up dual storage
       const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
       // Update geometry reference for subsequent processing
       geometry = preparedGeometry;
