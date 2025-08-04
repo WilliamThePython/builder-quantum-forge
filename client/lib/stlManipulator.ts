@@ -362,22 +362,33 @@ export class STLManipulator {
     // Check bounds
     if (i3 + 2 >= positions.count / 3) return null;
 
-    // Get triangle vertices
-    const v1 = new THREE.Vector3(
-      positions.getX(i3 * 3),
-      positions.getY(i3 * 3),
-      positions.getZ(i3 * 3)
-    );
-    const v2 = new THREE.Vector3(
-      positions.getX(i3 * 3 + 3),
-      positions.getY(i3 * 3 + 3),
-      positions.getZ(i3 * 3 + 3)
-    );
-    const v3 = new THREE.Vector3(
-      positions.getX(i3 * 3 + 6),
-      positions.getY(i3 * 3 + 6),
-      positions.getZ(i3 * 3 + 6)
-    );
+    // Get triangle vertices - handle both indexed and non-indexed geometry
+    let v1, v2, v3;
+
+    if (geometry.index) {
+      // Indexed geometry: use triangle index to get face indices
+      const indices = geometry.index.array;
+      const faceStart = triangleIndex * 3;
+
+      if (faceStart + 2 >= indices.length) return null;
+
+      const i1 = indices[faceStart];
+      const i2 = indices[faceStart + 1];
+      const i3_indexed = indices[faceStart + 2];
+
+      v1 = new THREE.Vector3(positions.getX(i1), positions.getY(i1), positions.getZ(i1));
+      v2 = new THREE.Vector3(positions.getX(i2), positions.getY(i2), positions.getZ(i2));
+      v3 = new THREE.Vector3(positions.getX(i3_indexed), positions.getY(i3_indexed), positions.getZ(i3_indexed));
+    } else {
+      // Non-indexed geometry: vertices are stored sequentially
+      const vertexStart = triangleIndex * 3;
+
+      if (vertexStart + 2 >= positions.count) return null;
+
+      v1 = new THREE.Vector3(positions.getX(vertexStart), positions.getY(vertexStart), positions.getZ(vertexStart));
+      v2 = new THREE.Vector3(positions.getX(vertexStart + 1), positions.getY(vertexStart + 1), positions.getZ(vertexStart + 1));
+      v3 = new THREE.Vector3(positions.getX(vertexStart + 2), positions.getY(vertexStart + 2), positions.getZ(vertexStart + 2));
+    }
 
     // Calculate edges
     const edge1 = new THREE.Vector3().subVectors(v2, v1);
