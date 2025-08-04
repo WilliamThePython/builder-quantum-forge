@@ -3,6 +3,7 @@ import { GeometryCleanup, CleanupResults } from './geometryCleanup';
 import { OBJConverter, OBJConversionResult } from './objConverter';
 import { PolygonFaceReconstructor } from './polygonFaceReconstructor';
 import { STLGeometryValidator } from './stlGeometryValidator';
+import { computeFlatNormals } from './flatNormals';
 
 export interface ProcessedModel {
   geometry: THREE.BufferGeometry;
