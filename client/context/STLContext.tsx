@@ -615,7 +615,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // CRITICAL: Ensure OBJ files have proper indexing
           if (!geometry.index) {
             console.log('🔧 Converting OBJ to indexed geometry for consistent decimation...');
-            geometry = this.ensureIndexedGeometry(geometry);
+            geometry = ensureIndexedGeometry(geometry);
           }
 
           // Store OBJ string for internal processing
