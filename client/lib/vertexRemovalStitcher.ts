@@ -604,6 +604,55 @@ export class VertexRemovalStitcher {
   }
 
   /**
+   * Compute flat vertex normals to maintain crisp face shading
+   * Unlike computeVertexNormals() which smooths between faces, this preserves discrete face colors
+   */
+  private static computeFlatVertexNormals(geometry: THREE.BufferGeometry): void {
+    if (!geometry.index) {
+      // Non-indexed geometry - each triangle has its own vertices
+      geometry.computeVertexNormals();
+      return;
+    }
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = geometry.index.array;
+    const normals = new Float32Array(positions.length);
+
+    // Calculate face normals and assign to vertices
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i] * 3;
+      const b = indices[i + 1] * 3;
+      const c = indices[i + 2] * 3;
+
+      // Get triangle vertices
+      const vA = new THREE.Vector3(positions[a], positions[a + 1], positions[a + 2]);
+      const vB = new THREE.Vector3(positions[b], positions[b + 1], positions[b + 2]);
+      const vC = new THREE.Vector3(positions[c], positions[c + 1], positions[c + 2]);
+
+      // Calculate face normal
+      const cb = new THREE.Vector3().subVectors(vC, vB);
+      const ab = new THREE.Vector3().subVectors(vA, vB);
+      const faceNormal = cb.cross(ab).normalize();
+
+      // Assign same face normal to all three vertices (flat shading)
+      normals[a] = faceNormal.x;
+      normals[a + 1] = faceNormal.y;
+      normals[a + 2] = faceNormal.z;
+
+      normals[b] = faceNormal.x;
+      normals[b + 1] = faceNormal.y;
+      normals[b + 2] = faceNormal.z;
+
+      normals[c] = faceNormal.x;
+      normals[c + 1] = faceNormal.y;
+      normals[c + 2] = faceNormal.z;
+    }
+
+    geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    geometry.attributes.normal.needsUpdate = true;
+  }
+
+  /**
    * Convert non-indexed geometry to indexed geometry for edge collapse
    */
   private static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
