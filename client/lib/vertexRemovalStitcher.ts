@@ -96,8 +96,8 @@ export class VertexRemovalStitcher {
 
       console.log(`   Moved ${affectedInstances.length} polygon-model vertex instances to collapse position`);
 
-      // STEP 5: Remove degenerate faces (faces with duplicate vertices)
-      this.removeDegenerateFaces(resultGeometry);
+      // STEP 5: DISABLED - Do not remove faces (prevents holes)
+      // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
 
       // STEP 6: Update polygon metadata
       const updatedPolygonFaces = this.updatePolygonFaces(
@@ -507,7 +507,7 @@ export class VertexRemovalStitcher {
     cloned.computeVertexNormals();
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
-    console.log(`   ��️ All ${indices.length / 3} triangles preserved`);
+    console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
     console.log(`   📊 Result: ${originalVertexCount} → ${originalVertexCount - mergedCount} vertices`);
 
     return cloned;
