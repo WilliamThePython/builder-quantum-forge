@@ -867,7 +867,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
       // Debug: Log geometry state before dual setup
-      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
+      console.log('�� BEFORE DUAL GEOMETRY SETUP:', {
         hasIndex: !!geometry.index,
         vertices: geometry.attributes.position.count,
         triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
@@ -1475,6 +1475,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       ]);
 
       console.log('🔄 Setting dual geometry after decimation...');
+
+      // CRITICAL: Fix face orientation after decimation to prevent transparency
+      console.log('🔧 POST-DECIMATION: Ensuring solid object display...');
+      ensureSolidObjectDisplay(result.geometry);
 
       // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
       if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
