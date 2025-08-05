@@ -687,27 +687,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         boundingBox: geometry.boundingBox
       });
 
+      // TEMPORARILY DISABLED: Skip indexing for STL files to debug cow loading issue
+      console.log('🚨 TEMPORARILY DISABLED: Skipping indexing for STL files to test cow loading');
+
       // CRITICAL: Ensure geometry is indexed for efficient operations like decimation
-      if (!geometry.index) {
-        console.log('🔧 Converting STL to indexed geometry for efficient operations...');
-        const beforeGeometry = geometry.clone(); // Keep a backup for debugging
-        geometry = ensureIndexedGeometry(geometry);
-
-        // Debug: Log geometry state after indexing
-        console.log('🔍 AFTER INDEXING:', {
-          hasIndex: !!geometry.index,
-          vertices: geometry.attributes.position.count,
-          triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
-          hasNormals: !!geometry.attributes.normal,
-          boundingBox: geometry.boundingBox
-        });
-
-        // Sanity check: ensure indexing didn't break the geometry
-        if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
-          console.error('🚨 INDEXING BROKE THE GEOMETRY! Reverting...');
-          geometry = beforeGeometry;
-        }
-      }
+      // if (!geometry.index) {
+      //   console.log('🔧 Converting STL to indexed geometry for efficient operations...');
+      //   const beforeGeometry = geometry.clone(); // Keep a backup for debugging
+      //   geometry = ensureIndexedGeometry(geometry);
+      //
+      //   // Debug: Log geometry state after indexing
+      //   console.log('🔍 AFTER INDEXING:', {
+      //     hasIndex: !!geometry.index,
+      //     vertices: geometry.attributes.position.count,
+      //     triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
+      //     hasNormals: !!geometry.attributes.normal,
+      //     boundingBox: geometry.boundingBox
+      //   });
+      //
+      //   // Sanity check: ensure indexing didn't break the geometry
+      //   if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
+      //     console.error('🚨 INDEXING BROKE THE GEOMETRY! Reverting...');
+      //     geometry = beforeGeometry;
+      //   }
+      // }
 
       // Prepare geometry for viewing
       const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
