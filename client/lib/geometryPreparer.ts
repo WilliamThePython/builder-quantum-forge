@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { computeFlatNormals } from './flatNormals';
+import { validateAndFixGeometry, hasNaNValues, logGeometryStats } from './geometryValidator';
 
 /**
  * UNIFIED GEOMETRY PREPARATION
