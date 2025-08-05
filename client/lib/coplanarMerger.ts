@@ -465,7 +465,7 @@ export class CoplanarMerger {
       }
     }
 
-    console.log(`   Found ${symmetryPairs.length} potential symmetry pairs:`);
+    // console.log(`   Found ${symmetryPairs.length} potential symmetry pairs:`);
     // Removed verbose pair logging for cleaner console output
   }
 
