@@ -14,6 +14,7 @@ import { OBJConverter } from '../lib/objConverter';
 import { computeFlatNormals } from '../lib/flatNormals';
 import { prepareGeometryForViewing } from '../lib/geometryPreparer';
 import { convertToNonIndexedForFlatColors } from '../lib/flatGeometry';
+import { validateAndFixGeometry, hasNaNValues, logGeometryStats } from '../lib/geometryValidator';
 
 interface ViewerSettings {
   randomColors: boolean;
@@ -811,7 +812,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         }
       }
       if (nanCountAfter > 0) {
-        console.error(`���� FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
+        console.error(`🚨 FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
         console.error('First few positions:', Array.from(positionsAfter.slice(0, 30)));
       }
 
@@ -1664,7 +1665,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         setDualGeometry(result.geometry);
 
         console.log('=== VIEWER GEOMETRY UPDATE ===');
-        console.log(`🎆 Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
+        console.log(`��� Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
         console.log(`🎆 Geometry UUID: ${result.geometry.uuid}`);
 
         return result;
