@@ -24,10 +24,9 @@ function AdSenseAd({ adSlot, adFormat = 'auto', className = '', style = {} }: Ad
         console.error('AdSense error:', error);
       }
     }
-  }, [isPremium]);
+  }, []);
 
-  // Don't show ads to premium users
-  if (isPremium) return null;
+  // Always show ads since there are no premium users
 
   return (
     <div ref={adRef} className={className} style={style}>
