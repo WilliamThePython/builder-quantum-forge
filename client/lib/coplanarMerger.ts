@@ -448,7 +448,7 @@ export class CoplanarMerger {
    * Detect potential symmetry pairs in faces
    */
   private static detectSymmetryPairs(faces: PolygonFace[]): void {
-    console.log('🔍 SYMMETRY PAIR DETECTION');
+    // console.log('🔍 SYMMETRY PAIR DETECTION');
 
     const symmetryPairs: Array<{face1: PolygonFace, face2: PolygonFace, similarity: number}> = [];
 
