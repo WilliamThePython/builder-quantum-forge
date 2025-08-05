@@ -76,7 +76,7 @@ export class CoplanarMerger {
             ];
 
             changesMade = true;
-            console.log(`     Iteration ${iterationCount}: Merged 2 ${face1.type}s into ${mergedFace.type} (${mergedFace.originalVertices.length} vertices)`);
+            // console.log(`     Iteration ${iterationCount}: Merged 2 ${face1.type}s into ${mergedFace.type} (${mergedFace.originalVertices.length} vertices)`);
             break;
           }
         }
