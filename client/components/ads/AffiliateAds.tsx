@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ExternalLink, Star } from 'lucide-react';
 import { Button } from '../ui/button';
 
