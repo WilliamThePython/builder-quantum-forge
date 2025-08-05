@@ -13,8 +13,7 @@ import {
 } from 'lucide-react';
 import ErrorDisplay from './ErrorDisplay';
 import { useSTL } from '../context/STLContext';
-import { useAuth } from '../context/AuthContext';
-import { useFeatureAccess } from './auth/ProtectedRoute';
+// Auth imports removed
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
