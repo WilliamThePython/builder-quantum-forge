@@ -113,6 +113,54 @@ const defaultSTLFiles = [
   '/default-stl/cylinder.stl'
 ];
 
+// Helper function to validate and fix geometry with NaN values
+const validateAndFixGeometry = (geometry: THREE.BufferGeometry, label: string): THREE.BufferGeometry => {
+  console.log(`🔍 Validating geometry: ${label}`);
+
+  if (!geometry || !geometry.attributes || !geometry.attributes.position) {
+    console.error(`🚨 Invalid geometry structure for ${label}`);
+    throw new Error(`Invalid geometry structure for ${label}`);
+  }
+
+  const positions = geometry.attributes.position.array;
+  let nanCount = 0;
+  let infCount = 0;
+  let fixedCount = 0;
+
+  // Check for and fix NaN/Infinity values
+  for (let i = 0; i < positions.length; i++) {
+    if (isNaN(positions[i])) {
+      nanCount++;
+      positions[i] = 0; // Replace NaN with 0
+      fixedCount++;
+    } else if (!isFinite(positions[i])) {
+      infCount++;
+      positions[i] = positions[i] > 0 ? 1000 : -1000; // Clamp infinite values
+      fixedCount++;
+    }
+  }
+
+  if (nanCount > 0 || infCount > 0) {
+    console.warn(`🔧 Fixed geometry ${label}: ${nanCount} NaN values, ${infCount} infinite values`);
+    geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Validate bounding box can be computed
+  try {
+    geometry.computeBoundingBox();
+    if (!geometry.boundingBox) {
+      console.error(`🚨 Failed to compute bounding box for ${label}`);
+      throw new Error(`Failed to compute bounding box for ${label}`);
+    }
+  } catch (error) {
+    console.error(`🚨 Bounding box computation failed for ${label}:`, error);
+    throw error;
+  }
+
+  console.log(`✅ Geometry validation passed for ${label}`);
+  return geometry;
+};
+
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   console.log('��� Ensuring solid object display...');
@@ -1456,7 +1504,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         [outputPositions[6], outputPositions[7], outputPositions[8]]
       ]);
 
-      console.log('🔄 Setting dual geometry after decimation...');
+      console.log('��� Setting dual geometry after decimation...');
 
       // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
       if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
