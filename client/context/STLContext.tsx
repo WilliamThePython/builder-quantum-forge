@@ -595,6 +595,37 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const arrayBuffer = await file.arrayBuffer();
 
         updateProgress(35, 'Parsing', 'Processing STL geometry...');
+
+        // Analyze STL file content before parsing
+        console.log('🔍 === STL FILE ANALYSIS ===');
+        const fileSize = arrayBuffer.byteLength;
+        const dataView = new DataView(arrayBuffer);
+
+        // Check if it's binary or ASCII STL
+        const header = new TextDecoder().decode(arrayBuffer.slice(0, 80));
+        const isBinary = !header.toLowerCase().includes('solid');
+
+        console.log(`📊 STL File Info:`, {
+          size: fileSize,
+          type: isBinary ? 'Binary' : 'ASCII',
+          header: header.substring(0, 50) + '...'
+        });
+
+        if (isBinary && fileSize >= 84) {
+          const triangleCount = dataView.getUint32(80, true); // little endian
+          const expectedSize = 80 + 4 + (triangleCount * 50); // header + count + triangles
+          console.log(`📊 Binary STL:`, {
+            declaredTriangles: triangleCount,
+            expectedSize,
+            actualSize: fileSize,
+            sizeMatch: Math.abs(expectedSize - fileSize) <= 2 // allow small discrepancy
+          });
+
+          if (Math.abs(expectedSize - fileSize) > 2) {
+            console.warn('⚠️ STL file size mismatch - file may be corrupted');
+          }
+        }
+
         try {
           // Parse the STL file
           geometry = loader.parse(arrayBuffer);
