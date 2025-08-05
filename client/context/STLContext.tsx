@@ -116,7 +116,7 @@ const defaultSTLFiles = [
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
-  console.log('����� Ensuring solid object display...');
+  console.log('��� Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
@@ -371,47 +371,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to set both indexed and non-indexed geometries
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
-    console.log('🔄 === DUAL GEOMETRY UPDATE ===');
-
-    // Debug: Check for NaN values in input geometry
-    const positions = newIndexedGeometry.attributes.position.array;
-    let nanCount = 0;
-    for (let i = 0; i < positions.length; i++) {
-      if (isNaN(positions[i])) {
-        nanCount++;
-      }
-    }
-    if (nanCount > 0) {
-      console.error(`🚨 setDualGeometry received geometry with ${nanCount} NaN values!`);
-      console.error('First few positions:', Array.from(positions.slice(0, 30)));
-      // Don't proceed with broken geometry
+    // Quick validation
+    if (hasNaNValues(newIndexedGeometry)) {
+      console.error('🚨 setDualGeometry received geometry with NaN values!');
       return;
     }
 
-    console.log('   Setting indexed geometry for operations...');
-
-    // Store the indexed version for operations
     setIndexedGeometry(newIndexedGeometry);
-
-    // Create non-indexed version for viewing
-    console.log('   Creating non-indexed version for viewing...');
     const nonIndexedGeometry = convertToNonIndexedForViewing(newIndexedGeometry);
-
-    console.log('   Setting non-indexed geometry for viewer...');
     setGeometry(nonIndexedGeometry);
-
-    console.log('✅ Dual geometry setup complete:', {
-      indexed: {
-        vertices: newIndexedGeometry.attributes.position.count,
-        faces: newIndexedGeometry.index ? newIndexedGeometry.index.count / 3 : 0,
-        hasPolygonFaces: !!(newIndexedGeometry as any).polygonFaces
-      },
-      nonIndexed: {
-        vertices: nonIndexedGeometry.attributes.position.count,
-        faces: nonIndexedGeometry.attributes.position.count / 3,
-        hasPolygonFaces: !!(nonIndexedGeometry as any).polygonFaces
-      }
-    });
   };
 
   // Helper function to convert indexed geometry to non-indexed for viewing
@@ -1422,7 +1390,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setProcessedModel(backupProcessedModel);
       console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
-      console.warn('��️ No backup available to restore from');
+      console.warn('⚠️ No backup available to restore from');
     }
   }, [backupIndexedGeometry, backupProcessedModel, hasBackup]);
 
