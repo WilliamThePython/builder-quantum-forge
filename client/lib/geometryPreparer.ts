@@ -51,10 +51,26 @@ export function prepareGeometryForViewing(
   });
 
   // Step 1: Ensure proper face orientation for solid display
+  console.log('   🔧 Running ensureSolidObjectDisplay...');
   ensureSolidObjectDisplay(prepared);
-  
+
+  // Check if ensureSolidObjectDisplay introduced NaN values
+  if (hasNaNValues(prepared)) {
+    console.error(`🚨 ensureSolidObjectDisplay introduced NaN values! Source: ${source}`);
+    logGeometryStats(prepared, `BROKEN after ensureSolidObjectDisplay in ${source}`);
+    validateAndFixGeometry(prepared, `${source} after ensureSolidObjectDisplay`);
+  }
+
   // Step 2: Always compute flat normals for crisp shading
+  console.log('   🔧 Computing flat normals...');
   computeFlatNormals(prepared);
+
+  // Check if computeFlatNormals introduced NaN values
+  if (hasNaNValues(prepared)) {
+    console.error(`🚨 computeFlatNormals introduced NaN values! Source: ${source}`);
+    logGeometryStats(prepared, `BROKEN after computeFlatNormals in ${source}`);
+    validateAndFixGeometry(prepared, `${source} after computeFlatNormals`);
+  }
   
   // Step 3: Generate new UUID for React updates
   prepared.uuid = THREE.MathUtils.generateUUID();
