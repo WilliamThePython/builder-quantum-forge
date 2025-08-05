@@ -641,6 +641,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         try {
           geometry = loader.parse(arrayBuffer);
           console.log('✅ STL parsed successfully');
+
+          // Validate geometry immediately after parsing
+          geometry = validateAndFixGeometry(geometry, 'STL after parsing');
         } catch (parseError) {
           console.error('❌ STL parsing error:', parseError);
           throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
@@ -1504,7 +1507,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         [outputPositions[6], outputPositions[7], outputPositions[8]]
       ]);
 
-      console.log('��� Setting dual geometry after decimation...');
+      console.log('🔄 Setting dual geometry after decimation...');
 
       // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
       if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
