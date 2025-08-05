@@ -174,7 +174,6 @@ class Analytics {
         event_label: event.event_label,
         value: event.value,
         session_id: this.sessionId,
-        user_id: this.userId,
         ...event.custom_parameters
       });
     } catch (error) {
