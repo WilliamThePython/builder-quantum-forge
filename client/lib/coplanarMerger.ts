@@ -466,11 +466,7 @@ export class CoplanarMerger {
     }
 
     console.log(`   Found ${symmetryPairs.length} potential symmetry pairs:`);
-    symmetryPairs.forEach((pair, idx) => {
-      console.log(`     Pair ${idx}: similarity ${pair.similarity.toFixed(3)}`);
-      console.log(`       Face 1: ${pair.face1.type} with ${pair.face1.originalVertices.length} vertices`);
-      console.log(`       Face 2: ${pair.face2.type} with ${pair.face2.originalVertices.length} vertices`);
-    });
+    // Removed verbose pair logging for cleaner console output
   }
 
   /**
