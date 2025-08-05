@@ -637,7 +637,6 @@ export function useAnalytics() {
     trackToolUsage: analytics.trackToolUsage.bind(analytics),
     trackRevenue: analytics.trackRevenue.bind(analytics),
     trackError: analytics.trackError.bind(analytics),
-    setUserId: analytics.setUserId.bind(analytics),
     getRealTimeData: analytics.getRealTimeData.bind(analytics),
     getHistoricalData: analytics.getHistoricalData.bind(analytics),
     getCustomData: analytics.getCustomData.bind(analytics)
