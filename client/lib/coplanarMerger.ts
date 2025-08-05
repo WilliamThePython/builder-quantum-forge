@@ -85,7 +85,7 @@ export class CoplanarMerger {
       }
     }
 
-    console.log(`   Iterative merging completed in ${iterationCount} iterations`);
+    // console.log(`   Iterative merging completed in ${iterationCount} iterations`);
     return mergedFaces;
   }
 
