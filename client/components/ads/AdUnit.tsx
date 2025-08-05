@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { X, ExternalLink, Zap } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { useAuth } from '../../context/AuthContext';
+// Auth removed - always show ads
 
 interface AdUnitProps {
   position: 'banner' | 'sidebar' | 'modal' | 'inline';
