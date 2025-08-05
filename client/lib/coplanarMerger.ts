@@ -543,9 +543,9 @@ export class CoplanarMerger {
         }
       });
 
-      if (group.length > 1) {
-        console.log(`   Symmetry group: ${group.length} faces with ${group[0].originalVertices.length} vertices each`);
-      }
+      // if (group.length > 1) {
+      //   console.log(`   Symmetry group: ${group.length} faces with ${group[0].originalVertices.length} vertices each`);
+      // }
 
       groups.push(group);
     });
