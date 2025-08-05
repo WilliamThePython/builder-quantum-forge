@@ -801,6 +801,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const triangles = Math.floor(vertices / 3);
 
       updateProgress(95, 'Finalizing', 'Setting up model for viewing...');
+
+      // Debug: Log geometry state before dual setup
+      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
+        hasIndex: !!geometry.index,
+        vertices: geometry.attributes.position.count,
+        triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
+        hasPolygonFaces: !!(geometry as any).polygonFaces
+      });
+
       // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
       setDualGeometry(geometry);
       setFileName(file.name);
