@@ -425,20 +425,20 @@ export class CoplanarMerger {
       facesByNormal.get(normalKey)!.push(face);
     });
 
-    console.log('   Face distribution by vertex count:');
-    facesByVertexCount.forEach((faces, count) => {
-      console.log(`     ${count}-vertex faces: ${faces.length}`);
-    });
+    // console.log('   Face distribution by vertex count:');
+    // facesByVertexCount.forEach((faces, count) => {
+    //   console.log(`     ${count}-vertex faces: ${faces.length}`);
+    // });
 
-    console.log('   Face distribution by normal direction:');
-    facesByNormal.forEach((faces, normalKey) => {
-      if (faces.length > 1) {
-        console.log(`     Normal ${normalKey}: ${faces.length} faces`);
-        faces.forEach((face, idx) => {
-          console.log(`       Face ${idx}: ${face.type} with ${face.originalVertices.length} vertices`);
-        });
-      }
-    });
+    // console.log('   Face distribution by normal direction:');
+    // facesByNormal.forEach((faces, normalKey) => {
+    //   if (faces.length > 1) {
+    //     console.log(`     Normal ${normalKey}: ${faces.length} faces`);
+    //     faces.forEach((face, idx) => {
+    //       console.log(`       Face ${idx}: ${face.type} with ${face.originalVertices.length} vertices`);
+    //     });
+    //   }
+    // });
 
     // Check for potential symmetry pairs
     this.detectSymmetryPairs(faces);
