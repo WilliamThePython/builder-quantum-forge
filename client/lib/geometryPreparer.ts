@@ -14,20 +14,11 @@ export function prepareGeometryForViewing(
 ): THREE.BufferGeometry {
   console.log(`🔧 === UNIFIED GEOMETRY PREPARATION (${source.toUpperCase()}) ===`);
 
-  // Validate input geometry
-  if (hasNaNValues(geometry)) {
-    console.error(`🚨 Input geometry to prepareGeometryForViewing has NaN values! Source: ${source}`);
-    logGeometryStats(geometry, `BROKEN input to ${source} preparation`);
-  }
-
   const prepared = geometry.clone();
 
-  // Check if clone() introduced NaN values
+  // Quick validation of clone
   if (hasNaNValues(prepared)) {
-    console.error(`🚨 geometry.clone() introduced NaN values! Source: ${source}`);
-    logGeometryStats(prepared, `BROKEN after clone in ${source} preparation`);
-    // Try to fix it
-    validateAndFixGeometry(prepared, `${source} preparation after clone`);
+    validateAndFixGeometry(prepared, `${source} clone fix`);
   }
 
   // CRITICAL: Copy polygon metadata that clone() doesn't preserve
