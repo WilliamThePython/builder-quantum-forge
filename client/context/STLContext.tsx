@@ -149,7 +149,7 @@ const validateAndFixGeometry = (geometry: THREE.BufferGeometry, label: string): 
   try {
     geometry.computeBoundingBox();
     if (!geometry.boundingBox) {
-      console.error(`�� Failed to compute bounding box for ${label}`);
+      console.error(`🚨 Failed to compute bounding box for ${label}`);
       throw new Error(`Failed to compute bounding box for ${label}`);
     }
   } catch (error) {
@@ -813,6 +813,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Update geometry reference for subsequent processing
       geometry = preparedGeometry;
+
+      // Final validation before polygon reconstruction
+      geometry = validateAndFixGeometry(geometry, 'before polygon reconstruction');
 
       updateProgress(75, 'Reconstructing', 'Analyzing polygon faces...');
 
