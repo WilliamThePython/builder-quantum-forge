@@ -569,8 +569,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     // Prepare for viewing (flat normals, etc.)
     const prepared = prepareGeometryForViewing(nonIndexedGeometry, 'initial_load');
+
+    // Validate the converted geometry
+    const validatedGeometry = validateAndFixGeometry(prepared, 'non-indexed conversion output');
+
     console.log('✅ Polygon-aware non-indexed conversion complete');
-    return prepared;
+    return validatedGeometry;
   };
 
   // Helper function to get triangle count for polygon
@@ -807,7 +811,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         }
       }
       if (nanCountAfter > 0) {
-        console.error(`🚨 FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
+        console.error(`���� FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
         console.error('First few positions:', Array.from(positionsAfter.slice(0, 30)));
       }
 
