@@ -669,18 +669,32 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           if (nanCount > 0 || infCount > 0) {
             console.error('🚨 CRITICAL: Three.js STL loader produced invalid geometry!');
             console.error('🚨 This indicates either corrupted STL file data or a Three.js loader bug');
+            console.error('🚨 File info:', { fileName: file.name, size: file.size });
+
+            // Check if geometry is completely unusable
+            if (nanCount > rawPositions.length * 0.1) { // More than 10% NaN values
+              console.error('🚨 Too many NaN values - geometry is likely completely corrupted');
+              throw new Error(`STL file "${file.name}" appears to be corrupted - ${nanCount} invalid values out of ${rawPositions.length}`);
+            }
 
             // Try to salvage by replacing bad values immediately
+            let fixedValues = 0;
             for (let i = 0; i < rawPositions.length; i++) {
               if (isNaN(rawPositions[i])) {
                 rawPositions[i] = 0;
+                fixedValues++;
               } else if (!isFinite(rawPositions[i])) {
                 rawPositions[i] = rawPositions[i] > 0 ? 1000 : -1000;
+                fixedValues++;
               }
             }
 
             geometry.attributes.position.needsUpdate = true;
-            console.log('🔧 Fixed NaN/Infinite values in raw STL geometry');
+            console.log(`🔧 Fixed ${fixedValues} invalid values in raw STL geometry`);
+
+            // Force recompute to ensure Three.js sees the changes
+            geometry.computeBoundingBox();
+            geometry.computeBoundingSphere();
           }
 
           // Log stats after any fixes
