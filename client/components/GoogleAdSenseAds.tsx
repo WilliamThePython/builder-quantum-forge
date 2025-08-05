@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
 
 declare global {
   interface Window {
