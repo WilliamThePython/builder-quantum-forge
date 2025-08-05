@@ -269,8 +269,8 @@ class Analytics {
     return connection ? connection.effectiveType || 'unknown' : 'unknown';
   }
 
-  // Revenue tracking
-  trackRevenue(source: 'ads' | 'premium' | 'affiliate', amount: number, currency = 'USD') {
+  // Revenue tracking (only ads and affiliate, no premium subscriptions)
+  trackRevenue(source: 'ads' | 'affiliate', amount: number, currency = 'USD') {
     this.trackEvent({
       event_name: 'revenue',
       event_category: 'monetization',
