@@ -712,8 +712,35 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       //   }
       // }
 
+      // Debug: Check for NaN values before preparation
+      const positionsBefore = geometry.attributes.position.array;
+      let nanCount = 0;
+      for (let i = 0; i < positionsBefore.length; i++) {
+        if (isNaN(positionsBefore[i])) {
+          nanCount++;
+        }
+      }
+      if (nanCount > 0) {
+        console.error(`🚨 FOUND ${nanCount} NaN values in geometry BEFORE preparation!`);
+        console.error('First few positions:', Array.from(positionsBefore.slice(0, 30)));
+      }
+
       // Prepare geometry for viewing
       const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
+
+      // Debug: Check for NaN values after preparation
+      const positionsAfter = preparedGeometry.attributes.position.array;
+      let nanCountAfter = 0;
+      for (let i = 0; i < positionsAfter.length; i++) {
+        if (isNaN(positionsAfter[i])) {
+          nanCountAfter++;
+        }
+      }
+      if (nanCountAfter > 0) {
+        console.error(`🚨 FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
+        console.error('First few positions:', Array.from(positionsAfter.slice(0, 30)));
+      }
+
       // Update geometry reference for subsequent processing
       geometry = preparedGeometry;
 
@@ -1432,7 +1459,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
         }
       } else {
-        console.log('⏭️ Skipping post-decimation coplanar merging for high-poly model');
+        console.log('���️ Skipping post-decimation coplanar merging for high-poly model');
       }
 
       // Update both indexed (for operations) and non-indexed (for viewing) geometries
