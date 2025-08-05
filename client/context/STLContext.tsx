@@ -905,6 +905,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       updateProgress(95, 'Finalizing', 'Setting up model for viewing...');
 
+      // Final validation before dual geometry setup
+      geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
+
       // Debug: Log geometry state before dual setup
       console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
         hasIndex: !!geometry.index,
