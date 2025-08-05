@@ -403,7 +403,7 @@ export class CoplanarMerger {
    * Analyze symmetry structure of faces for debugging
    */
   private static analyzeSymmetryStructure(faces: PolygonFace[]): void {
-    console.log('🔍 SYMMETRY ANALYSIS');
+    // console.log('🔍 SYMMETRY ANALYSIS');
 
     const facesByVertexCount = new Map<number, PolygonFace[]>();
     const facesByNormal = new Map<string, PolygonFace[]>();
