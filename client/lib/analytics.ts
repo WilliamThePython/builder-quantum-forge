@@ -25,7 +25,7 @@ interface STLMetrics {
 
 class Analytics {
   private isInitialized = false;
-  private userId: string | null = null;
+  // Removed user ID tracking - no authentication needed
   private sessionId: string;
   private startTime: number;
   private analyticsFailureCount: number = 0;
