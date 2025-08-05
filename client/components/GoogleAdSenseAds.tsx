@@ -14,7 +14,6 @@ interface AdSenseAdProps {
 }
 
 function AdSenseAd({ adSlot, adFormat = 'auto', className = '', style = {} }: AdSenseAdProps) {
-  const { isPremium } = useAuth();
   const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
