@@ -149,7 +149,7 @@ const validateAndFixGeometry = (geometry: THREE.BufferGeometry, label: string): 
   try {
     geometry.computeBoundingBox();
     if (!geometry.boundingBox) {
-      console.error(`🚨 Failed to compute bounding box for ${label}`);
+      console.error(`�� Failed to compute bounding box for ${label}`);
       throw new Error(`Failed to compute bounding box for ${label}`);
     }
   } catch (error) {
@@ -742,6 +742,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
+
+      // Validate geometry after scaling operations
+      geometry = validateAndFixGeometry(geometry, 'after centering and scaling');
 
       updateProgress(70, 'Optimizing', 'Ensuring geometry is indexed for operations...');
 
