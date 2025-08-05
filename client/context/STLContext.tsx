@@ -599,7 +599,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           geometry = loader.parse(arrayBuffer);
           console.log('✅ STL parsed successfully');
 
-          // Validate geometry immediately after parsing
+          // Log raw geometry stats immediately after parsing
+          logGeometryStats(geometry, 'Raw STL after parsing');
+
+          // Check for NaN values in raw parsed geometry
+          if (hasNaNValues(geometry)) {
+            console.error('🚨 STL loader produced geometry with NaN values!');
+            logGeometryStats(geometry, 'BROKEN Raw STL');
+          }
+
+          // Validate and fix geometry immediately after parsing
           geometry = validateAndFixGeometry(geometry, 'STL after parsing');
         } catch (parseError) {
           console.error('❌ STL parsing error:', parseError);
