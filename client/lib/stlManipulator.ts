@@ -550,7 +550,8 @@ export class STLManipulator {
   }
 
   /**
-   * Calculate optimal collapse position by analyzing connected faces
+   * Calculate collapse position - simplified to always use midpoint
+   * Coplanar faces are handled separately during merging (not decimation)
    */
   private static calculateOptimalCollapsePosition(
     geometry: THREE.BufferGeometry,
@@ -559,58 +560,11 @@ export class STLManipulator {
     vertexIndex1: number,
     vertexIndex2: number
   ): THREE.Vector3 {
-    const polygonFaces = (geometry as any).polygonFaces;
+    console.log(`   Using midpoint for edge collapse (simplified algorithm)`);
 
-    if (!polygonFaces || !Array.isArray(polygonFaces)) {
-      console.log(`   No polygon data - using simple midpoint`);
-      return v1.clone().add(v2).multiplyScalar(0.5);
-    }
-
-    // Find all polygon faces that contain both vertices (the edge)
-    const connectedFaces: any[] = [];
-    const tolerance = 0.001;
-
-    for (const face of polygonFaces) {
-      if (!face.originalVertices) continue;
-
-      let hasV1 = false;
-      let hasV2 = false;
-
-      for (const vertex of face.originalVertices) {
-        const vertexPos = vertex instanceof THREE.Vector3
-          ? vertex
-          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
-
-        if (vertexPos.distanceTo(v1) < tolerance) hasV1 = true;
-        if (vertexPos.distanceTo(v2) < tolerance) hasV2 = true;
-      }
-
-      if (hasV1 && hasV2) {
-        connectedFaces.push(face);
-      }
-    }
-
-    console.log(`   Found ${connectedFaces.length} faces connected to this edge`);
-
-    if (connectedFaces.length === 0) {
-      console.log(`   No connected faces found - using simple midpoint`);
-      return v1.clone().add(v2).multiplyScalar(0.5);
-    }
-
-    // For proper geometric collapse, we need to ensure the collapse point
-    // preserves the planarity of connected faces as much as possible
-
-    if (connectedFaces.length === 2) {
-      // Most common case: edge is shared by exactly 2 faces
-      return this.calculateCollapseForTwoFaces(connectedFaces[0], connectedFaces[1], v1, v2);
-    } else if (connectedFaces.length === 1) {
-      // Boundary edge: only one face
-      return this.calculateCollapseForBoundaryEdge(connectedFaces[0], v1, v2);
-    } else {
-      // Complex case: more than 2 faces (non-manifold)
-      console.warn(`   Complex edge with ${connectedFaces.length} faces - using centroid approach`);
-      return this.calculateCollapseForMultipleFaces(connectedFaces, v1, v2);
-    }
+    // Always use midpoint - simple, predictable, and preserves mesh quality
+    // Coplanar face merging happens separately in viewer/export pipeline
+    return v1.clone().add(v2).multiplyScalar(0.5);
   }
 
   /**
