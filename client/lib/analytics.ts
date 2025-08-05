@@ -486,7 +486,6 @@ class Analytics {
         ...event,
         timestamp: Date.now(),
         session_id: this.sessionId,
-        user_id: this.userId,
         url: window.location.href,
         referrer: document.referrer
       });
