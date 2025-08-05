@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdUnit from './AdUnit';
-import { useAuth } from '../../context/AuthContext';
+// Auth removed - always show ads
 
 interface AdManagerProps {
   page: 'home' | 'about' | 'profile';
