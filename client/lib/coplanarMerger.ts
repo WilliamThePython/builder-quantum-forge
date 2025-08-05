@@ -43,7 +43,7 @@ export class CoplanarMerger {
    * Enhanced iterative merging with multiple passes and symmetry awareness
    */
   private static performIterativeMerging(faces: PolygonFace[]): PolygonFace[] {
-    console.log('🔄 SYMMETRY-AWARE ITERATIVE MERGING');
+    // console.log('🔄 SYMMETRY-AWARE ITERATIVE MERGING');
     let mergedFaces = [...faces];
     let iterationCount = 0;
     let changesMade = true;
