@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+// Auth removed - always show ads
 
 declare global {
   interface Window {
