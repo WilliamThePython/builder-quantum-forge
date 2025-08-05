@@ -59,6 +59,13 @@ export function prepareGeometryForViewing(
   // Step 3: Generate new UUID for React updates
   prepared.uuid = THREE.MathUtils.generateUUID();
   
+  // Final validation before returning
+  if (hasNaNValues(prepared)) {
+    console.error(`🚨 prepareGeometryForViewing produced NaN values! Source: ${source}`);
+    logGeometryStats(prepared, `BROKEN output from ${source} preparation`);
+    validateAndFixGeometry(prepared, `${source} preparation final output`);
+  }
+
   console.log(`✅ Geometry prepared for viewing (${source}):`, {
     vertices: prepared.attributes.position.count,
     faces: prepared.index ? prepared.index.count / 3 : 0,
@@ -66,7 +73,7 @@ export function prepareGeometryForViewing(
     hasColors: !!prepared.attributes.color,
     uuid: prepared.uuid
   });
-  
+
   return prepared;
 }
 
