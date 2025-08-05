@@ -9,12 +9,26 @@ import { validateAndFixGeometry, hasNaNValues, logGeometryStats } from './geomet
  * goes through the same preparation pipeline for consistent viewing.
  */
 export function prepareGeometryForViewing(
-  geometry: THREE.BufferGeometry, 
+  geometry: THREE.BufferGeometry,
   source: 'initial_load' | 'decimation' | 'restoration' = 'initial_load'
 ): THREE.BufferGeometry {
   console.log(`🔧 === UNIFIED GEOMETRY PREPARATION (${source.toUpperCase()}) ===`);
-  
+
+  // Validate input geometry
+  if (hasNaNValues(geometry)) {
+    console.error(`🚨 Input geometry to prepareGeometryForViewing has NaN values! Source: ${source}`);
+    logGeometryStats(geometry, `BROKEN input to ${source} preparation`);
+  }
+
   const prepared = geometry.clone();
+
+  // Check if clone() introduced NaN values
+  if (hasNaNValues(prepared)) {
+    console.error(`🚨 geometry.clone() introduced NaN values! Source: ${source}`);
+    logGeometryStats(prepared, `BROKEN after clone in ${source} preparation`);
+    // Try to fix it
+    validateAndFixGeometry(prepared, `${source} preparation after clone`);
+  }
 
   // CRITICAL: Copy polygon metadata that clone() doesn't preserve
   if ((geometry as any).polygonFaces) {
