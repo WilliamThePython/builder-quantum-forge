@@ -371,6 +371,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Helper function to set both indexed and non-indexed geometries
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
     console.log('🔄 === DUAL GEOMETRY UPDATE ===');
+
+    // Debug: Check for NaN values in input geometry
+    const positions = newIndexedGeometry.attributes.position.array;
+    let nanCount = 0;
+    for (let i = 0; i < positions.length; i++) {
+      if (isNaN(positions[i])) {
+        nanCount++;
+      }
+    }
+    if (nanCount > 0) {
+      console.error(`🚨 setDualGeometry received geometry with ${nanCount} NaN values!`);
+      console.error('First few positions:', Array.from(positions.slice(0, 30)));
+      // Don't proceed with broken geometry
+      return;
+    }
+
     console.log('   Setting indexed geometry for operations...');
 
     // Store the indexed version for operations
@@ -1459,7 +1475,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
         }
       } else {
-        console.log('���️ Skipping post-decimation coplanar merging for high-poly model');
+        console.log('⏭️ Skipping post-decimation coplanar merging for high-poly model');
       }
 
       // Update both indexed (for operations) and non-indexed (for viewing) geometries
