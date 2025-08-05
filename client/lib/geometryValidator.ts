@@ -61,40 +61,20 @@ export function hasNaNValues(geometry: THREE.BufferGeometry): boolean {
 }
 
 /**
- * Log geometry stats for debugging
+ * Log geometry stats for debugging (simplified)
  */
 export function logGeometryStats(geometry: THREE.BufferGeometry, label: string): void {
   if (!geometry || !geometry.attributes || !geometry.attributes.position) {
-    console.log(`📊 ${label}: Invalid geometry`);
+    console.log(`📊 ${label}: Invalid`);
     return;
   }
-  
-  const positions = geometry.attributes.position.array as Float32Array;
-  let nanCount = 0;
-  let infCount = 0;
-  let minVal = Infinity;
-  let maxVal = -Infinity;
-  
-  for (let i = 0; i < positions.length; i++) {
-    if (isNaN(positions[i])) {
-      nanCount++;
-    } else if (!isFinite(positions[i])) {
-      infCount++;
-    } else {
-      minVal = Math.min(minVal, positions[i]);
-      maxVal = Math.max(maxVal, positions[i]);
-    }
+
+  const vertices = geometry.attributes.position.count;
+  const triangles = geometry.index ? geometry.index.count / 3 : vertices / 3;
+
+  // Only show if there are issues
+  const hasIssues = hasNaNValues(geometry);
+  if (hasIssues) {
+    console.log(`📊 ${label}: ${vertices} vertices, ${triangles} triangles - HAS ISSUES`);
   }
-  
-  console.log(`📊 ${label}:`, {
-    vertices: geometry.attributes.position.count,
-    triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
-    hasIndex: !!geometry.index,
-    nanCount,
-    infCount,
-    minValue: minVal === Infinity ? 'N/A' : minVal,
-    maxValue: maxVal === -Infinity ? 'N/A' : maxVal,
-    hasNormals: !!geometry.attributes.normal,
-    hasColors: !!geometry.attributes.color
-  });
 }
