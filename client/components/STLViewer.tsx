@@ -872,10 +872,12 @@ function STLMesh() {
       vertexColors: viewerSettings.randomColors,
       metalness: 0.1,
       roughness: 0.6,
-      side: THREE.FrontSide,
+      side: THREE.DoubleSide, // Force double-sided rendering to handle face winding issues
       transparent: false,
       opacity: 1.0,
-      flatShading: true // Maintain crisp face shading instead of smooth interpolation
+      flatShading: true, // Maintain crisp face shading instead of smooth interpolation
+      depthWrite: true,   // Ensure depth buffer writes for solid appearance
+      depthTest: true     // Ensure depth testing for proper occlusion
     });
 
     // Force material to refresh when geometry changes
