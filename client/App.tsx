@@ -17,7 +17,6 @@ import { STLProvider } from "./context/STLContext";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import AdSenseSetup from "./pages/AdSenseSetup";
-import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
