@@ -495,7 +495,7 @@ export class CoplanarMerger {
    * Enhanced face optimization with symmetry preservation
    */
   private static optimizeFacesWithSymmetry(faces: PolygonFace[]): PolygonFace[] {
-    console.log('⚡ SYMMETRY-AWARE OPTIMIZATION');
+    // console.log('⚡ SYMMETRY-AWARE OPTIMIZATION');
 
     // First detect symmetry groups
     const symmetryGroups = this.groupSymmetricFaces(faces);
