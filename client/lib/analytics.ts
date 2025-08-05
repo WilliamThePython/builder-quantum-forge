@@ -131,15 +131,7 @@ class Analytics {
     });
   }
 
-  // Set user ID for authenticated users
-  setUserId(userId: string) {
-    this.userId = userId;
-    if (window.gtag) {
-      window.gtag('config', import.meta.env.VITE_GA4_MEASUREMENT_ID || 'G-XXXXXXXXXX', {
-        user_id: userId
-      });
-    }
-  }
+  // User ID tracking removed - no authentication needed
 
   // Track page views
   trackPageView(path: string, title?: string) {
