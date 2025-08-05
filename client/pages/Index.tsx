@@ -201,25 +201,7 @@ export default function Index() {
       {/* Google AdSense Bottom Banner Ads - Temporarily disabled for testing */}
       {/* <AdSenseBottomBanners /> */}
 
-      {/* Analytics Button - mobile optimized positioning */}
-      <div className={`fixed z-40 ${
-        isMobile
-          ? 'bottom-20 left-4'
-          : 'bottom-4 left-4 md:bottom-6 md:left-6'
-      }`}>
-        <Link to="/analytics">
-          <button
-            className={`bg-black/20 hover:bg-black/40 backdrop-blur-sm transition-all duration-300 rounded-lg opacity-20 hover:opacity-60 border border-white/10 ${
-              isMobile ? 'w-12 h-12' : 'w-10 h-10'
-            }`}
-            title="Analytics Dashboard"
-          >
-            <BarChart3 className={`text-white/70 mx-auto ${
-              isMobile ? 'w-6 h-6' : 'w-5 h-5'
-            }`} />
-          </button>
-        </Link>
-      </div>
+      {/* Analytics removed */}
       </div>
     // </AdManager>
   );
