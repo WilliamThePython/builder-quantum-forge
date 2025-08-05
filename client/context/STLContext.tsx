@@ -116,7 +116,7 @@ const defaultSTLFiles = [
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
-  console.log('��� Ensuring solid object display...');
+  console.log('����� Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
@@ -800,36 +800,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       //   }
       // }
 
-      // Debug: Check for NaN values before preparation
-      const positionsBefore = geometry.attributes.position.array;
-      let nanCount = 0;
-      for (let i = 0; i < positionsBefore.length; i++) {
-        if (isNaN(positionsBefore[i])) {
-          nanCount++;
-        }
-      }
-      if (nanCount > 0) {
-        console.error(`🚨 FOUND ${nanCount} NaN values in geometry BEFORE preparation!`);
-        console.error('First few positions:', Array.from(positionsBefore.slice(0, 30)));
-      }
-
       // Prepare geometry for viewing
       const preparedGeometry = prepareGeometryForViewing(geometry, 'initial_load');
-
-      // Debug: Check for NaN values after preparation
-      const positionsAfter = preparedGeometry.attributes.position.array;
-      let nanCountAfter = 0;
-      for (let i = 0; i < positionsAfter.length; i++) {
-        if (isNaN(positionsAfter[i])) {
-          nanCountAfter++;
-        }
-      }
-      if (nanCountAfter > 0) {
-        console.error(`🚨 FOUND ${nanCountAfter} NaN values in geometry AFTER preparation!`);
-        console.error('First few positions:', Array.from(positionsAfter.slice(0, 30)));
-      }
-
-      // Update geometry reference for subsequent processing
       geometry = preparedGeometry;
 
       // Final validation before polygon reconstruction
@@ -1450,7 +1422,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setProcessedModel(backupProcessedModel);
       console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
-      console.warn('⚠️ No backup available to restore from');
+      console.warn('��️ No backup available to restore from');
     }
   }, [backupIndexedGeometry, backupProcessedModel, hasBackup]);
 
