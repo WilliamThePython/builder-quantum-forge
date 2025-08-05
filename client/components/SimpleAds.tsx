@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// Auth removed - always show ads
 
 declare global {
   interface Window {
