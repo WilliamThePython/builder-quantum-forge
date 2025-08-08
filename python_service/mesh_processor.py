@@ -63,7 +63,6 @@ async def decimate_mesh(
         raise HTTPException(status_code=400, detail="Only STL and OBJ files are supported")
 
     preserve_polygon_structure = file_extension == 'obj'
-    print(f"📊 File format: {file_extension.upper()} - {'Preserving polygon structure' if preserve_polygon_structure else 'Triangle mesh'}")
     
     try:
         # Read uploaded file
@@ -74,7 +73,6 @@ async def decimate_mesh(
             temp_input.write(file_content)
             temp_input_path = temp_input.name
         
-        print(f"🔧 Loading mesh from {file.filename} ({len(file_content)} bytes)")
         
         # Load mesh using Open3D
         if file_extension == 'stl':
@@ -91,23 +89,12 @@ async def decimate_mesh(
         original_vertices = len(mesh.vertices)
         original_triangles = len(mesh.triangles)
 
-        if preserve_polygon_structure:
-            print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles (from polygon faces)")
-            print(f"🚫 IMPORTANT: Open3D triangulated the polygon faces - this is unavoidable")
-            print(f"   However, vertex positions will be preserved through decimation")
-        else:
-            print(f"📊 Original mesh: {original_vertices} vertices, {original_triangles} triangles")
 
         # Calculate target triangle count
         target_triangles = max(4, int(original_triangles * (1 - target_reduction)))
 
-        print(f"📊 Target: {target_triangles} triangles ({target_reduction*100:.1f}% reduction)")
         
         # Apply quadric decimation using Open3D
-        if preserve_polygon_structure:
-            print("🔧 Applying Open3D quadric decimation (will re-polygonize result)...")
-        else:
-            print("🔧 Applying Open3D quadric decimation...")
 
         decimated_mesh = mesh.simplify_quadric_decimation(
             target_number_of_triangles=target_triangles,
@@ -116,8 +103,6 @@ async def decimate_mesh(
         )
 
         # For polygon-preserving mode, try to merge coplanar triangles back into polygons
-        if preserve_polygon_structure:
-            print("🔍 Attempting to merge coplanar triangles back into polygon faces...")
             # Note: This is a complex operation and may not perfectly restore original polygons
             # but will attempt to reduce triangulation
         
@@ -125,9 +110,6 @@ async def decimate_mesh(
         final_triangles = len(decimated_mesh.triangles)
         actual_reduction = 1 - (final_vertices / original_vertices)
         
-        print(f"✅ Decimation complete: {original_vertices} → {final_vertices} vertices")
-        print(f"   Triangles: {original_triangles} → {final_triangles}")
-        print(f"   Actual reduction: {actual_reduction*100:.1f}%")
         
         # Ensure mesh has vertex normals for proper rendering
         if not decimated_mesh.has_vertex_normals():
@@ -148,12 +130,10 @@ async def decimate_mesh(
             with open(temp_output_path, 'r') as f:
                 output_content = f.read().encode('utf-8')
             media_type = "text/plain"
-            print(f"📤 Returning decimated OBJ mesh (polygon structure preserved, {len(output_content)} bytes)")
         else:
             with open(temp_output_path, 'rb') as f:
                 output_content = f.read()
             media_type = "application/octet-stream"
-            print(f"📤 Returning decimated STL mesh ({len(output_content)} bytes)")
 
         # Clean up temporary output file
         os.unlink(temp_output_path)
@@ -176,10 +156,10 @@ async def decimate_mesh(
         )
         
     except Exception as e:
-        print(f"❌ Error during decimation: {str(e)}")
+        # Log error for debugging if needed
+        pass
         raise HTTPException(status_code=500, detail=f"Decimation failed: {str(e)}")
 
 if __name__ == "__main__":
-    print("🚀 Starting Mesh Processing Service with Open3D")
-    print(f"   Open3D version: {o3d.__version__}")
+    # Starting Mesh Processing Service
     uvicorn.run(app, host="0.0.0.0", port=8001)
