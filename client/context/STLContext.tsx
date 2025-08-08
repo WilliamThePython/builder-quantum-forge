@@ -936,13 +936,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Final validation before dual geometry setup
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
-      // Debug: Log geometry state before dual setup
-      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
-        hasIndex: !!geometry.index,
-        vertices: geometry.attributes.position.count,
-        triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
-        hasPolygonFaces: !!(geometry as any).polygonFaces
-      });
+      // Geometry ready for dual setup
 
       // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
       setDualGeometry(geometry);
