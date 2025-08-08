@@ -904,7 +904,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Optimized validation for large models
       let validationReport;
       if (vertexCount < 200000) {
-        console.log('🔍 Full validation for parts export accuracy...');
         validationReport = STLGeometryValidator.validateGeometry(geometry);
       } else {
         console.log('��️ Skipping intensive validation for high-poly model');
@@ -938,7 +937,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
       // Debug: Log geometry state before dual setup
-      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
+      console.log('�� BEFORE DUAL GEOMETRY SETUP:', {
         hasIndex: !!geometry.index,
         vertices: geometry.attributes.position.count,
         triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
