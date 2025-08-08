@@ -11,12 +11,10 @@ export function computePolygonAwareFlatNormals(
   geometry: THREE.BufferGeometry, 
   polygonFaces?: any[]
 ): void {
-  console.log('🎨 Computing polygon-aware flat normals...');
   
   if (!geometry.index) {
     // Non-indexed geometry - each triangle already has its own vertices
     geometry.computeVertexNormals();
-    console.log('   ✅ Non-indexed geometry - computed standard normals');
     return;
   }
 
@@ -25,7 +23,6 @@ export function computePolygonAwareFlatNormals(
   const normals = new Float32Array(positions.length);
 
   if (polygonFaces && Array.isArray(polygonFaces)) {
-    console.log(`   🔧 Processing ${polygonFaces.length} polygon faces for flat normals`);
     
     let triangleOffset = 0;
     
@@ -79,10 +76,8 @@ export function computePolygonAwareFlatNormals(
       triangleOffset += triangleCount;
     }
     
-    console.log(`   ✅ Applied consistent normals across ${triangleOffset} triangles in ${polygonFaces.length} polygon faces`);
   } else {
     // Fallback to standard flat normals if no polygon data
-    console.log('   🔧 No polygon faces - using standard flat normals');
     
     for (let i = 0; i < indices.length; i += 3) {
       const a = indices[i] * 3;
@@ -117,7 +112,6 @@ export function computePolygonAwareFlatNormals(
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geometry.attributes.normal.needsUpdate = true;
   
-  console.log('   ✅ Polygon-aware flat normals computed - crisp face boundaries ensured');
 }
 
 /**

@@ -15,23 +15,18 @@ export class CoplanarMerger {
    * Main entry point: Merge coplanar triangles/polygons with comprehensive validation
    */
   static mergeCoplanarFaces(faces: PolygonFace[]): PolygonFace[] {
-    // console.log('🔄 UNIFIED COPLANAR MERGER - SYMMETRY ANALYSIS');
-    // console.log(`   Input: ${faces.length} faces`);
 
     // Step 0: Analyze potential symmetry issues
     // this.analyzeSymmetryStructure(faces);
 
     // Step 1: Enhanced iterative merging with symmetry awareness
     const mergedFaces = this.performIterativeMerging(faces);
-    // console.log(`   After iterative merging: ${mergedFaces.length} faces`);
 
     // Step 2: Strict coplanarity validation
     const validatedFaces = this.validateCoplanarity(mergedFaces);
-    // console.log(`   After coplanarity validation: ${validatedFaces.length} faces`);
 
     // Step 3: Final optimization with symmetry preservation
     const optimizedFaces = this.optimizeFacesWithSymmetry(validatedFaces);
-    // console.log(`✅ Final result: ${optimizedFaces.length} robust faces`);
 
     // Step 4: Final symmetry check
     // this.analyzeSymmetryStructure(optimizedFaces);
@@ -43,7 +38,6 @@ export class CoplanarMerger {
    * Enhanced iterative merging with multiple passes and symmetry awareness
    */
   private static performIterativeMerging(faces: PolygonFace[]): PolygonFace[] {
-    // console.log('🔄 SYMMETRY-AWARE ITERATIVE MERGING');
     let mergedFaces = [...faces];
     let iterationCount = 0;
     let changesMade = true;
@@ -76,7 +70,6 @@ export class CoplanarMerger {
             ];
 
             changesMade = true;
-            // console.log(`     Iteration ${iterationCount}: Merged 2 ${face1.type}s into ${mergedFace.type} (${mergedFace.originalVertices.length} vertices)`);
             break;
           }
         }
@@ -85,7 +78,6 @@ export class CoplanarMerger {
       }
     }
 
-    // console.log(`   Iterative merging completed in ${iterationCount} iterations`);
     return mergedFaces;
   }
 
@@ -150,7 +142,6 @@ export class CoplanarMerger {
     if (vector && typeof vector.x === 'number' && typeof vector.y === 'number' && typeof vector.z === 'number') {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
-    console.warn('Invalid vector data, using default normal');
     return new THREE.Vector3(0, 0, 1);
   }
 
@@ -206,7 +197,6 @@ export class CoplanarMerger {
       if (this.isStrictlyCoplanar(face.originalVertices)) {
         validatedFaces.push(face);
       } else {
-        console.warn(`   Repairing non-coplanar ${face.type} face`);
         
         // Repair by splitting into triangles
         const repairedTriangles = this.repairNonCoplanarFace(face);
@@ -403,7 +393,6 @@ export class CoplanarMerger {
    * Analyze symmetry structure of faces for debugging
    */
   private static analyzeSymmetryStructure(faces: PolygonFace[]): void {
-    // console.log('🔍 SYMMETRY ANALYSIS');
 
     const facesByVertexCount = new Map<number, PolygonFace[]>();
     const facesByNormal = new Map<string, PolygonFace[]>();
@@ -425,17 +414,12 @@ export class CoplanarMerger {
       facesByNormal.get(normalKey)!.push(face);
     });
 
-    // console.log('   Face distribution by vertex count:');
     // facesByVertexCount.forEach((faces, count) => {
-    //   console.log(`     ${count}-vertex faces: ${faces.length}`);
     // });
 
-    // console.log('   Face distribution by normal direction:');
     // facesByNormal.forEach((faces, normalKey) => {
     //   if (faces.length > 1) {
-    //     console.log(`     Normal ${normalKey}: ${faces.length} faces`);
     //     faces.forEach((face, idx) => {
-    //       console.log(`       Face ${idx}: ${face.type} with ${face.originalVertices.length} vertices`);
     //     });
     //   }
     // });
@@ -448,7 +432,6 @@ export class CoplanarMerger {
    * Detect potential symmetry pairs in faces
    */
   private static detectSymmetryPairs(faces: PolygonFace[]): void {
-    // console.log('🔍 SYMMETRY PAIR DETECTION');
 
     const symmetryPairs: Array<{face1: PolygonFace, face2: PolygonFace, similarity: number}> = [];
 
@@ -465,7 +448,6 @@ export class CoplanarMerger {
       }
     }
 
-    // console.log(`   Found ${symmetryPairs.length} potential symmetry pairs:`);
     // Removed verbose pair logging for cleaner console output
   }
 
@@ -495,7 +477,6 @@ export class CoplanarMerger {
    * Enhanced face optimization with symmetry preservation
    */
   private static optimizeFacesWithSymmetry(faces: PolygonFace[]): PolygonFace[] {
-    // console.log('⚡ SYMMETRY-AWARE OPTIMIZATION');
 
     // First detect symmetry groups
     const symmetryGroups = this.groupSymmetricFaces(faces);
@@ -544,7 +525,6 @@ export class CoplanarMerger {
       });
 
       // if (group.length > 1) {
-      //   console.log(`   Symmetry group: ${group.length} faces with ${group[0].originalVertices.length} vertices each`);
       // }
 
       groups.push(group);

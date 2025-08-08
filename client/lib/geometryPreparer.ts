@@ -34,7 +34,6 @@ export function prepareGeometryForViewing(
     (prepared as any).isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated;
   }
 
-  console.log(`   🔧 Polygon metadata preservation:`, {
     originalHasPolygonFaces: !!(geometry as any).polygonFaces,
     preparedHasPolygonFaces: !!(prepared as any).polygonFaces,
     polygonCount: (prepared as any).polygonFaces ? (prepared as any).polygonFaces.length : 'N/A'
@@ -68,7 +67,6 @@ export function prepareGeometryForViewing(
  * (Moved from STLContext for reusability)
  */
 function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
-  console.log('   🔧 Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading
   computeFlatNormals(geometry);
@@ -102,11 +100,9 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
     }
   }
 
-  console.log(`   🔍 Normal analysis: ${outwardCount} outward, ${inwardCount} inward`);
 
   // If more normals point inward, flip all faces
   if (inwardCount > outwardCount) {
-    console.log('   🔄 Flipping face winding for correct display');
 
     // Flip indices to reverse winding order
     const indices = geometry.index;
@@ -135,5 +131,4 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
     computeFlatNormals(geometry);
   }
 
-  console.log('   ✅ Solid object display ensured');
 }

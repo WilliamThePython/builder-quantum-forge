@@ -105,7 +105,6 @@ export class STLValidator {
 
     // Check MIME type if available (not always reliable, but adds a layer)
     if (file.type && !this.isAllowedMimeType(file.type)) {
-      console.warn(`Unexpected MIME type: ${file.type}, but proceeding with content validation`);
     }
 
     return { isValid: true };

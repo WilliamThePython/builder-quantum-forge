@@ -24,22 +24,18 @@ export class SimpleCoplanarMerger {
    * Merge coplanar triangles in a geometry into polygon faces
    */
   static mergeCoplanarTriangles(geometry: THREE.BufferGeometry): PolygonFace[] {
-    console.log('🔧 SIMPLE COPLANAR MERGER: Starting merge process...');
     
     // Extract triangles from geometry
     const triangles = this.extractTriangles(geometry);
-    console.log(`   Extracted ${triangles.length} triangles from geometry`);
     
     // Group coplanar triangles
     const polygonFaces = this.groupCoplanarTriangles(triangles);
-    console.log(`   Merged into ${polygonFaces.length} polygon faces`);
     
     // Log type breakdown
     const typeBreakdown = polygonFaces.reduce((acc: any, face: any) => {
       acc[face.type] = (acc[face.type] || 0) + 1;
       return acc;
     }, {});
-    console.log('   Result types:', typeBreakdown);
     
     return polygonFaces;
   }

@@ -8,10 +8,8 @@ import * as THREE from 'three';
  * gives each triangle its own vertices, ensuring flat coloring.
  */
 export function convertToNonIndexedForFlatColors(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-  console.log('🔧 Converting to non-indexed geometry for flat vertex colors...');
   
   if (!geometry.index) {
-    console.log('   ��� Already non-indexed');
     return geometry;
   }
 
@@ -81,7 +79,6 @@ export function convertToNonIndexedForFlatColors(geometry: THREE.BufferGeometry)
   nonIndexedGeometry.uuid = THREE.MathUtils.generateUUID();
   
   const triangleCount = newPositions.length / 9;
-  console.log(`   ✅ Converted to non-indexed: ${triangleCount} triangles with independent vertices`);
   
   return nonIndexedGeometry;
 }

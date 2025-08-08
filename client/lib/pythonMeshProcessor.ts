@@ -30,12 +30,10 @@ export class PythonMeshProcessor {
       
       if (response.ok) {
         const health = await response.json();
-        console.log('🐍 Python service is healthy:', health);
         return true;
       }
       return false;
     } catch (error) {
-      console.log('🐍 Python service not available:', error);
       return false;
     }
   }
@@ -50,9 +48,6 @@ export class PythonMeshProcessor {
   ): Promise<PythonDecimationResult> {
     const startTime = Date.now();
 
-    console.log('🐍 === PYTHON OPEN3D DECIMATION ===');
-    console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
-    console.log(`   Preserve boundary: ${preserveBoundary}`);
 
     // Check service health first
     const isHealthy = await this.checkServiceHealth();
@@ -64,14 +59,11 @@ export class PythonMeshProcessor {
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
-      console.log(`   🚫 CRITICAL: Model has ${polygonFaces.length} polygon faces - AVOIDING Python service`);
-      console.log(`   🔸 Using direct polygon vertex reduction instead`);
 
       // Apply polygon-preserving reduction directly without Python service
       const reducedGeometry = await this.polygonPreservingReduction(geometry, polygonFaces, targetReduction);
 
       const processingTime = Date.now() - startTime;
-      console.log(`✅ Polygon-preserving reduction complete in ${processingTime}ms`);
 
       return {
         geometry: reducedGeometry,
@@ -84,11 +76,9 @@ export class PythonMeshProcessor {
       };
     }
 
-    console.log(`   Using Python service for triangle mesh`);
 
     // Convert Three.js geometry to STL format for triangle meshes
     const stlData = await this.geometryToSTL(geometry);
-    console.log(`   Generated STL data: ${stlData.length} bytes`);
 
     // Create form data for upload
     const formData = new FormData();
@@ -97,7 +87,6 @@ export class PythonMeshProcessor {
     formData.append('target_reduction', targetReduction.toString());
     formData.append('preserve_boundary', preserveBoundary.toString());
 
-    console.log('📤 Sending mesh to Python service...');
 
     try {
       const response = await fetch(`${this.SERVICE_URL}/decimate`, {
@@ -117,9 +106,6 @@ export class PythonMeshProcessor {
       const finalTriangles = parseInt(response.headers.get('X-Final-Triangles') || '0');
       const reductionAchieved = parseFloat(response.headers.get('X-Reduction-Achieved') || '0');
 
-      console.log('📥 Received decimated mesh from Python service');
-      console.log(`   Vertices: ${originalVertices} → ${finalVertices} (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
-      console.log(`   Triangles: ${originalTriangles} → ${finalTriangles}`);
 
       // Get decimated mesh data
       const contentType = response.headers.get('content-type') || '';
@@ -129,17 +115,14 @@ export class PythonMeshProcessor {
       let decimatedGeometry: THREE.BufferGeometry;
 
       if (isOBJ) {
-        console.log('   📥 Receiving OBJ format (polygon structure preserved)');
         const decimatedOBJData = await response.text();
         decimatedGeometry = await this.objToGeometry(decimatedOBJData);
       } else {
-        console.log('   📥 Receiving STL format');
         const decimatedSTLData = await response.arrayBuffer();
         decimatedGeometry = await this.stlToGeometry(decimatedSTLData);
       }
       
       const processingTime = Date.now() - startTime;
-      console.log(`✅ Python decimation complete in ${processingTime}ms`);
 
       return {
         geometry: decimatedGeometry,
@@ -187,7 +170,6 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   ✅ Generated OBJ with ${polygonFaces.length} polygon faces (NO triangulation!)`);
     return objContent;
   }
 
@@ -287,7 +269,6 @@ export class PythonMeshProcessor {
     const vertices: number[] = [];
     const polygonFaces: any[] = [];
 
-    console.log('   🔍 Parsing OBJ data with ZERO triangulation...');
 
     for (const line of lines) {
       const parts = line.trim().split(/\s+/);
@@ -317,9 +298,6 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   ✅ Parsed OBJ: ${vertices.length / 3} vertices, ${polygonFaces.length} SOLID polygon faces`);
-    console.log(`   🚫 NO TRIANGULATION APPLIED - Preserving solid structure!`);
-    console.log(`   🔸 Polygon types: ${polygonFaces.map(f => f.type).join(', ')}`);
 
     // Create geometry without triangulation
     const geometry = new THREE.BufferGeometry();
@@ -336,7 +314,6 @@ export class PythonMeshProcessor {
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
-    console.log(`   ✅ Created NON-TRIANGULATED geometry with ${polygonFaces.length} solid polygon faces!`);
     return geometry;
   }
 
@@ -387,8 +364,6 @@ export class PythonMeshProcessor {
     polygonFaces: any[],
     targetReduction: number
   ): Promise<THREE.BufferGeometry> {
-    console.log(`🚫 === POLYGON-PRESERVING VERTEX REDUCTION ===`);
-    console.log(`   NO triangulation, NO Python service - pure polygon preservation`);
 
     const originalPositions = new Float32Array(geometry.attributes.position.array);
     const vertexCount = originalPositions.length / 3;
@@ -397,22 +372,18 @@ export class PythonMeshProcessor {
     const targetVertexCount = Math.max(4, Math.floor(vertexCount * (1 - targetReduction)));
     const verticesToReduce = vertexCount - targetVertexCount;
 
-    console.log(`   Target: ${vertexCount} → ${targetVertexCount} vertices (reduce ${verticesToReduce})`);
 
     if (verticesToReduce <= 0) {
-      console.log(`   No reduction needed, returning original`);
       return geometry.clone();
     }
 
     // Log original positions for comparison
-    console.log(`   🔍 BEFORE: First vertex [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`);
 
     // Create modified positions array
     const modifiedPositions = new Float32Array(originalPositions);
 
     // Find vertices that can be merged within polygon faces
     const mergeableVertices = this.findMergeableVerticesInPolygons(polygonFaces, originalPositions);
-    console.log(`   Found ${mergeableVertices.length} vertex pairs that can be merged`);
 
     // Apply actual vertex merging with visible position changes
     let mergedCount = 0;
@@ -434,7 +405,6 @@ export class PythonMeshProcessor {
 
       mergedCount++;
 
-      console.log(`   ✅ VERTEX MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] → [${newPos.map(v => v.toFixed(3)).join(',')}]`);
 
       // Early exit for very small models
       if (mergedCount >= 10) break;
@@ -448,22 +418,17 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   🔍 POSITION VERIFICATION: ${positionsChanged}/${modifiedPositions.length} position values changed`);
-    console.log(`   🔍 AFTER: First vertex [${modifiedPositions[0].toFixed(3)}, ${modifiedPositions[1].toFixed(3)}, ${modifiedPositions[2].toFixed(3)}]`);
 
     if (positionsChanged === 0) {
       console.error(`   ❌ CRITICAL: NO VERTEX POSITIONS CHANGED! This explains why the model looks the same.`);
       // Force some visible changes if none occurred
-      console.log(`   🔧 FORCING visible changes to demonstrate vertex movement...`);
       for (let i = 0; i < Math.min(5, vertexCount); i++) {
         const offset = i * 3;
         modifiedPositions[offset] += (Math.random() - 0.5) * 5; // Move X
         modifiedPositions[offset + 1] += (Math.random() - 0.5) * 5; // Move Y
         modifiedPositions[offset + 2] += (Math.random() - 0.5) * 5; // Move Z
-        console.log(`   🔧 FORCED MOVE vertex ${i}: [${modifiedPositions[offset].toFixed(3)}, ${modifiedPositions[offset + 1].toFixed(3)}, ${modifiedPositions[offset + 2].toFixed(3)}]`);
       }
     } else {
-      console.log(`   ✅ SUCCESS: ${positionsChanged} vertex positions changed - model should look different!`);
     }
 
     // Create NEW geometry with completely new UUID to force viewer update
@@ -490,9 +455,6 @@ export class PythonMeshProcessor {
     // Generate new UUID to ensure React Three Fiber recognizes this as a different geometry
     newGeometry.uuid = THREE.MathUtils.generateUUID();
 
-    console.log(`✅ Polygon-preserving reduction complete: ${mergedCount} vertex pairs merged`);
-    console.log(`   🔸 SOLID polygon structure completely preserved!`);
-    console.log(`   🔄 New geometry UUID: ${newGeometry.uuid} (should force viewer update)`);
 
     return newGeometry;
   }
@@ -507,7 +469,6 @@ export class PythonMeshProcessor {
     const mergeableVertices: Array<{v1: number, v2: number, newPos: number[]}> = [];
     const usedVertices = new Set<number>();
 
-    console.log(`   🔍 Searching for mergeable vertices in ${polygonFaces.length} polygon faces...`);
 
     for (const face of polygonFaces) {
       if (!face.vertices || face.vertices.length < 3) continue;
@@ -542,14 +503,12 @@ export class PythonMeshProcessor {
           usedVertices.add(v1);
           usedVertices.add(v2);
 
-          console.log(`   🔧 Found mergeable pair: v${v1} distance=${distance.toFixed(3)} from v${v2}`);
         }
       }
     }
 
     // If we don't find enough mergeable vertices in adjacent pairs, look for any close vertices
     if (mergeableVertices.length < 5) {
-      console.log(`   🔍 Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
 
       const vertexCount = positions.length / 3;
       for (let i = 0; i < vertexCount - 1; i++) {
@@ -578,7 +537,6 @@ export class PythonMeshProcessor {
             usedVertices.add(i);
             usedVertices.add(j);
 
-            console.log(`   🔧 Found close vertex pair: v${i} distance=${distance.toFixed(3)} from v${j}`);
 
             // Stop after finding enough pairs
             if (mergeableVertices.length >= 10) break;
@@ -589,7 +547,6 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   ✅ Found ${mergeableVertices.length} total mergeable vertex pairs`);
     return mergeableVertices;
   }
 }
