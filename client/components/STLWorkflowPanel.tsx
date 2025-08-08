@@ -1304,8 +1304,7 @@ function MobileWorkflowContent(props: any) {
                   { color: '#0a0a0a', name: 'Space Black' },
                   { color: '#1a1a2e', name: 'Deep Ocean' },
                   { color: '#16213e', name: 'Midnight Blue' },
-                  { color: '#2a0845', name: 'Purple Night' },
-                  { color: 'linear-gradient(to bottom, #B8E6FF 0%, #E8F5E8 50%, #C8E6C9 100%)', name: 'Meadow Sky' }
+                  { color: '#2a0845', name: 'Purple Night' }
                 ].map((bg) => (
                   <button
                     key={bg.color}
