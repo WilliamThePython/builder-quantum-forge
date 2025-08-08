@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import * as THREE from "three";
 import { analytics } from "../lib/analytics";
 import {
@@ -125,7 +132,10 @@ export const useSTL = () => {
       "useSTL called outside of STLProvider. Stack trace:",
       new Error().stack,
     );
-    console.error("Component tree at error:", document.body.innerHTML.substring(0, 500));
+    console.error(
+      "Component tree at error:",
+      document.body.innerHTML.substring(0, 500),
+    );
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;
@@ -2062,72 +2072,75 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     [indexedGeometry, createBackup],
   );
 
-  const value: STLContextType = useMemo(() => ({
-    geometry,
-    fileName,
-    isLoading,
-    loadingProgress,
-    error,
-    errors,
-    viewerSettings,
+  const value: STLContextType = useMemo(
+    () => ({
+      geometry,
+      fileName,
+      isLoading,
+      loadingProgress,
+      error,
+      errors,
+      viewerSettings,
 
-    // Model data (dual format support)
-    processedModel,
-    originalFormat,
-    objString,
-    cleanupResults,
+      // Model data (dual format support)
+      processedModel,
+      originalFormat,
+      objString,
+      cleanupResults,
 
-    toolMode,
-    isProcessingTool,
-    highlightedTriangle,
-    triangleStats,
+      toolMode,
+      isProcessingTool,
+      highlightedTriangle,
+      triangleStats,
 
-    // Decimation Painter Mode
-    decimationPainterMode,
-    setDecimationPainterMode,
-    isDecimating,
-    decimateEdge,
+      // Decimation Painter Mode
+      decimationPainterMode,
+      setDecimationPainterMode,
+      isDecimating,
+      decimateEdge,
 
-    loadModelFromFile,
-    loadDefaultSTL,
-    updateViewerSettings,
-    exportSTL,
-    exportOBJ,
-    exportParts,
-    clearError,
-    clearErrorById,
-    addError,
-    setToolMode,
-    reducePoints,
-    getGeometryStats,
-    getDetailedGeometryStats,
-    setHighlightedTriangle,
+      loadModelFromFile,
+      loadDefaultSTL,
+      updateViewerSettings,
+      exportSTL,
+      exportOBJ,
+      exportParts,
+      clearError,
+      clearErrorById,
+      addError,
+      setToolMode,
+      reducePoints,
+      getGeometryStats,
+      getDetailedGeometryStats,
+      setHighlightedTriangle,
 
-    // Backup and restore functionality
-    hasBackup,
-    createBackup,
-    restoreFromBackup,
-  }), [
-    geometry,
-    fileName,
-    isLoading,
-    loadingProgress,
-    error,
-    errors,
-    viewerSettings,
-    processedModel,
-    originalFormat,
-    objString,
-    cleanupResults,
-    toolMode,
-    isProcessingTool,
-    highlightedTriangle,
-    triangleStats,
-    decimationPainterMode,
-    isDecimating,
-    hasBackup,
-    // Functions are stable due to useCallback, so we only need to include state dependencies
-  ]);
+      // Backup and restore functionality
+      hasBackup,
+      createBackup,
+      restoreFromBackup,
+    }),
+    [
+      geometry,
+      fileName,
+      isLoading,
+      loadingProgress,
+      error,
+      errors,
+      viewerSettings,
+      processedModel,
+      originalFormat,
+      objString,
+      cleanupResults,
+      toolMode,
+      isProcessingTool,
+      highlightedTriangle,
+      triangleStats,
+      decimationPainterMode,
+      isDecimating,
+      hasBackup,
+      // Functions are stable due to useCallback, so we only need to include state dependencies
+    ],
+  );
 
   // Don't render children until provider is fully initialized
   if (!isInitialized) {
