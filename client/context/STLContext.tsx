@@ -950,8 +950,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       updateProgress(100, 'Complete', 'Model loaded successfully!');
 
-      console.log('Loading completed successfully');
-
       // Track STL upload analytics
       try {
         analytics.trackSTLUpload({
