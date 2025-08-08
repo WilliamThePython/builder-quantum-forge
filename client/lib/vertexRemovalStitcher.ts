@@ -612,12 +612,10 @@ export class VertexRemovalStitcher {
    * Convert non-indexed geometry to indexed geometry for edge collapse
    */
   private static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    console.log('🔧 === CONVERTING NON-INDEXED TO INDEXED ===');
 
     const positions = geometry.attributes.position.array as Float32Array;
     const vertexCount = positions.length / 3;
 
-    console.log(`   📊 Input: ${vertexCount} vertices (${vertexCount / 3} triangles)`);
 
     // Build vertex map to merge duplicate vertices
     const vertexMap = new Map<string, number>();
@@ -667,8 +665,6 @@ export class VertexRemovalStitcher {
     const uniqueVertices = newPositions.length / 3;
     const triangles = indices.length / 3;
 
-    console.log(`   ✅ Conversion complete: ${uniqueVertices} unique vertices, ${triangles} triangles`);
-    console.log(`   📊 Vertex deduplication: ${vertexCount} → ${uniqueVertices} (saved ${vertexCount - uniqueVertices})`);
 
     return indexedGeometry;
   }
@@ -677,7 +673,6 @@ export class VertexRemovalStitcher {
    * DEPRECATED: Old basic vertex reduction method
    */
   private static basicVertexReduction(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-    console.log('🔧 Using safe edge collapse fallback (preserves surface topology)');
 
     if (targetReduction <= 0 || targetReduction >= 1) {
       console.warn('⚠️ Invalid reduction amount, returning original');
@@ -747,8 +742,6 @@ export class VertexRemovalStitcher {
     const newVertexCount = newPositions.length / 3;
     const actualReduction = (originalVertexCount - newVertexCount) / originalVertexCount;
 
-    console.log(`📊 Safe reduction: ${originalVertexCount} → ${newVertexCount} vertices (${(actualReduction * 100).toFixed(1)}% reduction)`);
-    console.log(`🛡️ All faces preserved - no holes created`);
 
     return newGeometry;
   }
