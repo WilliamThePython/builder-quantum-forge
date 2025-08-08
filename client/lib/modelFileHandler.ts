@@ -73,7 +73,6 @@ export class ModelFileHandler {
       if (polygonFaces && polygonFaces.length > 0) {
         console.log(`✅ OBJ polygon structure preserved: ${polygonFaces.length} faces`);
       } else {
-        console.warn('⚠️ OBJ file loaded without polygon structure - may affect decimation');
       }
     }
     
@@ -158,7 +157,6 @@ export class ModelFileHandler {
 
       // CRITICAL: Ensure geometry is properly indexed for decimation
       if (!geometry.index) {
-        console.warn('⚠️ OBJ geometry not indexed - converting for decimation compatibility...');
         const indexedGeometry = this.ensureIndexedGeometry(geometry);
 
         // Preserve any polygon metadata
@@ -178,9 +176,6 @@ export class ModelFileHandler {
       const polygonFaces = (geometry as any).polygonFaces;
 
       console.log(`✅ ENHANCED OBJ LOADED SUCCESSFULLY`);
-      console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`);
-      console.log(`   🔗 Indexing: ${geometry.index ? 'INDEXED (decimation-ready)' : 'NON-INDEXED'}`);
-      console.log(`   📰 Polygons: ${polygonFaces ? polygonFaces.length + ' preserved' : 'none'}`);
 
       return geometry;
 
