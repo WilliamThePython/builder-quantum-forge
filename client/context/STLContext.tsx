@@ -736,7 +736,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
                 // For multiple meshes, we need to merge them properly
                 const tempGeometry = mergedGeometry.clone();
                 // Note: Three.js merge method deprecated, using manual merge
-                console.warn('⚠��� Multiple meshes found in OBJ - using first mesh only');
               }
             }
           });
