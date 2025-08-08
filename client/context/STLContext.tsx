@@ -2124,26 +2124,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     highlightedTriangle,
     triangleStats,
     decimationPainterMode,
-    setDecimationPainterMode,
     isDecimating,
-    decimateEdge,
-    loadModelFromFile,
-    loadDefaultSTL,
-    updateViewerSettings,
-    exportSTL,
-    exportOBJ,
-    exportParts,
-    clearError,
-    clearErrorById,
-    addError,
-    setToolMode,
-    reducePoints,
-    getGeometryStats,
-    getDetailedGeometryStats,
-    setHighlightedTriangle,
     hasBackup,
-    createBackup,
-    restoreFromBackup,
+    // Functions are stable due to useCallback, so we only need to include state dependencies
   ]);
 
   // Don't render children until provider is fully initialized
