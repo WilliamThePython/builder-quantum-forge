@@ -69,7 +69,6 @@ export class PythonMeshProcessor {
       const reducedGeometry = await this.polygonPreservingReduction(geometry, polygonFaces, targetReduction);
 
       const processingTime = Date.now() - startTime;
-      console.log(`✅ Polygon-preserving reduction complete in ${processingTime}ms`);
 
       return {
         geometry: reducedGeometry,
@@ -406,7 +405,6 @@ export class PythonMeshProcessor {
 
     // Find vertices that can be merged within polygon faces
     const mergeableVertices = this.findMergeableVerticesInPolygons(polygonFaces, originalPositions);
-    console.log(`   Found ${mergeableVertices.length} vertex pairs that can be merged`);
 
     // Apply actual vertex merging with visible position changes
     let mergedCount = 0;
@@ -478,9 +476,6 @@ export class PythonMeshProcessor {
     // Generate new UUID to ensure React Three Fiber recognizes this as a different geometry
     newGeometry.uuid = THREE.MathUtils.generateUUID();
 
-    console.log(`✅ Polygon-preserving reduction complete: ${mergedCount} vertex pairs merged`);
-    console.log(`   🔸 SOLID polygon structure completely preserved!`);
-    console.log(`   🔄 New geometry UUID: ${newGeometry.uuid} (should force viewer update)`);
 
     return newGeometry;
   }
@@ -530,14 +525,12 @@ export class PythonMeshProcessor {
           usedVertices.add(v1);
           usedVertices.add(v2);
 
-          console.log(`   🔧 Found mergeable pair: v${v1} distance=${distance.toFixed(3)} from v${v2}`);
         }
       }
     }
 
     // If we don't find enough mergeable vertices in adjacent pairs, look for any close vertices
     if (mergeableVertices.length < 5) {
-      console.log(`   🔍 Only found ${mergeableVertices.length} adjacent pairs, searching for any close vertices...`);
 
       const vertexCount = positions.length / 3;
       for (let i = 0; i < vertexCount - 1; i++) {
@@ -566,7 +559,6 @@ export class PythonMeshProcessor {
             usedVertices.add(i);
             usedVertices.add(j);
 
-            console.log(`   🔧 Found close vertex pair: v${i} distance=${distance.toFixed(3)} from v${j}`);
 
             // Stop after finding enough pairs
             if (mergeableVertices.length >= 10) break;
@@ -577,7 +569,6 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   ✅ Found ${mergeableVertices.length} total mergeable vertex pairs`);
     return mergeableVertices;
   }
 }
