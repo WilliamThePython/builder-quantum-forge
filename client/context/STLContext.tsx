@@ -1133,27 +1133,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const randomIndex = Math.floor(Math.random() * workingModels.length);
       const selectedModel = workingModels[randomIndex];
 
-      console.log(`🎯 Selected: ${selectedModel.name} - ${selectedModel.description}`);
 
       setLoadingProgress({ percentage: 20, stage: 'Creating geometry...', details: selectedModel.description });
 
       // Generate the model
-      console.log('Step 1: Creating PolygonGeometry...');
       const polygonGeometry = selectedModel.generator();
-      console.log(`✅ PolygonGeometry created: ${polygonGeometry.type}`);
-      console.log(`   - Vertices: ${polygonGeometry.vertices.length}`);
-      console.log(`   - Faces: ${polygonGeometry.faces.length}`);
 
       setLoadingProgress({ percentage: 50, stage: 'Converting geometry...', details: 'Triangulating faces' });
 
-      console.log('Step 2: Converting to BufferGeometry...');
       const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
-      console.log('✅ BufferGeometry created successfully');
-
-      if (bufferGeometry.attributes.position) {
-        console.log(`   - Vertices: ${bufferGeometry.attributes.position.count}`);
-        console.log(`   - Triangles: ${bufferGeometry.attributes.position.count / 3}`);
-      }
 
       setLoadingProgress({ percentage: 70, stage: 'Validating geometry...', details: 'Checking structure' });
 
