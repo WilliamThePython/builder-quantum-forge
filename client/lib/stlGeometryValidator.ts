@@ -10,7 +10,6 @@ export class STLGeometryValidator {
    * Validate geometry and return comprehensive report
    */
   static validateGeometry(geometry: THREE.BufferGeometry): ValidationReport {
-    console.log('Starting STL geometry validation...');
     
     const issues: ValidationIssue[] = [];
     const warnings: ValidationIssue[] = [];
