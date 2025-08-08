@@ -1485,14 +1485,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Use indexed geometry for decimation operations
       const result = await STLManipulator.reducePoints(indexedGeometry, reductionAmount, method);
 
-      console.log('📤 OUTPUT GEOMETRY from decimation:', {
-        vertices: result.geometry.attributes.position.count,
-        faces: result.geometry.index ? result.geometry.index.count / 3 : 0,
-        uuid: result.geometry.uuid,
-        boundingBox: result.geometry.boundingBox,
-        hasPolygonFaces: !!(result.geometry as any).polygonFaces,
-        polygonFaceCount: (result.geometry as any).polygonFaces ? (result.geometry as any).polygonFaces.length : 'N/A'
-      });
 
       // CRITICAL: Check if polygon metadata is preserved
       const inputPolygonFaces = (indexedGeometry as any).polygonFaces;
