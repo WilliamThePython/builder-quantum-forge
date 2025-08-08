@@ -918,27 +918,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         addError('Full validation skipped for high-poly model to prevent freezing.');
       }
 
-      // Display validation results
-      if (!validationReport.isValid || validationReport.warnings.length > 0) {
-        const summary = STLGeometryValidator.generateValidationSummary(validationReport);
-        console.log('📋 Validation Report:\n', summary);
+      // Display only critical validation results (no console spam)
+      if (!validationReport.isValid) {
+        const criticalIssues = validationReport.issues.map(issue => issue.message).join(', ');
+        addError(`STL validation failed: ${criticalIssues}`);
+      }
 
-        // Show critical issues as errors
-        if (!validationReport.isValid) {
-          const criticalIssues = validationReport.issues.map(issue => issue.message).join(', ');
-          addError(`STL validation failed: ${criticalIssues}`);
-        }
-
-        // Show warnings as separate messages
-        validationReport.warnings.forEach(warning => {
-          console.warn(`STL Warning: ${warning.message} - ${warning.details}`);
-        });
-
-        if (validationReport.stats.zeroAreaFaces > 0) {
-          addError(`Found ${validationReport.stats.zeroAreaFaces} zero-area faces that will cause parts export issues`);
-        }
-      } else {
-        console.log('✅ STL validation passed - ready for accurate parts export');
+      if (validationReport.stats.zeroAreaFaces > 0) {
+        addError(`Found ${validationReport.stats.zeroAreaFaces} zero-area faces that will cause parts export issues`);
       }
 
       const uploadTime = Date.now() - uploadStartTime;
