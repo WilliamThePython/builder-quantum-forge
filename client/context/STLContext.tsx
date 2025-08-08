@@ -1152,7 +1152,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const testData = getTestFileSizeData(bufferGeometry);
 
       setLoadingProgress({ percentage: 100, stage: 'Complete', details: `${selectedModel.name} loaded successfully` });
-      console.log('Random model loaded successfully');
+      console.log(`${selectedModel.name} loaded successfully`);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
