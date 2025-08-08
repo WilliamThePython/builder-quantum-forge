@@ -903,12 +903,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
       // Debug: Log geometry state before dual setup
-      console.log('�� BEFORE DUAL GEOMETRY SETUP:', {
-        hasIndex: !!geometry.index,
-        vertices: geometry.attributes.position.count,
-        triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
-        hasPolygonFaces: !!(geometry as any).polygonFaces
-      });
 
       // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
       setDualGeometry(geometry);
@@ -916,7 +910,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       updateProgress(100, 'Complete', 'Model loaded successfully!');
 
-      console.log('Loading completed successfully');
+
 
       // Track STL upload analytics
       try {
@@ -932,7 +926,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Analytics failed silently
       }
 
-      console.log('Loading completed successfully');
+
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
