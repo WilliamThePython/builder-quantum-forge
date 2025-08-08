@@ -744,17 +744,6 @@ function STLMesh() {
   // Debug decimation painter mode and geometry
   useEffect(() => {
     if (geometry) {
-      console.log('��� GEOMETRY ANALYSIS:', {
-        decimationPainterMode,
-        hasGeometry: !!geometry,
-        geometryVertices: geometry.attributes.position.count,
-        geometryFaces: geometry.index ? geometry.index.count / 3 : 'NON-INDEXED',
-        hasIndex: !!geometry.index,
-        hasPolygonFaces: !!(geometry as any).polygonFaces,
-        polygonFacesCount: (geometry as any).polygonFaces?.length || 0,
-        isDecimating,
-        geometryType: geometry.constructor.name
-      });
 
       // For non-indexed geometry, calculate face count manually
       if (!geometry.index) {
