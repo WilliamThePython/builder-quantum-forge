@@ -1479,13 +1479,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         boundingBox: indexedGeometry.boundingBox
       });
 
-      // Log first few vertices for comparison
       const inputPositions = indexedGeometry.attributes.position.array;
-      console.log('📥 INPUT first 3 vertices:', [
-        [inputPositions[0], inputPositions[1], inputPositions[2]],
-        [inputPositions[3], inputPositions[4], inputPositions[5]],
-        [inputPositions[6], inputPositions[7], inputPositions[8]]
-      ]);
 
       console.log('Starting professional mesh simplification on indexed geometry...', { method, reductionAmount });
 
