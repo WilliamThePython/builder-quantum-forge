@@ -681,7 +681,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         } catch (parseError) {
           console.error('❌ STL parsing error:', parseError);
-          throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`);
+
+          // Check available memory and provide helpful error message
+          const memoryInfo = (performance as any).memory;
+          const memoryContext = memoryInfo ?
+            ` (Memory: ${(memoryInfo.usedJSHeapSize / 1024 / 1024).toFixed(0)}MB used, ${(memoryInfo.jsHeapSizeLimit / 1024 / 1024).toFixed(0)}MB limit)` :
+            '';
+
+          if (parseError instanceof Error && parseError.message.includes('timeout')) {
+            throw new Error(`STL file too complex to parse: ${parseError.message}. Try a smaller file or simpler geometry.${memoryContext}`);
+          } else if (isLargeFile) {
+            throw new Error(`Failed to parse large STL file (${(fileSize / 1024 / 1024).toFixed(1)}MB): ${parseError instanceof Error ? parseError.message : 'Memory or complexity limit exceeded'}. Try reducing file size or simplifying geometry.${memoryContext}`);
+          } else {
+            throw new Error(`Failed to parse STL file: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}${memoryContext}`);
+          }
         }
       } else {
         console.log('📖 Loading OBJ file...');
