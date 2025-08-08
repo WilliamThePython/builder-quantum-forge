@@ -37,13 +37,13 @@ def test_service():
         response = requests.get("http://localhost:8001/health")
         if response.ok:
             health = response.json()
-            print(f"✅ Service healthy: {health}")
+# print(f"✅ Service healthy: {health}")
         else:
-            print("❌ Service not healthy")
+# print("❌ Service not healthy")
             return
     except Exception as e:
-        print(f"❌ Service not accessible: {e}")
-        print("   Make sure to start the service with: python mesh_processor.py")
+# print(f"❌ Service not accessible: {e}")
+# print("   Make sure to start the service with: python mesh_processor.py")
         return
     
     # Create test OBJ file
@@ -70,7 +70,7 @@ def test_service():
             )
         
         if response.ok:
-            print("✅ Decimation successful!")
+# print("✅ Decimation successful!")
             
             # Save result
             output_path = 'decimated_test_cube.obj'
@@ -85,16 +85,16 @@ def test_service():
                     # Count faces in result
                     face_lines = [line for line in result_content.split('\n') if line.strip().startswith('f ')]
                 else:
-                    print("⚠️ Result doesn't appear to be valid OBJ")
+# print("⚠️ Result doesn't appear to be valid OBJ")
             except:
-                print("⚠️ Could not decode result as text")
+# print("⚠️ Could not decode result as text")
             
         else:
-            print(f"❌ Decimation failed: {response.status_code}")
-            print(f"   Error: {response.text}")
+# print(f"❌ Decimation failed: {response.status_code}")
+# print(f"   Error: {response.text}")
             
     except Exception as e:
-        print(f"❌ Request failed: {e}")
+# print(f"❌ Request failed: {e}")
     
     finally:
         # Clean up
