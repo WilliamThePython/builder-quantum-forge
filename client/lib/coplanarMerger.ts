@@ -206,7 +206,6 @@ export class CoplanarMerger {
       if (this.isStrictlyCoplanar(face.originalVertices)) {
         validatedFaces.push(face);
       } else {
-        console.warn(`   Repairing non-coplanar ${face.type} face`);
         
         // Repair by splitting into triangles
         const repairedTriangles = this.repairNonCoplanarFace(face);
