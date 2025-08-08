@@ -12,7 +12,6 @@ export function prepareGeometryForViewing(
   geometry: THREE.BufferGeometry,
   source: 'initial_load' | 'decimation' | 'restoration' = 'initial_load'
 ): THREE.BufferGeometry {
-  console.log(`🔧 === UNIFIED GEOMETRY PREPARATION (${source.toUpperCase()}) ===`);
 
   const prepared = geometry.clone();
 
@@ -35,11 +34,6 @@ export function prepareGeometryForViewing(
     (prepared as any).isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated;
   }
 
-  console.log(`   🔧 Polygon metadata preservation:`, {
-    originalHasPolygonFaces: !!(geometry as any).polygonFaces,
-    preparedHasPolygonFaces: !!(prepared as any).polygonFaces,
-    polygonCount: (prepared as any).polygonFaces ? (prepared as any).polygonFaces.length : 'N/A'
-  });
 
   // Step 1: Ensure proper face orientation for solid display
   ensureSolidObjectDisplay(prepared);
