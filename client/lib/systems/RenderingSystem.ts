@@ -26,14 +26,12 @@ export class RenderingSystem {
     geometry: THREE.BufferGeometry, 
     options: ColoringOptions
   ): void {
-    console.log('🎨 RenderingSystem: Applying coloring...');
 
     if (!options.randomColors) {
       // Remove any existing color attributes
       if (geometry.attributes.color) {
         geometry.deleteAttribute('color');
       }
-      console.log('   ✅ Uniform coloring applied');
       return;
     }
 
@@ -49,7 +47,6 @@ export class RenderingSystem {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.attributes.color.needsUpdate = true;
     
-    console.log('   ✅ Random coloring applied');
   }
 
   /**
@@ -60,7 +57,6 @@ export class RenderingSystem {
     colors: Float32Array,
     polygonFaces: any[]
   ): void {
-    console.log('   🔧 Applying polygon-aware coloring...');
     
     let triangleOffset = 0;
 
@@ -89,7 +85,6 @@ export class RenderingSystem {
       triangleOffset += triangleCount;
     }
 
-    console.log(`   ✅ Polygon coloring: ${polygonFaces.length} polygons colored`);
   }
 
   /**
@@ -99,7 +94,6 @@ export class RenderingSystem {
     geometry: THREE.BufferGeometry,
     colors: Float32Array
   ): void {
-    console.log('   🔧 Applying triangle-based coloring...');
     
     const color = new THREE.Color();
     for (let i = 0; i < colors.length; i += 9) {
@@ -112,7 +106,6 @@ export class RenderingSystem {
       }
     }
 
-    console.log('   ✅ Triangle coloring applied');
   }
 
   /**
@@ -124,7 +117,6 @@ export class RenderingSystem {
   ): THREE.BufferGeometry | null {
     if (!options.enabled) return null;
 
-    console.log('🔗 RenderingSystem: Creating wireframe...');
 
     const polygonFaces = (geometry as any).polygonFaces;
 
@@ -139,7 +131,6 @@ export class RenderingSystem {
    * Create polygon-aware wireframe (shows original polygon edges)
    */
   private static createPolygonAwareWireframe(polygonFaces: any[]): THREE.BufferGeometry {
-    console.log('   🔧 Creating polygon-aware wireframe...');
     
     const wireframePositions: number[] = [];
 
@@ -162,7 +153,6 @@ export class RenderingSystem {
     const wireGeometry = new THREE.BufferGeometry();
     wireGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wireframePositions, 3));
 
-    console.log(`   ✅ Polygon wireframe: ${wireframePositions.length / 6} edge segments`);
     return wireGeometry;
   }
 
@@ -170,11 +160,9 @@ export class RenderingSystem {
    * Create standard edge wireframe
    */
   private static createStandardWireframe(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    console.log('   🔧 Creating standard wireframe...');
     
     const edgeGeometry = new THREE.EdgesGeometry(geometry);
     
-    console.log(`   ✅ Standard wireframe: ${edgeGeometry.attributes.position.count / 2} edges`);
     return edgeGeometry;
   }
 
