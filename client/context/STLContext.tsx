@@ -1382,7 +1382,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const restoreFromBackup = useCallback(() => {
     if (backupIndexedGeometry && hasBackup) {
-      console.log('🔄 Restoring model from backup with polygon structure...');
       // Clone the backup to avoid reference issues
       const restored = backupIndexedGeometry.clone();
 
@@ -1400,7 +1399,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Use dual geometry setup for restored geometry
       setDualGeometry(restored);
       setProcessedModel(backupProcessedModel);
-      console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
       console.warn('⚠️ No backup available to restore from');
     }
