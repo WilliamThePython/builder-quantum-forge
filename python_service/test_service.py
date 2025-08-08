@@ -47,17 +47,13 @@ def test_service():
         return
     
     # Create test OBJ file
-    print("\n🔧 Creating test OBJ file with quad faces...")
     obj_content = create_test_obj()
     
     with tempfile.NamedTemporaryFile(mode='w', suffix='.obj', delete=False) as f:
         f.write(obj_content)
         test_file_path = f.name
-    
-    print(f"📄 Test file created: {test_file_path}")
-    
+        
     # Test decimation
-    print("\n🐍 Testing decimation with polygon preservation...")
     
     try:
         with open(test_file_path, 'rb') as f:
@@ -75,28 +71,19 @@ def test_service():
         
         if response.ok:
             print("✅ Decimation successful!")
-            print(f"   Original vertices: {response.headers.get('X-Original-Vertices')}")
-            print(f"   Final vertices: {response.headers.get('X-Final-Vertices')}")
-            print(f"   Original triangles: {response.headers.get('X-Original-Triangles')}")
-            print(f"   Final triangles: {response.headers.get('X-Final-Triangles')}")
-            print(f"   Reduction achieved: {response.headers.get('X-Reduction-Achieved')}")
-            print(f"   Format: {response.headers.get('X-Format')}")
             
             # Save result
             output_path = 'decimated_test_cube.obj'
             with open(output_path, 'wb') as f:
                 f.write(response.content)
-            print(f"   Result saved to: {output_path}")
             
             # Check if result is valid OBJ
             try:
                 result_content = response.content.decode('utf-8')
                 if 'f ' in result_content and 'v ' in result_content:
-                    print("✅ Result contains valid OBJ data")
                     
                     # Count faces in result
                     face_lines = [line for line in result_content.split('\n') if line.strip().startswith('f ')]
-                    print(f"   Result has {len(face_lines)} faces")
                 else:
                     print("⚠️ Result doesn't appear to be valid OBJ")
             except:
