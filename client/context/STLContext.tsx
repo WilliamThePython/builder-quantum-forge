@@ -875,7 +875,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
             if (reconstructedFaces.length > 0) {
               PolygonFaceReconstructor.applyReconstructedFaces(geometry, reconstructedFaces);
-              console.log(`✅ Reconstructed ${reconstructedFaces.length} polygon faces in ${reconstructionTime}ms`);
             }
           } catch (reconstructionError) {
             console.warn('⚠️ Polygon reconstruction failed, using triangulated mesh:', reconstructionError);
