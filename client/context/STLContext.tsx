@@ -469,11 +469,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
     }
 
-    console.log('   📊 Output:', {
-      nonIndexedVertices: newPositions.length / 3,
-      nonIndexedTriangles: newPositions.length / 9,
-      polygonFaces: newPolygonFaces.length
-    });
 
     // Prepare for viewing (flat normals, etc.)
     const prepared = prepareGeometryForViewing(nonIndexedGeometry, 'initial_load');
@@ -481,7 +476,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Validate the converted geometry
     const validatedGeometry = validateAndFixGeometry(prepared, 'non-indexed conversion output');
 
-    console.log('✅ Polygon-aware non-indexed conversion complete');
     return validatedGeometry;
   };
 
