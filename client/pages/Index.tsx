@@ -30,7 +30,6 @@ export default function Index() {
   };
 
   const handleReducePoints = async (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex' | 'quadric_edge_collapse') => {
-    console.log('🎯 handleReducePoints called with:', { reduction, method });
     // Map UI method names to backend method names
     let backendMethod: 'quadric_edge_collapse' | 'vertex_clustering' | 'adaptive' | 'random';
 
@@ -54,12 +53,9 @@ export default function Index() {
         backendMethod = 'quadric_edge_collapse'; // Default to proper QEM
     }
 
-    console.log('🎯 Final backend method:', backendMethod);
     const result = await reducePoints(reduction, backendMethod);
-    console.log('🎯 Reduction result:', result);
     if (result.success) {
       // Success message will be shown in console logs
-      console.log('✅ Reduction successful:', result.message);
     } else {
       console.error('❌ Reduction failed:', result.message);
       addError(result.message);
