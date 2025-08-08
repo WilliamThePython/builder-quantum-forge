@@ -537,7 +537,6 @@ export class VertexRemovalStitcher {
 
     const newUUID = THREE.MathUtils.generateUUID();
     cloned.uuid = newUUID;
-    console.log(`   🆔 Generated new UUID: ${newUUID}`);
 
     // Recompute normals with flat shading to maintain crisp faces
     computeFlatNormals(cloned);
