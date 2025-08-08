@@ -401,22 +401,13 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-    console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
-    console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
-    console.log(`   Original geometry UUID: ${geometry.uuid}`);
-    console.log(`   Method: Pure edge collapse - two vertices become one`);
 
-    console.log('   Has polygonFaces:', !!(geometry as any).polygonFaces);
-    console.log('   PolygonFaces count:', (geometry as any).polygonFaces ? (geometry as any).polygonFaces.length : 'N/A');
-    console.log('   Has polygonType:', !!(geometry as any).polygonType);
-    console.log('   isPolygonPreserved:', !!(geometry as any).isPolygonPreserved);
 
     // Use our own pure edge collapse implementation
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
     const newStats = this.getMeshStats(simplifiedGeometry);
     const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
 
-    console.log(`   ��� New geometry UUID: ${simplifiedGeometry.uuid}`);
 
     console.log('📤 Output geometry polygon metadata:');
     console.log('   Has polygonFaces:', !!(simplifiedGeometry as any).polygonFaces);
