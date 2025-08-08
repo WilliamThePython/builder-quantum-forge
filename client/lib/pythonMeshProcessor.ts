@@ -50,8 +50,6 @@ export class PythonMeshProcessor {
   ): Promise<PythonDecimationResult> {
     const startTime = Date.now();
 
-    console.log('🐍 === PYTHON OPEN3D DECIMATION ===');
-    console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Preserve boundary: ${preserveBoundary}`);
 
     // Check service health first
@@ -117,8 +115,6 @@ export class PythonMeshProcessor {
       const finalTriangles = parseInt(response.headers.get('X-Final-Triangles') || '0');
       const reductionAchieved = parseFloat(response.headers.get('X-Reduction-Achieved') || '0');
 
-      console.log('📥 Received decimated mesh from Python service');
-      console.log(`   Vertices: ${originalVertices} → ${finalVertices} (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
       console.log(`   Triangles: ${originalTriangles} → ${finalTriangles}`);
 
       // Get decimated mesh data
@@ -138,8 +134,6 @@ export class PythonMeshProcessor {
         decimatedGeometry = await this.stlToGeometry(decimatedSTLData);
       }
       
-      const processingTime = Date.now() - startTime;
-      console.log(`✅ Python decimation complete in ${processingTime}ms`);
 
       return {
         geometry: decimatedGeometry,
@@ -287,7 +281,7 @@ export class PythonMeshProcessor {
     const vertices: number[] = [];
     const polygonFaces: any[] = [];
 
-    console.log('   🔍 Parsing OBJ data with ZERO triangulation...');
+    console.log('   ��� Parsing OBJ data with ZERO triangulation...');
 
     for (const line of lines) {
       const parts = line.trim().split(/\s+/);
@@ -434,7 +428,7 @@ export class PythonMeshProcessor {
 
       mergedCount++;
 
-      console.log(`   ✅ VERTEX MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] → [${newPos.map(v => v.toFixed(3)).join(',')}]`);
+      console.log(`   ✅ VERTEX MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] �� [${newPos.map(v => v.toFixed(3)).join(',')}]`);
 
       // Early exit for very small models
       if (mergedCount >= 10) break;
