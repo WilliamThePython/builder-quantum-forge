@@ -1204,7 +1204,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
-      console.log('Starting standard STL export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1215,7 +1214,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const exportFilename = customFilename ||
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.stl') : 'exported_model.stl');
 
-      console.log('Calling exportCurrentSTL with filename:', exportFilename);
       console.log('Geometry details:', {
         vertices: geometry.attributes.position.count,
         hasNormals: !!geometry.attributes.normal,
@@ -1224,7 +1222,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       exportCurrentSTL(geometry, exportFilename);
 
-      console.log('STL exported successfully');
 
       // Track export event
       try {
@@ -1257,7 +1254,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
-      console.log('Starting OBJ export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1298,7 +1294,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('OBJ export completed successfully');
 
       // Track export event
       try {
@@ -1338,7 +1333,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const format = options.format || 'stl';
 
     try {
-      console.log('Starting parts export...', {
         format,
         fileName,
         hasGeometry: !!geometry,
@@ -1358,7 +1352,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
       }
 
-      console.log(`${format.toUpperCase()} assembly kit export completed successfully`);
 
       // Track export event
       try {
