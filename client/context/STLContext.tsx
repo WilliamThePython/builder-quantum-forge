@@ -527,19 +527,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       let geometry: THREE.BufferGeometry;
 
-      if (isSTL) {
+      // Use optimized loading for large files
+      const fileSize = file.size;
+      const isLargeFile = fileSize > 15 * 1024 * 1024; // 15MB threshold
+
+      if (isLargeFile) {
+        console.log(`⚡ Large file detected (${(fileSize / 1024 / 1024).toFixed(1)}MB) - using optimized loader`);
+
+        const { LargeFileOptimizer } = await import('../lib/largeFileOptimizer');
+
+        geometry = await LargeFileOptimizer.processLargeFile(file, (progress, message) => {
+          updateProgress(20 + (progress * 0.3), 'Processing', message); // 20-50% range
+        });
+
+        await updateProgress(50, 'Analyzing', `${geometry.attributes.position.count} vertices loaded`);
+      } else if (isSTL) {
         const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
         const loader = new STLLoader();
-
-        // Load file with timeout for large files
-        const fileSize = file.size;
-        const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB threshold
-        const timeoutMs = isLargeFile ? 30000 : 10000; // 30s for large files, 10s for smaller
-
 
         updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB into memory...`);
 
         // Load with timeout protection
+        const timeoutMs = 15000; // 15s timeout
         const arrayBuffer = await Promise.race([
           file.arrayBuffer(),
           new Promise<never>((_, reject) =>
