@@ -1,22 +1,19 @@
-import * as THREE from 'three';
-import { MeshStats } from './meshSimplifier';
-import { VertexRemovalStitcher } from './vertexRemovalStitcher';
+import * as THREE from "three";
+import { MeshStats } from "./meshSimplifier";
+import { VertexRemovalStitcher } from "./vertexRemovalStitcher";
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
  * Now uses OBJ format internally for better manipulation capabilities
  */
 export class STLManipulator {
-  
-
-  
   /**
    * Simple mesh decimation using JavaScript implementation
    */
   static async reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
-    method: 'quadric_edge_collapse' = 'quadric_edge_collapse'
+    method: "quadric_edge_collapse" = "quadric_edge_collapse",
   ): Promise<{
     geometry: THREE.BufferGeometry;
     originalStats: MeshStats;
@@ -24,47 +21,54 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-
     const originalStats = this.calculateMeshStats(geometry);
 
     // Try to use Open3D Python service first (preferred), fall back to JavaScript if not available
     try {
-      const { PythonMeshProcessor } = await import('./pythonMeshProcessor');
+      const { PythonMeshProcessor } = await import("./pythonMeshProcessor");
 
       // Check if Python service is available
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
 
       if (isAvailable) {
-        const pythonResult = await PythonMeshProcessor.decimate(geometry, targetReduction);
+        const pythonResult = await PythonMeshProcessor.decimate(
+          geometry,
+          targetReduction,
+        );
 
         const newStats = this.calculateMeshStats(pythonResult.geometry);
-        const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
-
+        const reductionAchieved =
+          1 - newStats.vertices / originalStats.vertices;
 
         return {
           geometry: pythonResult.geometry,
           originalStats,
           newStats,
           reductionAchieved,
-          processingTime: pythonResult.processingTime
+          processingTime: pythonResult.processingTime,
         };
       }
-    } catch (error) {
-    }
+    } catch (error) {}
 
     // Fallback to JavaScript implementation
-    const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
+    const result = await VertexRemovalStitcher.removeVertices(
+      geometry,
+      targetReduction,
+      "quadric_edge_collapse",
+    );
 
     // Simple summary log
     const reductionPercent = (result.reductionAchieved * 100).toFixed(1);
-    console.log(`✅ Decimation complete: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices (${reductionPercent}% reduction)`);
+    console.log(
+      `✅ Decimation complete: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices (${reductionPercent}% reduction)`,
+    );
 
     return {
       geometry: result.simplifiedGeometry,
       originalStats: result.originalStats,
       newStats: result.newStats,
       reductionAchieved: result.reductionAchieved,
-      processingTime: result.processingTime
+      processingTime: result.processingTime,
     };
   }
 
@@ -74,10 +78,10 @@ export class STLManipulator {
   static async decimateSingleEdge(
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
-    vertexIndex2: number
+    vertexIndex2: number,
   ): Promise<ToolOperationResult> {
     if (!geometry) {
-      return { success: false, message: 'No geometry loaded' };
+      return { success: false, message: "No geometry loaded" };
     }
 
     try {
@@ -85,33 +89,37 @@ export class STLManipulator {
       const vertexCount = geometry.attributes.position.count;
 
       if (vertexIndex1 >= vertexCount || vertexIndex2 >= vertexCount) {
-        return { success: false, message: 'Invalid vertex indices' };
+        return { success: false, message: "Invalid vertex indices" };
       }
 
       // Get vertex positions
       const v1 = new THREE.Vector3(
         positions[vertexIndex1 * 3],
         positions[vertexIndex1 * 3 + 1],
-        positions[vertexIndex1 * 3 + 2]
+        positions[vertexIndex1 * 3 + 2],
       );
 
       const v2 = new THREE.Vector3(
         positions[vertexIndex2 * 3],
         positions[vertexIndex2 * 3 + 1],
-        positions[vertexIndex2 * 3 + 2]
+        positions[vertexIndex2 * 3 + 2],
       );
 
-
       // Analyze faces connected to this edge to determine optimal collapse position
-      const collapsePosition = this.calculateOptimalCollapsePosition(geometry, v1, v2, vertexIndex1, vertexIndex2);
-
+      const collapsePosition = this.calculateOptimalCollapsePosition(
+        geometry,
+        v1,
+        v2,
+        vertexIndex1,
+        vertexIndex2,
+      );
 
       // Perform edge collapse
       const result = await VertexRemovalStitcher.collapseSingleEdge(
         geometry,
         vertexIndex1,
         vertexIndex2,
-        collapsePosition
+        collapsePosition,
       );
 
       if (result.success) {
@@ -120,16 +128,18 @@ export class STLManipulator {
           message: `Edge collapsed: ${vertexIndex1}↔${vertexIndex2}`,
           geometry: result.geometry,
           originalStats: { vertices: vertexCount, faces: 0 },
-          newStats: { vertices: result.geometry?.attributes.position.count || 0, faces: 0 }
+          newStats: {
+            vertices: result.geometry?.attributes.position.count || 0,
+            faces: 0,
+          },
         };
       }
 
       return result;
-
     } catch (error) {
       return {
         success: false,
-        message: `Edge decimation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Edge decimation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -138,8 +148,12 @@ export class STLManipulator {
    * Calculate mesh statistics
    */
   private static calculateMeshStats(geometry: THREE.BufferGeometry): MeshStats {
-    const vertices = geometry.attributes.position ? geometry.attributes.position.count : 0;
-    const faces = geometry.index ? geometry.index.count / 3 : Math.floor(vertices / 3);
+    const vertices = geometry.attributes.position
+      ? geometry.attributes.position.count
+      : 0;
+    const faces = geometry.index
+      ? geometry.index.count / 3
+      : Math.floor(vertices / 3);
 
     return {
       vertices,
@@ -148,52 +162,68 @@ export class STLManipulator {
       volume: 0,
       hasNormals: !!geometry.attributes.normal,
       hasUVs: !!geometry.attributes.uv,
-      isIndexed: !!geometry.index
+      isIndexed: !!geometry.index,
     };
   }
 
-
-  
-
-  
   /**
    * Get triangle index from intersection point
    */
-  static getTriangleIndexFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
+  static getTriangleIndexFromIntersection(
+    geometry: THREE.BufferGeometry,
+    intersection: THREE.Intersection,
+  ): number | null {
     if (!intersection.face || intersection.face.a === undefined) {
       return null;
     }
-    
+
     // For non-indexed geometry, calculate triangle index from face indices
     if (!geometry.index) {
       return Math.floor(intersection.face.a / 3);
     }
-    
+
     // For indexed geometry, we need to find which triangle contains these vertices
     const indices = geometry.index.array;
     const faceA = intersection.face.a;
     const faceB = intersection.face.b;
     const faceC = intersection.face.c;
-    
+
     // Find the triangle index that contains these face indices
     for (let i = 0; i < indices.length; i += 3) {
-      if ((indices[i] === faceA && indices[i + 1] === faceB && indices[i + 2] === faceC) ||
-          (indices[i] === faceA && indices[i + 1] === faceC && indices[i + 2] === faceB) ||
-          (indices[i] === faceB && indices[i + 1] === faceA && indices[i + 2] === faceC) ||
-          (indices[i] === faceB && indices[i + 1] === faceC && indices[i + 2] === faceA) ||
-          (indices[i] === faceC && indices[i + 1] === faceA && indices[i + 2] === faceB) ||
-          (indices[i] === faceC && indices[i + 1] === faceB && indices[i + 2] === faceA)) {
+      if (
+        (indices[i] === faceA &&
+          indices[i + 1] === faceB &&
+          indices[i + 2] === faceC) ||
+        (indices[i] === faceA &&
+          indices[i + 1] === faceC &&
+          indices[i + 2] === faceB) ||
+        (indices[i] === faceB &&
+          indices[i + 1] === faceA &&
+          indices[i + 2] === faceC) ||
+        (indices[i] === faceB &&
+          indices[i + 1] === faceC &&
+          indices[i + 2] === faceA) ||
+        (indices[i] === faceC &&
+          indices[i + 1] === faceA &&
+          indices[i + 2] === faceB) ||
+        (indices[i] === faceC &&
+          indices[i + 1] === faceB &&
+          indices[i + 2] === faceA)
+      ) {
         return Math.floor(i / 3);
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Get polygon face from intersection point
    */
-  static getPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
+  static getPolygonFaceFromIntersection(
+    geometry: THREE.BufferGeometry,
+    intersection: THREE.Intersection,
+  ): number | null {
     if (!intersection.face || intersection.face.a === undefined) {
       return null;
     }
@@ -205,9 +235,9 @@ export class STLManipulator {
     }
 
     // Get the triangle index that was hit
-    const triangleIndex = !geometry.index ?
-      Math.floor(intersection.face.a / 3) :
-      this.findTriangleIndexFromFace(geometry, intersection.face);
+    const triangleIndex = !geometry.index
+      ? Math.floor(intersection.face.a / 3)
+      : this.findTriangleIndexFromFace(geometry, intersection.face);
 
     if (triangleIndex === null) return null;
 
@@ -217,7 +247,10 @@ export class STLManipulator {
       const face = polygonFaces[faceIndex];
       const faceTriangleCount = this.getTriangleCountForPolygon(face);
 
-      if (triangleIndex >= currentTriangleCount && triangleIndex < currentTriangleCount + faceTriangleCount) {
+      if (
+        triangleIndex >= currentTriangleCount &&
+        triangleIndex < currentTriangleCount + faceTriangleCount
+      ) {
         return faceIndex;
       }
 
@@ -232,8 +265,8 @@ export class STLManipulator {
    */
   static getTriangleCountForPolygon(face: any): number {
     if (!face.originalVertices) {
-      if (face.type === 'triangle') return 1;
-      if (face.type === 'quad') return 2;
+      if (face.type === "triangle") return 1;
+      if (face.type === "quad") return 2;
       return 3; // estimate for polygon
     }
 
@@ -246,7 +279,10 @@ export class STLManipulator {
   /**
    * Find triangle index from face for indexed geometry
    */
-  private static findTriangleIndexFromFace(geometry: THREE.BufferGeometry, face: THREE.Face): number | null {
+  private static findTriangleIndexFromFace(
+    geometry: THREE.BufferGeometry,
+    face: THREE.Face,
+  ): number | null {
     if (!geometry.index) return null;
 
     const indices = geometry.index.array;
@@ -255,12 +291,26 @@ export class STLManipulator {
     const faceC = face.c;
 
     for (let i = 0; i < indices.length; i += 3) {
-      if ((indices[i] === faceA && indices[i + 1] === faceB && indices[i + 2] === faceC) ||
-          (indices[i] === faceA && indices[i + 1] === faceC && indices[i + 2] === faceB) ||
-          (indices[i] === faceB && indices[i + 1] === faceA && indices[i + 2] === faceC) ||
-          (indices[i] === faceB && indices[i + 1] === faceC && indices[i + 2] === faceA) ||
-          (indices[i] === faceC && indices[i + 1] === faceA && indices[i + 2] === faceB) ||
-          (indices[i] === faceC && indices[i + 1] === faceB && indices[i + 2] === faceA)) {
+      if (
+        (indices[i] === faceA &&
+          indices[i + 1] === faceB &&
+          indices[i + 2] === faceC) ||
+        (indices[i] === faceA &&
+          indices[i + 1] === faceC &&
+          indices[i + 2] === faceB) ||
+        (indices[i] === faceB &&
+          indices[i + 1] === faceA &&
+          indices[i + 2] === faceC) ||
+        (indices[i] === faceB &&
+          indices[i + 1] === faceC &&
+          indices[i + 2] === faceA) ||
+        (indices[i] === faceC &&
+          indices[i + 1] === faceA &&
+          indices[i + 2] === faceB) ||
+        (indices[i] === faceC &&
+          indices[i + 1] === faceB &&
+          indices[i + 2] === faceA)
+      ) {
         return Math.floor(i / 3);
       }
     }
@@ -271,7 +321,10 @@ export class STLManipulator {
   /**
    * Get detailed statistics for a specific polygon face
    */
-  static getPolygonFaceStats(geometry: THREE.BufferGeometry, faceIndex: number): {
+  static getPolygonFaceStats(
+    geometry: THREE.BufferGeometry,
+    faceIndex: number,
+  ): {
     area: number;
     perimeter: number;
     width: number;
@@ -283,15 +336,20 @@ export class STLManipulator {
   } | null {
     const polygonFaces = (geometry as any).polygonFaces;
 
-    if (!polygonFaces || !Array.isArray(polygonFaces) || faceIndex < 0 || faceIndex >= polygonFaces.length) {
+    if (
+      !polygonFaces ||
+      !Array.isArray(polygonFaces) ||
+      faceIndex < 0 ||
+      faceIndex >= polygonFaces.length
+    ) {
       // Fallback to triangle stats for non-polygon geometries
       const triangleStats = this.getTriangleStats(geometry, faceIndex);
       if (!triangleStats) return null;
 
       return {
         ...triangleStats,
-        faceType: 'triangle',
-        vertexCount: 3
+        faceType: "triangle",
+        vertexCount: 3,
       };
     }
 
@@ -360,15 +418,18 @@ export class STLManipulator {
       height,
       centroid,
       vertices,
-      faceType: face.type || 'polygon',
-      vertexCount: vertices.length
+      faceType: face.type || "polygon",
+      vertexCount: vertices.length,
     };
   }
 
   /**
    * Get detailed statistics for a specific triangle
    */
-  static getTriangleStats(geometry: THREE.BufferGeometry, triangleIndex: number): {
+  static getTriangleStats(
+    geometry: THREE.BufferGeometry,
+    triangleIndex: number,
+  ): {
     area: number;
     perimeter: number;
     width: number;
@@ -405,18 +466,42 @@ export class STLManipulator {
       const i2 = indices[faceStart + 1];
       const i3_indexed = indices[faceStart + 2];
 
-      v1 = new THREE.Vector3(positions.getX(i1), positions.getY(i1), positions.getZ(i1));
-      v2 = new THREE.Vector3(positions.getX(i2), positions.getY(i2), positions.getZ(i2));
-      v3 = new THREE.Vector3(positions.getX(i3_indexed), positions.getY(i3_indexed), positions.getZ(i3_indexed));
+      v1 = new THREE.Vector3(
+        positions.getX(i1),
+        positions.getY(i1),
+        positions.getZ(i1),
+      );
+      v2 = new THREE.Vector3(
+        positions.getX(i2),
+        positions.getY(i2),
+        positions.getZ(i2),
+      );
+      v3 = new THREE.Vector3(
+        positions.getX(i3_indexed),
+        positions.getY(i3_indexed),
+        positions.getZ(i3_indexed),
+      );
     } else {
       // Non-indexed geometry: vertices are stored sequentially
       const vertexStart = triangleIndex * 3;
 
       if (vertexStart + 2 >= positions.count) return null;
 
-      v1 = new THREE.Vector3(positions.getX(vertexStart), positions.getY(vertexStart), positions.getZ(vertexStart));
-      v2 = new THREE.Vector3(positions.getX(vertexStart + 1), positions.getY(vertexStart + 1), positions.getZ(vertexStart + 1));
-      v3 = new THREE.Vector3(positions.getX(vertexStart + 2), positions.getY(vertexStart + 2), positions.getZ(vertexStart + 2));
+      v1 = new THREE.Vector3(
+        positions.getX(vertexStart),
+        positions.getY(vertexStart),
+        positions.getZ(vertexStart),
+      );
+      v2 = new THREE.Vector3(
+        positions.getX(vertexStart + 1),
+        positions.getY(vertexStart + 1),
+        positions.getZ(vertexStart + 1),
+      );
+      v3 = new THREE.Vector3(
+        positions.getX(vertexStart + 2),
+        positions.getY(vertexStart + 2),
+        positions.getZ(vertexStart + 2),
+      );
     }
 
     // Calculate edges
@@ -451,7 +536,7 @@ export class STLManipulator {
       width,
       height,
       centroid,
-      vertices: [v1, v2, v3]
+      vertices: [v1, v2, v3],
     };
   }
 
@@ -465,13 +550,14 @@ export class STLManipulator {
     hasPolygonData: boolean;
     geometryType: string;
   } {
-    if (!geometry) return {
-      vertices: 0,
-      edges: 0,
-      polygonBreakdown: [],
-      hasPolygonData: false,
-      geometryType: 'unknown'
-    };
+    if (!geometry)
+      return {
+        vertices: 0,
+        edges: 0,
+        polygonBreakdown: [],
+        hasPolygonData: false,
+        geometryType: "unknown",
+      };
 
     const vertices = geometry.attributes.position.count;
 
@@ -507,7 +593,8 @@ export class STLManipulator {
             // Create edge key (sorted to avoid duplicates like AB and BA)
             const v1Key = `${v1.x.toFixed(3)},${v1.y.toFixed(3)},${v1.z.toFixed(3)}`;
             const v2Key = `${v2.x.toFixed(3)},${v2.y.toFixed(3)},${v2.z.toFixed(3)}`;
-            const edgeKey = v1Key < v2Key ? `${v1Key}|${v2Key}` : `${v2Key}|${v1Key}`;
+            const edgeKey =
+              v1Key < v2Key ? `${v1Key}|${v2Key}` : `${v2Key}|${v1Key}`;
             edges.add(edgeKey);
           }
         }
@@ -516,15 +603,23 @@ export class STLManipulator {
       // Convert to sorted breakdown with proper naming
       const polygonBreakdown = Object.entries(faceTypeCounts)
         .map(([type, count]) => ({
-          type: type === 'triangle' ? 'triangle' :
-                type === 'quad' ? 'quad' :
-                type === 'polygon' ? 'polygon' : type,
-          count
+          type:
+            type === "triangle"
+              ? "triangle"
+              : type === "quad"
+                ? "quad"
+                : type === "polygon"
+                  ? "polygon"
+                  : type,
+          count,
         }))
         .sort((a, b) => {
           // Sort by polygon complexity (triangles first, then quads, etc.)
-          const order = { 'triangle': 1, 'quad': 2, 'polygon': 3 };
-          return (order[a.type as keyof typeof order] || 4) - (order[b.type as keyof typeof order] || 4);
+          const order = { triangle: 1, quad: 2, polygon: 3 };
+          return (
+            (order[a.type as keyof typeof order] || 4) -
+            (order[b.type as keyof typeof order] || 4)
+          );
         });
 
       return {
@@ -532,7 +627,7 @@ export class STLManipulator {
         edges: edges.size,
         polygonBreakdown,
         hasPolygonData: true,
-        geometryType: polygonType || 'polygon-based'
+        geometryType: polygonType || "polygon-based",
       };
     } else {
       // Fallback to triangle analysis
@@ -542,9 +637,9 @@ export class STLManipulator {
       return {
         vertices,
         edges: Math.floor(edgeCount / 2),
-        polygonBreakdown: [{ type: 'triangle', count: triangleCount }],
+        polygonBreakdown: [{ type: "triangle", count: triangleCount }],
         hasPolygonData: false,
-        geometryType: 'triangulated'
+        geometryType: "triangulated",
       };
     }
   }
@@ -558,16 +653,20 @@ export class STLManipulator {
     hasIndices: boolean;
     boundingBox: THREE.Box3 | null;
   } {
-    const vertices = geometry.attributes.position ? geometry.attributes.position.count : 0;
-    const triangles = geometry.index ? geometry.index.count / 3 : Math.floor(vertices / 3);
-    
+    const vertices = geometry.attributes.position
+      ? geometry.attributes.position.count
+      : 0;
+    const triangles = geometry.index
+      ? geometry.index.count / 3
+      : Math.floor(vertices / 3);
+
     geometry.computeBoundingBox();
-    
+
     return {
       vertices,
       triangles,
       hasIndices: !!geometry.index,
-      boundingBox: geometry.boundingBox
+      boundingBox: geometry.boundingBox,
     };
   }
 
@@ -580,7 +679,7 @@ export class STLManipulator {
     v1: THREE.Vector3,
     v2: THREE.Vector3,
     vertexIndex1: number,
-    vertexIndex2: number
+    vertexIndex2: number,
   ): THREE.Vector3 {
     console.log(`   Using midpoint for edge collapse (simplified algorithm)`);
 
@@ -588,17 +687,15 @@ export class STLManipulator {
     // Coplanar face merging happens separately in viewer/export pipeline
     return v1.clone().add(v2).multiplyScalar(0.5);
   }
-
-
 }
 
 /**
  * Tool modes for STL manipulation
  */
 export enum STLToolMode {
-  None = 'none',
-  Highlight = 'highlight',
-  Reduce = 'reduce'
+  None = "none",
+  Highlight = "highlight",
+  Reduce = "reduce",
 }
 
 /**

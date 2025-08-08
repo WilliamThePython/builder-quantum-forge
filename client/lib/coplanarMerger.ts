@@ -1,11 +1,10 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * Unified utility for merging coplanar triangles and polygons
  * Provides consistent methodology across all parts of the application
  */
 export class CoplanarMerger {
-  
   // Configuration constants - more aggressive for symmetry preservation
   private static readonly DISTANCE_TOLERANCE = 0.01; // Increased for better merging
   private static readonly NORMAL_TOLERANCE = 0.995; // Cos of ~5.7 degrees (slightly more permissive)
@@ -72,7 +71,7 @@ export class CoplanarMerger {
               ...mergedFaces.slice(0, i),
               mergedFace,
               ...mergedFaces.slice(i + 1, j),
-              ...mergedFaces.slice(j + 1)
+              ...mergedFaces.slice(j + 1),
             ];
 
             changesMade = true;
@@ -92,7 +91,10 @@ export class CoplanarMerger {
   /**
    * Check if two faces can be merged (coplanar and adjacent)
    */
-  private static canMergeFaces(face1: PolygonFace, face2: PolygonFace): boolean {
+  private static canMergeFaces(
+    face1: PolygonFace,
+    face2: PolygonFace,
+  ): boolean {
     // Ensure normals are Vector3 objects
     const normal1 = this.ensureVector3(face1.normal);
     const normal2 = this.ensureVector3(face2.normal);
@@ -104,7 +106,11 @@ export class CoplanarMerger {
     // Step 2: Check if faces are on the same plane
     const face1Center = this.getFaceCenter(face1.originalVertices);
     const face2Center = this.getFaceCenter(face2.originalVertices);
-    const planeDistance = this.distanceToPlane(face1Center, face2Center, normal2);
+    const planeDistance = this.distanceToPlane(
+      face1Center,
+      face2Center,
+      normal2,
+    );
     if (Math.abs(planeDistance) > this.DISTANCE_TOLERANCE) return false;
 
     // Step 3: Check if faces share vertices (are adjacent)
@@ -118,7 +124,10 @@ export class CoplanarMerger {
   /**
    * Merge two coplanar faces into one optimized polygon
    */
-  private static mergeTwoFaces(face1: PolygonFace, face2: PolygonFace): PolygonFace {
+  private static mergeTwoFaces(
+    face1: PolygonFace,
+    face2: PolygonFace,
+  ): PolygonFace {
     // Combine and deduplicate vertices
     const uniqueVertices = this.getCombinedUniqueVertices(face1, face2);
 
@@ -129,14 +138,21 @@ export class CoplanarMerger {
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
     // Determine face type
-    const faceType = orderedVertices.length === 3 ? 'triangle' :
-                     orderedVertices.length === 4 ? 'quad' : 'polygon';
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
     return {
       type: faceType,
       originalVertices: orderedVertices,
       normal: normal.clone().normalize(),
-      triangleIndices: [...(face1.triangleIndices || []), ...(face2.triangleIndices || [])]
+      triangleIndices: [
+        ...(face1.triangleIndices || []),
+        ...(face2.triangleIndices || []),
+      ],
     };
   }
 
@@ -147,17 +163,25 @@ export class CoplanarMerger {
     if (vector instanceof THREE.Vector3) {
       return vector;
     }
-    if (vector && typeof vector.x === 'number' && typeof vector.y === 'number' && typeof vector.z === 'number') {
+    if (
+      vector &&
+      typeof vector.x === "number" &&
+      typeof vector.y === "number" &&
+      typeof vector.z === "number"
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
-    console.warn('Invalid vector data, using default normal');
+    console.warn("Invalid vector data, using default normal");
     return new THREE.Vector3(0, 0, 1);
   }
 
   /**
    * Get combined unique vertices from two faces
    */
-  private static getCombinedUniqueVertices(face1: PolygonFace, face2: PolygonFace): THREE.Vector3[] {
+  private static getCombinedUniqueVertices(
+    face1: PolygonFace,
+    face2: PolygonFace,
+  ): THREE.Vector3[] {
     const allVertices = [...face1.originalVertices, ...face2.originalVertices];
     return this.removeDuplicateVertices(allVertices);
   }
@@ -165,7 +189,10 @@ export class CoplanarMerger {
   /**
    * Check if two faces share vertices
    */
-  private static facesShareVertices(face1: PolygonFace, face2: PolygonFace): boolean {
+  private static facesShareVertices(
+    face1: PolygonFace,
+    face2: PolygonFace,
+  ): boolean {
     for (const v1 of face1.originalVertices) {
       for (const v2 of face2.originalVertices) {
         if (v1.distanceTo(v2) < this.DISTANCE_TOLERANCE) {
@@ -179,20 +206,24 @@ export class CoplanarMerger {
   /**
    * Check if combined vertices would result in a valid polygon
    */
-  private static wouldResultInValidPolygon(vertices: THREE.Vector3[], normal: THREE.Vector3): boolean {
+  private static wouldResultInValidPolygon(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): boolean {
     if (vertices.length < 3 || vertices.length > 20) return false; // Reasonable limits
-    
+
     // Check for minimum area
     const area = this.calculatePolygonArea(vertices);
-    if (area < this.DISTANCE_TOLERANCE * this.DISTANCE_TOLERANCE * 100) return false;
-    
+    if (area < this.DISTANCE_TOLERANCE * this.DISTANCE_TOLERANCE * 100)
+      return false;
+
     // Check for reasonable edge lengths
     for (let i = 0; i < vertices.length; i++) {
       const nextI = (i + 1) % vertices.length;
       const edgeLength = vertices[i].distanceTo(vertices[nextI]);
       if (edgeLength < this.DISTANCE_TOLERANCE * 10) return false;
     }
-    
+
     return true;
   }
 
@@ -206,10 +237,9 @@ export class CoplanarMerger {
       if (this.isStrictlyCoplanar(face.originalVertices)) {
         validatedFaces.push(face);
       } else {
-        
         // Repair by splitting into triangles
         const repairedTriangles = this.repairNonCoplanarFace(face);
-        repairedTriangles.forEach(triangle => {
+        repairedTriangles.forEach((triangle) => {
           if (this.isStrictlyCoplanar(triangle.originalVertices)) {
             validatedFaces.push(triangle);
           }
@@ -237,7 +267,7 @@ export class CoplanarMerger {
 
     // Check if normal is valid
     if (normal.length() < this.DISTANCE_TOLERANCE) return false;
-    
+
     normal.normalize();
 
     // Check all remaining vertices against this plane
@@ -263,59 +293,70 @@ export class CoplanarMerger {
     // Fan triangulation from first vertex
     for (let i = 1; i < vertices.length - 1; i++) {
       const triangleVertices = [vertices[0], vertices[i], vertices[i + 1]];
-      
+
       // Calculate triangle normal
-      const edge1 = new THREE.Vector3().subVectors(triangleVertices[1], triangleVertices[0]);
-      const edge2 = new THREE.Vector3().subVectors(triangleVertices[2], triangleVertices[0]);
+      const edge1 = new THREE.Vector3().subVectors(
+        triangleVertices[1],
+        triangleVertices[0],
+      );
+      const edge2 = new THREE.Vector3().subVectors(
+        triangleVertices[2],
+        triangleVertices[0],
+      );
       const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
 
       triangles.push({
-        type: 'triangle',
+        type: "triangle",
         originalVertices: triangleVertices,
         normal: normal,
-        triangleIndices: face.triangleIndices || []
+        triangleIndices: face.triangleIndices || [],
       });
     }
 
     return triangles;
   }
 
-
-
   /**
    * Order polygon vertices around the perimeter
    */
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length < 3) return vertices;
 
     // Find centroid
     const centroid = new THREE.Vector3();
-    vertices.forEach(v => centroid.add(v));
+    vertices.forEach((v) => centroid.add(v));
     centroid.divideScalar(vertices.length);
 
     // Create local 2D coordinate system
-    const localX = new THREE.Vector3().subVectors(vertices[0], centroid).normalize();
+    const localX = new THREE.Vector3()
+      .subVectors(vertices[0], centroid)
+      .normalize();
     const localY = new THREE.Vector3().crossVectors(normal, localX).normalize();
 
     // Convert to 2D coordinates and sort by angle
-    const points2D = vertices.map(vertex => {
+    const points2D = vertices.map((vertex) => {
       const localPos = new THREE.Vector3().subVectors(vertex, centroid);
       return {
         vertex,
-        angle: Math.atan2(localPos.dot(localY), localPos.dot(localX))
+        angle: Math.atan2(localPos.dot(localY), localPos.dot(localX)),
       };
     });
 
     points2D.sort((a, b) => a.angle - b.angle);
-    return points2D.map(p => p.vertex);
+    return points2D.map((p) => p.vertex);
   }
 
   /**
    * Remove duplicate vertices with tolerance
    */
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeDuplicateVertices(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
-    
+
     for (const vertex of vertices) {
       let isDuplicate = false;
       for (const existing of unique) {
@@ -328,7 +369,7 @@ export class CoplanarMerger {
         unique.push(vertex.clone());
       }
     }
-    
+
     return unique;
   }
 
@@ -337,7 +378,7 @@ export class CoplanarMerger {
    */
   private static getFaceCenter(vertices: THREE.Vector3[]): THREE.Vector3 {
     const center = new THREE.Vector3();
-    vertices.forEach(v => center.add(v));
+    vertices.forEach((v) => center.add(v));
     center.divideScalar(vertices.length);
     return center;
   }
@@ -345,7 +386,11 @@ export class CoplanarMerger {
   /**
    * Calculate distance from point to plane
    */
-  private static distanceToPlane(point: THREE.Vector3, planePoint: THREE.Vector3, planeNormal: THREE.Vector3): number {
+  private static distanceToPlane(
+    point: THREE.Vector3,
+    planePoint: THREE.Vector3,
+    planeNormal: THREE.Vector3,
+  ): number {
     const diff = new THREE.Vector3().subVectors(point, planePoint);
     return diff.dot(planeNormal);
   }
@@ -377,21 +422,21 @@ export class CoplanarMerger {
       for (let i = 0; i < vertices.length; i++) {
         const curr = vertices[i];
         const next = vertices[(i + 1) % vertices.length];
-        area += (curr.x * next.y - next.x * curr.y);
+        area += curr.x * next.y - next.x * curr.y;
       }
     } else if (absY >= absX) {
       // Project to XZ plane
       for (let i = 0; i < vertices.length; i++) {
         const curr = vertices[i];
         const next = vertices[(i + 1) % vertices.length];
-        area += (curr.x * next.z - next.x * curr.z);
+        area += curr.x * next.z - next.x * curr.z;
       }
     } else {
       // Project to YZ plane
       for (let i = 0; i < vertices.length; i++) {
         const curr = vertices[i];
         const next = vertices[(i + 1) % vertices.length];
-        area += (curr.y * next.z - next.y * curr.z);
+        area += curr.y * next.z - next.y * curr.z;
       }
     }
 
@@ -407,7 +452,7 @@ export class CoplanarMerger {
     const facesByVertexCount = new Map<number, PolygonFace[]>();
     const facesByNormal = new Map<string, PolygonFace[]>();
 
-    faces.forEach(face => {
+    faces.forEach((face) => {
       // Group by vertex count
       const vertexCount = face.originalVertices.length;
       if (!facesByVertexCount.has(vertexCount)) {
@@ -449,7 +494,11 @@ export class CoplanarMerger {
   private static detectSymmetryPairs(faces: PolygonFace[]): void {
     // console.log('🔍 SYMMETRY PAIR DETECTION');
 
-    const symmetryPairs: Array<{face1: PolygonFace, face2: PolygonFace, similarity: number}> = [];
+    const symmetryPairs: Array<{
+      face1: PolygonFace;
+      face2: PolygonFace;
+      similarity: number;
+    }> = [];
 
     for (let i = 0; i < faces.length; i++) {
       for (let j = i + 1; j < faces.length; j++) {
@@ -458,7 +507,8 @@ export class CoplanarMerger {
 
         // Check if faces might be symmetric
         const similarity = this.calculateFaceSimilarity(face1, face2);
-        if (similarity > 0.8) { // High similarity threshold
+        if (similarity > 0.8) {
+          // High similarity threshold
           symmetryPairs.push({ face1, face2, similarity });
         }
       }
@@ -471,9 +521,13 @@ export class CoplanarMerger {
   /**
    * Calculate similarity between two faces for symmetry detection
    */
-  private static calculateFaceSimilarity(face1: PolygonFace, face2: PolygonFace): number {
+  private static calculateFaceSimilarity(
+    face1: PolygonFace,
+    face2: PolygonFace,
+  ): number {
     // Must have same vertex count
-    if (face1.originalVertices.length !== face2.originalVertices.length) return 0;
+    if (face1.originalVertices.length !== face2.originalVertices.length)
+      return 0;
 
     // Must have similar normal directions (parallel or opposite)
     const normal1 = this.ensureVector3(face1.normal);
@@ -483,38 +537,49 @@ export class CoplanarMerger {
     // Must have similar face areas
     const area1 = this.calculatePolygonArea(face1.originalVertices);
     const area2 = this.calculatePolygonArea(face2.originalVertices);
-    const areaSimilarity = area1 > 0 && area2 > 0 ?
-      Math.min(area1, area2) / Math.max(area1, area2) : 0;
+    const areaSimilarity =
+      area1 > 0 && area2 > 0
+        ? Math.min(area1, area2) / Math.max(area1, area2)
+        : 0;
 
     // Combined similarity score
-    return (normalSimilarity * 0.6) + (areaSimilarity * 0.4);
+    return normalSimilarity * 0.6 + areaSimilarity * 0.4;
   }
 
   /**
    * Enhanced face optimization with symmetry preservation
    */
-  private static optimizeFacesWithSymmetry(faces: PolygonFace[]): PolygonFace[] {
+  private static optimizeFacesWithSymmetry(
+    faces: PolygonFace[],
+  ): PolygonFace[] {
     // console.log('⚡ SYMMETRY-AWARE OPTIMIZATION');
 
     // First detect symmetry groups
     const symmetryGroups = this.groupSymmetricFaces(faces);
 
-    return faces.map(face => {
+    return faces.map((face) => {
       // Ensure normal is Vector3
       const normal = this.ensureVector3(face.normal);
 
       // Ensure proper vertex ordering
-      const optimizedVertices = this.orderPolygonVertices(face.originalVertices, normal);
+      const optimizedVertices = this.orderPolygonVertices(
+        face.originalVertices,
+        normal,
+      );
 
       // Recalculate type based on vertex count
-      const faceType = optimizedVertices.length === 3 ? 'triangle' :
-                       optimizedVertices.length === 4 ? 'quad' : 'polygon';
+      const faceType =
+        optimizedVertices.length === 3
+          ? "triangle"
+          : optimizedVertices.length === 4
+            ? "quad"
+            : "polygon";
 
       return {
         ...face,
         type: faceType,
         originalVertices: optimizedVertices,
-        normal: normal
+        normal: normal,
       };
     });
   }
@@ -535,7 +600,8 @@ export class CoplanarMerger {
       faces.forEach((face2, j) => {
         if (i !== j && !processed.has(j)) {
           const similarity = this.calculateFaceSimilarity(face1, face2);
-          if (similarity > 0.9) { // Very high threshold for symmetry grouping
+          if (similarity > 0.9) {
+            // Very high threshold for symmetry grouping
             group.push(face2);
             processed.add(j);
           }
@@ -564,28 +630,45 @@ export class CoplanarMerger {
   /**
    * Extract triangles from Three.js geometry
    */
-  private static extractTrianglesFromGeometry(geometry: THREE.BufferGeometry): Triangle[] {
+  private static extractTrianglesFromGeometry(
+    geometry: THREE.BufferGeometry,
+  ): Triangle[] {
     const positions = geometry.attributes.position;
     const triangles: Triangle[] = [];
-    
+
     for (let i = 0; i < positions.count; i += 3) {
-      const v1 = new THREE.Vector3(positions.getX(i), positions.getY(i), positions.getZ(i));
-      const v2 = new THREE.Vector3(positions.getX(i + 1), positions.getY(i + 1), positions.getZ(i + 1));
-      const v3 = new THREE.Vector3(positions.getX(i + 2), positions.getY(i + 2), positions.getZ(i + 2));
+      const v1 = new THREE.Vector3(
+        positions.getX(i),
+        positions.getY(i),
+        positions.getZ(i),
+      );
+      const v2 = new THREE.Vector3(
+        positions.getX(i + 1),
+        positions.getY(i + 1),
+        positions.getZ(i + 1),
+      );
+      const v3 = new THREE.Vector3(
+        positions.getX(i + 2),
+        positions.getY(i + 2),
+        positions.getZ(i + 2),
+      );
 
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
       const edge2 = new THREE.Vector3().subVectors(v3, v1);
       const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
-      const centroid = new THREE.Vector3().addVectors(v1, v2).add(v3).divideScalar(3);
+      const centroid = new THREE.Vector3()
+        .addVectors(v1, v2)
+        .add(v3)
+        .divideScalar(3);
 
       triangles.push({
         vertices: [v1, v2, v3],
         normal,
         centroid,
-        index: Math.floor(i / 3)
+        index: Math.floor(i / 3),
       });
     }
-    
+
     return triangles;
   }
 
@@ -593,18 +676,18 @@ export class CoplanarMerger {
    * Group triangles into initial faces before merging
    */
   private static groupTrianglesIntoFaces(triangles: Triangle[]): PolygonFace[] {
-    return triangles.map(triangle => ({
-      type: 'triangle',
+    return triangles.map((triangle) => ({
+      type: "triangle",
       originalVertices: triangle.vertices,
       normal: triangle.normal,
-      triangleIndices: [triangle.index]
+      triangleIndices: [triangle.index],
     }));
   }
 }
 
 // Type definitions
 export interface PolygonFace {
-  type: 'triangle' | 'quad' | 'polygon';
+  type: "triangle" | "quad" | "polygon";
   originalVertices: THREE.Vector3[];
   normal: THREE.Vector3;
   triangleIndices?: number[];

@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { MaterialSystem } from './MaterialSystem';
+import * as THREE from "three";
+import { MaterialSystem } from "./MaterialSystem";
 
 export interface ProcessingResult {
   success: boolean;
@@ -14,17 +14,17 @@ export interface ProcessingResult {
 
 /**
  * CENTRALIZED GEOMETRY PROCESSOR
- * 
+ *
  * Single source of truth for all geometry transformations.
  * Ensures consistent processing pipeline and material handling.
  */
 export class GeometryProcessor {
-
   /**
    * Convert non-indexed geometry to indexed for efficient processing
    */
-  static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-
+  static convertToIndexed(
+    geometry: THREE.BufferGeometry,
+  ): THREE.BufferGeometry {
     if (geometry.index) {
       return geometry;
     }
@@ -59,7 +59,10 @@ export class GeometryProcessor {
 
     // Create new indexed geometry
     const indexedGeometry = new THREE.BufferGeometry();
-    indexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    indexedGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
     indexedGeometry.setIndex(indices);
 
     // Copy polygon metadata if it exists
@@ -81,15 +84,15 @@ export class GeometryProcessor {
    * Quadric Edge Collapse Decimation - the ONLY decimation method
    */
   static async decimateQuadric(
-    geometry: THREE.BufferGeometry, 
-    targetReduction: number
+    geometry: THREE.BufferGeometry,
+    targetReduction: number,
   ): Promise<ProcessingResult> {
     const startTime = Date.now();
-    
+
     if (targetReduction <= 0 || targetReduction >= 1) {
       return {
         success: false,
-        message: 'Invalid reduction percentage (must be between 0 and 1)'
+        message: "Invalid reduction percentage (must be between 0 and 1)",
       };
     }
 
@@ -103,10 +106,11 @@ export class GeometryProcessor {
 
     const positions = workingGeometry.attributes.position.array as Float32Array;
     const indices = workingGeometry.index!.array as Uint32Array;
-    
-    const targetVertexCount = Math.floor(originalVertexCount * (1 - targetReduction));
-    const verticesToRemove = originalVertexCount - targetVertexCount;
 
+    const targetVertexCount = Math.floor(
+      originalVertexCount * (1 - targetReduction),
+    );
+    const verticesToRemove = originalVertexCount - targetVertexCount;
 
     // Build edge list
     const edges = this.buildEdgeList(indices);
@@ -115,13 +119,12 @@ export class GeometryProcessor {
     // Determine processing strategy
     const isAggressiveReduction = targetReduction > 0.5;
     const maxIterations = isAggressiveReduction ? 10 : 5;
-    
+
     let mergedCount = 0;
     let iterationCount = 0;
 
     // Iterative edge collapse
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
-      
       // Sort edges by length (shortest first for optimal collapse)
       edges.sort((a, b) => {
         const lengthA = this.calculateEdgeLength(positions, a[0], a[1]);
@@ -130,7 +133,7 @@ export class GeometryProcessor {
       });
 
       const initialMergeCount = mergedCount;
-      
+
       for (const [v1, v2] of edges) {
         if (mergedCount >= verticesToRemove) break;
         if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
@@ -153,7 +156,7 @@ export class GeometryProcessor {
       if (mergedCount === initialMergeCount) {
         break;
       }
-      
+
       iterationCount++;
     }
 
@@ -168,8 +171,8 @@ export class GeometryProcessor {
     MaterialSystem.finalizeGeometry(workingGeometry);
 
     const finalVertexCount = workingGeometry.attributes.position.count;
-    const actualReduction = (originalVertexCount - finalVertexCount) / originalVertexCount;
-
+    const actualReduction =
+      (originalVertexCount - finalVertexCount) / originalVertexCount;
 
     return {
       success: true,
@@ -178,8 +181,8 @@ export class GeometryProcessor {
       stats: {
         originalVertices: originalVertexCount,
         finalVertices: finalVertexCount,
-        reductionAchieved: actualReduction
-      }
+        reductionAchieved: actualReduction,
+      },
     };
   }
 
@@ -220,7 +223,11 @@ export class GeometryProcessor {
   /**
    * Calculate edge length between two vertices
    */
-  private static calculateEdgeLength(positions: Float32Array, v1: number, v2: number): number {
+  private static calculateEdgeLength(
+    positions: Float32Array,
+    v1: number,
+    v2: number,
+  ): number {
     const dx = positions[v1 * 3] - positions[v2 * 3];
     const dy = positions[v1 * 3 + 1] - positions[v2 * 3 + 1];
     const dz = positions[v1 * 3 + 2] - positions[v2 * 3 + 2];
@@ -231,10 +238,9 @@ export class GeometryProcessor {
    * Process any geometry to ensure it meets our standards
    */
   static processGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    
     const processed = geometry.clone();
     MaterialSystem.finalizeGeometry(processed);
-    
+
     return processed;
   }
 }

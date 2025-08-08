@@ -1,16 +1,19 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
-import * as THREE from 'three';
-import { useSTL } from '../context/STLContext';
-import { STLManipulator, STLToolMode } from '../lib/stlManipulator';
-import { computeFlatNormals } from '../lib/flatNormals';
-import { computePolygonAwareFlatNormals } from '../lib/polygonFlatNormals';
-import { convertToNonIndexedForFlatColors } from '../lib/flatGeometry';
+import React, { useRef, useMemo, useEffect, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import * as THREE from "three";
+import { useSTL } from "../context/STLContext";
+import { STLManipulator, STLToolMode } from "../lib/stlManipulator";
+import { computeFlatNormals } from "../lib/flatNormals";
+import { computePolygonAwareFlatNormals } from "../lib/polygonFlatNormals";
+import { convertToNonIndexedForFlatColors } from "../lib/flatGeometry";
 
 // ENHANCED: Helper function to find the nearest POLYGON PERIMETER edge to a click point
 // Supports both STL (reconstructed polygons) and OBJ (preserved polygons) files
-function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): { vertexIndex1: number, vertexIndex2: number } | null {
+function findNearestPolygonEdge(
+  geometry: THREE.BufferGeometry,
+  intersection: THREE.Intersection,
+): { vertexIndex1: number; vertexIndex2: number } | null {
   if (!intersection.face) {
     return null;
   }
@@ -29,8 +32,14 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   // Processing polygon faces for edge detection
 
   // Find which polygon face was clicked
-  const clickedPolygonFace = findPolygonFaceFromIntersection(geometry, intersection);
-  if (clickedPolygonFace === null || clickedPolygonFace >= polygonFaces.length) {
+  const clickedPolygonFace = findPolygonFaceFromIntersection(
+    geometry,
+    intersection,
+  );
+  if (
+    clickedPolygonFace === null ||
+    clickedPolygonFace >= polygonFaces.length
+  ) {
     return null;
   }
 
@@ -39,20 +48,31 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   // ENHANCED: Handle different polygon vertex formats (STL reconstructed vs OBJ preserved)
   let polygonVertices;
 
-  if (polygonFace.originalVertices && polygonFace.originalVertices.length >= 3) {
+  if (
+    polygonFace.originalVertices &&
+    polygonFace.originalVertices.length >= 3
+  ) {
     // STL reconstructed format or OBJ with originalVertices
     polygonVertices = polygonFace.originalVertices;
   } else if (polygonFace.vertices && polygonFace.vertices.length >= 3) {
     // OBJ preserved format with indexed vertices
     polygonVertices = polygonFace.vertices.map((v: any) => {
-      if (typeof v === 'number') {
+      if (typeof v === "number") {
         // Direct vertex index
         const idx = v * 3;
-        return new THREE.Vector3(positions[idx], positions[idx + 1], positions[idx + 2]);
-      } else if (v && typeof v.index === 'number') {
+        return new THREE.Vector3(
+          positions[idx],
+          positions[idx + 1],
+          positions[idx + 2],
+        );
+      } else if (v && typeof v.index === "number") {
         // Vertex object with index
         const idx = v.index * 3;
-        return new THREE.Vector3(positions[idx], positions[idx + 1], positions[idx + 2]);
+        return new THREE.Vector3(
+          positions[idx],
+          positions[idx + 1],
+          positions[idx + 2],
+        );
       } else {
         return new THREE.Vector3();
       }
@@ -72,23 +92,25 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
     const nextVertex = polygonVertices[(i + 1) % polygonVertices.length]; // Wrap around to first vertex
 
     // Ensure vertices are Vector3 objects
-    const currentVec3 = currentVertex instanceof THREE.Vector3
-      ? currentVertex
-      : new THREE.Vector3(currentVertex.x, currentVertex.y, currentVertex.z);
+    const currentVec3 =
+      currentVertex instanceof THREE.Vector3
+        ? currentVertex
+        : new THREE.Vector3(currentVertex.x, currentVertex.y, currentVertex.z);
 
-    const nextVec3 = nextVertex instanceof THREE.Vector3
-      ? nextVertex
-      : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
+    const nextVec3 =
+      nextVertex instanceof THREE.Vector3
+        ? nextVertex
+        : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
 
     perimeterEdges.push({
       v1: {
         index: findVertexIndex(positions, currentVec3),
-        position: currentVec3.clone()
+        position: currentVec3.clone(),
       },
       v2: {
         index: findVertexIndex(positions, nextVec3),
-        position: nextVec3.clone()
-      }
+        position: nextVec3.clone(),
+      },
     });
   }
 
@@ -110,23 +132,36 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   });
 
   // VALIDATION: Ensure this edge is a proper polygon boundary
-  if (nearestEdge && !isValidPolygonBoundaryEdge(polygonFaces, nearestEdge.v1.position, nearestEdge.v2.position)) {
+  if (
+    nearestEdge &&
+    !isValidPolygonBoundaryEdge(
+      polygonFaces,
+      nearestEdge.v1.position,
+      nearestEdge.v2.position,
+    )
+  ) {
     return null;
   }
 
   return {
     vertexIndex1: nearestEdge.v1.index,
-    vertexIndex2: nearestEdge.v2.index
+    vertexIndex2: nearestEdge.v2.index,
   };
 }
 
 // Helper function to find which polygon face contains the intersection
-function findPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, intersection: THREE.Intersection): number | null {
+function findPolygonFaceFromIntersection(
+  geometry: THREE.BufferGeometry,
+  intersection: THREE.Intersection,
+): number | null {
   if (!intersection.face) return null;
 
   // Try to use STLManipulator if available, otherwise calculate manually
   try {
-    return STLManipulator.getPolygonFaceFromIntersection(geometry, intersection);
+    return STLManipulator.getPolygonFaceFromIntersection(
+      geometry,
+      intersection,
+    );
   } catch (error) {
     // Fallback silently
   }
@@ -142,7 +177,10 @@ function findPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, interse
     const face = polygonFaces[faceIndex];
     const triangleCount = getTriangleCountForPolygon(face);
 
-    if (triangleIndex >= currentTriangleOffset && triangleIndex < currentTriangleOffset + triangleCount) {
+    if (
+      triangleIndex >= currentTriangleOffset &&
+      triangleIndex < currentTriangleOffset + triangleCount
+    ) {
       return faceIndex;
     }
     currentTriangleOffset += triangleCount;
@@ -152,11 +190,18 @@ function findPolygonFaceFromIntersection(geometry: THREE.BufferGeometry, interse
 }
 
 // Helper function to find vertex index from position
-function findVertexIndex(positions: Float32Array, targetVertex: THREE.Vector3): number {
+function findVertexIndex(
+  positions: Float32Array,
+  targetVertex: THREE.Vector3,
+): number {
   const tolerance = 0.001;
 
   for (let i = 0; i < positions.length; i += 3) {
-    const vertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+    const vertex = new THREE.Vector3(
+      positions[i],
+      positions[i + 1],
+      positions[i + 2],
+    );
     if (vertex.distanceTo(targetVertex) < tolerance) {
       return i / 3;
     }
@@ -169,7 +214,7 @@ function findVertexIndex(positions: Float32Array, targetVertex: THREE.Vector3): 
 function isValidPolygonBoundaryEdge(
   polygonFaces: any[],
   vertex1: THREE.Vector3,
-  vertex2: THREE.Vector3
+  vertex2: THREE.Vector3,
 ): boolean {
   const tolerance = 0.001;
   let faceCount = 0;
@@ -183,14 +228,16 @@ function isValidPolygonBoundaryEdge(
       faceVertices = face.originalVertices;
     } else if (face.vertices && face.vertices.length >= 3) {
       // OBJ format may use indexed vertices - convert to positions
-      faceVertices = face.vertices.map((v: any) => {
-        if (v instanceof THREE.Vector3) {
-          return v;
-        } else if (v && typeof v.x === 'number') {
-          return new THREE.Vector3(v.x, v.y, v.z);
-        }
-        return null;
-      }).filter(v => v !== null);
+      faceVertices = face.vertices
+        .map((v: any) => {
+          if (v instanceof THREE.Vector3) {
+            return v;
+          } else if (v && typeof v.x === "number") {
+            return new THREE.Vector3(v.x, v.y, v.z);
+          }
+          return null;
+        })
+        .filter((v) => v !== null);
     } else {
       continue; // Skip invalid faces
     }
@@ -202,9 +249,10 @@ function isValidPolygonBoundaryEdge(
 
     // Check if this polygon face contains both vertices of the edge
     for (const vertex of faceVertices) {
-      const vertexPos = vertex instanceof THREE.Vector3
-        ? vertex
-        : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+      const vertexPos =
+        vertex instanceof THREE.Vector3
+          ? vertex
+          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
 
       if (vertexPos.distanceTo(vertex1) < tolerance) {
         hasVertex1 = true;
@@ -216,7 +264,14 @@ function isValidPolygonBoundaryEdge(
 
     // If this face contains both vertices, check if they're consecutive (proper edge)
     if (hasVertex1 && hasVertex2) {
-      if (areVerticesConsecutiveInPolygon(faceVertices, vertex1, vertex2, tolerance)) {
+      if (
+        areVerticesConsecutiveInPolygon(
+          faceVertices,
+          vertex1,
+          vertex2,
+          tolerance,
+        )
+      ) {
         faceCount++;
       }
     }
@@ -237,22 +292,28 @@ function areVerticesConsecutiveInPolygon(
   vertices: any[],
   vertex1: THREE.Vector3,
   vertex2: THREE.Vector3,
-  tolerance: number
+  tolerance: number,
 ): boolean {
   for (let i = 0; i < vertices.length; i++) {
     const current = vertices[i];
     const next = vertices[(i + 1) % vertices.length];
 
-    const currentPos = current instanceof THREE.Vector3
-      ? current
-      : new THREE.Vector3(current.x, current.y, current.z);
-    const nextPos = next instanceof THREE.Vector3
-      ? next
-      : new THREE.Vector3(next.x, next.y, next.z);
+    const currentPos =
+      current instanceof THREE.Vector3
+        ? current
+        : new THREE.Vector3(current.x, current.y, current.z);
+    const nextPos =
+      next instanceof THREE.Vector3
+        ? next
+        : new THREE.Vector3(next.x, next.y, next.z);
 
     // Check if current->next matches vertex1->vertex2 or vertex2->vertex1
-    if ((currentPos.distanceTo(vertex1) < tolerance && nextPos.distanceTo(vertex2) < tolerance) ||
-        (currentPos.distanceTo(vertex2) < tolerance && nextPos.distanceTo(vertex1) < tolerance)) {
+    if (
+      (currentPos.distanceTo(vertex1) < tolerance &&
+        nextPos.distanceTo(vertex2) < tolerance) ||
+      (currentPos.distanceTo(vertex2) < tolerance &&
+        nextPos.distanceTo(vertex1) < tolerance)
+    ) {
       return true;
     }
   }
@@ -267,8 +328,8 @@ function isCoplanarPolygon(vertices: any[]): boolean {
   const tolerance = 0.001;
 
   // Convert to Vector3 objects
-  const positions = vertices.map(v =>
-    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+  const positions = vertices.map((v) =>
+    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z),
   );
 
   // Calculate plane from first 3 non-collinear vertices
@@ -311,7 +372,7 @@ function isCoplanarPolygon(vertices: any[]): boolean {
 function isTruePolygonBoundaryEdge(
   polygonFaces: any[],
   vertex1: THREE.Vector3,
-  vertex2: THREE.Vector3
+  vertex2: THREE.Vector3,
 ): boolean {
   const tolerance = 0.001;
   let adjacentFaceCount = 0;
@@ -325,9 +386,10 @@ function isTruePolygonBoundaryEdge(
 
     // Check if this face contains both vertices of the edge
     for (const vertex of face.originalVertices) {
-      const vertexPos = vertex instanceof THREE.Vector3
-        ? vertex
-        : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+      const vertexPos =
+        vertex instanceof THREE.Vector3
+          ? vertex
+          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
 
       if (vertexPos.distanceTo(vertex1) < tolerance) hasVertex1 = true;
       if (vertexPos.distanceTo(vertex2) < tolerance) hasVertex2 = true;
@@ -335,7 +397,14 @@ function isTruePolygonBoundaryEdge(
 
     // If face has both vertices, check if they're consecutive (true boundary edge)
     if (hasVertex1 && hasVertex2) {
-      if (areVerticesConsecutiveInPolygon(face.originalVertices, vertex1, vertex2, tolerance)) {
+      if (
+        areVerticesConsecutiveInPolygon(
+          face.originalVertices,
+          vertex1,
+          vertex2,
+          tolerance,
+        )
+      ) {
         adjacentFaceCount++;
       }
     }
@@ -348,12 +417,13 @@ function isTruePolygonBoundaryEdge(
 
 // Comprehensive validation that a polygon face is robust for decimation
 function isRobustPolygonFace(face: any): boolean {
-  if (!face.originalVertices || !Array.isArray(face.originalVertices)) return false;
+  if (!face.originalVertices || !Array.isArray(face.originalVertices))
+    return false;
   if (face.originalVertices.length < 3) return false;
 
   // Convert to Vector3 objects
   const vertices = face.originalVertices.map((v: any) =>
-    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+    v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z),
   );
 
   // 1. Check coplanarity
@@ -408,8 +478,10 @@ function hasValidVertexOrdering(vertices: THREE.Vector3[]): boolean {
     const edge4End = vertices[0];
 
     // Check diagonal intersections (should not intersect for convex quad)
-    if (doLinesIntersect(edge1Start, edge1End, edge2Start, edge2End) ||
-        doLinesIntersect(edge3Start, edge3End, edge4Start, edge4End)) {
+    if (
+      doLinesIntersect(edge1Start, edge1End, edge2Start, edge2End) ||
+      doLinesIntersect(edge3Start, edge3End, edge4Start, edge4End)
+    ) {
       return false; // Self-intersecting quad
     }
   }
@@ -442,21 +514,21 @@ function calculatePolygonArea(vertices: THREE.Vector3[]): number {
     for (let i = 0; i < vertices.length; i++) {
       const curr = vertices[i];
       const next = vertices[(i + 1) % vertices.length];
-      area += (curr.x * next.y - next.x * curr.y);
+      area += curr.x * next.y - next.x * curr.y;
     }
   } else if (absY >= absX) {
     // Project to XZ plane
     for (let i = 0; i < vertices.length; i++) {
       const curr = vertices[i];
       const next = vertices[(i + 1) % vertices.length];
-      area += (curr.x * next.z - next.x * curr.z);
+      area += curr.x * next.z - next.x * curr.z;
     }
   } else {
     // Project to YZ plane
     for (let i = 0; i < vertices.length; i++) {
       const curr = vertices[i];
       const next = vertices[(i + 1) % vertices.length];
-      area += (curr.y * next.z - next.y * curr.z);
+      area += curr.y * next.z - next.y * curr.z;
     }
   }
 
@@ -465,8 +537,10 @@ function calculatePolygonArea(vertices: THREE.Vector3[]): number {
 
 // Check if two line segments intersect in 3D space
 function doLinesIntersect(
-  line1Start: THREE.Vector3, line1End: THREE.Vector3,
-  line2Start: THREE.Vector3, line2End: THREE.Vector3
+  line1Start: THREE.Vector3,
+  line1End: THREE.Vector3,
+  line2Start: THREE.Vector3,
+  line2End: THREE.Vector3,
 ): boolean {
   // Simplified 2D intersection check (project to dominant plane)
   // This is not a complete 3D line intersection, but good enough for basic validation
@@ -474,10 +548,12 @@ function doLinesIntersect(
   const tolerance = 0.001;
 
   // Check if lines share endpoints (allowed)
-  if (line1Start.distanceTo(line2Start) < tolerance ||
-      line1Start.distanceTo(line2End) < tolerance ||
-      line1End.distanceTo(line2Start) < tolerance ||
-      line1End.distanceTo(line2End) < tolerance) {
+  if (
+    line1Start.distanceTo(line2Start) < tolerance ||
+    line1Start.distanceTo(line2End) < tolerance ||
+    line1End.distanceTo(line2Start) < tolerance ||
+    line1End.distanceTo(line2End) < tolerance
+  ) {
     return false; // Shared endpoints are OK
   }
 
@@ -498,7 +574,6 @@ function doLinesIntersect(
 
 // Create fallback edge geometry from triangulated mesh
 function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
-
   const positions = geometry.attributes.position.array as Float32Array;
   const edgeData: any[] = [];
 
@@ -511,75 +586,96 @@ function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
       const c = indices[i + 2];
 
       // Create edges for this triangle
-      const edges = [[a, b], [b, c], [c, a]];
+      const edges = [
+        [a, b],
+        [b, c],
+        [c, a],
+      ];
 
       edges.forEach(([idx1, idx2]) => {
         const pos1 = new THREE.Vector3(
           positions[idx1 * 3],
           positions[idx1 * 3 + 1],
-          positions[idx1 * 3 + 2]
+          positions[idx1 * 3 + 2],
         );
         const pos2 = new THREE.Vector3(
           positions[idx2 * 3],
           positions[idx2 * 3 + 1],
-          positions[idx2 * 3 + 2]
+          positions[idx2 * 3 + 2],
         );
 
         const lineGeometry = new THREE.BufferGeometry();
-        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
-          pos1.x, pos1.y, pos1.z,
-          pos2.x, pos2.y, pos2.z
-        ], 3));
+        lineGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(
+            [pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z],
+            3,
+          ),
+        );
 
-        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
-          color: 0x00ff00,
-          transparent: true,
-          opacity: 0
-        }));
+        const line = new THREE.Line(
+          lineGeometry,
+          new THREE.LineBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0,
+          }),
+        );
 
         edgeData.push({
           line,
           vertexIndex1: idx1,
           vertexIndex2: idx2,
           position1: pos1.clone(),
-          position2: pos2.clone()
+          position2: pos2.clone(),
         });
       });
     }
   } else {
     // Non-indexed geometry - create edges from consecutive triangles
-    for (let i = 0; i < positions.length; i += 9) { // 9 values per triangle
+    for (let i = 0; i < positions.length; i += 9) {
+      // 9 values per triangle
       const triangle = [
         new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]),
         new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]),
-        new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8])
+        new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]),
       ];
 
       // Create edges for this triangle
-      const edges = [[0, 1], [1, 2], [2, 0]];
+      const edges = [
+        [0, 1],
+        [1, 2],
+        [2, 0],
+      ];
 
       edges.forEach(([idx1, idx2]) => {
         const pos1 = triangle[idx1];
         const pos2 = triangle[idx2];
 
         const lineGeometry = new THREE.BufferGeometry();
-        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
-          pos1.x, pos1.y, pos1.z,
-          pos2.x, pos2.y, pos2.z
-        ], 3));
+        lineGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(
+            [pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z],
+            3,
+          ),
+        );
 
-        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
-          color: 0x00ff00,
-          transparent: true,
-          opacity: 0
-        }));
+        const line = new THREE.Line(
+          lineGeometry,
+          new THREE.LineBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0,
+          }),
+        );
 
         edgeData.push({
           line,
           vertexIndex1: i / 3 + idx1, // Convert to vertex index
           vertexIndex2: i / 3 + idx2,
           position1: pos1.clone(),
-          position2: pos2.clone()
+          position2: pos2.clone(),
         });
       });
     }
@@ -594,12 +690,17 @@ function findNearestEdgeEnhanced(
   pointer: THREE.Vector2,
   camera: THREE.Camera,
   raycaster: THREE.Raycaster,
-  canvasRect: DOMRect
+  canvasRect: DOMRect,
 ): any | null {
   if (!edgeGeometry || edgeGeometry.length === 0) return null;
 
   // IMPROVED Method 1: Precise 2D screen-space detection first (more predictable)
-  const screenSpaceEdge = findNearestEdgeScreenSpacePrecise(edgeGeometry, pointer, camera, canvasRect);
+  const screenSpaceEdge = findNearestEdgeScreenSpacePrecise(
+    edgeGeometry,
+    pointer,
+    camera,
+    canvasRect,
+  );
 
   if (screenSpaceEdge) {
     return screenSpaceEdge;
@@ -632,12 +733,12 @@ function findNearestEdgeScreenSpacePrecise(
   edgeGeometry: any[],
   pointer: THREE.Vector2,
   camera: THREE.Camera,
-  canvasRect: DOMRect
+  canvasRect: DOMRect,
 ): any | null {
   // Convert normalized device coordinates to pixel coordinates
   const mouseScreenPos = new THREE.Vector2(
     (pointer.x + 1) * canvasRect.width * 0.5,
-    (-pointer.y + 1) * canvasRect.height * 0.5
+    (-pointer.y + 1) * canvasRect.height * 0.5,
   );
 
   let nearestEdge = null;
@@ -656,18 +757,23 @@ function findNearestEdgeScreenSpacePrecise(
     screenEnd.copy(edgeData.position2).project(camera);
 
     // Skip edges that are behind the camera or clipped
-    if (screenStart.z > 1 || screenEnd.z > 1 || screenStart.z < -1 || screenEnd.z < -1) {
+    if (
+      screenStart.z > 1 ||
+      screenEnd.z > 1 ||
+      screenStart.z < -1 ||
+      screenEnd.z < -1
+    ) {
       continue;
     }
 
     // Convert to pixel coordinates
     const startPixel = new THREE.Vector2(
       (screenStart.x + 1) * canvasRect.width * 0.5,
-      (-screenStart.y + 1) * canvasRect.height * 0.5
+      (-screenStart.y + 1) * canvasRect.height * 0.5,
     );
     const endPixel = new THREE.Vector2(
       (screenEnd.x + 1) * canvasRect.width * 0.5,
-      (-screenEnd.y + 1) * canvasRect.height * 0.5
+      (-screenEnd.y + 1) * canvasRect.height * 0.5,
     );
 
     // Calculate line length in screen space
@@ -677,13 +783,20 @@ function findNearestEdgeScreenSpacePrecise(
     if (lineLength < 2 || lineLength > canvasRect.width * 0.5) continue;
 
     // Calculate distance from mouse to line segment
-    const distance = distanceToLineSegment(mouseScreenPos, startPixel, endPixel);
+    const distance = distanceToLineSegment(
+      mouseScreenPos,
+      startPixel,
+      endPixel,
+    );
 
     // IMPROVED: Prioritize shorter edges when distances are close (more precise selection)
-    const weightedDistance = distance + (lineLength * 0.001); // Slight bias toward shorter edges
+    const weightedDistance = distance + lineLength * 0.001; // Slight bias toward shorter edges
 
     // Check if this edge is closer and within detection range
-    if (weightedDistance < minScreenDistance && distance < adaptiveMaxDistance) {
+    if (
+      weightedDistance < minScreenDistance &&
+      distance < adaptiveMaxDistance
+    ) {
       minScreenDistance = weightedDistance;
       nearestEdge = edgeData;
     }
@@ -693,7 +806,11 @@ function findNearestEdgeScreenSpacePrecise(
 }
 
 // IMPROVED: More accurate distance calculation to line segment
-function distanceToLineSegment(point: THREE.Vector2, lineStart: THREE.Vector2, lineEnd: THREE.Vector2): number {
+function distanceToLineSegment(
+  point: THREE.Vector2,
+  lineStart: THREE.Vector2,
+  lineEnd: THREE.Vector2,
+): number {
   const lineVec = new THREE.Vector2().subVectors(lineEnd, lineStart);
   const pointVec = new THREE.Vector2().subVectors(point, lineStart);
 
@@ -705,7 +822,9 @@ function distanceToLineSegment(point: THREE.Vector2, lineStart: THREE.Vector2, l
   const clampedProjection = Math.max(0, Math.min(lineLength, projection));
 
   // Find closest point on line segment
-  const closestPoint = lineStart.clone().add(lineVec.normalize().multiplyScalar(clampedProjection));
+  const closestPoint = lineStart
+    .clone()
+    .add(lineVec.normalize().multiplyScalar(clampedProjection));
 
   return point.distanceTo(closestPoint);
 }
@@ -713,8 +832,8 @@ function distanceToLineSegment(point: THREE.Vector2, lineStart: THREE.Vector2, l
 // Helper function to count triangles in a polygon face
 function getTriangleCountForPolygon(face: any): number {
   if (!face.originalVertices) {
-    if (face.type === 'triangle') return 1;
-    if (face.type === 'quad') return 2;
+    if (face.type === "triangle") return 1;
+    if (face.type === "quad") return 2;
     return 3; // estimate for polygon
   }
 
@@ -738,13 +857,12 @@ function STLMesh() {
     setHighlightedTriangle,
     decimationPainterMode,
     isDecimating,
-    decimateEdge
+    decimateEdge,
   } = useSTL();
 
   // Debug decimation painter mode and geometry
   useEffect(() => {
     if (geometry) {
-
       // For non-indexed geometry, calculate face count manually
       if (!geometry.index) {
         const faceCount = geometry.attributes.position.count / 3;
@@ -773,8 +891,8 @@ function STLMesh() {
   // Helper method for triangle counting
   const getTriangleCountForPolygon = (face: any): number => {
     if (!face.originalVertices) {
-      if (face.type === 'triangle') return 1;
-      if (face.type === 'quad') return 2;
+      if (face.type === "triangle") return 1;
+      if (face.type === "quad") return 2;
       return 3; // estimate for polygon
     }
 
@@ -788,19 +906,23 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
-    console.log(`��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+    console.log(
+      `��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`,
+    );
 
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
-      console.log('🔗 Creating standard edge wireframe (no polygon data)');
+      console.log("🔗 Creating standard edge wireframe (no polygon data)");
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
-      console.log(`🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`);
+      console.log(
+        `🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`,
+      );
       return edgeGeometry;
     }
 
-    console.log('🔗 Creating polygon-aware wireframe');
+    console.log("🔗 Creating polygon-aware wireframe");
 
     const wireframePositions: number[] = [];
 
@@ -818,20 +940,32 @@ function STLMesh() {
 
           // Add line segment (2 vertices per line)
           wireframePositions.push(
-            currentVertex.x, currentVertex.y, currentVertex.z,
-            nextVertex.x, nextVertex.y, nextVertex.z
+            currentVertex.x,
+            currentVertex.y,
+            currentVertex.z,
+            nextVertex.x,
+            nextVertex.y,
+            nextVertex.z,
           );
         }
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
-        console.warn('⚠️ Face missing original vertices, using fallback for face:', faceIndex);
+        console.warn(
+          "⚠️ Face missing original vertices, using fallback for face:",
+          faceIndex,
+        );
       }
     }
 
     const wireGeometry = new THREE.BufferGeometry();
-    wireGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wireframePositions, 3));
+    wireGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(wireframePositions, 3),
+    );
 
-    console.log(`✅ Created polygon wireframe with ${wireframePositions.length / 6} edge segments`);
+    console.log(
+      `✅ Created polygon wireframe with ${wireframePositions.length / 6} edge segments`,
+    );
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
 
@@ -842,7 +976,7 @@ function STLMesh() {
         wireframe: false, // We'll handle wireframe with LineSegments
         color: 0x404040,
         transparent: true,
-        opacity: 0.1
+        opacity: 0.1,
       });
     }
 
@@ -857,8 +991,8 @@ function STLMesh() {
       transparent: false,
       opacity: 1.0,
       flatShading: true, // Maintain crisp face shading instead of smooth interpolation
-      depthWrite: true,   // Ensure depth buffer writes for solid appearance
-      depthTest: true     // Ensure depth testing for proper occlusion
+      depthWrite: true, // Ensure depth buffer writes for solid appearance
+      depthTest: true, // Ensure depth testing for proper occlusion
     });
 
     // Force material to refresh when geometry changes
@@ -872,7 +1006,6 @@ function STLMesh() {
   // Trigger spinning animation when a new model loads (but not during decimation)
   useEffect(() => {
     if (geometry) {
-
       const positions = geometry.attributes.position.array;
 
       // Only start spinning animation if NOT currently decimating
@@ -880,7 +1013,7 @@ function STLMesh() {
         spinState.current = {
           ...spinState.current,
           isSpinning: true,
-          startTime: Date.now()
+          startTime: Date.now(),
         };
       } else {
       }
@@ -914,31 +1047,48 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      console.log('🎨 === COLORING PIPELINE DEBUG ===');
-      console.log('🎨 Geometry UUID:', geometry.uuid);
-      console.log('🎨 Vertex count:', geometry.attributes.position.count);
-      console.log('🎨 Has index:', !!geometry.index);
-      console.log('🎨 Index count:', geometry.index ? geometry.index.count : 'N/A');
+      console.log("🎨 === COLORING PIPELINE DEBUG ===");
+      console.log("🎨 Geometry UUID:", geometry.uuid);
+      console.log("🎨 Vertex count:", geometry.attributes.position.count);
+      console.log("🎨 Has index:", !!geometry.index);
+      console.log(
+        "🎨 Index count:",
+        geometry.index ? geometry.index.count : "N/A",
+      );
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
 
-      console.log('🎨 Polygon faces available:', !!polygonFaces);
-      console.log('🎨 Polygon faces type:', Array.isArray(polygonFaces) ? 'array' : typeof polygonFaces);
-      console.log('🎨 Polygon faces count:', polygonFaces ? polygonFaces.length : 'N/A');
+      console.log("🎨 Polygon faces available:", !!polygonFaces);
+      console.log(
+        "🎨 Polygon faces type:",
+        Array.isArray(polygonFaces) ? "array" : typeof polygonFaces,
+      );
+      console.log(
+        "🎨 Polygon faces count:",
+        polygonFaces ? polygonFaces.length : "N/A",
+      );
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log('🎨 First few polygon faces:', polygonFaces.slice(0, 3));
+        console.log("🎨 First few polygon faces:", polygonFaces.slice(0, 3));
       }
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log(`🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`);
+        console.log(
+          `🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`,
+        );
         console.log(`🎨 GEOMETRY TYPE DEBUG:`);
         console.log(`   Is indexed: ${!!geometry.index}`);
         console.log(`   Vertex count: ${geometry.attributes.position.count}`);
-        console.log(`   Index count: ${geometry.index ? geometry.index.count : 'N/A'}`);
-        console.log(`   Triangle count: ${geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3}`);
-        console.log(`   Colors array length will be: ${colors.length} (3 * ${geometry.attributes.position.count} vertices)`);
+        console.log(
+          `   Index count: ${geometry.index ? geometry.index.count : "N/A"}`,
+        );
+        console.log(
+          `   Triangle count: ${geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3}`,
+        );
+        console.log(
+          `   Colors array length will be: ${colors.length} (3 * ${geometry.attributes.position.count} vertices)`,
+        );
 
         let triangleOffset = 0;
 
@@ -966,11 +1116,17 @@ function STLMesh() {
 
           triangleOffset += triangleCount;
         }
-        console.log(`🎨 ✅ Applied POLYGON-AWARE coloring to ${triangleOffset} triangles`);
+        console.log(
+          `🎨 ✅ Applied POLYGON-AWARE coloring to ${triangleOffset} triangles`,
+        );
       } else {
         // Fallback to triangle-based coloring if no polygon face data
-        console.log('🎨 ❌ FALLBACK PATH: No polygon faces found, using triangle-based coloring');
-        console.log('🎨 ❌ This will break up polygon grouping and cause individual triangle colors!');
+        console.log(
+          "🎨 ❌ FALLBACK PATH: No polygon faces found, using triangle-based coloring",
+        );
+        console.log(
+          "🎨 ❌ This will break up polygon grouping and cause individual triangle colors!",
+        );
         const color = new THREE.Color();
         for (let i = 0; i < colors.length; i += 9) {
           color.setHSL(Math.random(), 0.7, 0.6);
@@ -981,31 +1137,33 @@ function STLMesh() {
             colors[i + j + 2] = color.b;
           }
         }
-        console.log('🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!');
+        console.log(
+          "🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!",
+        );
       }
 
       // Store original colors for highlighting
       originalColors.current = new Float32Array(colors);
 
       // Apply colors to geometry
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
-      console.log('🎨 Ensuring flat normals for crisp face shading...');
+      console.log("🎨 Ensuring flat normals for crisp face shading...");
       computePolygonAwareFlatNormals(geometry, polygonFaces);
-      console.log('✅ Applied polygon-aware coloring with flat normals');
-
+      console.log("✅ Applied polygon-aware coloring with flat normals");
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
-      geometry.deleteAttribute('color');
+      geometry.deleteAttribute("color");
       originalColors.current = null;
     }
   }, [geometry, viewerSettings.randomColors, viewerSettings.wireframe]);
 
   // Handle highlighting by brightening colors
   useEffect(() => {
-    if (!geometry || !viewerSettings.randomColors || !originalColors.current) return;
+    if (!geometry || !viewerSettings.randomColors || !originalColors.current)
+      return;
 
     const colors = geometry.attributes.color?.array as Float32Array;
     if (!colors) return;
@@ -1017,7 +1175,11 @@ function STLMesh() {
     if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
       const polygonFaces = (geometry as any).polygonFaces;
 
-      if (polygonFaces && Array.isArray(polygonFaces) && highlightedTriangle < polygonFaces.length) {
+      if (
+        polygonFaces &&
+        Array.isArray(polygonFaces) &&
+        highlightedTriangle < polygonFaces.length
+      ) {
         // Polygon-based highlighting: highlight entire polygon face
         let triangleOffset = 0;
 
@@ -1028,7 +1190,8 @@ function STLMesh() {
         }
 
         const currentFace = polygonFaces[highlightedTriangle];
-        const triangleCount = STLManipulator.getTriangleCountForPolygon(currentFace);
+        const triangleCount =
+          STLManipulator.getTriangleCountForPolygon(currentFace);
 
         // Highlight all triangles in this polygon face
         for (let t = 0; t < triangleCount; t++) {
@@ -1038,7 +1201,7 @@ function STLMesh() {
             const idx = triangleStart + i;
             if (idx < colors.length) {
               // Set to bright red color
-              colors[idx] = 1.0;     // Red
+              colors[idx] = 1.0; // Red
               colors[idx + 1] = 0.0; // Green
               colors[idx + 2] = 0.0; // Blue
             }
@@ -1052,7 +1215,7 @@ function STLMesh() {
           const idx = triangleStart + i;
           if (idx < colors.length) {
             // Set to bright red color
-            colors[idx] = 1.0;     // Red
+            colors[idx] = 1.0; // Red
             colors[idx + 1] = 0.0; // Green
             colors[idx + 2] = 0.0; // Blue
           }
@@ -1079,45 +1242,47 @@ function STLMesh() {
 
       if (intersects.length > 0) {
         const intersection = intersects[0];
-        const faceIndex = STLManipulator.getPolygonFaceFromIntersection(geometry!, intersection);
+        const faceIndex = STLManipulator.getPolygonFaceFromIntersection(
+          geometry!,
+          intersection,
+        );
         setHighlightedTriangle(faceIndex);
       } else {
         setHighlightedTriangle(null);
       }
     };
 
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     if (canvas) {
-      canvas.addEventListener('mousemove', handleMouseMove);
-      return () => canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener("mousemove", handleMouseMove);
+      return () => canvas.removeEventListener("mousemove", handleMouseMove);
     }
   }, [toolMode, geometry, camera, raycaster, pointer]);
 
   // Update canvas cursor and styling for decimation painter mode
   useEffect(() => {
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     if (canvas) {
       if (decimationPainterMode) {
-        canvas.style.cursor = 'crosshair';
-        canvas.style.filter = 'brightness(1.1) contrast(1.05)'; // Slight visual enhancement
-        canvas.style.transition = 'filter 0.2s ease';
+        canvas.style.cursor = "crosshair";
+        canvas.style.filter = "brightness(1.1) contrast(1.05)"; // Slight visual enhancement
+        canvas.style.transition = "filter 0.2s ease";
       } else {
-        canvas.style.cursor = 'default';
-        canvas.style.filter = 'none';
+        canvas.style.cursor = "default";
+        canvas.style.filter = "none";
       }
     }
 
     return () => {
       if (canvas) {
-        canvas.style.cursor = 'default';
-        canvas.style.filter = 'none';
+        canvas.style.cursor = "default";
+        canvas.style.filter = "none";
       }
     };
   }, [decimationPainterMode]);
 
   // Create edge geometry for raycasting (polygon perimeter edges only)
   const edgeGeometry = useMemo(() => {
-
     if (!geometry || !decimationPainterMode) {
       return null;
     }
@@ -1125,7 +1290,9 @@ function STLMesh() {
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
-      console.warn('��� No polygon faces found - creating fallback edge detection from triangles');
+      console.warn(
+        "��� No polygon faces found - creating fallback edge detection from triangles",
+      );
       return createFallbackEdgeGeometry(geometry);
     }
 
@@ -1134,7 +1301,7 @@ function STLMesh() {
       vertexIndex1: number;
       vertexIndex2: number;
       position1: THREE.Vector3;
-      position2: THREE.Vector3
+      position2: THREE.Vector3;
     }[] = [];
     const positions = geometry.attributes.position.array as Float32Array;
 
@@ -1144,7 +1311,7 @@ function STLMesh() {
 
       // Validate that this face is actually coplanar
       if (!isCoplanarPolygon(face.originalVertices)) {
-        console.warn('⚠️ Skipping non-coplanar polygon face');
+        console.warn("⚠️ Skipping non-coplanar polygon face");
         continue;
       }
 
@@ -1153,12 +1320,18 @@ function STLMesh() {
         const currentVertex = vertices[i];
         const nextVertex = vertices[(i + 1) % vertices.length];
 
-        const currentPos = currentVertex instanceof THREE.Vector3
-          ? currentVertex
-          : new THREE.Vector3(currentVertex.x, currentVertex.y, currentVertex.z);
-        const nextPos = nextVertex instanceof THREE.Vector3
-          ? nextVertex
-          : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
+        const currentPos =
+          currentVertex instanceof THREE.Vector3
+            ? currentVertex
+            : new THREE.Vector3(
+                currentVertex.x,
+                currentVertex.y,
+                currentVertex.z,
+              );
+        const nextPos =
+          nextVertex instanceof THREE.Vector3
+            ? nextVertex
+            : new THREE.Vector3(nextVertex.x, nextVertex.y, nextVertex.z);
 
         // Validate this is a true polygon boundary edge (not internal triangulation)
         if (!isTruePolygonBoundaryEdge(polygonFaces, currentPos, nextPos)) {
@@ -1171,23 +1344,36 @@ function STLMesh() {
 
         // Create a line object for this edge
         const lineGeometry = new THREE.BufferGeometry();
-        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
-          currentPos.x, currentPos.y, currentPos.z,
-          nextPos.x, nextPos.y, nextPos.z
-        ], 3));
+        lineGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(
+            [
+              currentPos.x,
+              currentPos.y,
+              currentPos.z,
+              nextPos.x,
+              nextPos.y,
+              nextPos.z,
+            ],
+            3,
+          ),
+        );
 
-        const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({
-          color: 0x00ff00,
-          transparent: true,
-          opacity: 0 // Invisible - only for raycasting
-        }));
+        const line = new THREE.Line(
+          lineGeometry,
+          new THREE.LineBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0, // Invisible - only for raycasting
+          }),
+        );
 
         edgeData.push({
           line,
           vertexIndex1,
           vertexIndex2,
           position1: currentPos.clone(),
-          position2: nextPos.clone()
+          position2: nextPos.clone(),
         });
       }
     }
@@ -1219,10 +1405,12 @@ function STLMesh() {
       // Schedule update on next frame for smoother performance
       animationFrameId = requestAnimationFrame(() => {
         // Update pointer position with higher precision
-        const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+        const rect = (
+          event.target as HTMLCanvasElement
+        ).getBoundingClientRect();
         const newPointer = {
           x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-          y: -((event.clientY - rect.top) / rect.height) * 2 + 1
+          y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
         };
 
         pointer.x = newPointer.x;
@@ -1234,7 +1422,7 @@ function STLMesh() {
           pointer,
           camera,
           raycaster,
-          rect
+          rect,
         );
 
         if (nearestEdge) {
@@ -1242,37 +1430,37 @@ function STLMesh() {
             vertexIndex1: nearestEdge.vertexIndex1,
             vertexIndex2: nearestEdge.vertexIndex2,
             position1: nearestEdge.position1,
-            position2: nearestEdge.position2
+            position2: nearestEdge.position2,
           });
 
           // IMPROVED: Change cursor to indicate hovering over valid edge
           const canvas = event.target as HTMLCanvasElement;
-          canvas.style.cursor = 'crosshair';
+          canvas.style.cursor = "crosshair";
         } else {
           setHighlightedEdge(null);
 
           // Reset cursor when no edge is highlighted
           const canvas = event.target as HTMLCanvasElement;
-          canvas.style.cursor = decimationPainterMode ? 'default' : 'grab';
+          canvas.style.cursor = decimationPainterMode ? "default" : "grab";
         }
 
         animationFrameId = null;
       });
     };
 
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     if (canvas) {
       // Set initial cursor style
-      canvas.style.cursor = decimationPainterMode ? 'default' : 'grab';
+      canvas.style.cursor = decimationPainterMode ? "default" : "grab";
 
-      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener("mousemove", handleMouseMove);
       return () => {
-        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener("mousemove", handleMouseMove);
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId);
         }
         // Reset cursor on cleanup
-        canvas.style.cursor = 'grab';
+        canvas.style.cursor = "grab";
       };
     }
   }, [decimationPainterMode, edgeGeometry, camera, raycaster, pointer]);
@@ -1282,28 +1470,28 @@ function STLMesh() {
     if (!decimationPainterMode || !meshRef.current) return;
 
     const handleClick = async (event: MouseEvent) => {
-
       if (highlightedEdge) {
-
-
         try {
           // Perform single edge decimation
-          await decimateEdge(highlightedEdge.vertexIndex1, highlightedEdge.vertexIndex2);
+          await decimateEdge(
+            highlightedEdge.vertexIndex1,
+            highlightedEdge.vertexIndex2,
+          );
 
           // Clear the highlighted edge after decimation
           setHighlightedEdge(null);
         } catch (error) {
-          console.error('❌ Edge decimation failed:', error);
+          console.error("❌ Edge decimation failed:", error);
         }
       } else {
-        console.log('   No edge highlighted for decimation');
+        console.log("   No edge highlighted for decimation");
       }
     };
 
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     if (canvas) {
-      canvas.addEventListener('click', handleClick);
-      return () => canvas.removeEventListener('click', handleClick);
+      canvas.addEventListener("click", handleClick);
+      return () => canvas.removeEventListener("click", handleClick);
     }
   }, [decimationPainterMode, highlightedEdge, decimateEdge]);
 
@@ -1319,11 +1507,7 @@ function STLMesh() {
   return (
     <group ref={meshRef}>
       {/* Main mesh - key forces re-render when geometry changes */}
-      <mesh
-        key={geometry.uuid}
-        geometry={geometry}
-        material={material}
-      />
+      <mesh key={geometry.uuid} geometry={geometry} material={material} />
 
       {/* Polygon-aware wireframe overlay */}
       {viewerSettings.wireframe && wireframeGeometry && (
@@ -1337,16 +1521,24 @@ function STLMesh() {
 
       {/* Enhanced highlighted edge visualization for decimation painter */}
       {decimationPainterMode && highlightedEdge && (
-        <group key={`highlighted-edge-${highlightedEdge.vertexIndex1}-${highlightedEdge.vertexIndex2}`}>
+        <group
+          key={`highlighted-edge-${highlightedEdge.vertexIndex1}-${highlightedEdge.vertexIndex2}`}
+        >
           {/* Outer glow effect - wider, semi-transparent */}
           <line>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                array={new Float32Array([
-                  highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
-                  highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
-                ])}
+                array={
+                  new Float32Array([
+                    highlightedEdge.position1.x,
+                    highlightedEdge.position1.y,
+                    highlightedEdge.position1.z,
+                    highlightedEdge.position2.x,
+                    highlightedEdge.position2.y,
+                    highlightedEdge.position2.z,
+                  ])
+                }
                 count={2}
                 itemSize={3}
               />
@@ -1364,10 +1556,16 @@ function STLMesh() {
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                array={new Float32Array([
-                  highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z,
-                  highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z
-                ])}
+                array={
+                  new Float32Array([
+                    highlightedEdge.position1.x,
+                    highlightedEdge.position1.y,
+                    highlightedEdge.position1.z,
+                    highlightedEdge.position2.x,
+                    highlightedEdge.position2.y,
+                    highlightedEdge.position2.z,
+                  ])
+                }
                 count={2}
                 itemSize={3}
               />
@@ -1380,14 +1578,34 @@ function STLMesh() {
           </line>
 
           {/* Vertex indicators at edge endpoints */}
-          <mesh position={[highlightedEdge.position1.x, highlightedEdge.position1.y, highlightedEdge.position1.z]}>
+          <mesh
+            position={[
+              highlightedEdge.position1.x,
+              highlightedEdge.position1.y,
+              highlightedEdge.position1.z,
+            ]}
+          >
             <sphereGeometry args={[0.03, 8, 8]} />
-            <meshBasicMaterial color="#00ff00" transparent={true} opacity={0.9} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={0.9}
+            />
           </mesh>
 
-          <mesh position={[highlightedEdge.position2.x, highlightedEdge.position2.y, highlightedEdge.position2.z]}>
+          <mesh
+            position={[
+              highlightedEdge.position2.x,
+              highlightedEdge.position2.y,
+              highlightedEdge.position2.z,
+            ]}
+          >
             <sphereGeometry args={[0.03, 8, 8]} />
-            <meshBasicMaterial color="#00ff00" transparent={true} opacity={0.9} />
+            <meshBasicMaterial
+              color="#00ff00"
+              transparent={true}
+              opacity={0.9}
+            />
           </mesh>
         </group>
       )}
@@ -1395,7 +1613,6 @@ function STLMesh() {
       {/* Decimation painter mode indicator */}
       {decimationPainterMode && (
         <group>
-
           {/* Main visible indicator - positioned above model */}
           <mesh position={[0, 3, 0]}>
             <ringGeometry args={[2.0, 2.5, 32]} />
@@ -1450,7 +1667,7 @@ function GradientBackground() {
   const { viewerSettings } = useSTL();
 
   // Create gradient background for Three.js scene
-  if (viewerSettings.backgroundColor.includes('gradient')) {
+  if (viewerSettings.backgroundColor.includes("gradient")) {
     return (
       <mesh scale={[200, 200, 1]} position={[0, 0, -100]}>
         <planeGeometry />
@@ -1493,7 +1710,7 @@ function Scene() {
   const { viewerSettings } = useSTL();
 
   // Check if background is a gradient
-  const isGradient = viewerSettings.backgroundColor.includes('gradient');
+  const isGradient = viewerSettings.backgroundColor.includes("gradient");
 
   return (
     <>
@@ -1538,13 +1755,13 @@ export default function STLViewer() {
   }, [loadDefaultSTL, geometry]);
 
   // Check if background is a gradient
-  const isGradient = viewerSettings.backgroundColor.includes('gradient');
+  const isGradient = viewerSettings.backgroundColor.includes("gradient");
 
   return (
     <div
       className="w-full h-full relative"
       style={{
-        background: isGradient ? viewerSettings.backgroundColor : 'transparent'
+        background: isGradient ? viewerSettings.backgroundColor : "transparent",
       }}
     >
       <Canvas
@@ -1552,9 +1769,9 @@ export default function STLViewer() {
           position: [0, 30, 80],
           fov: 45,
           near: 0.1,
-          far: 1000
+          far: 1000,
         }}
-        style={{ background: 'transparent' }}
+        style={{ background: "transparent" }}
         shadows
         gl={{ antialias: true, alpha: true }}
       >

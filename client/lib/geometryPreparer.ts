@@ -1,18 +1,21 @@
-import * as THREE from 'three';
-import { computeFlatNormals } from './flatNormals';
-import { validateAndFixGeometry, hasNaNValues, logGeometryStats } from './geometryValidator';
+import * as THREE from "three";
+import { computeFlatNormals } from "./flatNormals";
+import {
+  validateAndFixGeometry,
+  hasNaNValues,
+  logGeometryStats,
+} from "./geometryValidator";
 
 /**
  * UNIFIED GEOMETRY PREPARATION
- * 
+ *
  * This function ensures ALL geometry (initial load, post-decimation, etc.)
  * goes through the same preparation pipeline for consistent viewing.
  */
 export function prepareGeometryForViewing(
   geometry: THREE.BufferGeometry,
-  source: 'initial_load' | 'decimation' | 'restoration' = 'initial_load'
+  source: "initial_load" | "decimation" | "restoration" = "initial_load",
 ): THREE.BufferGeometry {
-
   const prepared = geometry.clone();
 
   // Quick validation of clone
@@ -31,9 +34,10 @@ export function prepareGeometryForViewing(
     (prepared as any).isPolygonPreserved = (geometry as any).isPolygonPreserved;
   }
   if ((geometry as any).isProcedurallyGenerated) {
-    (prepared as any).isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated;
+    (prepared as any).isProcedurallyGenerated = (
+      geometry as any
+    ).isProcedurallyGenerated;
   }
-
 
   // Step 1: Ensure proper face orientation for solid display
   ensureSolidObjectDisplay(prepared);
@@ -46,10 +50,10 @@ export function prepareGeometryForViewing(
   if (hasNaNValues(prepared)) {
     validateAndFixGeometry(prepared, `${source} normals fix`);
   }
-  
+
   // Step 3: Generate new UUID for React updates
   prepared.uuid = THREE.MathUtils.generateUUID();
-  
+
   // Final validation
   if (hasNaNValues(prepared)) {
     validateAndFixGeometry(prepared, `${source} final`);
@@ -63,7 +67,6 @@ export function prepareGeometryForViewing(
  * (Moved from STLContext for reusability)
  */
 function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
-
   // Use flat normals to maintain crisp face shading
   computeFlatNormals(geometry);
 
@@ -76,9 +79,18 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
   let inwardCount = 0;
 
   // Sample every 10th normal to check general orientation
-  for (let i = 0; i < normals.length; i += 30) { // Every 10th vertex (30 = 10 * 3)
-    const normal = new THREE.Vector3(normals[i], normals[i + 1], normals[i + 2]);
-    const vertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+  for (let i = 0; i < normals.length; i += 30) {
+    // Every 10th vertex (30 = 10 * 3)
+    const normal = new THREE.Vector3(
+      normals[i],
+      normals[i + 1],
+      normals[i + 2],
+    );
+    const vertex = new THREE.Vector3(
+      positions[i],
+      positions[i + 1],
+      positions[i + 2],
+    );
 
     // Get geometry center
     geometry.computeBoundingBox();
@@ -96,10 +108,8 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
     }
   }
 
-
   // If more normals point inward, flip all faces
   if (inwardCount > outwardCount) {
-
     // Flip indices to reverse winding order
     const indices = geometry.index;
     if (indices) {
@@ -120,11 +130,10 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
         [posArray[i + 4], posArray[i + 7]] = [posArray[i + 7], posArray[i + 4]];
         [posArray[i + 5], posArray[i + 8]] = [posArray[i + 8], posArray[i + 5]];
       }
-      geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      geometry.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
     }
 
     // Use flat normals to maintain crisp face shading
     computeFlatNormals(geometry);
   }
-
 }

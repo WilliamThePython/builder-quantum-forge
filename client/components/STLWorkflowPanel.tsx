@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Upload,
   RefreshCw,
@@ -14,19 +14,15 @@ import {
   Wrench,
   Menu,
   ArrowLeft,
-  AlertTriangle
-} from 'lucide-react';
-import { useIsMobile } from '../hooks/use-mobile';
-import { Button } from './ui/button';
-import { Switch } from './ui/switch';
-import { Label } from './ui/label';
-import { Separator } from './ui/separator';
-import { Badge } from './ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './ui/popover';
+  AlertTriangle,
+} from "lucide-react";
+import { useIsMobile } from "../hooks/use-mobile";
+import { Button } from "./ui/button";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
+import { Badge } from "./ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,15 +32,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from './ui/alert-dialog';
-import { STLToolMode } from '../lib/stlManipulator';
-import { useSTL } from '../context/STLContext';
-import { estimateModelFileSize, estimatePartsFileSize, getTestFileSizeData } from '../lib/fileSizeEstimator';
+} from "./ui/alert-dialog";
+import { STLToolMode } from "../lib/stlManipulator";
+import { useSTL } from "../context/STLContext";
+import {
+  estimateModelFileSize,
+  estimatePartsFileSize,
+  getTestFileSizeData,
+} from "../lib/fileSizeEstimator";
 
 interface STLWorkflowPanelProps {
   activeToolMode: STLToolMode;
   onToolModeChange: (mode: STLToolMode) => void;
-  onReducePoints: (reduction: number, method: 'random' | 'best' | 'random_vertex' | 'python_vertex' | 'quadric_edge_collapse') => void;
+  onReducePoints: (
+    reduction: number,
+    method:
+      | "random"
+      | "best"
+      | "random_vertex"
+      | "python_vertex"
+      | "quadric_edge_collapse",
+  ) => void;
   isProcessing: boolean;
   geometryStats: {
     vertices: number;
@@ -65,7 +73,7 @@ export default function STLWorkflowPanel({
   randomColors,
   wireframe,
   onRandomColorsChange,
-  onWireframeChange
+  onWireframeChange,
 }: STLWorkflowPanelProps) {
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -76,8 +84,8 @@ export default function STLWorkflowPanel({
 
   // Check if epilepsy warning has been shown this session
   useEffect(() => {
-    const warningShown = sessionStorage.getItem('epilepsy_warning_shown');
-    if (warningShown === 'true') {
+    const warningShown = sessionStorage.getItem("epilepsy_warning_shown");
+    if (warningShown === "true") {
       setHasShownEpilepsyWarning(true);
     }
   }, []);
@@ -95,7 +103,7 @@ export default function STLWorkflowPanel({
   const handleEpilepsyWarningAccept = () => {
     setShowEpilepsyWarning(false);
     setHasShownEpilepsyWarning(true);
-    sessionStorage.setItem('epilepsy_warning_shown', 'true');
+    sessionStorage.setItem("epilepsy_warning_shown", "true");
     onRandomColorsChange(true);
   };
 
@@ -121,29 +129,33 @@ export default function STLWorkflowPanel({
     hasBackup,
     restoreFromBackup,
     decimationPainterMode,
-    setDecimationPainterMode
+    setDecimationPainterMode,
   } = useSTL();
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
-  const [reductionMethod, setReductionMethod] = useState<'random_vertex_removal' | 'python_vertex_removal' | null>(null);
+  const [reductionMethod, setReductionMethod] = useState<
+    "random_vertex_removal" | "python_vertex_removal" | null
+  >(null);
   const [expandedSections, setExpandedSections] = useState({
     upload: true,
     visualization: true,
     tools: true,
-    export: true
+    export: true,
   });
 
   // Triangle export settings
   const [showTriangleSettings, setShowTriangleSettings] = useState(false);
   const [triangleOptions, setTriangleOptions] = useState({
     partThickness: 2,
-    scale: 1
+    scale: 1,
   });
 
   // Export format selection
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
-  const [exportType, setExportType] = useState<'complete' | 'parts'>('complete');
+  const [exportType, setExportType] = useState<"complete" | "parts">(
+    "complete",
+  );
 
   // Professional simplification settings
   const [simplificationStats, setSimplificationStats] = useState<{
@@ -156,27 +168,26 @@ export default function STLWorkflowPanel({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-
-      loadModelFromFile(file).catch(err => {
-        console.error('❌ Upload failed:', err);
+      loadModelFromFile(file).catch((err) => {
+        console.error("❌ Upload failed:", err);
         // Make sure the error is visible to the user
         alert(`Upload failed: ${err.message}`);
       });
     }
-    event.target.value = '';
+    event.target.value = "";
   };
 
-  const handleExportClick = (type: 'complete' | 'parts') => {
+  const handleExportClick = (type: "complete" | "parts") => {
     setExportType(type);
     setShowExportFormatDialog(true);
   };
 
-  const handleFormatSelection = (format: 'stl' | 'obj') => {
+  const handleFormatSelection = (format: "stl" | "obj") => {
     setShowExportFormatDialog(false);
 
-    if (exportType === 'complete') {
+    if (exportType === "complete") {
       // Export complete model
-      if (format === 'stl') {
+      if (format === "stl") {
         exportSTL();
       } else {
         // Export complete model as OBJ
@@ -184,30 +195,30 @@ export default function STLWorkflowPanel({
       }
     } else {
       // Export parts
-      if (format === 'stl') {
+      if (format === "stl") {
         exportParts(triangleOptions);
       } else {
         // Export parts as OBJ
-        exportParts({ ...triangleOptions, format: 'obj' });
+        exportParts({ ...triangleOptions, format: "obj" });
       }
     }
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
-  const SectionHeader = ({ 
-    title, 
-    isExpanded, 
-    onToggle, 
-    badge 
-  }: { 
-    title: string; 
-    isExpanded: boolean; 
+  const SectionHeader = ({
+    title,
+    isExpanded,
+    onToggle,
+    badge,
+  }: {
+    title: string;
+    isExpanded: boolean;
     onToggle: () => void;
     badge?: string;
   }) => (
@@ -224,7 +235,10 @@ export default function STLWorkflowPanel({
         <span>{title}</span>
       </div>
       {badge && (
-        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+        <Badge
+          variant="secondary"
+          className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs"
+        >
           {badge}
         </Badge>
       )}
@@ -244,7 +258,9 @@ export default function STLWorkflowPanel({
         <div className="bg-slate-900/95 backdrop-blur-lg rounded-lg border border-blue-400/30 overflow-hidden shadow-2xl shadow-blue-500/20">
           {/* Compact Mobile Header */}
           <div className="bg-gradient-to-r from-blue-900/95 to-purple-900/95 backdrop-blur-lg border-b border-blue-400/30 p-2">
-            <h2 className="text-white font-semibold text-sm text-center">Intellimesh</h2>
+            <h2 className="text-white font-semibold text-sm text-center">
+              Intellimesh
+            </h2>
           </div>
 
           {/* Mobile Content with compact sections */}
@@ -275,7 +291,9 @@ export default function STLWorkflowPanel({
           <h2 className="intellimesh-title text-white text-2xl mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Intellimesh
           </h2>
-          <p className="text-blue-200/80 text-sm intellimesh-mono">Smarter tools for 3D modeling, slicing, and fabrication</p>
+          <p className="text-blue-200/80 text-sm intellimesh-mono">
+            Smarter tools for 3D modeling, slicing, and fabrication
+          </p>
 
           {/* Enhanced Loading Progress Bar */}
           {isLoading && (
@@ -284,10 +302,10 @@ export default function STLWorkflowPanel({
                 <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-blue-200">
-                    {loadingProgress.stage || 'Processing'}
+                    {loadingProgress.stage || "Processing"}
                   </div>
                   <div className="text-xs text-blue-300/80">
-                    {loadingProgress.details || 'Please wait...'}
+                    {loadingProgress.details || "Please wait..."}
                   </div>
                 </div>
                 <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-2 py-1 rounded">
@@ -307,19 +325,29 @@ export default function STLWorkflowPanel({
 
               {/* Stage Indicators */}
               <div className="flex justify-between mt-2 text-xs">
-                <div className={`px-1 ${loadingProgress.percentage >= 10 ? 'text-green-400' : 'text-white/50'}`}>
+                <div
+                  className={`px-1 ${loadingProgress.percentage >= 10 ? "text-green-400" : "text-white/50"}`}
+                >
                   Validate
                 </div>
-                <div className={`px-1 ${loadingProgress.percentage >= 35 ? 'text-green-400' : 'text-white/50'}`}>
+                <div
+                  className={`px-1 ${loadingProgress.percentage >= 35 ? "text-green-400" : "text-white/50"}`}
+                >
                   Parse
                 </div>
-                <div className={`px-1 ${loadingProgress.percentage >= 60 ? 'text-green-400' : 'text-white/50'}`}>
+                <div
+                  className={`px-1 ${loadingProgress.percentage >= 60 ? "text-green-400" : "text-white/50"}`}
+                >
                   Process
                 </div>
-                <div className={`px-1 ${loadingProgress.percentage >= 85 ? 'text-green-400' : 'text-white/50'}`}>
+                <div
+                  className={`px-1 ${loadingProgress.percentage >= 85 ? "text-green-400" : "text-white/50"}`}
+                >
                   Validate
                 </div>
-                <div className={`px-1 ${loadingProgress.percentage >= 100 ? 'text-green-400' : 'text-white/50'}`}>
+                <div
+                  className={`px-1 ${loadingProgress.percentage >= 100 ? "text-green-400" : "text-white/50"}`}
+                >
                   Complete
                 </div>
               </div>
@@ -332,10 +360,10 @@ export default function STLWorkflowPanel({
           <SectionHeader
             title="1. MESH IMPORT"
             isExpanded={expandedSections.upload}
-            onToggle={() => toggleSection('upload')}
+            onToggle={() => toggleSection("upload")}
             badge={fileName ? "Ready" : "Upload File"}
           />
-          
+
           {expandedSections.upload && (
             <div className="mt-4 space-y-4">
               {/* File Upload */}
@@ -355,7 +383,7 @@ export default function STLWorkflowPanel({
                   type="button"
                 >
                   <Upload className="w-5 h-5 mr-3" />
-                  {isLoading ? 'Loading...' : 'Upload STL/OBJ File'}
+                  {isLoading ? "Loading..." : "Upload STL/OBJ File"}
                 </Button>
               </div>
 
@@ -375,7 +403,9 @@ export default function STLWorkflowPanel({
                 <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                   <div className="flex items-center gap-2 mb-2">
                     <Info className="w-4 h-4 text-blue-400" />
-                    <span className="font-medium text-white text-sm">{fileName}</span>
+                    <span className="font-medium text-white text-sm">
+                      {fileName}
+                    </span>
                   </div>
                   {(() => {
                     const detailedStats = getDetailedGeometryStats();
@@ -383,13 +413,18 @@ export default function STLWorkflowPanel({
 
                     return (
                       <div className="text-xs text-white/70 space-y-1">
-                        <div>Vertices: {detailedStats.vertices.toLocaleString()}</div>
+                        <div>
+                          Vertices: {detailedStats.vertices.toLocaleString()}
+                        </div>
                         <div>Edges: {detailedStats.edges.toLocaleString()}</div>
-                        {detailedStats.polygonBreakdown.map(({ type, count }) => (
-                          <div key={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}s: {count.toLocaleString()}
-                          </div>
-                        ))}
+                        {detailedStats.polygonBreakdown.map(
+                          ({ type, count }) => (
+                            <div key={type}>
+                              {type.charAt(0).toUpperCase() + type.slice(1)}s:{" "}
+                              {count.toLocaleString()}
+                            </div>
+                          ),
+                        )}
                       </div>
                     );
                   })()}
@@ -406,16 +441,18 @@ export default function STLWorkflowPanel({
           <SectionHeader
             title="2. MESH PREVIEW"
             isExpanded={expandedSections.visualization}
-            onToggle={() => toggleSection('visualization')}
+            onToggle={() => toggleSection("visualization")}
           />
-          
+
           {expandedSections.visualization && (
             <div className="mt-4 space-y-4">
               {/* Colors */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Palette className="w-4 h-4 text-white/70" />
-                  <Label htmlFor="colors" className="text-sm text-white/80">Colors</Label>
+                  <Label htmlFor="colors" className="text-sm text-white/80">
+                    Colors
+                  </Label>
                 </div>
                 <Switch
                   id="colors"
@@ -428,7 +465,9 @@ export default function STLWorkflowPanel({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4 text-white/70" />
-                  <Label htmlFor="wireframe" className="text-sm text-white/80">Wireframe Mode</Label>
+                  <Label htmlFor="wireframe" className="text-sm text-white/80">
+                    Wireframe Mode
+                  </Label>
                 </div>
                 <Switch
                   id="wireframe"
@@ -444,21 +483,23 @@ export default function STLWorkflowPanel({
                   <Label className="text-sm text-white/80">Background</Label>
                 </div>
                 <div className="flex items-center gap-2">
-                {[
-                  { color: '#0a0a0a', name: 'Space Black' },
-                  { color: '#1a1a2e', name: 'Deep Ocean' },
-                  { color: '#16213e', name: 'Midnight Blue' },
-                  { color: '#2a0845', name: 'Purple Night' }
-                ].map((bg) => (
+                  {[
+                    { color: "#0a0a0a", name: "Space Black" },
+                    { color: "#1a1a2e", name: "Deep Ocean" },
+                    { color: "#16213e", name: "Midnight Blue" },
+                    { color: "#2a0845", name: "Purple Night" },
+                  ].map((bg) => (
                     <button
                       key={bg.color}
                       className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
                         viewerSettings.backgroundColor === bg.color
-                          ? 'border-white shadow-lg shadow-blue-500/30'
-                          : 'border-white/30 hover:border-white/60'
+                          ? "border-white shadow-lg shadow-blue-500/30"
+                          : "border-white/30 hover:border-white/60"
                       }`}
                       style={{ background: bg.color }}
-                      onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                      onClick={() =>
+                        updateViewerSettings({ backgroundColor: bg.color })
+                      }
                       title={bg.name}
                     />
                   ))}
@@ -475,164 +516,209 @@ export default function STLWorkflowPanel({
           <SectionHeader
             title="3. SIMPLIFICATION"
             isExpanded={expandedSections.tools}
-            onToggle={() => toggleSection('tools')}
+            onToggle={() => toggleSection("tools")}
           />
-          
+
           {expandedSections.tools && (
             <div className="mt-4 space-y-3">
-
-
               {/* Reduction Settings */}
               <div className="p-4 bg-white/10 rounded-lg border border-white/20">
-                  <div className="text-white text-sm font-medium mb-2">
-                    Quadric Edge Collapse
+                <div className="text-white text-sm font-medium mb-2">
+                  Quadric Edge Collapse
                 </div>
                 <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                  �� <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features. Same algorithm as Open3D's quadric decimation.
+                  �� <span className="font-medium">Quadric Decimation:</span>{" "}
+                  Uses quadric error metrics to intelligently collapse edges
+                  while preserving mesh topology and important features. Same
+                  algorithm as Open3D's quadric decimation.
                 </div>
 
-                    {/* Reduction Amount */}
-                    <div className="mb-3">
-                      <div className="text-white text-xs mb-2">
-                        Target Reduction Percentage
+                {/* Reduction Amount */}
+                <div className="mb-3">
+                  <div className="text-white text-xs mb-2">
+                    Target Reduction Percentage
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="0.9"
+                      step="0.1"
+                      value={reductionAmount}
+                      onChange={(e) =>
+                        setReductionAmount(parseFloat(e.target.value))
+                      }
+                      className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="flex justify-between text-xs text-white/70">
+                      <span>10%</span>
+                      <span className="font-medium text-white">
+                        {Math.round(reductionAmount * 100)}%
+                      </span>
+                      <span>90%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Options */}
+                <div className="mb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-3 h-3 text-white/70" />
+                      <span className="text-white text-xs">Show Wireframe</span>
+                    </div>
+                    <Switch
+                      checked={wireframe}
+                      onCheckedChange={onWireframeChange}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      restoreFromBackup();
+                    }}
+                    className={`w-full text-white text-xs py-2 h-8 ${
+                      hasBackup
+                        ? "bg-yellow-600 hover:bg-yellow-700"
+                        : "bg-gray-600 cursor-not-allowed opacity-50"
+                    }`}
+                    disabled={!hasBackup}
+                    title={
+                      hasBackup
+                        ? "Restore model to state before last simplification"
+                        : "No backup available - perform a simplification first"
+                    }
+                  >
+                    <RefreshCw className="w-3 h-3 mr-2" />
+                    {hasBackup
+                      ? "🔄 Undo Simplification"
+                      : "⚪ No Backup Available"}
+                  </Button>
+                </div>
+
+                {/* Reduction Results */}
+                {simplificationStats.originalStats &&
+                  simplificationStats.newStats && (
+                    <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded">
+                      <div className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
+                        ✅ Reduction Complete
                       </div>
-                      <div className="space-y-2">
-                        <input
-                          type="range"
-                          min="0.1"
-                          max="0.9"
-                          step="0.1"
-                          value={reductionAmount}
-                          onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
-                          className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                        <div className="flex justify-between text-xs text-white/70">
-                          <span>10%</span>
-                          <span className="font-medium text-white">
-                            {Math.round(reductionAmount * 100)}%
+                      <div className="text-xs text-white/70 space-y-1">
+                        <div className="flex justify-between">
+                          <span>Vertices:</span>
+                          <span>
+                            {simplificationStats.originalStats.vertices.toLocaleString()}{" "}
+                            →{" "}
+                            {simplificationStats.newStats.vertices.toLocaleString()}
                           </span>
-                          <span>90%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Triangles:</span>
+                          <span>
+                            {simplificationStats.originalStats.faces.toLocaleString()}{" "}
+                            →{" "}
+                            {simplificationStats.newStats.faces.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reduction:</span>
+                          <span className="text-green-400 font-medium">
+                            {(
+                              simplificationStats.reductionAchieved! * 100
+                            ).toFixed(1)}
+                            %
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Method:</span>
+                          <span className="text-blue-300 capitalize">
+                            {reductionMethod.replace("_", " ")}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Processing:</span>
+                          <span>{simplificationStats.processingTime}ms</span>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Additional Options */}
-                    <div className="mb-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Eye className="w-3 h-3 text-white/70" />
-                          <span className="text-white text-xs">Show Wireframe</span>
-                        </div>
-                        <Switch
-                          checked={wireframe}
-                          onCheckedChange={onWireframeChange}
+                <div className="space-y-2">
+                  <Button
+                    onClick={() => {
+                      onReducePoints(
+                        reductionAmount,
+                        "quadric_edge_collapse" as any,
+                      );
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
+                    disabled={isProcessing}
+                  >
+                    🔧 Apply Quadric Decimation
+                  </Button>
+
+                  {/* Decimation Painter Toggle */}
+                  <div
+                    className={`p-3 rounded-lg border transition-all ${
+                      decimationPainterMode
+                        ? "bg-blue-500/20 border-blue-500/50"
+                        : "bg-white/5 border-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Palette
+                          className={`w-4 h-4 ${
+                            decimationPainterMode
+                              ? "text-blue-300"
+                              : "text-blue-400"
+                          }`}
                         />
+                        <div>
+                          <div
+                            className={`text-xs font-medium ${
+                              decimationPainterMode
+                                ? "text-blue-200"
+                                : "text-white"
+                            }`}
+                          >
+                            Decimation Painter{" "}
+                            {decimationPainterMode ? "🎯" : ""}
+                          </div>
+                          <div className="text-white/60 text-xs">
+                            {decimationPainterMode
+                              ? "Click on edges to decimate them"
+                              : "Click edges to decimate individual vertex pairs"}
+                          </div>
+                        </div>
                       </div>
-
-                      <Button
-                        onClick={() => {
-                          restoreFromBackup();
+                      <Switch
+                        id="decimation-painter"
+                        checked={decimationPainterMode}
+                        onCheckedChange={(checked) => {
+                          setDecimationPainterMode(checked);
                         }}
-                        className={`w-full text-white text-xs py-2 h-8 ${
-                          hasBackup
-                            ? 'bg-yellow-600 hover:bg-yellow-700'
-                            : 'bg-gray-600 cursor-not-allowed opacity-50'
-                        }`}
-                        disabled={!hasBackup}
-                        title={hasBackup ? "Restore model to state before last simplification" : "No backup available - perform a simplification first"}
-                      >
-                        <RefreshCw className="w-3 h-3 mr-2" />
-                        {hasBackup ? '🔄 Undo Simplification' : '⚪ No Backup Available'}
-                      </Button>
+                      />
                     </div>
+                  </div>
 
-                    {/* Reduction Results */}
-                    {simplificationStats.originalStats && simplificationStats.newStats && (
-                      <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded">
-                        <div className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
-                          ✅ Reduction Complete
-                        </div>
-                        <div className="text-xs text-white/70 space-y-1">
-                          <div className="flex justify-between">
-                            <span>Vertices:</span>
-                            <span>{simplificationStats.originalStats.vertices.toLocaleString()} → {simplificationStats.newStats.vertices.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Triangles:</span>
-                            <span>{simplificationStats.originalStats.faces.toLocaleString()} → {simplificationStats.newStats.faces.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Reduction:</span>
-                            <span className="text-green-400 font-medium">{(simplificationStats.reductionAchieved! * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Method:</span>
-                            <span className="text-blue-300 capitalize">{reductionMethod.replace('_', ' ')}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Processing:</span>
-                            <span>{simplificationStats.processingTime}ms</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <Button
-                        onClick={() => {
-                          onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
-                        }}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
-                        disabled={isProcessing}
-                      >
-                        🔧 Apply Quadric Decimation
-                      </Button>
-
-                      {/* Decimation Painter Toggle */}
-                      <div className={`p-3 rounded-lg border transition-all ${
-                        decimationPainterMode
-                          ? 'bg-blue-500/20 border-blue-500/50'
-                          : 'bg-white/5 border-white/10'
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Palette className={`w-4 h-4 ${
-                              decimationPainterMode ? 'text-blue-300' : 'text-blue-400'
-                            }`} />
-                            <div>
-                              <div className={`text-xs font-medium ${
-                                decimationPainterMode ? 'text-blue-200' : 'text-white'
-                              }`}>
-                                Decimation Painter {decimationPainterMode ? '🎯' : ''}
-                              </div>
-                              <div className="text-white/60 text-xs">
-                                {decimationPainterMode
-                                  ? 'Click on edges to decimate them'
-                                  : 'Click edges to decimate individual vertex pairs'
-                                }
-                              </div>
-                            </div>
-                          </div>
-                          <Switch
-                            id="decimation-painter"
-                            checked={decimationPainterMode}
-                            onCheckedChange={(checked) => {
-                              setDecimationPainterMode(checked);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
-                        <div className="font-medium text-orange-200 mb-1">🔧 Quadric Edge Collapse Process:</div>
-                        <div>• Calculate quadric error matrices for each vertex</div>
-                        <div>• Build priority queue of edges sorted by collapse cost</div>
-                        <div>• Collapse edges with lowest error to merge vertices</div>
-                        <div>• Remove degenerate faces and maintain topology</div>
-                      </div>
+                  <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
+                    <div className="font-medium text-orange-200 mb-1">
+                      🔧 Quadric Edge Collapse Process:
                     </div>
+                    <div>
+                      • Calculate quadric error matrices for each vertex
+                    </div>
+                    <div>
+                      • Build priority queue of edges sorted by collapse cost
+                    </div>
+                    <div>
+                      • Collapse edges with lowest error to merge vertices
+                    </div>
+                    <div>• Remove degenerate faces and maintain topology</div>
+                  </div>
+                </div>
               </div>
-
             </div>
           )}
         </div>
@@ -644,7 +730,7 @@ export default function STLWorkflowPanel({
           <SectionHeader
             title="4. FABRICATION EXPORT"
             isExpanded={expandedSections.export}
-            onToggle={() => toggleSection('export')}
+            onToggle={() => toggleSection("export")}
             badge={geometry ? "Ready" : "No Model"}
           />
 
@@ -657,7 +743,7 @@ export default function STLWorkflowPanel({
                   Standard Export
                 </div>
                 <Button
-                  onClick={() => handleExportClick('complete')}
+                  onClick={() => handleExportClick("complete")}
                   disabled={!geometry}
                   className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
                 >
@@ -680,7 +766,7 @@ export default function STLWorkflowPanel({
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => handleExportClick('parts')}
+                    onClick={() => handleExportClick("parts")}
                     disabled={!geometry}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
                   >
@@ -688,7 +774,9 @@ export default function STLWorkflowPanel({
                     Export Polygon Parts
                   </Button>
                   <Button
-                    onClick={() => setShowTriangleSettings(!showTriangleSettings)}
+                    onClick={() =>
+                      setShowTriangleSettings(!showTriangleSettings)
+                    }
                     disabled={!geometry}
                     className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
                     title="Configure parts settings"
@@ -718,10 +806,12 @@ export default function STLWorkflowPanel({
                         max="10"
                         step="0.5"
                         value={triangleOptions.partThickness}
-                        onChange={(e) => setTriangleOptions(prev => ({
-                          ...prev,
-                          partThickness: parseFloat(e.target.value)
-                        }))}
+                        onChange={(e) =>
+                          setTriangleOptions((prev) => ({
+                            ...prev,
+                            partThickness: parseFloat(e.target.value),
+                          }))
+                        }
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <div className="flex justify-between text-xs text-white/70 mt-1">
@@ -741,10 +831,12 @@ export default function STLWorkflowPanel({
                         max="3"
                         step="0.1"
                         value={triangleOptions.scale}
-                        onChange={(e) => setTriangleOptions(prev => ({
-                          ...prev,
-                          scale: parseFloat(e.target.value)
-                        }))}
+                        onChange={(e) =>
+                          setTriangleOptions((prev) => ({
+                            ...prev,
+                            scale: parseFloat(e.target.value),
+                          }))
+                        }
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <div className="flex justify-between text-xs text-white/70 mt-1">
@@ -756,31 +848,86 @@ export default function STLWorkflowPanel({
                     {/* Export Stats Preview */}
                     {geometry && (
                       <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
-                        <div className="text-white text-xs font-medium mb-1">Parts Export Preview:</div>
+                        <div className="text-white text-xs font-medium mb-1">
+                          Parts Export Preview:
+                        </div>
                         <div className="text-xs text-white/70 space-y-1">
                           {(() => {
                             const polygonFaces = (geometry as any).polygonFaces;
                             const polygonType = (geometry as any).polygonType;
 
                             if (polygonFaces) {
-                              const faceTypes = [...new Set(polygonFaces.map((f: any) => f.type))];
+                              const faceTypes = [
+                                ...new Set(
+                                  polygonFaces.map((f: any) => f.type),
+                                ),
+                              ];
                               return (
                                 <>
-                                  <div>• {polygonFaces.length} polygon parts ({polygonType})</div>
-                                  <div>• Face types: {faceTypes.join(', ')}</div>
-                                  <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
-                                  <div>• Est. print time: ~{Math.floor(polygonFaces.length * 15 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>• Est. material: ~{Math.round(polygonFaces.length * 2.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>
+                                    • {polygonFaces.length} polygon parts (
+                                    {polygonType})
+                                  </div>
+                                  <div>
+                                    • Face types: {faceTypes.join(", ")}
+                                  </div>
+                                  <div>
+                                    • Thickness: {triangleOptions.partThickness}
+                                    mm, Scale: {triangleOptions.scale}x
+                                  </div>
+                                  <div>
+                                    • Est. print time: ~
+                                    {Math.floor(
+                                      (polygonFaces.length *
+                                        15 *
+                                        (triangleOptions.partThickness / 2)) /
+                                        60,
+                                    )}
+                                    h
+                                  </div>
+                                  <div>
+                                    • Est. material: ~
+                                    {Math.round(
+                                      polygonFaces.length *
+                                        2.5 *
+                                        (triangleOptions.partThickness / 2),
+                                    )}
+                                    g filament
+                                  </div>
                                 </>
                               );
                             } else {
-                              const triangleCount = Math.floor(geometry.attributes.position.count / 3);
+                              const triangleCount = Math.floor(
+                                geometry.attributes.position.count / 3,
+                              );
                               return (
                                 <>
-                                  <div>• {triangleCount} triangle parts (fallback)</div>
-                                  <div>• Thickness: {triangleOptions.partThickness}mm, Scale: {triangleOptions.scale}x</div>
-                                  <div>• Est. print time: ~{Math.floor(triangleCount * 10 * (triangleOptions.partThickness / 2) / 60)}h</div>
-                                  <div>• Est. material: ~{Math.round(triangleCount * 1.5 * (triangleOptions.partThickness / 2))}g filament</div>
+                                  <div>
+                                    • {triangleCount} triangle parts (fallback)
+                                  </div>
+                                  <div>
+                                    • Thickness: {triangleOptions.partThickness}
+                                    mm, Scale: {triangleOptions.scale}x
+                                  </div>
+                                  <div>
+                                    • Est. print time: ~
+                                    {Math.floor(
+                                      (triangleCount *
+                                        10 *
+                                        (triangleOptions.partThickness / 2)) /
+                                        60,
+                                    )}
+                                    h
+                                  </div>
+                                  <div>
+                                    • Est. material: ~
+                                    {Math.round(
+                                      triangleCount *
+                                        1.5 *
+                                        (triangleOptions.partThickness / 2),
+                                    )}
+                                    g filament
+                                  </div>
                                 </>
                               );
                             }
@@ -839,32 +986,40 @@ export default function STLWorkflowPanel({
               Choose Export Format
             </h3>
             <p className="text-white/70 text-sm mb-6 text-center">
-              {exportType === 'complete'
-                ? 'Select format for complete model export:'
-                : 'Select format for polygon parts export:'}
+              {exportType === "complete"
+                ? "Select format for complete model export:"
+                : "Select format for polygon parts export:"}
             </p>
 
             <div className="space-y-3">
               {(() => {
                 // Get size estimates based on export type
-                const sizeEstimate = exportType === 'complete'
-                  ? estimateModelFileSize(geometry)
-                  : null;
-                const partsEstimate = exportType === 'parts'
-                  ? estimatePartsFileSize(geometry, triangleOptions.partThickness, triangleOptions.scale)
-                  : null;
+                const sizeEstimate =
+                  exportType === "complete"
+                    ? estimateModelFileSize(geometry)
+                    : null;
+                const partsEstimate =
+                  exportType === "parts"
+                    ? estimatePartsFileSize(
+                        geometry,
+                        triangleOptions.partThickness,
+                        triangleOptions.scale,
+                      )
+                    : null;
 
                 return (
                   <>
                     <button
-                      onClick={() => handleFormatSelection('stl')}
+                      onClick={() => handleFormatSelection("stl")}
                       className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <Download className="w-5 h-5" />
                         <div className="text-left flex-1">
                           <div className="font-semibold">STL Format</div>
-                          <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
+                          <div className="text-sm text-green-100">
+                            Best for 3D printing and viewing
+                          </div>
                         </div>
                       </div>
 
@@ -872,27 +1027,35 @@ export default function STLWorkflowPanel({
                       {geometry && (
                         <div className="mt-2 pt-2 border-t border-green-400/30">
                           <div className="text-xs text-green-100 space-y-1">
-                            {exportType === 'complete' && sizeEstimate && (
+                            {exportType === "complete" && sizeEstimate && (
                               <>
                                 <div className="flex justify-between">
                                   <span>📄 File size:</span>
-                                  <span className="font-mono">{sizeEstimate.stl.formatted}</span>
+                                  <span className="font-mono">
+                                    {sizeEstimate.stl.formatted}
+                                  </span>
                                 </div>
                               </>
                             )}
-                            {exportType === 'parts' && partsEstimate && (
+                            {exportType === "parts" && partsEstimate && (
                               <>
                                 <div className="flex justify-between">
                                   <span>📦 Total download:</span>
-                                  <span className="font-mono">{partsEstimate.totalFormatted}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.totalFormatted}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>📄 Per part average:</span>
-                                  <span className="font-mono">{partsEstimate.averageFormatted}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.averageFormatted}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>🔢 Number of files:</span>
-                                  <span className="font-mono">{partsEstimate.partCount}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.partCount}
+                                  </span>
                                 </div>
                               </>
                             )}
@@ -902,14 +1065,16 @@ export default function STLWorkflowPanel({
                     </button>
 
                     <button
-                      onClick={() => handleFormatSelection('obj')}
+                      onClick={() => handleFormatSelection("obj")}
                       className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <Package className="w-5 h-5" />
                         <div className="text-left flex-1">
                           <div className="font-semibold">OBJ Format</div>
-                          <div className="text-sm text-blue-100">Better topology for editing and groups</div>
+                          <div className="text-sm text-blue-100">
+                            Better topology for editing and groups
+                          </div>
                         </div>
                       </div>
 
@@ -917,27 +1082,35 @@ export default function STLWorkflowPanel({
                       {geometry && (
                         <div className="mt-2 pt-2 border-t border-blue-400/30">
                           <div className="text-xs text-blue-100 space-y-1">
-                            {exportType === 'complete' && sizeEstimate && (
+                            {exportType === "complete" && sizeEstimate && (
                               <>
                                 <div className="flex justify-between">
                                   <span>📝 File size:</span>
-                                  <span className="font-mono">{sizeEstimate.obj.formatted}</span>
+                                  <span className="font-mono">
+                                    {sizeEstimate.obj.formatted}
+                                  </span>
                                 </div>
                               </>
                             )}
-                            {exportType === 'parts' && partsEstimate && (
+                            {exportType === "parts" && partsEstimate && (
                               <>
                                 <div className="flex justify-between">
                                   <span>📦 Total download:</span>
-                                  <span className="font-mono">{partsEstimate.totalFormatted}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.totalFormatted}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>📄 Per part average:</span>
-                                  <span className="font-mono">{partsEstimate.averageFormatted}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.averageFormatted}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>🔢 Number of files:</span>
-                                  <span className="font-mono">{partsEstimate.partCount}</span>
+                                  <span className="font-mono">
+                                    {partsEstimate.partCount}
+                                  </span>
                                 </div>
                               </>
                             )}
@@ -969,7 +1142,7 @@ export default function STLWorkflowPanel({
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .slider::-moz-range-thumb {
           height: 16px;
@@ -978,12 +1151,15 @@ export default function STLWorkflowPanel({
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
       `}</style>
 
       {/* Epilepsy Warning Dialog */}
-      <AlertDialog open={showEpilepsyWarning} onOpenChange={setShowEpilepsyWarning}>
+      <AlertDialog
+        open={showEpilepsyWarning}
+        onOpenChange={setShowEpilepsyWarning}
+      >
         <AlertDialogContent className="bg-slate-800 border-slate-700">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
@@ -991,10 +1167,13 @@ export default function STLWorkflowPanel({
               Just a friendly heads up! 🌈
             </AlertDialogTitle>
             <AlertDialogDescription className="text-slate-300">
-              The colors feature uses vibrant, changing colors that might flash or change rapidly.
-              If you're sensitive to flashing lights or have photosensitive epilepsy, you might want to skip this one.
-              <br /><br />
-              No worries either way - just want to make sure you have a comfortable experience! ✨
+              The colors feature uses vibrant, changing colors that might flash
+              or change rapidly. If you're sensitive to flashing lights or have
+              photosensitive epilepsy, you might want to skip this one.
+              <br />
+              <br />
+              No worries either way - just want to make sure you have a
+              comfortable experience! ✨
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1036,7 +1215,7 @@ function MobileWorkflowContent(props: any) {
     hasBackup,
     restoreFromBackup,
     decimationPainterMode,
-    setDecimationPainterMode
+    setDecimationPainterMode,
   } = useSTL();
 
   // Get other props
@@ -1049,27 +1228,31 @@ function MobileWorkflowContent(props: any) {
     randomColors,
     wireframe,
     onRandomColorsChange,
-    onWireframeChange
+    onWireframeChange,
   } = props;
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
-  const [reductionMethod, setReductionMethod] = useState<'random_vertex_removal' | 'python_vertex_removal' | null>(null);
+  const [reductionMethod, setReductionMethod] = useState<
+    "random_vertex_removal" | "python_vertex_removal" | null
+  >(null);
   const [expandedSections, setExpandedSections] = useState({
     upload: false,
     visualization: false,
     tools: false,
-    export: false
+    export: false,
   });
 
   const [showTriangleSettings, setShowTriangleSettings] = useState(false);
   const [triangleOptions, setTriangleOptions] = useState({
     partThickness: 2,
-    scale: 1
+    scale: 1,
   });
 
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
-  const [exportType, setExportType] = useState<'complete' | 'parts'>('complete');
+  const [exportType, setExportType] = useState<"complete" | "parts">(
+    "complete",
+  );
 
   const [simplificationStats, setSimplificationStats] = useState<{
     originalStats?: any;
@@ -1081,44 +1264,43 @@ function MobileWorkflowContent(props: any) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-
-      loadModelFromFile(file).catch(err => {
-        console.error('❌ Upload failed:', err);
+      loadModelFromFile(file).catch((err) => {
+        console.error("❌ Upload failed:", err);
         alert(`Upload failed: ${err.message}`);
       });
     }
-    event.target.value = '';
+    event.target.value = "";
   };
 
-  const handleExportClick = (type: 'complete' | 'parts') => {
+  const handleExportClick = (type: "complete" | "parts") => {
     setExportType(type);
     setShowExportFormatDialog(true);
   };
 
-  const handleFormatSelection = (format: 'stl' | 'obj') => {
+  const handleFormatSelection = (format: "stl" | "obj") => {
     setShowExportFormatDialog(false);
 
-    if (exportType === 'complete') {
-      if (format === 'stl') {
+    if (exportType === "complete") {
+      if (format === "stl") {
         exportSTL();
       } else {
         // Export complete model as OBJ
         exportOBJ();
       }
     } else {
-      if (format === 'stl') {
+      if (format === "stl") {
         exportParts(triangleOptions);
       } else {
         // Export parts as OBJ
-        exportParts({ ...triangleOptions, format: 'obj' });
+        exportParts({ ...triangleOptions, format: "obj" });
       }
     }
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
@@ -1126,7 +1308,7 @@ function MobileWorkflowContent(props: any) {
     title,
     isExpanded,
     onToggle,
-    badge
+    badge,
   }: {
     title: string;
     isExpanded: boolean;
@@ -1146,7 +1328,10 @@ function MobileWorkflowContent(props: any) {
         <span className="text-xs">{title}</span>
       </div>
       {badge && (
-        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0 text-xs">
+        <Badge
+          variant="secondary"
+          className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0 text-xs"
+        >
           {badge}
         </Badge>
       )}
@@ -1164,7 +1349,7 @@ function MobileWorkflowContent(props: any) {
             <div className="w-2.5 h-2.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             <div className="flex-1">
               <div className="text-xs font-medium text-blue-200">
-                {loadingProgress.stage || 'Processing'}
+                {loadingProgress.stage || "Processing"}
               </div>
             </div>
             <div className="text-xs font-mono text-blue-300 bg-blue-500/20 px-1 py-0.5 rounded text-xs">
@@ -1175,8 +1360,7 @@ function MobileWorkflowContent(props: any) {
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${loadingProgress.percentage}%` }}
-            >
-            </div>
+            ></div>
           </div>
         </div>
       )}
@@ -1186,7 +1370,7 @@ function MobileWorkflowContent(props: any) {
         <SectionHeader
           title="1. MESH IMPORT"
           isExpanded={expandedSections.upload}
-          onToggle={() => toggleSection('upload')}
+          onToggle={() => toggleSection("upload")}
           badge={fileName ? "Ready" : "Upload File"}
         />
 
@@ -1209,7 +1393,7 @@ function MobileWorkflowContent(props: any) {
                 type="button"
               >
                 <Upload className="w-3 h-3 mr-1" />
-                {isLoading ? 'Loading...' : 'Upload File'}
+                {isLoading ? "Loading..." : "Upload File"}
               </Button>
             </div>
 
@@ -1229,7 +1413,9 @@ function MobileWorkflowContent(props: any) {
               <div className="bg-white/5 rounded-md p-1.5 border border-white/10">
                 <div className="flex items-center gap-1 mb-1">
                   <Info className="w-2.5 h-2.5 text-blue-400" />
-                  <span className="font-medium text-white text-xs">{fileName}</span>
+                  <span className="font-medium text-white text-xs">
+                    {fileName}
+                  </span>
                 </div>
                 {(() => {
                   const detailedStats = getDetailedGeometryStats();
@@ -1239,11 +1425,14 @@ function MobileWorkflowContent(props: any) {
                     <div className="text-xs text-white/70 space-y-0.5">
                       <div>V: {detailedStats.vertices.toLocaleString()}</div>
                       <div>E: {detailedStats.edges.toLocaleString()}</div>
-                      {detailedStats.polygonBreakdown.slice(0, 2).map(({ type, count }) => (
-                        <div key={type}>
-                          {type.charAt(0).toUpperCase()}: {count.toLocaleString()}
-                        </div>
-                      ))}
+                      {detailedStats.polygonBreakdown
+                        .slice(0, 2)
+                        .map(({ type, count }) => (
+                          <div key={type}>
+                            {type.charAt(0).toUpperCase()}:{" "}
+                            {count.toLocaleString()}
+                          </div>
+                        ))}
                     </div>
                   );
                 })()}
@@ -1260,7 +1449,7 @@ function MobileWorkflowContent(props: any) {
         <SectionHeader
           title="2. MESH PREVIEW"
           isExpanded={expandedSections.visualization}
-          onToggle={() => toggleSection('visualization')}
+          onToggle={() => toggleSection("visualization")}
         />
 
         {expandedSections.visualization && (
@@ -1269,7 +1458,12 @@ function MobileWorkflowContent(props: any) {
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-1.5">
                 <Palette className="w-3 h-3 text-white/70" />
-                <Label htmlFor="colors-mobile" className="text-xs text-white/80">Colors</Label>
+                <Label
+                  htmlFor="colors-mobile"
+                  className="text-xs text-white/80"
+                >
+                  Colors
+                </Label>
               </div>
               <Switch
                 id="colors-mobile"
@@ -1282,7 +1476,12 @@ function MobileWorkflowContent(props: any) {
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-1.5">
                 <Eye className="w-3 h-3 text-white/70" />
-                <Label htmlFor="wireframe-mobile" className="text-xs text-white/80">Wireframe</Label>
+                <Label
+                  htmlFor="wireframe-mobile"
+                  className="text-xs text-white/80"
+                >
+                  Wireframe
+                </Label>
               </div>
               <Switch
                 id="wireframe-mobile"
@@ -1299,20 +1498,22 @@ function MobileWorkflowContent(props: any) {
               </div>
               <div className="flex items-center gap-1.5">
                 {[
-                  { color: '#0a0a0a', name: 'Space Black' },
-                  { color: '#1a1a2e', name: 'Deep Ocean' },
-                  { color: '#16213e', name: 'Midnight Blue' },
-                  { color: '#2a0845', name: 'Purple Night' }
+                  { color: "#0a0a0a", name: "Space Black" },
+                  { color: "#1a1a2e", name: "Deep Ocean" },
+                  { color: "#16213e", name: "Midnight Blue" },
+                  { color: "#2a0845", name: "Purple Night" },
                 ].map((bg) => (
                   <button
                     key={bg.color}
                     className={`w-5 h-5 rounded-full border-2 transition-all hover:scale-110 ${
                       viewerSettings.backgroundColor === bg.color
-                        ? 'border-white shadow-lg shadow-blue-500/30'
-                        : 'border-white/30 hover:border-white/60'
+                        ? "border-white shadow-lg shadow-blue-500/30"
+                        : "border-white/30 hover:border-white/60"
                     }`}
                     style={{ background: bg.color }}
-                    onClick={() => updateViewerSettings({ backgroundColor: bg.color })}
+                    onClick={() =>
+                      updateViewerSettings({ backgroundColor: bg.color })
+                    }
                     title={bg.name}
                   />
                 ))}
@@ -1329,7 +1530,7 @@ function MobileWorkflowContent(props: any) {
         <SectionHeader
           title="3. SIMPLIFICATION"
           isExpanded={expandedSections.tools}
-          onToggle={() => toggleSection('tools')}
+          onToggle={() => toggleSection("tools")}
         />
 
         {expandedSections.tools && (
@@ -1340,7 +1541,9 @@ function MobileWorkflowContent(props: any) {
                 Quadric Edge Collapse
               </div>
               <div className="text-sm text-white/60 mb-4 bg-white/5 rounded p-2">
-                🔧 <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features.
+                🔧 <span className="font-medium">Quadric Decimation:</span> Uses
+                quadric error metrics to intelligently collapse edges while
+                preserving mesh topology and important features.
               </div>
 
               {/* Reduction Amount - larger slider for mobile */}
@@ -1354,7 +1557,9 @@ function MobileWorkflowContent(props: any) {
                   max="0.9"
                   step="0.1"
                   value={reductionAmount}
-                  onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    setReductionAmount(parseFloat(e.target.value))
+                  }
                   className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                 />
                 <div className="flex justify-between text-xs text-white/70 mt-2">
@@ -1365,8 +1570,14 @@ function MobileWorkflowContent(props: any) {
 
               <Button
                 onClick={() => {
-                  console.log('🔄 Mobile button clicked! Amount:', reductionAmount);
-                  onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
+                  console.log(
+                    "🔄 Mobile button clicked! Amount:",
+                    reductionAmount,
+                  );
+                  onReducePoints(
+                    reductionAmount,
+                    "quadric_edge_collapse" as any,
+                  );
                 }}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white text-base py-3 h-auto"
                 disabled={isProcessing}
@@ -1375,27 +1586,34 @@ function MobileWorkflowContent(props: any) {
               </Button>
 
               {/* Mobile Decimation Painter Toggle */}
-              <div className={`p-3 rounded-lg border transition-all ${
-                decimationPainterMode
-                  ? 'bg-blue-500/20 border-blue-500/50'
-                  : 'bg-white/10 border-white/20'
-              }`}>
+              <div
+                className={`p-3 rounded-lg border transition-all ${
+                  decimationPainterMode
+                    ? "bg-blue-500/20 border-blue-500/50"
+                    : "bg-white/10 border-white/20"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Palette className={`w-4 h-4 ${
-                      decimationPainterMode ? 'text-blue-300' : 'text-blue-400'
-                    }`} />
+                    <Palette
+                      className={`w-4 h-4 ${
+                        decimationPainterMode
+                          ? "text-blue-300"
+                          : "text-blue-400"
+                      }`}
+                    />
                     <div>
-                      <div className={`text-sm font-medium ${
-                        decimationPainterMode ? 'text-blue-200' : 'text-white'
-                      }`}>
-                        Decimation Painter {decimationPainterMode ? '🎯' : ''}
+                      <div
+                        className={`text-sm font-medium ${
+                          decimationPainterMode ? "text-blue-200" : "text-white"
+                        }`}
+                      >
+                        Decimation Painter {decimationPainterMode ? "🎯" : ""}
                       </div>
                       <div className="text-white/60 text-xs">
                         {decimationPainterMode
-                          ? 'Tap edges to decimate them'
-                          : 'Tap edges to decimate individual pairs'
-                        }
+                          ? "Tap edges to decimate them"
+                          : "Tap edges to decimate individual pairs"}
                       </div>
                     </div>
                   </div>
@@ -1418,7 +1636,7 @@ function MobileWorkflowContent(props: any) {
         <SectionHeader
           title="4. FABRICATION EXPORT"
           isExpanded={expandedSections.export}
-          onToggle={() => toggleSection('export')}
+          onToggle={() => toggleSection("export")}
           badge={geometry ? "Ready" : "No Model"}
         />
 
@@ -1431,7 +1649,7 @@ function MobileWorkflowContent(props: any) {
                 Standard Export
               </div>
               <Button
-                onClick={() => handleExportClick('complete')}
+                onClick={() => handleExportClick("complete")}
                 disabled={!geometry}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12 text-base"
               >
@@ -1449,7 +1667,7 @@ function MobileWorkflowContent(props: any) {
                 Polygon Parts Export
               </div>
               <Button
-                onClick={() => handleExportClick('parts')}
+                onClick={() => handleExportClick("parts")}
                 disabled={!geometry}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12 text-base"
               >
@@ -1485,31 +1703,35 @@ function MobileWorkflowContent(props: any) {
               Choose Export Format
             </h3>
             <p className="text-white/70 text-sm mb-6 text-center">
-              {exportType === 'complete'
-                ? 'Select format for complete model export:'
-                : 'Select format for polygon parts export:'}
+              {exportType === "complete"
+                ? "Select format for complete model export:"
+                : "Select format for polygon parts export:"}
             </p>
 
             <div className="space-y-3">
               <button
-                onClick={() => handleFormatSelection('stl')}
+                onClick={() => handleFormatSelection("stl")}
                 className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
               >
                 <Download className="w-5 h-5" />
                 <div className="text-left">
                   <div className="font-semibold">STL Format</div>
-                  <div className="text-sm text-green-100">Best for 3D printing and viewing</div>
+                  <div className="text-sm text-green-100">
+                    Best for 3D printing and viewing
+                  </div>
                 </div>
               </button>
 
               <button
-                onClick={() => handleFormatSelection('obj')}
+                onClick={() => handleFormatSelection("obj")}
                 className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
               >
                 <Package className="w-5 h-5" />
                 <div className="text-left">
                   <div className="font-semibold">OBJ Format</div>
-                  <div className="text-sm text-blue-100">Better topology for editing and groups</div>
+                  <div className="text-sm text-blue-100">
+                    Better topology for editing and groups
+                  </div>
                 </div>
               </button>
             </div>
@@ -1533,7 +1755,7 @@ function MobileWorkflowContent(props: any) {
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .slider::-moz-range-thumb {
           height: 20px;
@@ -1542,7 +1764,7 @@ function MobileWorkflowContent(props: any) {
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>

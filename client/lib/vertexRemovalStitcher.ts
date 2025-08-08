@@ -1,13 +1,12 @@
-import * as THREE from 'three';
-import { MeshStats } from './meshSimplifier';
-import { CoplanarMerger, PolygonFace } from './coplanarMerger';
-import { computeFlatNormals } from './flatNormals';
+import * as THREE from "three";
+import { MeshStats } from "./meshSimplifier";
+import { CoplanarMerger, PolygonFace } from "./coplanarMerger";
+import { computeFlatNormals } from "./flatNormals";
 
 /**
  * Clean vertex removal implementation for decimation painter
  */
 export class VertexRemovalStitcher {
-
   /**
    * Polygon-aware vertex merging - only adjusts vertices that are part of polygon model
    */
@@ -15,7 +14,7 @@ export class VertexRemovalStitcher {
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number,
-    collapsePosition: THREE.Vector3
+    collapsePosition: THREE.Vector3,
   ): Promise<{
     success: boolean;
     message: string;
@@ -29,23 +28,29 @@ export class VertexRemovalStitcher {
       // STEP 1: Get the polygon faces metadata
       const polygonFaces = (geometry as any).polygonFaces;
       if (!polygonFaces || !Array.isArray(polygonFaces)) {
-        console.warn('   No polygon metadata found - falling back to basic vertex merge');
-        return this.basicVertexMerge(geometry, vertexIndex1, vertexIndex2, collapsePosition);
+        console.warn(
+          "   No polygon metadata found - falling back to basic vertex merge",
+        );
+        return this.basicVertexMerge(
+          geometry,
+          vertexIndex1,
+          vertexIndex2,
+          collapsePosition,
+        );
       }
 
       // STEP 2: Find the logical vertices in polygon model
       const vertex1Pos = new THREE.Vector3(
         positions[vertexIndex1 * 3],
         positions[vertexIndex1 * 3 + 1],
-        positions[vertexIndex1 * 3 + 2]
+        positions[vertexIndex1 * 3 + 2],
       );
 
       const vertex2Pos = new THREE.Vector3(
         positions[vertexIndex2 * 3],
         positions[vertexIndex2 * 3 + 1],
-        positions[vertexIndex2 * 3 + 2]
+        positions[vertexIndex2 * 3 + 2],
       );
-
 
       // STEP 3: Find buffer vertices that correspond to these polygon vertices
       const tolerance = 0.001;
@@ -56,18 +61,26 @@ export class VertexRemovalStitcher {
         if (!face.originalVertices) continue;
 
         for (const polygonVertex of face.originalVertices) {
-          const polygonPos = polygonVertex instanceof THREE.Vector3
-            ? polygonVertex
-            : new THREE.Vector3(polygonVertex.x, polygonVertex.y, polygonVertex.z);
+          const polygonPos =
+            polygonVertex instanceof THREE.Vector3
+              ? polygonVertex
+              : new THREE.Vector3(
+                  polygonVertex.x,
+                  polygonVertex.y,
+                  polygonVertex.z,
+                );
 
           // If this polygon vertex matches either of our edge vertices
-          if (polygonPos.distanceTo(vertex1Pos) < tolerance || polygonPos.distanceTo(vertex2Pos) < tolerance) {
+          if (
+            polygonPos.distanceTo(vertex1Pos) < tolerance ||
+            polygonPos.distanceTo(vertex2Pos) < tolerance
+          ) {
             // Find all buffer vertices that match this polygon vertex position
             for (let i = 0; i < originalVertexCount; i++) {
               const bufferPos = new THREE.Vector3(
                 positions[i * 3],
                 positions[i * 3 + 1],
-                positions[i * 3 + 2]
+                positions[i * 3 + 2],
               );
 
               if (bufferPos.distanceTo(polygonPos) < tolerance) {
@@ -82,14 +95,14 @@ export class VertexRemovalStitcher {
 
       // STEP 4: Move only the polygon-model-related buffer vertices
       const resultGeometry = geometry.clone();
-      const resultPositions = resultGeometry.attributes.position.array as Float32Array;
+      const resultPositions = resultGeometry.attributes.position
+        .array as Float32Array;
 
-      affectedInstances.forEach(vertexIndex => {
+      affectedInstances.forEach((vertexIndex) => {
         resultPositions[vertexIndex * 3] = collapsePosition.x;
         resultPositions[vertexIndex * 3 + 1] = collapsePosition.y;
         resultPositions[vertexIndex * 3 + 2] = collapsePosition.z;
       });
-
 
       // STEP 5: DISABLED - Do not remove faces (prevents holes)
       // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
@@ -99,7 +112,7 @@ export class VertexRemovalStitcher {
         polygonFaces,
         vertex1Pos,
         vertex2Pos,
-        collapsePosition
+        collapsePosition,
       );
 
       // STEP 7: Validate and fix coplanarity after decimation using unified merger
@@ -107,13 +120,14 @@ export class VertexRemovalStitcher {
         updatedPolygonFaces.map((face: any) => ({
           type: face.type,
           originalVertices: face.originalVertices.map((v: any) =>
-            v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z)
+            v instanceof THREE.Vector3 ? v : new THREE.Vector3(v.x, v.y, v.z),
           ),
-          normal: face.normal instanceof THREE.Vector3
-            ? face.normal
-            : new THREE.Vector3(face.normal.x, face.normal.y, face.normal.z),
-          triangleIndices: face.triangleIndices || []
-        }))
+          normal:
+            face.normal instanceof THREE.Vector3
+              ? face.normal
+              : new THREE.Vector3(face.normal.x, face.normal.y, face.normal.z),
+          triangleIndices: face.triangleIndices || [],
+        })),
       );
 
       (resultGeometry as any).polygonFaces = validatedFaces;
@@ -128,18 +142,16 @@ export class VertexRemovalStitcher {
       computeFlatNormals(resultGeometry);
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
-
       return {
         success: true,
         message: `Polygon model vertices merged: ${affectedInstances.length} instances`,
-        geometry: resultGeometry
+        geometry: resultGeometry,
       };
-
     } catch (error) {
-      console.error('❌ Polygon-aware vertex merge failed:', error);
+      console.error("❌ Polygon-aware vertex merge failed:", error);
       return {
         success: false,
-        message: `Polygon-aware vertex merge failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Polygon-aware vertex merge failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -151,7 +163,7 @@ export class VertexRemovalStitcher {
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number,
-    collapsePosition: THREE.Vector3
+    collapsePosition: THREE.Vector3,
   ): Promise<{
     success: boolean;
     message: string;
@@ -163,13 +175,13 @@ export class VertexRemovalStitcher {
     const vertex1Pos = new THREE.Vector3(
       positions[vertexIndex1 * 3],
       positions[vertexIndex1 * 3 + 1],
-      positions[vertexIndex1 * 3 + 2]
+      positions[vertexIndex1 * 3 + 2],
     );
 
     const vertex2Pos = new THREE.Vector3(
       positions[vertexIndex2 * 3],
       positions[vertexIndex2 * 3 + 1],
-      positions[vertexIndex2 * 3 + 2]
+      positions[vertexIndex2 * 3 + 2],
     );
 
     // Find all instances of these vertices
@@ -178,19 +190,23 @@ export class VertexRemovalStitcher {
       const currentPos = new THREE.Vector3(
         positions[i * 3],
         positions[i * 3 + 1],
-        positions[i * 3 + 2]
+        positions[i * 3 + 2],
       );
 
-      if (currentPos.distanceTo(vertex1Pos) < tolerance || currentPos.distanceTo(vertex2Pos) < tolerance) {
+      if (
+        currentPos.distanceTo(vertex1Pos) < tolerance ||
+        currentPos.distanceTo(vertex2Pos) < tolerance
+      ) {
         affectedInstances.push(i);
       }
     }
 
     // Move all instances to collapse position
     const resultGeometry = geometry.clone();
-    const resultPositions = resultGeometry.attributes.position.array as Float32Array;
+    const resultPositions = resultGeometry.attributes.position
+      .array as Float32Array;
 
-    affectedInstances.forEach(vertexIndex => {
+    affectedInstances.forEach((vertexIndex) => {
       resultPositions[vertexIndex * 3] = collapsePosition.x;
       resultPositions[vertexIndex * 3 + 1] = collapsePosition.y;
       resultPositions[vertexIndex * 3 + 2] = collapsePosition.z;
@@ -206,7 +222,7 @@ export class VertexRemovalStitcher {
     return {
       success: true,
       message: `Basic vertex merge: ${affectedInstances.length} instances`,
-      geometry: resultGeometry
+      geometry: resultGeometry,
     };
   }
 
@@ -232,7 +248,9 @@ export class VertexRemovalStitcher {
 
     if (validIndices.length !== indices.length) {
       geometry.setIndex(validIndices);
-      console.log(`Removed ${(indices.length - validIndices.length) / 3} degenerate faces`);
+      console.log(
+        `Removed ${(indices.length - validIndices.length) / 3} degenerate faces`,
+      );
     }
   }
 
@@ -244,14 +262,16 @@ export class VertexRemovalStitcher {
     keepVertex: number,
     removeVertex: number,
     collapsePosition: THREE.Vector3,
-    originalVertexCount: number
+    originalVertexCount: number,
   ): null {
     // For non-indexed geometry, we need to find and merge duplicate vertices
     // This is more complex as vertices are stored directly in face data
     const tolerance = 0.001;
     const vertexCount = positions.length / 3;
 
-    console.log(`   Non-indexed merge: scanning ${vertexCount} vertices for duplicates`);
+    console.log(
+      `   Non-indexed merge: scanning ${vertexCount} vertices for duplicates`,
+    );
 
     // Find all vertices that match the original positions of our edge vertices
     let mergedCount = 0;
@@ -259,11 +279,12 @@ export class VertexRemovalStitcher {
       const vertex = new THREE.Vector3(
         positions[i * 3],
         positions[i * 3 + 1],
-        positions[i * 3 + 2]
+        positions[i * 3 + 2],
       );
 
       // If this vertex is close to where our original vertices were, move it to collapse position
-      if (vertex.distanceTo(collapsePosition) < tolerance * 10) { // Wider tolerance for already moved vertices
+      if (vertex.distanceTo(collapsePosition) < tolerance * 10) {
+        // Wider tolerance for already moved vertices
         positions[i * 3] = collapsePosition.x;
         positions[i * 3 + 1] = collapsePosition.y;
         positions[i * 3 + 2] = collapsePosition.z;
@@ -271,7 +292,9 @@ export class VertexRemovalStitcher {
       }
     }
 
-    console.log(`   Merged ${mergedCount} duplicate vertices to collapse position`);
+    console.log(
+      `   Merged ${mergedCount} duplicate vertices to collapse position`,
+    );
     return null; // Non-indexed geometry doesn't use indices
   }
 
@@ -281,7 +304,7 @@ export class VertexRemovalStitcher {
   private static compactAttribute(
     attribute: THREE.BufferAttribute,
     removeVertexIndex: number,
-    originalVertexCount: number
+    originalVertexCount: number,
   ): THREE.BufferAttribute | null {
     const itemSize = attribute.itemSize;
     const oldArray = attribute.array;
@@ -311,9 +334,8 @@ export class VertexRemovalStitcher {
     polygonFaces: any[],
     vertex1Pos: THREE.Vector3,
     vertex2Pos: THREE.Vector3,
-    collapsePosition: THREE.Vector3
+    collapsePosition: THREE.Vector3,
   ): any[] {
-
     return polygonFaces.map((face, faceIndex) => {
       if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
         return face;
@@ -327,12 +349,16 @@ export class VertexRemovalStitcher {
       // Process each vertex in the polygon
       for (let i = 0; i < face.originalVertices.length; i++) {
         const vertex = face.originalVertices[i];
-        const vertexPos = vertex instanceof THREE.Vector3
-          ? vertex
-          : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
+        const vertexPos =
+          vertex instanceof THREE.Vector3
+            ? vertex
+            : new THREE.Vector3(vertex.x, vertex.y, vertex.z);
 
         // If this vertex matches either edge vertex, replace with collapse position
-        if (vertexPos.distanceTo(vertex1Pos) < tolerance || vertexPos.distanceTo(vertex2Pos) < tolerance) {
+        if (
+          vertexPos.distanceTo(vertex1Pos) < tolerance ||
+          vertexPos.distanceTo(vertex2Pos) < tolerance
+        ) {
           // Only add collapse position if we haven't already (edge collapse merges both vertices)
           if (edgeVerticesFound === 0) {
             newVertices.push(collapsePosition.clone());
@@ -360,23 +386,23 @@ export class VertexRemovalStitcher {
 
       // Update face type based on new vertex count
       let newType = face.type;
-      if (cleanedVertices.length === 3) newType = 'triangle';
-      else if (cleanedVertices.length === 4) newType = 'quad';
-      else if (cleanedVertices.length > 4) newType = 'polygon';
+      if (cleanedVertices.length === 3) newType = "triangle";
+      else if (cleanedVertices.length === 4) newType = "quad";
+      else if (cleanedVertices.length > 4) newType = "polygon";
 
       if (verticesRemoved > 0) {
-        console.log(`     Face ${faceIndex}: ${face.originalVertices.length} → ${cleanedVertices.length} vertices (${newType})`);
+        console.log(
+          `     Face ${faceIndex}: ${face.originalVertices.length} → ${cleanedVertices.length} vertices (${newType})`,
+        );
       }
 
       return {
         ...face,
         type: newType,
-        originalVertices: cleanedVertices
+        originalVertices: cleanedVertices,
       };
     });
   }
-
-
 
   /**
    * Main vertex removal function (kept for compatibility)
@@ -384,7 +410,7 @@ export class VertexRemovalStitcher {
   static async removeVertices(
     geometry: THREE.BufferGeometry,
     targetReduction: number,
-    method: 'quadric_edge_collapse' = 'quadric_edge_collapse'
+    method: "quadric_edge_collapse" = "quadric_edge_collapse",
   ): Promise<{
     simplifiedGeometry: THREE.BufferGeometry;
     originalStats: MeshStats;
@@ -395,22 +421,21 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-
-
     // Use our own pure edge collapse implementation
-    const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
+    const simplifiedGeometry = this.pureQuadricEdgeCollapse(
+      geometry,
+      targetReduction,
+    );
     const newStats = this.getMeshStats(simplifiedGeometry);
-    const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
-
-
-
+    const actualReduction =
+      (originalStats.vertices - newStats.vertices) / originalStats.vertices;
 
     return {
       simplifiedGeometry,
       originalStats,
       newStats,
       reductionAchieved: actualReduction,
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
     };
   }
 
@@ -418,10 +443,14 @@ export class VertexRemovalStitcher {
    * PURE QUADRIC EDGE COLLAPSE - No face deletion, only vertex merging
    * Two vertices become one, all triangles are preserved (just updated indices)
    */
-  private static pureQuadricEdgeCollapse(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-
+  private static pureQuadricEdgeCollapse(
+    geometry: THREE.BufferGeometry,
+    targetReduction: number,
+  ): THREE.BufferGeometry {
     if (targetReduction <= 0) {
-      console.log('⚠�� Zero reduction requested - returning original geometry');
+      console.log(
+        "⚠�� Zero reduction requested - returning original geometry",
+      );
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
       return cloned;
@@ -439,9 +468,10 @@ export class VertexRemovalStitcher {
     }
 
     const originalVertexCount = positions.length / 3;
-    const targetVertexCount = Math.floor(originalVertexCount * (1 - targetReduction));
+    const targetVertexCount = Math.floor(
+      originalVertexCount * (1 - targetReduction),
+    );
     const verticesToRemove = originalVertexCount - targetVertexCount;
-
 
     // For aggressive reductions, use dynamic edge list rebuilding
     const isAggressiveReduction = targetReduction > 0.5;
@@ -493,13 +523,17 @@ export class VertexRemovalStitcher {
         mergedCount++;
 
         if (mergedCount % 1000 === 0) {
-          console.log(`     Progress: ${mergedCount}/${verticesToRemove} vertices merged`);
+          console.log(
+            `     Progress: ${mergedCount}/${verticesToRemove} vertices merged`,
+          );
         }
       }
 
       // Check if we made progress in this iteration
       if (mergedCount === initialMergeCount) {
-        console.log(`   ⚠️ No progress in iteration ${iterationCount + 1} - stopping early`);
+        console.log(
+          `   ⚠️ No progress in iteration ${iterationCount + 1} - stopping early`,
+        );
         break;
       }
 
@@ -507,7 +541,9 @@ export class VertexRemovalStitcher {
     }
 
     if (mergedCount < verticesToRemove) {
-      console.log(`   ⚠���� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
+      console.log(
+        `   ⚠���� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`,
+      );
     }
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
@@ -524,7 +560,6 @@ export class VertexRemovalStitcher {
       }
     }
 
-
     // Apply the updated indices
     cloned.setIndex(Array.from(newIndices));
     cloned.attributes.position.needsUpdate = true;
@@ -535,14 +570,15 @@ export class VertexRemovalStitcher {
     // Recompute normals with flat shading to maintain crisp faces
     computeFlatNormals(cloned);
 
-
     return cloned;
   }
 
   /**
    * Build edge list from triangle indices
    */
-  private static buildEdgeList(indices: ArrayLike<number>): Array<[number, number]> {
+  private static buildEdgeList(
+    indices: ArrayLike<number>,
+  ): Array<[number, number]> {
     const edgeSet = new Set<string>();
     const edges: Array<[number, number]> = [];
 
@@ -576,23 +612,25 @@ export class VertexRemovalStitcher {
   /**
    * Calculate edge length between two vertices
    */
-  private static calculateEdgeLength(positions: Float32Array, v1: number, v2: number): number {
+  private static calculateEdgeLength(
+    positions: Float32Array,
+    v1: number,
+    v2: number,
+  ): number {
     const dx = positions[v1 * 3] - positions[v2 * 3];
     const dy = positions[v1 * 3 + 1] - positions[v2 * 3 + 1];
     const dz = positions[v1 * 3 + 2] - positions[v2 * 3 + 2];
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
 
-
-
   /**
    * Convert non-indexed geometry to indexed geometry for edge collapse
    */
-  private static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-
+  private static convertToIndexed(
+    geometry: THREE.BufferGeometry,
+  ): THREE.BufferGeometry {
     const positions = geometry.attributes.position.array as Float32Array;
     const vertexCount = positions.length / 3;
-
 
     // Build vertex map to merge duplicate vertices
     const vertexMap = new Map<string, number>();
@@ -621,15 +659,21 @@ export class VertexRemovalStitcher {
 
     // Create new indexed geometry
     const indexedGeometry = new THREE.BufferGeometry();
-    indexedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    indexedGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
     indexedGeometry.setIndex(indices);
 
     // Copy other attributes if they exist
     if (geometry.attributes.normal) {
-      indexedGeometry.setAttribute('normal', geometry.attributes.normal.clone());
+      indexedGeometry.setAttribute(
+        "normal",
+        geometry.attributes.normal.clone(),
+      );
     }
     if (geometry.attributes.uv) {
-      indexedGeometry.setAttribute('uv', geometry.attributes.uv.clone());
+      indexedGeometry.setAttribute("uv", geometry.attributes.uv.clone());
     }
 
     // Copy polygon metadata if it exists
@@ -642,17 +686,18 @@ export class VertexRemovalStitcher {
     const uniqueVertices = newPositions.length / 3;
     const triangles = indices.length / 3;
 
-
     return indexedGeometry;
   }
 
   /**
    * DEPRECATED: Old basic vertex reduction method
    */
-  private static basicVertexReduction(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-
+  private static basicVertexReduction(
+    geometry: THREE.BufferGeometry,
+    targetReduction: number,
+  ): THREE.BufferGeometry {
     if (targetReduction <= 0 || targetReduction >= 1) {
-      console.warn('⚠️ Invalid reduction amount, returning original');
+      console.warn("⚠️ Invalid reduction amount, returning original");
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
       return cloned;
@@ -660,7 +705,9 @@ export class VertexRemovalStitcher {
 
     // For small reductions, apply a conservative vertex merging approach
     if (targetReduction > 0.3) {
-      console.warn('⚠️ Large reduction requested, limiting to 30% to prevent holes');
+      console.warn(
+        "⚠️ Large reduction requested, limiting to 30% to prevent holes",
+      );
       targetReduction = 0.3;
     }
 
@@ -669,7 +716,9 @@ export class VertexRemovalStitcher {
     const indices = cloned.index?.array;
 
     if (!indices) {
-      console.warn('⚠️ Non-indexed geometry - cannot safely reduce without holes');
+      console.warn(
+        "⚠️ Non-indexed geometry - cannot safely reduce without holes",
+      );
       cloned.uuid = THREE.MathUtils.generateUUID();
       return cloned;
     }
@@ -708,7 +757,10 @@ export class VertexRemovalStitcher {
 
     // Create new geometry with merged vertices
     const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
     newGeometry.setIndex(newIndices);
     newGeometry.uuid = THREE.MathUtils.generateUUID();
 
@@ -717,8 +769,8 @@ export class VertexRemovalStitcher {
 
     const originalVertexCount = positions.length / 3;
     const newVertexCount = newPositions.length / 3;
-    const actualReduction = (originalVertexCount - newVertexCount) / originalVertexCount;
-
+    const actualReduction =
+      (originalVertexCount - newVertexCount) / originalVertexCount;
 
     return newGeometry;
   }
@@ -727,8 +779,12 @@ export class VertexRemovalStitcher {
    * Calculate mesh statistics
    */
   private static getMeshStats(geometry: THREE.BufferGeometry): MeshStats {
-    const vertices = geometry.attributes.position ? geometry.attributes.position.count : 0;
-    const faces = geometry.index ? geometry.index.count / 3 : Math.floor(vertices / 3);
+    const vertices = geometry.attributes.position
+      ? geometry.attributes.position.count
+      : 0;
+    const faces = geometry.index
+      ? geometry.index.count / 3
+      : Math.floor(vertices / 3);
 
     return {
       vertices,
@@ -737,7 +793,7 @@ export class VertexRemovalStitcher {
       volume: 0,
       hasNormals: !!geometry.attributes.normal,
       hasUVs: !!geometry.attributes.uv,
-      isIndexed: !!geometry.index
+      isIndexed: !!geometry.index,
     };
   }
 }
