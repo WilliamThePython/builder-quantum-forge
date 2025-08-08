@@ -1519,8 +1519,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
-        console.warn('Failed to track simplification event:', analyticsError);
+        // Analytics tracking failed silently
       }
+
+      console.log('Decimation completed successfully');
 
       return {
         success: true,
