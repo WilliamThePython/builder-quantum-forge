@@ -1446,13 +1446,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
-            console.log(`✅ Post-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
-          console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
         }
       } else {
-        console.log('⏭️ Skipping post-decimation coplanar merging for high-poly model');
       }
 
       // Update both indexed (for operations) and non-indexed (for viewing) geometries
