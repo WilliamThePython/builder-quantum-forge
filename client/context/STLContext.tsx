@@ -659,11 +659,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             geometry.attributes.position.needsUpdate = true;
             geometry.computeBoundingBox();
             geometry.computeBoundingSphere();
-            console.log(`🔧 Fixed ${nanCount + infCount} invalid values`);
           }
 
         } catch (parseError) {
-          console.error('❌ STL parsing error:', parseError);
 
           // Check available memory and provide helpful error message
           const memoryInfo = (performance as any).memory;
@@ -680,7 +678,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         }
       } else {
-        console.log('📖 Loading OBJ file...');
         const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
         const loader = new OBJLoader();
 
@@ -688,7 +685,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB threshold
         const timeoutMs = isLargeFile ? 30000 : 10000;
 
-        console.log(`📏 OBJ File size: ${(fileSize / 1024 / 1024).toFixed(1)}MB (${isLargeFile ? 'LARGE' : 'normal'})`);
 
         updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB OBJ file...`);
 
