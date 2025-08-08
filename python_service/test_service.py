@@ -33,7 +33,6 @@ def test_service():
     """Test the mesh processing service"""
     
     # Check service health
-    print("🔍 Checking service health...")
     try:
         response = requests.get("http://localhost:8001/health")
         if response.ok:
