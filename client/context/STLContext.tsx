@@ -892,7 +892,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (geometry as any).polygonFaces = polygonFaces;
             (geometry as any).polygonType = 'obj_preserved';
             (geometry as any).isPolygonPreserved = true;
-            console.log(`✅ Preserved ${polygonFaces.length} original OBJ polygon faces`);
+            console.log(`�� Preserved ${polygonFaces.length} original OBJ polygon faces`);
           }
         } catch (objError) {
           console.warn('⚠️ Failed to preserve OBJ polygon structure:', objError);
@@ -962,12 +962,39 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
+      let errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
+
+      // Provide helpful error messages for large files
+      if (file.size > 20 * 1024 * 1024) {
+        errorMessage += `\n\n💡 Suggestions for large files (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
+        errorMessage += '• Close other browser tabs to free memory\n';
+        errorMessage += '• Try refreshing the page and loading again\n';
+        errorMessage += '• Use a desktop computer for better performance\n';
+        errorMessage += '• Consider reducing the file size before uploading\n';
+        errorMessage += '• Enable hardware acceleration in browser settings';
+      }
+
+      if (errorMessage.includes('timeout')) {
+        errorMessage += '\n\n⏱️ File loading timeout - try:\n';
+        errorMessage += '• Refreshing the page and trying again\n';
+        errorMessage += '• Using a faster internet connection\n';
+        errorMessage += '• Reducing the file size';
+      }
+
+      if (errorMessage.includes('memory') || errorMessage.includes('allocation') || errorMessage.includes('heap')) {
+        errorMessage += '\n\n💾 Memory issue detected - try:\n';
+        errorMessage += '• Closing all other browser tabs\n';
+        errorMessage += '• Restarting your browser\n';
+        errorMessage += '• Using a computer with more RAM\n';
+        errorMessage += '• Reducing the model complexity';
+      }
+
       addError(errorMessage);
       console.error('STL loading error details:', {
         error: err,
         message: errorMessage,
-        fileName: file?.name || 'unknown'
+        fileName: file?.name || 'unknown',
+        fileSize: file?.size || 0
       });
     } finally {
       // Keep loading state for a moment to show completion
