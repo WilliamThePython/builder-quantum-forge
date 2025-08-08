@@ -510,14 +510,37 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         return;
       }
 
-      // Enhanced warnings for large files
+      // Enhanced warnings and optimization for large files
       if (file.size > 15 * 1024 * 1024) {
-        await updateProgress(8, 'Warning', 'Large file detected - this may take longer...');
-        console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
-        addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below. Consider using model reduction after loading.`);
+        const { PerformanceUtils } = await import('../lib/performanceUtils');
 
-        // Give UI time to update progress bar before heavy processing
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await updateProgress(8, 'Analyzing', 'Checking browser capabilities for large file...');
+
+        const capabilities = PerformanceUtils.checkBrowserCapabilities();
+        const estimate = PerformanceUtils.estimateProcessingTime(file.size);
+        const warning = PerformanceUtils.createFileSizeWarning(file.size);
+
+        if (warning) {
+          console.warn(`⚠️ ${warning}`);
+          addError(warning);
+        }
+
+        // Show optimization tips for very large files
+        if (file.size > 25 * 1024 * 1024) {
+          const tips = PerformanceUtils.getBrowserOptimizationTips();
+          console.log('💡 Performance tips:', tips);
+
+          // Add a helpful tip to the error message
+          addError(`💡 Tip: For ${(file.size / 1024 / 1024).toFixed(1)}MB files, try closing other browser tabs and enabling hardware acceleration for better performance.`);
+        }
+
+        await updateProgress(10, 'Preparing', `Estimated processing time: ${estimate.estimatedSeconds}s`);
+
+        // Request performance optimizations
+        await PerformanceUtils.requestPerformanceMode();
+
+        // Give UI time to update before heavy processing
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       updateProgress(15, 'Loading', `Preparing ${isSTL ? 'STL' : 'OBJ'} loader...`);
