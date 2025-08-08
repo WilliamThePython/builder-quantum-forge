@@ -368,6 +368,9 @@ const parseOBJPolygonFaces = (objString: string): any[] => {
 };
 
 export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
+  // Track if provider is fully initialized
+  const [isInitialized, setIsInitialized] = useState(false);
+
   // Dual geometry storage approach:
   // - indexedGeometry: Used for operations like decimation (efficient)
   // - geometry: Non-indexed version used for viewing (flat colors)
