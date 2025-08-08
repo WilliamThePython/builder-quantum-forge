@@ -868,7 +868,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (isSTL) {
         // STL files need polygon reconstruction from triangulation
         if (vertexCount < 100000) {
-          console.log('🔍 Reconstructing polygon faces from uploaded STL...');
           try {
             const reconstructionStart = Date.now();
             const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(geometry);
