@@ -125,6 +125,7 @@ export const useSTL = () => {
       "useSTL called outside of STLProvider. Stack trace:",
       new Error().stack,
     );
+    console.error("Component tree at error:", document.body.innerHTML.substring(0, 500));
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;
