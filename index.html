@@ -7,9 +7,15 @@
     <meta name="description" content="Professional 3D mesh processing with Open3D quadric decimation, coplanar face merging, and intelligent parts export. STL/OBJ support for creators and engineers." />
     <meta name="keywords" content="Intellimesh, 3D mesh processing, quadric decimation, STL viewer, OBJ editor, mesh simplification, 3D fabrication, parts export, Open3D" />
 
-    <!-- Fix FullStory namespace conflict -->
+    <!-- Fix FullStory namespace conflict - Set before any scripts -->
     <script>
+      // Set FullStory namespace before any scripts load
       window["_fs_namespace"] = "FS";
+
+      // Also define FS object to prevent conflicts
+      if (typeof window.FS === 'undefined') {
+        window.FS = window.FS || {};
+      }
     </script>
 
     <!-- Google Analytics 4 -->
