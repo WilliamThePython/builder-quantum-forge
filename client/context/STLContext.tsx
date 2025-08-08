@@ -570,12 +570,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB into memory...`);
 
-        // Load with timeout protection
-        const timeoutMs = 15000; // 15s timeout
+        // Load with adaptive timeout based on file size
+        const baseTimeout = 15000; // 15s base
+        const sizeMultiplier = Math.min(Math.max(fileSize / (10 * 1024 * 1024), 1), 4); // 1x-4x multiplier
+        const timeoutMs = baseTimeout * sizeMultiplier;
+
+        console.log(`⏱️ File loading timeout: ${Math.round(timeoutMs/1000)}s for ${(fileSize / 1024 / 1024).toFixed(1)}MB file`);
+
         const arrayBuffer = await Promise.race([
           file.arrayBuffer(),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`File loading timeout after ${timeoutMs/1000}s`)), timeoutMs)
+            setTimeout(() => reject(new Error(`File loading timeout after ${Math.round(timeoutMs/1000)}s - try closing other browser tabs or using a smaller file`)), timeoutMs)
           )
         ]);
 
