@@ -386,8 +386,63 @@ export class LargeFileOptimizer {
     if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
       throw new Error('Geometry contains no valid vertex data');
     }
-    
+
     const vertexCount = geometry.attributes.position.count;
     console.log(`✅ Geometry validated: ${vertexCount} vertices, ${geometry.index ? geometry.index.count / 3 : vertexCount / 3} triangles`);
+  }
+
+  /**
+   * Get current memory usage information
+   */
+  private static getMemoryUsage(): {
+    used: number;
+    available: number;
+    isLowMemory: boolean;
+  } {
+    if ('memory' in performance && (performance as any).memory) {
+      const memory = (performance as any).memory;
+      const used = memory.usedJSHeapSize;
+      const available = memory.jsHeapSizeLimit - used;
+
+      return {
+        used,
+        available,
+        isLowMemory: available < 100 * 1024 * 1024 // Less than 100MB available
+      };
+    }
+
+    return {
+      used: 0,
+      available: 200 * 1024 * 1024, // Assume 200MB available
+      isLowMemory: false
+    };
+  }
+
+  /**
+   * Suggest garbage collection to browser
+   */
+  private static suggestGarbageCollection(): void {
+    // Force garbage collection if possible (Chrome DevTools)
+    if ((window as any).gc) {
+      console.log('🗑️ Forcing garbage collection');
+      (window as any).gc();
+    }
+
+    // Create temporary objects to trigger GC
+    const temp = new Array(1000).fill(0).map(() => new Array(1000).fill(0));
+    temp.length = 0; // Clear reference
+
+    console.log('💾 Suggested garbage collection to free memory');
+  }
+
+  /**
+   * Monitor memory during processing and warn if low
+   */
+  private static checkMemoryDuringProcessing(): void {
+    const memory = this.getMemoryUsage();
+    if (memory.isLowMemory) {
+      console.warn(`⚠️ Low memory warning: ${(memory.available / 1024 / 1024).toFixed(1)}MB available`);
+      console.warn('💡 Consider closing other browser tabs or restarting the browser');
+    }
   }
 }
