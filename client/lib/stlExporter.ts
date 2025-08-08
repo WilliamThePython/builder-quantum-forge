@@ -68,11 +68,13 @@ export class STLExporter {
     // Only rescale if the geometry is significantly different from target size
     // This preserves viewer scaling while ensuring appropriate export size
     if (currentToTargetRatio < 0.1 || currentToTargetRatio > 10) {
+      console.log(`Applying export scaling: ${currentToTargetRatio.toFixed(3)}x to reach ${targetDimension}mm target`);
       geometry.scale(currentToTargetRatio, currentToTargetRatio, currentToTargetRatio);
 
       // Recompute bounding box after scaling
       geometry.computeBoundingBox();
     } else {
+      console.log(`Preserving current scale (${maxDimension.toFixed(1)} units) - within target range`);
     }
 
     // Ensure geometry sits on Z=0 plane for 3D printing without moving X,Y center
@@ -80,6 +82,7 @@ export class STLExporter {
       const minZ = geometry.boundingBox.min.z;
       if (minZ < 0) {
         geometry.translate(0, 0, -minZ);
+        console.log(`Moved geometry to Z=0 plane (raised by ${(-minZ).toFixed(3)} units)`);
       }
     }
 
@@ -96,6 +99,7 @@ export class STLExporter {
     const positions = geometry.attributes.position;
     const triangleCount = positions.count / 3;
 
+    console.log(`Generating STL content for ${triangleCount} triangles`);
 
     // STL Header
     let stlContent = 'solid exported_solid\n';
@@ -139,6 +143,7 @@ export class STLExporter {
 
     stlContent += 'endsolid exported_solid\n';
 
+    console.log('STL content generation completed');
     return stlContent;
   }
 
@@ -175,6 +180,7 @@ export class STLExporter {
 
     if (normalLength < 1e-10) {
       // Degenerate triangle - use a safe fallback normal
+      console.warn('Degenerate triangle detected, using fallback normal');
       return new THREE.Vector3(0, 0, 1);
     }
 
@@ -288,6 +294,8 @@ export function exportCurrentSTL(
 
   try {
     STLExporter.exportGeometry(geometry, exportFilename, exportSize);
+    console.log(`Solid STL exported successfully: ${exportFilename}`);
+    console.log(`Model sized for 3D printing: ${exportSize.min}-${exportSize.max}mm range`);
   } catch (error) {
     console.error('Failed to export solid STL:', error);
     throw error;

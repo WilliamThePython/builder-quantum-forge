@@ -25,11 +25,13 @@ export class GeometryCleanup {
    * - Fix minor non-manifold issues if possible
    */
   static cleanGeometry(geometry: THREE.BufferGeometry): CleanupResults {
+    console.log('🧹 Starting mandatory geometry cleanup...');
 
     // Check if this is a procedurally generated geometry (already clean)
     const isProcedurallyGenerated = (geometry as any).isProcedurallyGenerated === true;
 
     if (isProcedurallyGenerated) {
+      console.log('ℹ️ Skipping aggressive cleanup for procedurally generated geometry');
       return this.lightweightCleanup(geometry);
     }
     
@@ -166,6 +168,7 @@ export class GeometryCleanup {
     // Copy cleaned data back to original geometry
     geometry.copy(cleanedGeometry);
 
+    console.log('✅ Geometry cleanup completed:', results);
     return results;
   }
 
@@ -267,6 +270,7 @@ export class GeometryCleanup {
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
 
+    console.log('✅ Minimal cleanup completed for procedural geometry - preserved all vertices and faces');
     return results;
   }
 

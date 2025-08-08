@@ -20,6 +20,8 @@ export class OBJConverter {
    * ENHANCED: Ensures proper indexing and polygon preservation for decimation consistency
    */
   static geometryToOBJ(geometry: THREE.BufferGeometry, filename?: string): OBJConversionResult {
+    console.log('🔄 === ENHANCED OBJ CONVERSION ===');
+    console.log(`🔄 Converting geometry to OBJ format with proper indexing...`);
 
     // Validate geometry exists
     if (!geometry) {
@@ -106,8 +108,10 @@ export class OBJConverter {
 
     // CRITICAL: Check if geometry has proper indexing for decimation
     const isIndexed = !!indices && indices.length > 0;
+    console.log(`📋 Geometry indexing status: ${isIndexed ? 'INDEXED' : 'NON-INDEXED'}`);
 
     if (!isIndexed) {
+      console.warn('⚠️ Non-indexed geometry detected - this may cause decimation issues');
     }
     
     let objString = '# Generated OBJ file from STL/geometry\n';
@@ -129,6 +133,7 @@ export class OBJConverter {
     // ENHANCED: Handle both indexed and non-indexed geometry properly
     if (indices && indices.length > 0) {
       // Indexed geometry - preferred for decimation
+      console.log(`✅ Processing INDEXED geometry: ${indices.length / 3} faces`);
       for (let i = 0; i < indices.length; i += 3) {
         // Ensure we have enough indices for a complete triangle
         if (i + 2 < indices.length) {
@@ -142,11 +147,13 @@ export class OBJConverter {
             objString += `f ${v1} ${v2} ${v3}\n`;
             faceCount++;
           } else {
+            console.warn(`⚠️ Invalid face indices: ${v1}, ${v2}, ${v3} (max: ${vertexCount})`);
           }
         }
       }
     } else {
       // Non-indexed geometry - convert to indexed for consistency
+      console.warn('⚠️ Processing NON-INDEXED geometry - converting to indexed for decimation compatibility');
       for (let i = 0; i < positions.length; i += 9) {
         // Each triangle uses 3 consecutive vertices
         const v1 = (i / 3) + 1;
@@ -164,17 +171,20 @@ export class OBJConverter {
     const polygonFaces = (geometry as any).polygonFaces;
     if (polygonFaces && Array.isArray(polygonFaces) && polygonFaces.length > 0) {
       objString += '\n# Enhanced polygon faces (preserved structure)\n';
+      console.log(`📐 Processing ${polygonFaces.length} polygon faces...`);
 
       let polygonFaceCount = 0;
       for (const face of polygonFaces) {
         // Enhanced validation
         if (!face) {
+          console.warn('⚠️ Null polygon face found');
           continue;
         }
 
         // Check for vertex data in multiple possible formats
         let vertices = face.vertices || face.originalVertices;
         if (!vertices || !Array.isArray(vertices) || vertices.length < 3) {
+          console.warn('⚠️ Invalid polygon face vertices:', face);
           continue;
         }
 
@@ -194,6 +204,7 @@ export class OBJConverter {
             } else if (v && typeof v.index === 'number') {
               return v.index + 1; // Vertex object with index
             } else {
+              console.warn('⚠️ Invalid vertex format in polygon face:', v);
               return 1; // Fallback
             }
           }).join(' ');
@@ -201,12 +212,18 @@ export class OBJConverter {
           objString += `f ${faceString}\n`;
           polygonFaceCount++;
         } catch (error) {
+          console.warn('⚠️ Error processing polygon face:', error);
         }
       }
 
+      console.log(`✅ Processed ${polygonFaceCount} polygon faces`);
       faceCount += polygonFaceCount;
     }
     
+    console.log(`✅ ENHANCED OBJ CONVERSION COMPLETED`);
+    console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} faces`);
+    console.log(`   📐 Polygon types: ${hasQuads ? 'quads' : 'no quads'}, ${hasPolygons ? 'polygons' : 'no polygons'}`);
+    console.log(`   🔗 Indexing: ${isIndexed ? 'INDEXED (decimation-ready)' : 'NON-INDEXED (may need conversion)'}`);
 
     return {
       success: true,
@@ -231,6 +248,8 @@ export class OBJConverter {
    * ENHANCED: Ensures proper indexing and polygon preservation for decimation consistency
    */
   static parseOBJ(objString: string): THREE.BufferGeometry {
+    console.log('📖 === ENHANCED OBJ PARSING ===');
+    console.log('📖 Parsing OBJ format with polygon preservation...');
 
     const geometry = new THREE.BufferGeometry();
     const vertices: number[] = [];
@@ -261,6 +280,7 @@ export class OBJConverter {
             vertices.push(x, y, z);
             vertexCount++;
           } else {
+            console.warn('⚠️ Invalid vertex coordinates:', parts);
           }
         }
       } else if (trimmed.startsWith('vn ')) {
@@ -297,10 +317,12 @@ export class OBJConverter {
               const vz = vertices[vertexIndex * 3 + 2];
               originalVertexPositions.push(new THREE.Vector3(vx, vy, vz));
             } else {
+              console.warn(`⚠️ Invalid vertex index ${vertexIndex + 1} in face (max: ${vertexCount})`);
             }
           }
 
           if (faceVertices.length >= 3) {
+            console.log(`🔗 PRESERVING polygon face with ${faceVertices.length} vertices (INDEXED for decimation)`);
 
             // Calculate face normal for polygon preservation
             const normal = new THREE.Vector3();
@@ -351,20 +373,25 @@ export class OBJConverter {
       throw new Error('No valid vertices found in OBJ file');
     }
 
+    console.log(`📊 Parsing summary: ${vertexCount} vertices, ${polygonFaceCount} polygon faces, ${faceCount} triangulated faces`);
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
     // CRITICAL: Ensure geometry is indexed for decimation compatibility
     if (faces.length > 0) {
       geometry.setIndex(faces);
+      console.log('✅ Geometry properly INDEXED for decimation compatibility');
     } else {
+      console.warn('⚠️ No faces found - geometry may not be valid');
     }
 
     // Handle normals
     if (normals.length > 0 && normals.length === vertices.length) {
       geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      console.log('✅ Using OBJ file normals');
     } else {
       computeFlatNormals(geometry);
+      console.log('✅ Computed flat normals for crisp face shading');
     }
 
     geometry.computeBoundingBox();
@@ -376,7 +403,12 @@ export class OBJConverter {
       (geometry as any).isPolygonPreserved = true;
       (geometry as any).originalFormat = 'obj';
 
+      console.log(`✅ ENHANCED OBJ PARSING COMPLETED`);
+      console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`);
+      console.log(`   🔗 PRESERVED ${polygonFaces.length} polygon faces:`, polygonFaces.map(f => f.type).join(', '));
+      console.log(`   🎯 Decimation-ready: INDEXED geometry with preserved polygon structure`);
     } else {
+      console.log(`✅ OBJ parsing completed: ${vertexCount} vertices, ${faceCount} triangle faces (no polygons)`);
     }
 
     return geometry;

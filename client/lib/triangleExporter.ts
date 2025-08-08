@@ -28,6 +28,7 @@ export class TriangleExporter {
       scale = 1
     } = options;
 
+    console.log('Starting triangle-by-triangle export...');
     const startTime = Date.now();
 
     // Create zip file
@@ -37,6 +38,7 @@ export class TriangleExporter {
     const positions = geometry.attributes.position;
     const triangleCount = Math.floor(positions.count / 3);
 
+    console.log(`Processing ${triangleCount} triangles...`);
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
@@ -83,10 +85,12 @@ export class TriangleExporter {
 
       // Progress logging
       if (i % 50 === 0 || i === triangleCount - 1) {
+        console.log(`Processed triangle part ${i + 1}/${triangleCount}`);
       }
     }
 
     // Generate Excel file with part database
+    console.log('Generating parts database...');
     const excelBuffer = this.generatePartsDatabase(partDatabase, { ...options, partThickness });
     zip.file('parts_database.xlsx', excelBuffer);
 
@@ -95,12 +99,15 @@ export class TriangleExporter {
     zip.file('assembly_instructions.txt', instructions);
 
     // Generate and download zip
+    console.log('Generating zip file...');
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     
     // Download the zip file
     this.downloadBlob(zipBlob, filename);
     
     const endTime = Date.now();
+    console.log(`Triangle export completed in ${endTime - startTime}ms`);
+    console.log(`Created ${triangleCount} triangle pieces + assembly instructions`);
   }
 
   /**

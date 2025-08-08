@@ -23,6 +23,7 @@ export function validateAndFixGeometry(geometry: THREE.BufferGeometry, label: st
   }
 
   if (fixedCount > 0) {
+    console.warn(`🔧 Fixed ${fixedCount} invalid values in ${label}`);
     geometry.attributes.position.needsUpdate = true;
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
@@ -64,6 +65,7 @@ export function hasNaNValues(geometry: THREE.BufferGeometry): boolean {
  */
 export function logGeometryStats(geometry: THREE.BufferGeometry, label: string): void {
   if (!geometry || !geometry.attributes || !geometry.attributes.position) {
+    console.log(`📊 ${label}: Invalid`);
     return;
   }
 
@@ -73,5 +75,6 @@ export function logGeometryStats(geometry: THREE.BufferGeometry, label: string):
   // Only show if there are issues
   const hasIssues = hasNaNValues(geometry);
   if (hasIssues) {
+    console.log(`📊 ${label}: ${vertices} vertices, ${triangles} triangles - HAS ISSUES`);
   }
 }

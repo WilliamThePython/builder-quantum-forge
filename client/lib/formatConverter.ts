@@ -437,6 +437,7 @@ export class MultiFormatExporter {
           throw new Error(`Unsupported export format: ${format}`);
       }
       
+      console.log(`Successfully exported ${format.toUpperCase()} file: ${exportFilename}`);
       
     } catch (error) {
       console.error(`Failed to export ${format.toUpperCase()}:`, error);

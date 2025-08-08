@@ -24,6 +24,7 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
+    console.log(`🔄 Starting mesh decimation (${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
     const originalStats = this.calculateMeshStats(geometry);
 
@@ -35,11 +36,13 @@ export class STLManipulator {
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
 
       if (isAvailable) {
+        console.log('🐍 Using Open3D Python service for quadric decimation');
         const pythonResult = await PythonMeshProcessor.decimate(geometry, targetReduction);
 
         const newStats = this.calculateMeshStats(pythonResult.geometry);
         const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
 
+        console.log(`✅ Open3D decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
 
         return {
           geometry: pythonResult.geometry,
@@ -50,11 +53,14 @@ export class STLManipulator {
         };
       }
     } catch (error) {
+      console.warn('⚠️ Open3D Python service not available, falling back to JavaScript implementation');
     }
 
     // Fallback to JavaScript implementation
+    console.log('🔧 Using JavaScript quadric edge collapse implementation');
     const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
+    console.log(`✅ JavaScript decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
 
     return {
       geometry: result.simplifiedGeometry,
@@ -98,10 +104,14 @@ export class STLManipulator {
         positions[vertexIndex2 * 3 + 2]
       );
 
+      console.log(`🎯 GEOMETRIC EDGE COLLAPSE ANALYSIS`);
+      console.log(`   Edge vertices: v${vertexIndex1} [${v1.x.toFixed(3)}, ${v1.y.toFixed(3)}, ${v1.z.toFixed(3)}]`);
+      console.log(`                  v${vertexIndex2} [${v2.x.toFixed(3)}, ${v2.y.toFixed(3)}, ${v2.z.toFixed(3)}]`);
 
       // Analyze faces connected to this edge to determine optimal collapse position
       const collapsePosition = this.calculateOptimalCollapsePosition(geometry, v1, v2, vertexIndex1, vertexIndex2);
 
+      console.log(`   Optimal collapse position: [${collapsePosition.x.toFixed(3)}, ${collapsePosition.y.toFixed(3)}, ${collapsePosition.z.toFixed(3)}]`);
 
       // Perform edge collapse
       const result = await VertexRemovalStitcher.collapseSingleEdge(
@@ -579,6 +589,7 @@ export class STLManipulator {
     vertexIndex1: number,
     vertexIndex2: number
   ): THREE.Vector3 {
+    console.log(`   Using midpoint for edge collapse (simplified algorithm)`);
 
     // Always use midpoint - simple, predictable, and preserves mesh quality
     // Coplanar face merging happens separately in viewer/export pipeline

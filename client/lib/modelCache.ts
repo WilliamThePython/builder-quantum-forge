@@ -13,6 +13,7 @@ export class ModelCache {
    * Pre-generate all random models and cache them as OBJ
    */
   static initializeCache(): void {
+    console.log('🏗️ Pre-generating and caching random models...');
 
     const models = this.getModelDefinitions();
     let successCount = 0;
@@ -39,6 +40,7 @@ export class ModelCache {
         });
 
         successCount++;
+        console.log(`✅ Cached ${model.name} (${bufferGeometry.attributes.position.count} vertices)`);
       } catch (error) {
         failureCount++;
         console.error(`❌ Failed to cache ${model.name}:`, error);
@@ -46,9 +48,11 @@ export class ModelCache {
       }
     });
 
+    console.log(`🎉 Model cache initialized: ${successCount} successful, ${failureCount} failed, ${this.cache.size} total cached`);
 
     // If no models cached successfully, fall back to simple shapes
     if (this.cache.size === 0) {
+      console.warn('⚠️ No models cached successfully, creating fallback models');
       this.createFallbackModels();
     }
   }
@@ -58,6 +62,7 @@ export class ModelCache {
    */
   static getRandomModel(): { name: string; geometry: THREE.BufferGeometry; objString: string } | null {
     if (this.cache.size === 0) {
+      console.warn('Model cache not initialized, generating on demand');
       this.initializeCache();
     }
     
@@ -98,6 +103,7 @@ export class ModelCache {
    * Create simple fallback models if complex models fail
    */
   private static createFallbackModels(): void {
+    console.log('🔄 Creating fallback models...');
 
     try {
       // Simple cube - this should always work
@@ -111,6 +117,7 @@ export class ModelCache {
           objString: objResult.objString,
           geometry: cubeGeometry.clone()
         });
+        console.log('✅ Created fallback cube model');
       }
     } catch (error) {
       console.error('❌ Even fallback models failed:', error);

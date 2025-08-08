@@ -17,12 +17,15 @@ export class PolygonFaceReconstructor {
       return [];
     }
 
+    console.log('🔄 POLYGON RECONSTRUCTION (Using Unified CoplanarMerger)');
 
     const triangleCount = Math.floor(geometry.attributes.position.count / 3);
+    console.log(`   Input: ${triangleCount} triangles`);
 
     // Use the unified CoplanarMerger for consistent methodology
     const mergedFaces = CoplanarMerger.mergeGeometryTriangles(geometry);
 
+    console.log(`✅ Reconstruction complete: ${mergedFaces.length} robust polygon faces`);
 
     return mergedFaces;
   }
@@ -243,6 +246,8 @@ export class PolygonFaceReconstructor {
     (geometry as any).polygonFaces = faces;
     (geometry as any).polygonType = 'reconstructed';
     
+    console.log(`Applied ${faces.length} reconstructed polygon faces to geometry`);
+    console.log('Face types:', faces.map(f => f.type).reduce((acc, type) => {
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>));

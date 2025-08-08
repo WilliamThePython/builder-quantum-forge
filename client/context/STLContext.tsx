@@ -116,6 +116,7 @@ const defaultSTLFiles = [
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
+  console.log('��� Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
@@ -162,9 +163,11 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     }
   }
 
+  console.log(`🔍 Normal analysis: ${outwardCount} outward, ${inwardCount} inward`);
 
   // If more normals point inward, flip all faces
   if (inwardCount > outwardCount) {
+    console.log('🔄 Flipping face winding for correct display');
 
     // Flip indices to reverse winding order
     const indices = geometry.index;
@@ -199,12 +202,15 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
 
+  console.log('✅ Solid object display ensured');
 };
 
 // Helper function to ensure geometry is properly indexed
 const ensureIndexedGeometry = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+  console.log('🔧 Ensuring geometry has proper indexing...');
 
   if (geometry.index) {
+    console.log('✅ Geometry already has indices');
     return geometry;
   }
 
@@ -249,11 +255,13 @@ const ensureIndexedGeometry = (geometry: THREE.BufferGeometry): THREE.BufferGeom
     (indexedGeometry as any).polygonType = (geometry as any).polygonType;
   }
 
+  console.log(`✅ Created indexed geometry: ${newPositions.length / 3} unique vertices, ${indices.length / 3} faces`);
   return indexedGeometry;
 };
 
 // Helper function to parse OBJ polygon faces
 const parseOBJPolygonFaces = (objString: string): any[] => {
+  console.log('🔧 Parsing OBJ polygon faces...');
 
   const polygonFaces: any[] = [];
   const vertices: THREE.Vector3[] = [];
@@ -307,6 +315,7 @@ const parseOBJPolygonFaces = (objString: string): any[] => {
     }
   }
 
+  console.log(`✅ Parsed ${polygonFaces.length} polygon faces from OBJ`);
   return polygonFaces;
 };
 
@@ -354,6 +363,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to update loading progress
   const updateProgress = (percentage: number, stage: string, details: string = '') => {
+    console.log(`📊 Progress: ${percentage}% - ${stage} - ${details}`);
     setLoadingProgress({ percentage, stage, details });
     // Force a small delay to ensure UI updates are visible
     return new Promise(resolve => setTimeout(resolve, 50));
@@ -375,9 +385,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Helper function to convert indexed geometry to non-indexed for viewing
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (indexedGeom: THREE.BufferGeometry): THREE.BufferGeometry => {
+    console.log('��� === POLYGON-AWARE NON-INDEXED CONVERSION ===');
 
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
+      console.log('   ✅ Already non-indexed, preparing for viewing...');
       return prepareGeometryForViewing(indexedGeom, 'initial_load');
     }
 
@@ -385,6 +397,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const positions = indexedGeom.attributes.position.array as Float32Array;
     const polygonFaces = (indexedGeom as any).polygonFaces;
 
+    console.log('   📊 Input:', {
       indexedVertices: positions.length / 3,
       indexedTriangles: indices.length / 3,
       polygonFaces: polygonFaces ? polygonFaces.length : 'none'
@@ -395,6 +408,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const newPolygonFaces: any[] = [];
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
+      console.log('   🔧 POLYGON-AWARE conversion: Preserving polygon grouping...');
 
       let triangleOffset = 0;
 
@@ -433,11 +447,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         triangleOffset += triangleCount;
       }
 
+      console.log('   ✅ Polygon grouping preserved:', {
         originalPolygons: polygonFaces.length,
         newPolygons: newPolygonFaces.length,
         totalTriangles: triangleOffset
       });
     } else {
+      console.log('   ⚠️ No polygon faces - falling back to triangle duplication');
 
       // Fallback: Just duplicate vertices for each triangle
       for (let i = 0; i < indices.length; i += 3) {
@@ -460,11 +476,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Apply updated polygon metadata for non-indexed structure
     if (newPolygonFaces.length > 0) {
       (nonIndexedGeometry as any).polygonFaces = newPolygonFaces;
+      console.log('   ✅ Updated polygon faces for non-indexed geometry');
     }
     if ((indexedGeom as any).polygonType) {
       (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
     }
 
+    console.log('   📊 Output:', {
       nonIndexedVertices: newPositions.length / 3,
       nonIndexedTriangles: newPositions.length / 9,
       polygonFaces: newPolygonFaces.length
@@ -476,6 +494,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Validate the converted geometry
     const validatedGeometry = validateAndFixGeometry(prepared, 'non-indexed conversion output');
 
+    console.log('✅ Polygon-aware non-indexed conversion complete');
     return validatedGeometry;
   };
 
@@ -488,6 +507,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
+    console.log('🚀 === UNIFIED MODEL LOADING ===');
+    console.log('loadModelFromFile called with:', file.name);
     setIsLoading(true);
     setError(null);
     updateProgress(0, 'Starting', 'Initializing upload...');
@@ -506,6 +527,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       setOriginalFormat(isSTL ? 'stl' : 'obj');
+      console.log(`📁 File format detected: ${isSTL ? 'STL' : 'OBJ'}`);
 
       await updateProgress(10, 'Validating', 'File format validated successfully...');
 
@@ -519,6 +541,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Enhanced warnings for large files
       if (file.size > 15 * 1024 * 1024) {
         await updateProgress(8, 'Warning', 'Large file detected - this may take longer...');
+        console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
         addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below. Consider using model reduction after loading.`);
 
         // Give UI time to update progress bar before heavy processing
@@ -606,6 +629,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             geometry = loader.parse(arrayBuffer);
           }
 
+          console.log('STL loaded successfully');
 
           // Quick validation of STL loader output
           const rawPositions = geometry.attributes.position.array;
@@ -720,11 +744,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           // CRITICAL: Ensure OBJ files have proper indexing
           if (!geometry.index) {
+            console.log('🔧 Converting OBJ to indexed geometry for consistent decimation...');
             geometry = ensureIndexedGeometry(geometry);
           }
 
           // Store OBJ string for internal processing
           setObjString(text);
+          console.log('OBJ loaded successfully');
         } catch (parseError) {
 
           // Check available memory and provide helpful error message
@@ -796,6 +822,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       updateProgress(70, 'Optimizing', 'Ensuring geometry is indexed for operations...');
 
       // Debug: Log geometry state before indexing
+      console.log('🔍 BEFORE INDEXING:', {
         hasIndex: !!geometry.index,
         vertices: geometry.attributes.position.count,
         triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
@@ -804,13 +831,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
 
       // TEMPORARILY DISABLED: Skip indexing for STL files to debug cow loading issue
+      console.log('🚨 TEMPORARILY DISABLED: Skipping indexing for STL files to test cow loading');
 
       // CRITICAL: Ensure geometry is indexed for efficient operations like decimation
       // if (!geometry.index) {
+      //   console.log('🔧 Converting STL to indexed geometry for efficient operations...');
       //   const beforeGeometry = geometry.clone(); // Keep a backup for debugging
       //   geometry = ensureIndexedGeometry(geometry);
       //
       //   // Debug: Log geometry state after indexing
+      //   console.log('🔍 AFTER INDEXING:', {
       //     hasIndex: !!geometry.index,
       //     vertices: geometry.attributes.position.count,
       //     triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
@@ -849,10 +879,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           } catch (reconstructionError) {
           }
         } else {
+          console.log('⏭️ Skipping polygon reconstruction for high-poly model (performance optimization)');
           addError('Polygon reconstruction skipped for high-poly model. Use "3. REDUCE MODEL" first for polygon-based features.');
         }
       } else {
         // OBJ files should preserve their original polygon structure
+        console.log('🔍 Preserving original OBJ polygon structure...');
         try {
           // Convert OBJ string to proper polygon faces if not already done
           const objString = await file.text();
@@ -861,8 +893,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (geometry as any).polygonFaces = polygonFaces;
             (geometry as any).polygonType = 'obj_preserved';
             (geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Preserved ${polygonFaces.length} original OBJ polygon faces`);
           }
         } catch (objError) {
+          console.warn('⚠️ Failed to preserve OBJ polygon structure:', objError);
         }
       }
 
@@ -870,8 +904,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Optimized validation for large models
       let validationReport;
       if (vertexCount < 200000) {
+        console.log('🔍 Full validation for parts export accuracy...');
         validationReport = STLGeometryValidator.validateGeometry(geometry);
       } else {
+        console.log('��️ Skipping intensive validation for high-poly model');
         // Create a minimal validation report for large models
         validationReport = {
           isValid: true,
@@ -885,6 +921,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Display validation results
       if (!validationReport.isValid || validationReport.warnings.length > 0) {
         const summary = STLGeometryValidator.generateValidationSummary(validationReport);
+        console.log('📋 Validation Report:\n', summary);
 
         // Show critical issues as errors
         if (!validationReport.isValid) {
@@ -894,12 +931,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         // Show warnings as separate messages
         validationReport.warnings.forEach(warning => {
+          console.warn(`STL Warning: ${warning.message} - ${warning.details}`);
         });
 
         if (validationReport.stats.zeroAreaFaces > 0) {
           addError(`Found ${validationReport.stats.zeroAreaFaces} zero-area faces that will cause parts export issues`);
         }
       } else {
+        console.log('✅ STL validation passed - ready for accurate parts export');
       }
 
       const uploadTime = Date.now() - uploadStartTime;
@@ -912,6 +951,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
       // Debug: Log geometry state before dual setup
+      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
         hasIndex: !!geometry.index,
         vertices: geometry.attributes.position.count,
         triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
@@ -937,6 +977,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Analytics failed silently
       }
 
+      console.log('Loading completed successfully');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
@@ -1123,6 +1164,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const testData = getTestFileSizeData(bufferGeometry);
 
       setLoadingProgress({ percentage: 100, stage: 'Complete', details: `${selectedModel.name} loaded successfully` });
+      console.log('Random model loaded successfully');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -1181,6 +1223,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
+      console.log('Starting standard STL export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1191,6 +1234,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const exportFilename = customFilename ||
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.stl') : 'exported_model.stl');
 
+      console.log('Calling exportCurrentSTL with filename:', exportFilename);
+      console.log('Geometry details:', {
         vertices: geometry.attributes.position.count,
         hasNormals: !!geometry.attributes.normal,
         boundingBox: geometry.boundingBox
@@ -1198,6 +1243,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       exportCurrentSTL(geometry, exportFilename);
 
+      console.log('STL exported successfully');
 
       // Track export event
       try {
@@ -1213,6 +1259,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
+        console.warn('Failed to track export event:', analyticsError);
       }
 
     } catch (error) {
@@ -1229,6 +1276,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
+      console.log('Starting OBJ export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1237,6 +1285,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const exportFilename = customFilename ||
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.obj') : 'exported_model.obj');
 
+      console.log('Converting geometry to OBJ format...');
+      console.log('Geometry debug info:', {
         hasGeometry: !!geometry,
         hasAttributes: !!(geometry && geometry.attributes),
         hasPosition: !!(geometry && geometry.attributes && geometry.attributes.position),
@@ -1267,6 +1317,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      console.log('OBJ export completed successfully');
 
       // Track export event
       try {
@@ -1283,6 +1334,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
+        console.warn('Failed to track export event:', analyticsError);
       }
 
     } catch (error) {
@@ -1305,6 +1357,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const format = options.format || 'stl';
 
     try {
+      console.log('Starting parts export...', {
         format,
         fileName,
         hasGeometry: !!geometry,
@@ -1324,6 +1377,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
       }
 
+      console.log(`${format.toUpperCase()} assembly kit export completed successfully`);
 
       // Track export event
       try {
@@ -1344,6 +1398,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
+        console.warn('Failed to track triangle export event:', analyticsError);
       }
 
     } catch (error) {
@@ -1356,6 +1411,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Backup and restore functions
   const createBackup = useCallback(() => {
     if (indexedGeometry) {
+      console.log('🔄 Creating backup of current indexed model with polygon structure...');
       // Clone the indexed geometry to avoid reference issues
       const backup = indexedGeometry.clone();
 
@@ -1373,11 +1429,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setBackupIndexedGeometry(backup);
       setBackupProcessedModel(processedModel);
       setHasBackup(true);
+      console.log('✅ Backup created successfully with polygon structure preserved');
     }
   }, [indexedGeometry, processedModel]);
 
   const restoreFromBackup = useCallback(() => {
     if (backupIndexedGeometry && hasBackup) {
+      console.log('🔄 Restoring model from backup with polygon structure...');
       // Clone the backup to avoid reference issues
       const restored = backupIndexedGeometry.clone();
 
@@ -1395,7 +1453,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Use dual geometry setup for restored geometry
       setDualGeometry(restored);
       setProcessedModel(backupProcessedModel);
+      console.log('✅ Model restored from backup with polygon structure preserved');
     } else {
+      console.warn('⚠️ No backup available to restore from');
     }
   }, [backupIndexedGeometry, backupProcessedModel, hasBackup]);
 
@@ -1411,6 +1471,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Create backup before simplification
       createBackup();
 
+      console.log('��� === DECIMATION DATA FLOW DEBUGGING ===');
+      console.log('📥 INPUT INDEXED GEOMETRY for operations:', {
         vertices: indexedGeometry.attributes.position.count,
         faces: indexedGeometry.index ? indexedGeometry.index.count / 3 : 0,
         uuid: indexedGeometry.uuid,
@@ -1435,6 +1497,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
       if (result.geometry.attributes.position.count < 100000) { // Only for reasonable poly counts
+        console.log('🔧 POST-DECIMATION: Running simple coplanar triangle merging...');
         try {
           const { SimpleCoplanarMerger } = await import('../lib/simpleCoplanarMerger');
           const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(result.geometry);
@@ -1443,10 +1506,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Post-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
+          console.warn('⚠️ Post-decimation coplanar merging failed:', mergeError);
         }
       } else {
+        console.log('⏭️ Skipping post-decimation coplanar merging for high-poly model');
       }
 
       // Update both indexed (for operations) and non-indexed (for viewing) geometries
@@ -1472,6 +1538,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
+        console.warn('Failed to track simplification event:', analyticsError);
       }
 
       return {
@@ -1526,6 +1593,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Single edge decimation function
   const decimateEdge = useCallback(async (vertexIndex1: number, vertexIndex2: number): Promise<ToolOperationResult> => {
+    console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
+    console.log(`   Decimating edge between vertices: ${vertexIndex1} ↔ ${vertexIndex2}`);
 
     if (!indexedGeometry) {
       throw new Error('No indexed geometry loaded for edge decimation');
@@ -1542,14 +1611,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const result = await STLManipulator.decimateSingleEdge(indexedGeometry, vertexIndex1, vertexIndex2);
 
       if (result.success && result.geometry) {
+        console.log(`✅ Edge decimation successful`);
 
         // Reset decimation flag BEFORE geometry update to prevent spinning
         setIsDecimating(false);
 
         // CRITICAL: Fix face orientation after edge decimation to prevent transparency
+        console.log('🔧 POST-EDGE-DECIMATION: Ensuring solid object display...');
         ensureSolidObjectDisplay(result.geometry);
 
         // CRITICAL: Perform simple coplanar merging after edge decimation
+        console.log('🔧 POST-EDGE-DECIMATION: Running simple coplanar triangle merging...');
         try {
           const { SimpleCoplanarMerger } = await import('../lib/simpleCoplanarMerger');
           const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(result.geometry);
@@ -1558,14 +1630,19 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_edge_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
+            console.log(`✅ Post-edge-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
+          console.warn('⚠️ Post-edge-decimation coplanar merging failed:', mergeError);
         }
 
         // Update both indexed and non-indexed geometries using dual geometry approach
         result.geometry.uuid = THREE.MathUtils.generateUUID();
         setDualGeometry(result.geometry);
 
+        console.log('=== VIEWER GEOMETRY UPDATE ===');
+        console.log(`🎆 Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
+        console.log(`🎆 Geometry UUID: ${result.geometry.uuid}`);
 
         return result;
       } else {
