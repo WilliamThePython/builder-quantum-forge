@@ -448,7 +448,6 @@ export class VertexRemovalStitcher {
     const targetVertexCount = Math.floor(originalVertexCount * (1 - targetReduction));
     const verticesToRemove = originalVertexCount - targetVertexCount;
 
-    console.log(`   Target: Remove ${verticesToRemove} vertices via edge collapse`);
 
     // For aggressive reductions, use dynamic edge list rebuilding
     const isAggressiveReduction = targetReduction > 0.5;
