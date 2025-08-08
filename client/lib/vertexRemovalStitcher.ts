@@ -22,8 +22,6 @@ export class VertexRemovalStitcher {
     geometry?: THREE.BufferGeometry;
   }> {
     const originalVertexCount = geometry.attributes.position.count;
-    console.log(`🎯 POLYGON-AWARE VERTEX MERGE: ${vertexIndex1} ��� ${vertexIndex2} → [${collapsePosition.x.toFixed(2)}, ${collapsePosition.y.toFixed(2)}, ${collapsePosition.z.toFixed(2)}]`);
-    console.log(`   Original buffer vertices: ${originalVertexCount}`);
 
     try {
       const positions = geometry.attributes.position.array as Float32Array;
@@ -134,8 +132,6 @@ export class VertexRemovalStitcher {
       computeFlatNormals(resultGeometry);
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
-      console.log(`✅ POLYGON-AWARE VERTEX MERGE COMPLETE`);
-      console.log(`   Buffer vertices: ${originalVertexCount} (unchanged count - moved polygon instances only)`);
       console.log(`   Polygon vertices: merged edge into single point`);
 
       return {
@@ -416,14 +412,10 @@ export class VertexRemovalStitcher {
     console.log('   isPolygonPreserved:', !!(geometry as any).isPolygonPreserved);
 
     // Use our own pure edge collapse implementation
-    console.log(`🔧 Calling pureQuadricEdgeCollapse...`);
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(geometry, targetReduction);
     const newStats = this.getMeshStats(simplifiedGeometry);
     const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
 
-    console.log(`   ✅ Pure edge collapse completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
-    console.log(`   📊 Achieved reduction: ${(actualReduction * 100).toFixed(1)}%`);
-    console.log(`   🛡️ Zero faces deleted - surface topology preserved`);
     console.log(`   ��� New geometry UUID: ${simplifiedGeometry.uuid}`);
 
     console.log('📤 Output geometry polygon metadata:');
@@ -432,7 +424,6 @@ export class VertexRemovalStitcher {
     console.log('   Has polygonType:', !!(simplifiedGeometry as any).polygonType);
     console.log('   isPolygonPreserved:', !!(simplifiedGeometry as any).isPolygonPreserved);
 
-    console.log(`   🔄 Returning to STLManipulator...`);
 
     return {
       simplifiedGeometry,
