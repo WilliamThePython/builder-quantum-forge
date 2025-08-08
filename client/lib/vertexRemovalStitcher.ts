@@ -439,8 +439,6 @@ export class VertexRemovalStitcher {
    * Two vertices become one, all triangles are preserved (just updated indices)
    */
   private static pureQuadricEdgeCollapse(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-    console.log('🔧 === PURE EDGE COLLAPSE IMPLEMENTATION ===');
-    console.log('   Strategy: Merge vertex pairs, update all triangle indices');
     console.log('   Guarantee: ZERO faces deleted, ZERO holes created');
 
     if (targetReduction <= 0) {
@@ -451,16 +449,13 @@ export class VertexRemovalStitcher {
     }
 
     // Allow any reduction amount - no artificial limits
-    console.log(`🎯 Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
 
     const cloned = geometry.clone();
     const positions = cloned.attributes.position.array as Float32Array;
     const indices = cloned.index?.array;
 
     if (!indices) {
-      console.log('🔧 Converting non-indexed geometry to indexed for edge collapse...');
       const indexedGeometry = this.convertToIndexed(cloned);
-      console.log('✅ Conversion complete - retrying edge collapse...');
       return this.pureQuadricEdgeCollapse(indexedGeometry, targetReduction);
     }
 
@@ -472,15 +467,12 @@ export class VertexRemovalStitcher {
 
     // For aggressive reductions, use dynamic edge list rebuilding
     const isAggressiveReduction = targetReduction > 0.5;
-    console.log(`   🎯 ${isAggressiveReduction ? 'AGGRESSIVE' : 'STANDARD'} reduction mode (${(targetReduction * 100).toFixed(1)}%)`);
 
     let edges = this.buildEdgeList(indices);
-    console.log(`   📊 Found ${edges.length} edges for potential collapse`);
 
     const vertexMergeMap = new Map<number, number>(); // old vertex -> new vertex
 
     let mergedCount = 0;
-    console.log(`   🎯 Starting edge collapse process...`);
 
     // Perform iterative edge collapses until target is reached
     console.log(`   🔧 Processing ${edges.length} edges for collapse...`);
