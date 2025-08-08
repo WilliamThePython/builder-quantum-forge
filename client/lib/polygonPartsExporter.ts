@@ -30,7 +30,6 @@ export class PolygonPartsExporter {
       scale = 1
     } = options;
 
-    console.log('Starting polygon-by-polygon parts export...');
     const startTime = Date.now();
 
     // Create zip file
@@ -45,7 +44,6 @@ export class PolygonPartsExporter {
       return this.exportTriangleFallback(geometry, filename, options);
     }
 
-    console.log(`Processing ${polygonFaces.length} polygon faces of type: ${polygonType}`);
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
@@ -98,12 +96,10 @@ export class PolygonPartsExporter {
 
       // Progress logging
       if (i % 10 === 0 || i === polygonFaces.length - 1) {
-        console.log(`Processed polygon part ${i + 1}/${polygonFaces.length} (${faceInfo.type})`);
       }
     }
 
     // Generate Excel file with part database
-    console.log('Generating parts database...');
     const excelBuffer = this.generatePartsDatabase(partDatabase, { ...options, partThickness, polygonType });
     zip.file('parts_database.xlsx', excelBuffer);
 
@@ -112,15 +108,13 @@ export class PolygonPartsExporter {
     zip.file('assembly_instructions.txt', instructions);
 
     // Generate and download zip
-    console.log('Generating zip file...');
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     
     // Download the zip file
     this.downloadBlob(zipBlob, filename);
     
     const endTime = Date.now();
-    console.log(`Polygon parts export completed in ${endTime - startTime}ms`);
-    console.log(`Created ${polygonFaces.length} polygon parts + database + instructions`);
+    console.log('Parts export completed successfully');
   }
 
   /**
@@ -424,7 +418,6 @@ export class PolygonPartsExporter {
     filename: string,
     options: any
   ): Promise<void> {
-    console.log('Geometry does not have polygon face data, using triangle fallback...');
     const { TriangleExporter } = await import('./triangleExporter');
     return TriangleExporter.exportTrianglesAsZip(geometry, filename, options);
   }
