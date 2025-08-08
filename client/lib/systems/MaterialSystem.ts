@@ -13,17 +13,14 @@ export class MaterialSystem {
    * This prevents the color blending that occurs with smooth normals.
    */
   static ensureFlatShading(geometry: THREE.BufferGeometry): void {
-    console.log('🎨 MaterialSystem: Ensuring flat shading...');
     
     if (!geometry.index) {
       // Non-indexed geometry already has flat shading by nature
-      console.log('   ✅ Non-indexed geometry - flat shading preserved');
       geometry.computeVertexNormals();
       return;
     }
 
     this.computeFlatNormals(geometry);
-    console.log('   ✅ Flat normals computed - crisp face shading ensured');
   }
 
   /**
@@ -109,7 +106,6 @@ export class MaterialSystem {
    * Finalize geometry after any operation - ensures consistent state
    */
   static finalizeGeometry(geometry: THREE.BufferGeometry): void {
-    console.log('🎨 MaterialSystem: Finalizing geometry...');
     
     // Always ensure flat shading
     this.ensureFlatShading(geometry);
@@ -123,7 +119,6 @@ export class MaterialSystem {
     // Generate new UUID for React updates
     geometry.uuid = THREE.MathUtils.generateUUID();
     
-    console.log('   ✅ Geometry finalized with flat shading');
   }
 
   /**
