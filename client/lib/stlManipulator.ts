@@ -55,6 +55,9 @@ export class STLManipulator {
     // Fallback to JavaScript implementation
     const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
+    // Simple summary log
+    const reductionPercent = (result.reductionAchieved * 100).toFixed(1);
+    console.log(`✅ Decimation complete: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices (${reductionPercent}% reduction)`);
 
     return {
       geometry: result.simplifiedGeometry,
