@@ -125,8 +125,7 @@ export default function Index() {
       {/* Triangle Stats Display */}
       <TriangleStatsDisplay />
 
-      {/* Offscreen Ads (positioned off the right edge) */}
-      <OffscreenAds />
+      {/* Ads removed */}
 
       {/* Brand Watermark - mobile optimized */}
       <div className={`absolute z-40 ${
