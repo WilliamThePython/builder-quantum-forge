@@ -549,7 +549,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       updateProgress(15, 'Loading', `Preparing ${isSTL ? 'STL' : 'OBJ'} loader...`);
-      console.log(`Basic validation passed, proceeding with ${isSTL ? 'STL' : 'OBJ'} loading...`);
 
       const uploadStartTime = Date.now();
       updateProgress(20, 'Reading', `Reading ${(file.size / 1024 / 1024).toFixed(1)}MB file...`);
@@ -557,7 +556,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       let geometry: THREE.BufferGeometry;
 
       if (isSTL) {
-        console.log('📖 Loading STL file...');
         const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
         const loader = new STLLoader();
 
@@ -566,7 +564,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB threshold
         const timeoutMs = isLargeFile ? 30000 : 10000; // 30s for large files, 10s for smaller
 
-        console.log(`📏 File size: ${(fileSize / 1024 / 1024).toFixed(1)}MB (${isLargeFile ? 'LARGE' : 'normal'})`);
 
         updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB into memory...`);
 
@@ -581,36 +578,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         updateProgress(35, 'Parsing', 'Processing STL geometry...');
 
         // Analyze STL file content before parsing
-        console.log('🔍 === STL FILE ANALYSIS ===');
         const dataView = new DataView(arrayBuffer);
 
         // Check if it's binary or ASCII STL
         const header = new TextDecoder().decode(arrayBuffer.slice(0, 80));
         const isBinary = !header.toLowerCase().includes('solid');
 
-        console.log(`📊 STL File Info:`, {
-          size: fileSize,
-          type: isBinary ? 'Binary' : 'ASCII',
-          header: header.substring(0, 50) + '...'
-        });
 
         if (isBinary && fileSize >= 84) {
           const triangleCount = dataView.getUint32(80, true); // little endian
           const expectedSize = 80 + 4 + (triangleCount * 50); // header + count + triangles
-          console.log(`📊 Binary STL:`, {
-            declaredTriangles: triangleCount,
-            expectedSize,
-            actualSize: fileSize,
-            sizeMatch: Math.abs(expectedSize - fileSize) <= 2 // allow small discrepancy
-          });
 
           if (Math.abs(expectedSize - fileSize) > 2) {
-            console.warn('⚠️ STL file size mismatch - file may be corrupted');
           }
 
           // For very large files, warn about potential memory issues
           if (triangleCount > 1000000) {
-            console.warn(`⚠️ Large file: ${triangleCount.toLocaleString()} triangles - parsing may take time`);
             updateProgress(38, 'Parsing', `Processing ${triangleCount.toLocaleString()} triangles...`);
           }
         }
@@ -646,7 +629,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             geometry = loader.parse(arrayBuffer);
           }
 
-          console.log('✅ STL parsed successfully');
+          console.log('STL loaded successfully');
 
           // Quick validation of STL loader output
           const rawPositions = geometry.attributes.position.array;
