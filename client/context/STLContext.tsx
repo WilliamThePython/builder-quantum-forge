@@ -363,7 +363,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to update loading progress
   const updateProgress = (percentage: number, stage: string, details: string = '') => {
-    console.log(`📊 Progress: ${percentage}% - ${stage} - ${details}`);
     setLoadingProgress({ percentage, stage, details });
     // Force a small delay to ensure UI updates are visible
     return new Promise(resolve => setTimeout(resolve, 50));
@@ -385,7 +384,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Helper function to convert indexed geometry to non-indexed for viewing
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (indexedGeom: THREE.BufferGeometry): THREE.BufferGeometry => {
-    console.log('��� === POLYGON-AWARE NON-INDEXED CONVERSION ===');
 
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
@@ -488,8 +486,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
-    console.log('🚀 === UNIFIED MODEL LOADING ===');
-    console.log('loadModelFromFile called with:', file.name);
     setIsLoading(true);
     setError(null);
     updateProgress(0, 'Starting', 'Initializing upload...');
