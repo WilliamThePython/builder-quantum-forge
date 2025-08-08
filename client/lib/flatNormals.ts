@@ -50,8 +50,6 @@ export function computeFlatNormals(geometry: THREE.BufferGeometry): void {
 
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geometry.attributes.normal.needsUpdate = true;
-  
-  console.log('   ✅ Flat normals computed - crisp face boundaries ensured');
 }
 
 /**
