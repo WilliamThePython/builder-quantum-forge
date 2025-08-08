@@ -904,7 +904,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Optimized validation for large models
       let validationReport;
       if (vertexCount < 200000) {
-        console.log('🔍 Full validation for parts export accuracy...');
         validationReport = STLGeometryValidator.validateGeometry(geometry);
       } else {
         console.log('��️ Skipping intensive validation for high-poly model');
