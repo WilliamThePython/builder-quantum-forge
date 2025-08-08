@@ -128,7 +128,6 @@ export class VertexRemovalStitcher {
       computeFlatNormals(resultGeometry);
       resultGeometry.uuid = THREE.MathUtils.generateUUID();
 
-      console.log(`   Polygon vertices: merged edge into single point`);
 
       return {
         success: true,
@@ -314,7 +313,6 @@ export class VertexRemovalStitcher {
     vertex2Pos: THREE.Vector3,
     collapsePosition: THREE.Vector3
   ): any[] {
-    console.log(`   Updating polygon faces metadata for edge collapse`);
 
     return polygonFaces.map((face, faceIndex) => {
       if (!face.originalVertices || !Array.isArray(face.originalVertices)) {
@@ -509,7 +507,7 @@ export class VertexRemovalStitcher {
     }
 
     if (mergedCount < verticesToRemove) {
-      console.log(`   ⚠��� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
+      console.log(`   ⚠���� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
     }
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
