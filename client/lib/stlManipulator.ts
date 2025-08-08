@@ -53,7 +53,6 @@ export class STLManipulator {
     }
 
     // Fallback to JavaScript implementation
-    console.log('🔧 Using JavaScript quadric edge collapse implementation');
     const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
 
