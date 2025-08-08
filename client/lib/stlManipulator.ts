@@ -28,10 +28,39 @@ export class STLManipulator {
 
     const originalStats = this.calculateMeshStats(geometry);
 
-    // Use JavaScript implementation
+    // Try to use Open3D Python service first (preferred), fall back to JavaScript if not available
+    try {
+      const { PythonMeshProcessor } = await import('./pythonMeshProcessor');
+
+      // Check if Python service is available
+      const isAvailable = await PythonMeshProcessor.isServiceHealthy();
+
+      if (isAvailable) {
+        console.log('🐍 Using Open3D Python service for quadric decimation');
+        const pythonResult = await PythonMeshProcessor.decimate(geometry, targetReduction);
+
+        const newStats = this.calculateMeshStats(pythonResult.geometry);
+        const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
+
+        console.log(`✅ Open3D decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
+
+        return {
+          geometry: pythonResult.geometry,
+          originalStats,
+          newStats,
+          reductionAchieved,
+          processingTime: pythonResult.processingTime
+        };
+      }
+    } catch (error) {
+      console.warn('⚠️ Open3D Python service not available, falling back to JavaScript implementation');
+    }
+
+    // Fallback to JavaScript implementation
+    console.log('🔧 Using JavaScript quadric edge collapse implementation');
     const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
-    console.log(`✅ Decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
+    console.log(`✅ JavaScript decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
 
     return {
       geometry: result.simplifiedGeometry,
