@@ -1547,17 +1547,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const result = await STLManipulator.decimateSingleEdge(indexedGeometry, vertexIndex1, vertexIndex2);
 
       if (result.success && result.geometry) {
-        console.log(`✅ Edge decimation successful`);
 
         // Reset decimation flag BEFORE geometry update to prevent spinning
         setIsDecimating(false);
 
         // CRITICAL: Fix face orientation after edge decimation to prevent transparency
-        console.log('🔧 POST-EDGE-DECIMATION: Ensuring solid object display...');
         ensureSolidObjectDisplay(result.geometry);
 
         // CRITICAL: Perform simple coplanar merging after edge decimation
-        console.log('🔧 POST-EDGE-DECIMATION: Running simple coplanar triangle merging...');
         try {
           const { SimpleCoplanarMerger } = await import('../lib/simpleCoplanarMerger');
           const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(result.geometry);
@@ -1566,7 +1563,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             (result.geometry as any).polygonFaces = mergedFaces;
             (result.geometry as any).polygonType = 'post_edge_decimation_merged';
             (result.geometry as any).isPolygonPreserved = true;
-            console.log(`✅ Post-edge-decimation simple coplanar merging completed`);
           }
         } catch (mergeError) {
           console.warn('⚠️ Post-edge-decimation coplanar merging failed:', mergeError);
