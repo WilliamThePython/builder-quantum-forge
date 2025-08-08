@@ -368,7 +368,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
     // Quick validation
     if (hasNaNValues(newIndexedGeometry)) {
-      console.error('🚨 setDualGeometry received geometry with NaN values!');
+      console.error('���� setDualGeometry received geometry with NaN values!');
       return;
     }
 
@@ -1566,7 +1566,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         result.geometry.uuid = THREE.MathUtils.generateUUID();
         setDualGeometry(result.geometry);
 
-
+        console.log(`✅ Edge v${vertexIndex1}↔v${vertexIndex2} decimated successfully`);
         return result;
       } else {
         console.error('❌ Edge decimation failed:', result.message);
