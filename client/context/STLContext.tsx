@@ -1530,8 +1530,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Single edge decimation function
   const decimateEdge = useCallback(async (vertexIndex1: number, vertexIndex2: number): Promise<ToolOperationResult> => {
-    console.log(`🎯 === SINGLE EDGE DECIMATION ===`);
-    console.log(`   Decimating edge between vertices: ${vertexIndex1} ↔ ${vertexIndex2}`);
+    console.log(`🎯 Decimating edge: v${vertexIndex1} ↔ v${vertexIndex2}`);
 
     if (!indexedGeometry) {
       throw new Error('No indexed geometry loaded for edge decimation');
