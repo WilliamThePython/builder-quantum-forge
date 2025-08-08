@@ -1493,7 +1493,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const outputPositions = result.geometry.attributes.position.array;
 
       // CRITICAL: Fix face orientation after decimation to prevent transparency
-      console.log('🔧 POST-DECIMATION: Ensuring solid object display...');
       ensureSolidObjectDisplay(result.geometry);
 
       // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
