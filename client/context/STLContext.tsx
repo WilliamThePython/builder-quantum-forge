@@ -750,9 +750,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           // Store OBJ string for internal processing
           setObjString(text);
-          console.log('✅ OBJ parsed successfully with indexing');
+          console.log('OBJ loaded successfully');
         } catch (parseError) {
-          console.error('❌ OBJ parsing error:', parseError);
 
           // Check available memory and provide helpful error message
           const memoryInfo = (performance as any).memory;
@@ -779,7 +778,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const vertexCount = geometry.attributes.position.count;
       const triangleCount = Math.floor(vertexCount / 3);
 
-      console.log(`📊 Model stats: ${vertexCount.toLocaleString()} vertices, ${triangleCount.toLocaleString()} triangles`);
       updateProgress(50, 'Analyzing', `${(vertexCount / 1000).toFixed(0)}K vertices, ${(triangleCount / 1000).toFixed(0)}K triangles`);
 
       // Handle extremely high-poly models
@@ -791,7 +789,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       if (vertexCount > maxRecommendedVertices) {
-        console.warn(`⚠️ High-poly model detected (${vertexCount.toLocaleString()} vertices). Consider reducing complexity for better performance.`);
         addError(`High-poly model (${(vertexCount / 1000).toFixed(0)}K vertices). Performance may be impacted. Use "3. REDUCE MODEL" after loading for better performance.`);
 
         // Add a short delay to prevent UI freezing during processing
