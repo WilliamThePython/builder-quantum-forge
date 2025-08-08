@@ -1005,7 +1005,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setLoadingProgress({ percentage: 0, stage: 'Loading model...', details: 'Selecting random model' });
 
     try {
-      console.log('🎲 Loading random model...');
 
       // Create a list of working models - gradually adding more complex shapes
       const workingModels = [
