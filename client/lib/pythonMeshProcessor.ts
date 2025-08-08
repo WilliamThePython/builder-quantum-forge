@@ -428,7 +428,6 @@ export class PythonMeshProcessor {
 
       mergedCount++;
 
-      console.log(`   ✅ VERTEX MERGE ${mergedCount}: v${v1}=[${originalV1.map(v => v.toFixed(3)).join(',')}] + v${v2}=[${originalV2.map(v => v.toFixed(3)).join(',')}] �� [${newPos.map(v => v.toFixed(3)).join(',')}]`);
 
       // Early exit for very small models
       if (mergedCount >= 10) break;
