@@ -1162,19 +1162,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Log file size estimation test data for calibration
       const testData = getTestFileSizeData(bufferGeometry);
-      if (testData) {
-        console.log(`📊 File Size Test Data for ${selectedModel.name}:`, testData);
-      }
 
       setLoadingProgress({ percentage: 100, stage: 'Complete', details: `${selectedModel.name} loaded successfully` });
-      console.log(`✅ Successfully loaded: ${selectedModel.name}`);
-      console.log('='.repeat(60)); // Visual separator in console
+      console.log('Random model loaded successfully');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addError(`Failed to create random model: ${errorMessage}`);
-      console.error('❌ Random model creation error:', err);
-      console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     } finally {
       setIsLoading(false);
       // Clear progress after a longer delay so you can see the result
