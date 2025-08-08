@@ -1481,7 +1481,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       const inputPositions = indexedGeometry.attributes.position.array;
 
-      console.log('Starting professional mesh simplification on indexed geometry...', { method, reductionAmount });
 
       // Use indexed geometry for decimation operations
       const result = await STLManipulator.reducePoints(indexedGeometry, reductionAmount, method);
