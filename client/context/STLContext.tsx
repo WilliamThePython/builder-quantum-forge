@@ -402,7 +402,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const newPolygonFaces: any[] = [];
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
-      console.log('   🔧 POLYGON-AWARE conversion: Preserving polygon grouping...');
 
       let triangleOffset = 0;
 
