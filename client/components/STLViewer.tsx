@@ -889,14 +889,12 @@ function STLMesh() {
       // Only start spinning animation if NOT currently decimating
       console.log(`���� Spin check: isDecimating=${isDecimating}`);
       if (!isDecimating) {
-        console.log('🌀 Starting model spin animation');
         spinState.current = {
           ...spinState.current,
           isSpinning: true,
           startTime: Date.now()
         };
       } else {
-        console.log('🎯 Skipping spin animation - decimation operation in progress');
       }
     }
   }, [geometry, isDecimating]);
@@ -915,7 +913,6 @@ function STLMesh() {
     if (progress >= 1) {
       // Animation complete, stop spinning
       spinState.current.isSpinning = false;
-      console.log('✅ Model spin animation completed');
     } else {
       // Continue spinning with decreasing speed
       meshRef.current.rotation.y += currentSpeed * 0.016; // 60fps approximation
