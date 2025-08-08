@@ -883,17 +883,8 @@ function STLMesh() {
   // Trigger spinning animation when a new model loads (but not during decimation)
   useEffect(() => {
     if (geometry) {
-      console.log('=== VIEWER GEOMETRY UPDATE ===');
-      console.log(`🎆 Viewer received geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
-      console.log(`🎆 Geometry UUID: ${geometry.uuid}`);
 
-      // Log first few vertices
       const positions = geometry.attributes.position.array;
-      console.log('🎆 VIEWER first 3 vertices:', [
-        [positions[0], positions[1], positions[2]],
-        [positions[3], positions[4], positions[5]],
-        [positions[6], positions[7], positions[8]]
-      ]);
 
       // Only start spinning animation if NOT currently decimating
       console.log(`���� Spin check: isDecimating=${isDecimating}`);
