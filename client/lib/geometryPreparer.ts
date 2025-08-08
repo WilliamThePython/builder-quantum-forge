@@ -12,7 +12,6 @@ export function prepareGeometryForViewing(
   geometry: THREE.BufferGeometry,
   source: 'initial_load' | 'decimation' | 'restoration' = 'initial_load'
 ): THREE.BufferGeometry {
-  console.log(`🔧 === UNIFIED GEOMETRY PREPARATION (${source.toUpperCase()}) ===`);
 
   const prepared = geometry.clone();
 
