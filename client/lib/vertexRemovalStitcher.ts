@@ -533,7 +533,6 @@ export class VertexRemovalStitcher {
     }
 
     // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
-    console.log(`   🔧 Remapping ${indices.length} triangle indices...`);
     const newIndices = new Uint32Array(indices.length);
     let remappedIndices = 0;
 
@@ -547,10 +546,8 @@ export class VertexRemovalStitcher {
       }
     }
 
-    console.log(`   📊 Remapped ${remappedIndices} indices to merged vertices`);
 
     // Apply the updated indices
-    console.log(`   🔧 Applying new indices to geometry...`);
     cloned.setIndex(Array.from(newIndices));
     cloned.attributes.position.needsUpdate = true;
 
@@ -559,11 +556,8 @@ export class VertexRemovalStitcher {
     console.log(`   🆔 Generated new UUID: ${newUUID}`);
 
     // Recompute normals with flat shading to maintain crisp faces
-    console.log(`   🔧 Recomputing flat normals...`);
     computeFlatNormals(cloned);
 
-    console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
-    console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
 
     return cloned;
   }
