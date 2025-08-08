@@ -560,13 +560,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.log('📖 Loading STL file...');
         const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader');
         const loader = new STLLoader();
-        const arrayBuffer = await file.arrayBuffer();
+
+        // Load file with timeout for large files
+        const fileSize = file.size;
+        const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB threshold
+        const timeoutMs = isLargeFile ? 30000 : 10000; // 30s for large files, 10s for smaller
+
+        console.log(`📏 File size: ${(fileSize / 1024 / 1024).toFixed(1)}MB (${isLargeFile ? 'LARGE' : 'normal'})`);
+
+        updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB into memory...`);
+
+        // Load with timeout protection
+        const arrayBuffer = await Promise.race([
+          file.arrayBuffer(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`File loading timeout after ${timeoutMs/1000}s`)), timeoutMs)
+          )
+        ]);
 
         updateProgress(35, 'Parsing', 'Processing STL geometry...');
 
         // Analyze STL file content before parsing
         console.log('🔍 === STL FILE ANALYSIS ===');
-        const fileSize = arrayBuffer.byteLength;
         const dataView = new DataView(arrayBuffer);
 
         // Check if it's binary or ASCII STL
@@ -592,11 +607,45 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           if (Math.abs(expectedSize - fileSize) > 2) {
             console.warn('⚠️ STL file size mismatch - file may be corrupted');
           }
+
+          // For very large files, warn about potential memory issues
+          if (triangleCount > 1000000) {
+            console.warn(`⚠️ Large file: ${triangleCount.toLocaleString()} triangles - parsing may take time`);
+            updateProgress(38, 'Parsing', `Processing ${triangleCount.toLocaleString()} triangles...`);
+          }
         }
 
         try {
-          // Parse the STL file
-          geometry = loader.parse(arrayBuffer);
+          // Parse with timeout and progress updates for large files
+          if (isLargeFile) {
+            updateProgress(40, 'Parsing', 'Processing large STL file (this may take up to 30 seconds)...');
+
+            geometry = await Promise.race([
+              // Wrap synchronous parsing in Promise to add timeout
+              new Promise<THREE.BufferGeometry>((resolve, reject) => {
+                try {
+                  // Use setTimeout to break up the parsing and allow progress updates
+                  setTimeout(() => {
+                    try {
+                      const result = loader.parse(arrayBuffer);
+                      resolve(result);
+                    } catch (parseErr) {
+                      reject(parseErr);
+                    }
+                  }, 100);
+                } catch (err) {
+                  reject(err);
+                }
+              }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error(`STL parsing timeout after ${timeoutMs/1000}s - file may be too complex`)), timeoutMs)
+              )
+            ]);
+          } else {
+            // Normal parsing for smaller files
+            geometry = loader.parse(arrayBuffer);
+          }
+
           console.log('✅ STL parsed successfully');
 
           // Quick validation of STL loader output
