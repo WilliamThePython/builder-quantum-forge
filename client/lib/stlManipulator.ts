@@ -24,7 +24,6 @@ export class STLManipulator {
     reductionAchieved: number;
     processingTime: number;
   }> {
-    console.log(`🔄 Starting mesh decimation (${(targetReduction * 100).toFixed(1)}% reduction)...`);
 
     const originalStats = this.calculateMeshStats(geometry);
 
@@ -36,13 +35,11 @@ export class STLManipulator {
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
 
       if (isAvailable) {
-        console.log('🐍 Using Open3D Python service for quadric decimation');
         const pythonResult = await PythonMeshProcessor.decimate(geometry, targetReduction);
 
         const newStats = this.calculateMeshStats(pythonResult.geometry);
         const reductionAchieved = 1 - (newStats.vertices / originalStats.vertices);
 
-        console.log(`✅ Open3D decimation completed: ${originalStats.vertices} → ${newStats.vertices} vertices`);
 
         return {
           geometry: pythonResult.geometry,
@@ -60,7 +57,6 @@ export class STLManipulator {
     console.log('🔧 Using JavaScript quadric edge collapse implementation');
     const result = await VertexRemovalStitcher.removeVertices(geometry, targetReduction, 'quadric_edge_collapse');
 
-    console.log(`✅ JavaScript decimation completed: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices`);
 
     return {
       geometry: result.simplifiedGeometry,
