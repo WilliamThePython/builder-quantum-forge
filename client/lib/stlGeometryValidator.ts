@@ -60,8 +60,6 @@ export class STLGeometryValidator {
     
     const isValid = issues.length === 0;
     
-    console.log(`Validation complete: ${isValid ? 'PASSED' : 'FAILED'}`);
-    console.log(`Issues: ${issues.length}, Warnings: ${warnings.length}`);
     
     return { issues, warnings, stats, isValid };
   }
