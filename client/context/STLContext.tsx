@@ -116,7 +116,6 @@ const defaultSTLFiles = [
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
-  console.log('��� Ensuring solid object display...');
 
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
@@ -163,11 +162,9 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     }
   }
 
-  console.log(`🔍 Normal analysis: ${outwardCount} outward, ${inwardCount} inward`);
 
   // If more normals point inward, flip all faces
   if (inwardCount > outwardCount) {
-    console.log('🔄 Flipping face winding for correct display');
 
     // Flip indices to reverse winding order
     const indices = geometry.index;
@@ -202,7 +199,6 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
 
-  console.log('✅ Solid object display ensured');
 };
 
 // Helper function to ensure geometry is properly indexed
