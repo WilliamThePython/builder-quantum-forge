@@ -409,6 +409,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     useState<ProcessedModel | null>(null);
   const [hasBackup, setHasBackup] = useState(false);
 
+  // Initialize the provider after mount
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
