@@ -396,11 +396,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const positions = indexedGeom.attributes.position.array as Float32Array;
     const polygonFaces = (indexedGeom as any).polygonFaces;
 
-    console.log('   📊 Input:', {
-      indexedVertices: positions.length / 3,
-      indexedTriangles: indices.length / 3,
-      polygonFaces: polygonFaces ? polygonFaces.length : 'none'
-    });
 
     // Create new non-indexed arrays
     const newPositions: number[] = [];
