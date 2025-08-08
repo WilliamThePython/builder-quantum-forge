@@ -2054,7 +2054,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     [indexedGeometry, createBackup],
   );
 
-  const value: STLContextType = {
+  const value: STLContextType = useMemo(() => ({
     geometry,
     fileName,
     isLoading,
@@ -2099,7 +2099,44 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     hasBackup,
     createBackup,
     restoreFromBackup,
-  };
+  }), [
+    geometry,
+    fileName,
+    isLoading,
+    loadingProgress,
+    error,
+    errors,
+    viewerSettings,
+    processedModel,
+    originalFormat,
+    objString,
+    cleanupResults,
+    toolMode,
+    isProcessingTool,
+    highlightedTriangle,
+    triangleStats,
+    decimationPainterMode,
+    setDecimationPainterMode,
+    isDecimating,
+    decimateEdge,
+    loadModelFromFile,
+    loadDefaultSTL,
+    updateViewerSettings,
+    exportSTL,
+    exportOBJ,
+    exportParts,
+    clearError,
+    clearErrorById,
+    addError,
+    setToolMode,
+    reducePoints,
+    getGeometryStats,
+    getDetailedGeometryStats,
+    setHighlightedTriangle,
+    hasBackup,
+    createBackup,
+    restoreFromBackup,
+  ]);
 
   return <STLContext.Provider value={value}>{children}</STLContext.Provider>;
 };
