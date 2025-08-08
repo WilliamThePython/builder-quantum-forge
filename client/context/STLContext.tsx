@@ -1360,7 +1360,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Backup and restore functions
   const createBackup = useCallback(() => {
     if (indexedGeometry) {
-      console.log('🔄 Creating backup of current indexed model with polygon structure...');
       // Clone the indexed geometry to avoid reference issues
       const backup = indexedGeometry.clone();
 
@@ -1378,7 +1377,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setBackupIndexedGeometry(backup);
       setBackupProcessedModel(processedModel);
       setHasBackup(true);
-      console.log('✅ Backup created successfully with polygon structure preserved');
     }
   }, [indexedGeometry, processedModel]);
 
@@ -1420,13 +1418,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Create backup before simplification
       createBackup();
 
-      console.log('��� === DECIMATION DATA FLOW DEBUGGING ===');
-      console.log('📥 INPUT INDEXED GEOMETRY for operations:', {
-        vertices: indexedGeometry.attributes.position.count,
-        faces: indexedGeometry.index ? indexedGeometry.index.count / 3 : 0,
-        uuid: indexedGeometry.uuid,
-        boundingBox: indexedGeometry.boundingBox
-      });
 
       const inputPositions = indexedGeometry.attributes.position.array;
 
