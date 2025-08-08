@@ -9,23 +9,37 @@ export class LargeFileOptimizer {
    * Process large files with memory management and progress tracking
    */
   static async processLargeFile(
-    file: File, 
+    file: File,
     progressCallback?: (progress: number, message: string) => void
   ): Promise<THREE.BufferGeometry> {
-    
+
     const fileSize = file.size;
     const isLargeFile = fileSize > 15 * 1024 * 1024; // 15MB+
-    
+
     progressCallback?.(0, 'Analyzing file...');
-    
+
+    // Check memory before starting
+    const initialMemory = this.getMemoryUsage();
+    if (initialMemory.isLowMemory) {
+      console.warn('⚠️ Low memory detected before processing - suggesting garbage collection');
+      this.suggestGarbageCollection();
+      await new Promise(resolve => setTimeout(resolve, 100)); // Brief pause for GC
+    }
+
     if (isLargeFile) {
       console.log(`⚡ Large file optimization activated for ${(fileSize / 1024 / 1024).toFixed(1)}MB file`);
-      
-      // Request more time for processing
-      if ('scheduler' in window && (window.scheduler as any).postTask) {
-        return await this.processWithScheduler(file, progressCallback);
-      } else {
-        return await this.processWithChunking(file, progressCallback);
+
+      try {
+        // Request more time for processing
+        if ('scheduler' in window && (window.scheduler as any).postTask) {
+          return await this.processWithScheduler(file, progressCallback);
+        } else {
+          return await this.processWithChunking(file, progressCallback);
+        }
+      } catch (error) {
+        // Memory cleanup on error
+        this.suggestGarbageCollection();
+        throw error;
       }
     } else {
       // Standard processing for smaller files
