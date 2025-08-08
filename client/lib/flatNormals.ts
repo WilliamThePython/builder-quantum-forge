@@ -7,13 +7,10 @@ import * as THREE from 'three';
  * Each triangle gets its own distinct normal for crisp face boundaries.
  */
 export function computeFlatNormals(geometry: THREE.BufferGeometry): void {
-  console.log('🎨 Computing flat normals for crisp face shading...');
-  
   if (!geometry.index) {
     // Non-indexed geometry - each triangle already has its own vertices
     // But we still need to compute normals for lighting
     geometry.computeVertexNormals();
-    console.log('   ✅ Non-indexed geometry - computed standard normals');
     return;
   }
 
