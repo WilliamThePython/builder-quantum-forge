@@ -22,7 +22,7 @@ export class VertexRemovalStitcher {
     geometry?: THREE.BufferGeometry;
   }> {
     const originalVertexCount = geometry.attributes.position.count;
-    console.log(`🎯 POLYGON-AWARE VERTEX MERGE: ${vertexIndex1} ↔ ${vertexIndex2} → [${collapsePosition.x.toFixed(2)}, ${collapsePosition.y.toFixed(2)}, ${collapsePosition.z.toFixed(2)}]`);
+    console.log(`🎯 POLYGON-AWARE VERTEX MERGE: ${vertexIndex1} ��� ${vertexIndex2} → [${collapsePosition.x.toFixed(2)}, ${collapsePosition.y.toFixed(2)}, ${collapsePosition.z.toFixed(2)}]`);
     console.log(`   Original buffer vertices: ${originalVertexCount}`);
 
     try {
@@ -109,7 +109,6 @@ export class VertexRemovalStitcher {
       );
 
       // STEP 7: Validate and fix coplanarity after decimation using unified merger
-      console.log('   🔄 POST-DECIMATION: Using unified CoplanarMerger validation');
       const validatedFaces = CoplanarMerger.mergeCoplanarFaces(
         updatedPolygonFaces.map((face: any) => ({
           type: face.type,
@@ -406,15 +405,11 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-    console.log(`🚀 === DECIMATION FUNCTION CALLED ===`);
-    console.log(`🔄 === PURE QUADRIC EDGE COLLAPSE (NO FACE DELETION) ===`);
     console.log(`   Target reduction: ${(targetReduction * 100).toFixed(1)}%`);
     console.log(`   Original stats: ${originalStats.vertices} vertices, ${originalStats.faces} faces`);
     console.log(`   Original geometry UUID: ${geometry.uuid}`);
     console.log(`   Method: Pure edge collapse - two vertices become one`);
 
-    console.log('🔧 === DECIMATION POLYGON METADATA CHECK ===');
-    console.log('📥 Input geometry polygon metadata:');
     console.log('   Has polygonFaces:', !!(geometry as any).polygonFaces);
     console.log('   PolygonFaces count:', (geometry as any).polygonFaces ? (geometry as any).polygonFaces.length : 'N/A');
     console.log('   Has polygonType:', !!(geometry as any).polygonType);
@@ -592,8 +587,6 @@ export class VertexRemovalStitcher {
 
     console.log(`   ✅ Pure edge collapse: ${mergedCount} vertex pairs merged`);
     console.log(`   🛡️ All ${indices.length / 3} triangles preserved`);
-    console.log(`   📊 Result: ${originalVertexCount} → ${originalVertexCount - mergedCount} vertices`);
-    console.log(`   🎯 Returning decimated geometry...`);
 
     return cloned;
   }
