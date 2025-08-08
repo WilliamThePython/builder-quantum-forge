@@ -488,7 +488,7 @@ export default function STLWorkflowPanel({
                     Quadric Edge Collapse
                 </div>
                 <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                  🔧 <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features. Same algorithm as Open3D's quadric decimation.
+                  �� <span className="font-medium">Quadric Decimation:</span> Uses quadric error metrics to intelligently collapse edges while preserving mesh topology and important features. Same algorithm as Open3D's quadric decimation.
                 </div>
 
                     {/* Reduction Amount */}
@@ -580,7 +580,6 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
-                          console.log('🔄 Button clicked! Amount:', reductionAmount);
                           onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
                         }}
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
