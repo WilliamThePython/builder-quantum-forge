@@ -440,13 +440,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         triangleOffset += triangleCount;
       }
 
-      console.log('   ✅ Polygon grouping preserved:', {
-        originalPolygons: polygonFaces.length,
-        newPolygons: newPolygonFaces.length,
-        totalTriangles: triangleOffset
-      });
     } else {
-      console.log('   ⚠️ No polygon faces - falling back to triangle duplication');
 
       // Fallback: Just duplicate vertices for each triangle
       for (let i = 0; i < indices.length; i += 3) {
