@@ -46,8 +46,6 @@ export class VertexRemovalStitcher {
         positions[vertexIndex2 * 3 + 2]
       );
 
-      console.log(`   Logical vertex 1: [${vertex1Pos.x.toFixed(2)}, ${vertex1Pos.y.toFixed(2)}, ${vertex1Pos.z.toFixed(2)}]`);
-      console.log(`   Logical vertex 2: [${vertex2Pos.x.toFixed(2)}, ${vertex2Pos.y.toFixed(2)}, ${vertex2Pos.z.toFixed(2)}]`);
 
       // STEP 3: Find buffer vertices that correspond to these polygon vertices
       const tolerance = 0.001;
@@ -81,7 +79,6 @@ export class VertexRemovalStitcher {
       }
 
       const affectedInstances = Array.from(polygonVertexInstances);
-      console.log(`   Found ${affectedInstances.length} buffer vertices that match polygon model edge: [${affectedInstances.join(', ')}]`);
 
       // STEP 4: Move only the polygon-model-related buffer vertices
       const resultGeometry = geometry.clone();
@@ -93,7 +90,6 @@ export class VertexRemovalStitcher {
         resultPositions[vertexIndex * 3 + 2] = collapsePosition.z;
       });
 
-      console.log(`   Moved ${affectedInstances.length} polygon-model vertex instances to collapse position`);
 
       // STEP 5: DISABLED - Do not remove faces (prevents holes)
       // this.removeDegenerateFaces(resultGeometry); // DISABLED: Creates holes!
