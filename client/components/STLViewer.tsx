@@ -1289,7 +1289,6 @@ function STLMesh() {
         try {
           // Perform single edge decimation
           await decimateEdge(highlightedEdge.vertexIndex1, highlightedEdge.vertexIndex2);
-          console.log('✅ Edge decimation completed successfully');
 
           // Clear the highlighted edge after decimation
           setHighlightedEdge(null);
