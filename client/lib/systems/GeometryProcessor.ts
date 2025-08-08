@@ -24,10 +24,8 @@ export class GeometryProcessor {
    * Convert non-indexed geometry to indexed for efficient processing
    */
   static convertToIndexed(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    console.log('🔧 GeometryProcessor: Converting to indexed geometry...');
 
     if (geometry.index) {
-      console.log('   ✅ Already indexed');
       return geometry;
     }
 
