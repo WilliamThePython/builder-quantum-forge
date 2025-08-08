@@ -887,7 +887,6 @@ function STLMesh() {
       const positions = geometry.attributes.position.array;
 
       // Only start spinning animation if NOT currently decimating
-      console.log(`���� Spin check: isDecimating=${isDecimating}`);
       if (!isDecimating) {
         spinState.current = {
           ...spinState.current,
