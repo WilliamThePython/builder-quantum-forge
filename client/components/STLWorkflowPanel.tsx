@@ -617,7 +617,6 @@ export default function STLWorkflowPanel({
                             id="decimation-painter"
                             checked={decimationPainterMode}
                             onCheckedChange={(checked) => {
-                              console.log('🎯 Decimation Painter toggle changed:', checked);
                               setDecimationPainterMode(checked);
                             }}
                           />
