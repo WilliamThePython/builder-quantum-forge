@@ -50,7 +50,6 @@ export class STLManipulator {
         };
       }
     } catch (error) {
-      console.warn('⚠️ Open3D Python service not available, falling back to JavaScript implementation');
     }
 
     // Fallback to JavaScript implementation
