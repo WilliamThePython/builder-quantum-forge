@@ -1318,13 +1318,9 @@ function STLMesh() {
     if (!decimationPainterMode || !meshRef.current) return;
 
     const handleClick = async (event: MouseEvent) => {
-      console.log('🎯 === DECIMATION PAINTER CLICK ===');
 
       if (highlightedEdge) {
-        console.log(`   Decimating highlighted edge: ${highlightedEdge.vertexIndex1} �� ${highlightedEdge.vertexIndex2}`);
-        console.log(`   Edge positions:`);
-        console.log(`     v${highlightedEdge.vertexIndex1}: [${highlightedEdge.position1.x.toFixed(3)}, ${highlightedEdge.position1.y.toFixed(3)}, ${highlightedEdge.position1.z.toFixed(3)}]`);
-        console.log(`     v${highlightedEdge.vertexIndex2}: [${highlightedEdge.position2.x.toFixed(3)}, ${highlightedEdge.position2.y.toFixed(3)}, ${highlightedEdge.position2.z.toFixed(3)}]`);
+
 
         try {
           // Perform single edge decimation
