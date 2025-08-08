@@ -1490,41 +1490,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const inputPolygonFaces = (indexedGeometry as any).polygonFaces;
       const outputPolygonFaces = (result.geometry as any).polygonFaces;
 
-      console.log('🔍 POLYGON METADATA PRESERVATION CHECK:');
-      console.log('   Input had polygon faces:', !!inputPolygonFaces, inputPolygonFaces ? inputPolygonFaces.length : 'N/A');
-      if (inputPolygonFaces) {
-        const typeBreakdown = inputPolygonFaces.reduce((acc: any, face: any) => {
-          acc[face.type] = (acc[face.type] || 0) + 1;
-          return acc;
-        }, {});
-        console.log('   Input polygon types:', typeBreakdown);
-      }
-
-      console.log('   Output has polygon faces:', !!outputPolygonFaces, outputPolygonFaces ? outputPolygonFaces.length : 'N/A');
-      if (outputPolygonFaces) {
-        const typeBreakdown = outputPolygonFaces.reduce((acc: any, face: any) => {
-          acc[face.type] = (acc[face.type] || 0) + 1;
-          return acc;
-        }, {});
-        console.log('   Output polygon types:', typeBreakdown);
-      }
-
-      if (inputPolygonFaces && !outputPolygonFaces) {
-        console.log('🚨 PROBLEM FOUND: Polygon metadata was LOST during decimation!');
-        console.log('🚨 This will cause fallback to triangle-based coloring!');
-      } else if (inputPolygonFaces && outputPolygonFaces) {
-        console.log('✅ Polygon metadata preserved during decimation');
-      }
-
-      // Log first few vertices for comparison
       const outputPositions = result.geometry.attributes.position.array;
-      console.log('📤 OUTPUT first 3 vertices:', [
-        [outputPositions[0], outputPositions[1], outputPositions[2]],
-        [outputPositions[3], outputPositions[4], outputPositions[5]],
-        [outputPositions[6], outputPositions[7], outputPositions[8]]
-      ]);
-
-      console.log('🔄 Setting dual geometry after decimation...');
 
       // CRITICAL: Fix face orientation after decimation to prevent transparency
       console.log('🔧 POST-DECIMATION: Ensuring solid object display...');
