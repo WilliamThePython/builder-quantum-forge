@@ -759,7 +759,6 @@ function STLMesh() {
       // For non-indexed geometry, calculate face count manually
       if (!geometry.index) {
         const faceCount = geometry.attributes.position.count / 3;
-        console.log(`📐 Non-indexed geometry: ${faceCount} triangular faces inferred from vertices`);
       }
     }
   }, [geometry, decimationPainterMode, isDecimating]);
@@ -898,7 +897,7 @@ function STLMesh() {
       ]);
 
       // Only start spinning animation if NOT currently decimating
-      console.log(`🔍 Spin check: isDecimating=${isDecimating}`);
+      console.log(`���� Spin check: isDecimating=${isDecimating}`);
       if (!isDecimating) {
         console.log('🌀 Starting model spin animation');
         spinState.current = {
