@@ -799,7 +799,6 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
-    console.log('🔗 === WIREFRAME UPDATE ===');
     console.log(`��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
 
     const polygonFaces = (geometry as any).polygonFaces;
