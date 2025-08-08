@@ -389,7 +389,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
-      console.log('   ✅ Already non-indexed, preparing for viewing...');
       return prepareGeometryForViewing(indexedGeom, 'initial_load');
     }
 
