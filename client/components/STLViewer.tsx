@@ -23,7 +23,6 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
   const originalFormat = (geometry as any).originalFormat;
 
   if (!polygonFaces || !Array.isArray(polygonFaces)) {
-    console.log('🔍 No polygon faces found - geometry may be pure triangulated mesh');
     return null;
   }
 
@@ -55,7 +54,6 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
         const idx = v.index * 3;
         return new THREE.Vector3(positions[idx], positions[idx + 1], positions[idx + 2]);
       } else {
-        console.warn('⚠️ Invalid vertex format in polygon face:', v);
         return new THREE.Vector3();
       }
     });
@@ -113,7 +111,6 @@ function findNearestPolygonEdge(geometry: THREE.BufferGeometry, intersection: TH
 
   // VALIDATION: Ensure this edge is a proper polygon boundary
   if (nearestEdge && !isValidPolygonBoundaryEdge(polygonFaces, nearestEdge.v1.position, nearestEdge.v2.position)) {
-    console.warn('⚠️ Selected edge is not a valid polygon boundary, skipping');
     return null;
   }
 
@@ -230,7 +227,6 @@ function isValidPolygonBoundaryEdge(
   const isValid = faceCount >= 1 && faceCount <= 2;
 
   if (!isValid) {
-    console.warn(`Invalid edge: found in ${faceCount} faces (expected 1-2)`);
   }
 
   return isValid;
@@ -502,7 +498,6 @@ function doLinesIntersect(
 
 // Create fallback edge geometry from triangulated mesh
 function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
-  console.log('🔧 Creating fallback edge geometry from triangulated mesh');
 
   const positions = geometry.attributes.position.array as Float32Array;
   const edgeData: any[] = [];
@@ -590,7 +585,6 @@ function createFallbackEdgeGeometry(geometry: THREE.BufferGeometry) {
     }
   }
 
-  console.log(`🔧 Created ${edgeData.length} fallback edges`);
   return edgeData;
 }
 
