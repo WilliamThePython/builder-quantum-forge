@@ -687,11 +687,48 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.log('📖 Loading OBJ file...');
         const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader');
         const loader = new OBJLoader();
-        const text = await file.text();
+
+        const fileSize = file.size;
+        const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB threshold
+        const timeoutMs = isLargeFile ? 30000 : 10000;
+
+        console.log(`📏 OBJ File size: ${(fileSize / 1024 / 1024).toFixed(1)}MB (${isLargeFile ? 'LARGE' : 'normal'})`);
+
+        updateProgress(25, 'Reading', `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB OBJ file...`);
+
+        // Load with timeout protection
+        const text = await Promise.race([
+          file.text(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`OBJ file loading timeout after ${timeoutMs/1000}s`)), timeoutMs)
+          )
+        ]);
 
         updateProgress(35, 'Parsing', 'Processing OBJ geometry...');
+
         try {
-          const object = loader.parse(text);
+          let object;
+          if (isLargeFile) {
+            updateProgress(40, 'Parsing', 'Processing large OBJ file (this may take up to 30 seconds)...');
+
+            object = await Promise.race([
+              new Promise<any>((resolve, reject) => {
+                setTimeout(() => {
+                  try {
+                    const result = loader.parse(text);
+                    resolve(result);
+                  } catch (parseErr) {
+                    reject(parseErr);
+                  }
+                }, 100);
+              }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error(`OBJ parsing timeout after ${timeoutMs/1000}s - file may be too complex`)), timeoutMs)
+              )
+            ]);
+          } else {
+            object = loader.parse(text);
+          }
 
           // Extract and merge geometries from OBJ
           let mergedGeometry: THREE.BufferGeometry | null = null;
@@ -703,7 +740,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
                 // For multiple meshes, we need to merge them properly
                 const tempGeometry = mergedGeometry.clone();
                 // Note: Three.js merge method deprecated, using manual merge
-                console.warn('⚠️ Multiple meshes found in OBJ - using first mesh only');
+                console.warn('⚠��� Multiple meshes found in OBJ - using first mesh only');
               }
             }
           });
