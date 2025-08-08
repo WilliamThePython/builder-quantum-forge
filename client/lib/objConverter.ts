@@ -111,7 +111,6 @@ export class OBJConverter {
     console.log(`📋 Geometry indexing status: ${isIndexed ? 'INDEXED' : 'NON-INDEXED'}`);
 
     if (!isIndexed) {
-      console.warn('⚠️ Non-indexed geometry detected - this may cause decimation issues');
     }
     
     let objString = '# Generated OBJ file from STL/geometry\n';
@@ -133,7 +132,6 @@ export class OBJConverter {
     // ENHANCED: Handle both indexed and non-indexed geometry properly
     if (indices && indices.length > 0) {
       // Indexed geometry - preferred for decimation
-      console.log(`✅ Processing INDEXED geometry: ${indices.length / 3} faces`);
       for (let i = 0; i < indices.length; i += 3) {
         // Ensure we have enough indices for a complete triangle
         if (i + 2 < indices.length) {
@@ -153,7 +151,6 @@ export class OBJConverter {
       }
     } else {
       // Non-indexed geometry - convert to indexed for consistency
-      console.warn('⚠️ Processing NON-INDEXED geometry - converting to indexed for decimation compatibility');
       for (let i = 0; i < positions.length; i += 9) {
         // Each triangle uses 3 consecutive vertices
         const v1 = (i / 3) + 1;
@@ -223,7 +220,6 @@ export class OBJConverter {
     console.log(`✅ ENHANCED OBJ CONVERSION COMPLETED`);
     console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} faces`);
     console.log(`   📐 Polygon types: ${hasQuads ? 'quads' : 'no quads'}, ${hasPolygons ? 'polygons' : 'no polygons'}`);
-    console.log(`   🔗 Indexing: ${isIndexed ? 'INDEXED (decimation-ready)' : 'NON-INDEXED (may need conversion)'}`);
 
     return {
       success: true,
@@ -322,7 +318,6 @@ export class OBJConverter {
           }
 
           if (faceVertices.length >= 3) {
-            console.log(`🔗 PRESERVING polygon face with ${faceVertices.length} vertices (INDEXED for decimation)`);
 
             // Calculate face normal for polygon preservation
             const normal = new THREE.Vector3();
@@ -380,7 +375,6 @@ export class OBJConverter {
     // CRITICAL: Ensure geometry is indexed for decimation compatibility
     if (faces.length > 0) {
       geometry.setIndex(faces);
-      console.log('✅ Geometry properly INDEXED for decimation compatibility');
     } else {
       console.warn('⚠️ No faces found - geometry may not be valid');
     }
@@ -388,7 +382,7 @@ export class OBJConverter {
     // Handle normals
     if (normals.length > 0 && normals.length === vertices.length) {
       geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-      console.log('✅ Using OBJ file normals');
+      console.log('��� Using OBJ file normals');
     } else {
       computeFlatNormals(geometry);
       console.log('✅ Computed flat normals for crisp face shading');
@@ -405,8 +399,6 @@ export class OBJConverter {
 
       console.log(`✅ ENHANCED OBJ PARSING COMPLETED`);
       console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`);
-      console.log(`   🔗 PRESERVED ${polygonFaces.length} polygon faces:`, polygonFaces.map(f => f.type).join(', '));
-      console.log(`   🎯 Decimation-ready: INDEXED geometry with preserved polygon structure`);
     } else {
       console.log(`✅ OBJ parsing completed: ${vertexCount} vertices, ${faceCount} triangle faces (no polygons)`);
     }
