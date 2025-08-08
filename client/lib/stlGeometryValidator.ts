@@ -10,6 +10,7 @@ export class STLGeometryValidator {
    * Validate geometry and return comprehensive report
    */
   static validateGeometry(geometry: THREE.BufferGeometry): ValidationReport {
+    console.log('Starting STL geometry validation...');
     
     const issues: ValidationIssue[] = [];
     const warnings: ValidationIssue[] = [];
@@ -60,6 +61,8 @@ export class STLGeometryValidator {
     
     const isValid = issues.length === 0;
     
+    console.log(`Validation complete: ${isValid ? 'PASSED' : 'FAILED'}`);
+    console.log(`Issues: ${issues.length}, Warnings: ${warnings.length}`);
     
     return { issues, warnings, stats, isValid };
   }

@@ -744,6 +744,7 @@ function STLMesh() {
   // Debug decimation painter mode and geometry
   useEffect(() => {
     if (geometry) {
+      console.log('��� GEOMETRY ANALYSIS:', {
         decimationPainterMode,
         hasGeometry: !!geometry,
         geometryVertices: geometry.attributes.position.count,
@@ -798,15 +799,19 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
+    console.log(`��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
 
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
+      console.log('🔗 Creating standard edge wireframe (no polygon data)');
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
+      console.log(`🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`);
       return edgeGeometry;
     }
 
+    console.log('🔗 Creating polygon-aware wireframe');
 
     const wireframePositions: number[] = [];
 
@@ -830,12 +835,14 @@ function STLMesh() {
         }
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
+        console.warn('⚠️ Face missing original vertices, using fallback for face:', faceIndex);
       }
     }
 
     const wireGeometry = new THREE.BufferGeometry();
     wireGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wireframePositions, 3));
 
+    console.log(`✅ Created polygon wireframe with ${wireframePositions.length / 6} edge segments`);
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
 
@@ -876,22 +883,29 @@ function STLMesh() {
   // Trigger spinning animation when a new model loads (but not during decimation)
   useEffect(() => {
     if (geometry) {
+      console.log('=== VIEWER GEOMETRY UPDATE ===');
+      console.log(`🎆 Viewer received geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`);
+      console.log(`🎆 Geometry UUID: ${geometry.uuid}`);
 
       // Log first few vertices
       const positions = geometry.attributes.position.array;
+      console.log('🎆 VIEWER first 3 vertices:', [
         [positions[0], positions[1], positions[2]],
         [positions[3], positions[4], positions[5]],
         [positions[6], positions[7], positions[8]]
       ]);
 
       // Only start spinning animation if NOT currently decimating
+      console.log(`���� Spin check: isDecimating=${isDecimating}`);
       if (!isDecimating) {
+        console.log('🌀 Starting model spin animation');
         spinState.current = {
           ...spinState.current,
           isSpinning: true,
           startTime: Date.now()
         };
       } else {
+        console.log('🎯 Skipping spin animation - decimation operation in progress');
       }
     }
   }, [geometry, isDecimating]);
@@ -910,6 +924,7 @@ function STLMesh() {
     if (progress >= 1) {
       // Animation complete, stop spinning
       spinState.current.isSpinning = false;
+      console.log('✅ Model spin animation completed');
     } else {
       // Continue spinning with decreasing speed
       meshRef.current.rotation.y += currentSpeed * 0.016; // 60fps approximation
@@ -923,15 +938,31 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
+      console.log('🎨 === COLORING PIPELINE DEBUG ===');
+      console.log('🎨 Geometry UUID:', geometry.uuid);
+      console.log('🎨 Vertex count:', geometry.attributes.position.count);
+      console.log('🎨 Has index:', !!geometry.index);
+      console.log('🎨 Index count:', geometry.index ? geometry.index.count : 'N/A');
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
 
+      console.log('🎨 Polygon faces available:', !!polygonFaces);
+      console.log('🎨 Polygon faces type:', Array.isArray(polygonFaces) ? 'array' : typeof polygonFaces);
+      console.log('🎨 Polygon faces count:', polygonFaces ? polygonFaces.length : 'N/A');
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
+        console.log('🎨 First few polygon faces:', polygonFaces.slice(0, 3));
       }
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
+        console.log(`🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`);
+        console.log(`🎨 GEOMETRY TYPE DEBUG:`);
+        console.log(`   Is indexed: ${!!geometry.index}`);
+        console.log(`   Vertex count: ${geometry.attributes.position.count}`);
+        console.log(`   Index count: ${geometry.index ? geometry.index.count : 'N/A'}`);
+        console.log(`   Triangle count: ${geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3}`);
+        console.log(`   Colors array length will be: ${colors.length} (3 * ${geometry.attributes.position.count} vertices)`);
 
         let triangleOffset = 0;
 
@@ -959,8 +990,11 @@ function STLMesh() {
 
           triangleOffset += triangleCount;
         }
+        console.log(`🎨 ✅ Applied POLYGON-AWARE coloring to ${triangleOffset} triangles`);
       } else {
         // Fallback to triangle-based coloring if no polygon face data
+        console.log('🎨 ❌ FALLBACK PATH: No polygon faces found, using triangle-based coloring');
+        console.log('🎨 ❌ This will break up polygon grouping and cause individual triangle colors!');
         const color = new THREE.Color();
         for (let i = 0; i < colors.length; i += 9) {
           color.setHSL(Math.random(), 0.7, 0.6);
@@ -971,6 +1005,7 @@ function STLMesh() {
             colors[i + j + 2] = color.b;
           }
         }
+        console.log('🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!');
       }
 
       // Store original colors for highlighting
@@ -981,7 +1016,9 @@ function STLMesh() {
       geometry.attributes.color.needsUpdate = true;
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
+      console.log('🎨 Ensuring flat normals for crisp face shading...');
       computePolygonAwareFlatNormals(geometry, polygonFaces);
+      console.log('✅ Applied polygon-aware coloring with flat normals');
 
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
@@ -1104,6 +1141,7 @@ function STLMesh() {
 
   // Create edge geometry for raycasting (polygon perimeter edges only)
   const edgeGeometry = useMemo(() => {
+    console.log('🔍 Creating edge geometry:', {
       hasGeometry: !!geometry,
       decimationPainterMode,
       geometryFaces: geometry?.index ? geometry.index.count / 3 : 'non-indexed',
@@ -1111,16 +1149,19 @@ function STLMesh() {
     });
 
     if (!geometry || !decimationPainterMode) {
+      console.log('❌ Edge geometry creation skipped - no geometry or painter mode off');
       return null;
     }
 
     const polygonFaces = (geometry as any).polygonFaces;
+    console.log('🔍 Polygon faces:', {
       hasPolygonFaces: !!polygonFaces,
       isArray: Array.isArray(polygonFaces),
       count: polygonFaces?.length || 0
     });
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
+      console.warn('��� No polygon faces found - creating fallback edge detection from triangles');
       return createFallbackEdgeGeometry(geometry);
     }
 
@@ -1139,6 +1180,7 @@ function STLMesh() {
 
       // Validate that this face is actually coplanar
       if (!isCoplanarPolygon(face.originalVertices)) {
+        console.warn('⚠️ Skipping non-coplanar polygon face');
         continue;
       }
 
@@ -1283,6 +1325,7 @@ function STLMesh() {
         try {
           // Perform single edge decimation
           await decimateEdge(highlightedEdge.vertexIndex1, highlightedEdge.vertexIndex2);
+          console.log('✅ Edge decimation completed successfully');
 
           // Clear the highlighted edge after decimation
           setHighlightedEdge(null);
@@ -1290,6 +1333,7 @@ function STLMesh() {
           console.error('❌ Edge decimation failed:', error);
         }
       } else {
+        console.log('   No edge highlighted for decimation');
       }
     };
 

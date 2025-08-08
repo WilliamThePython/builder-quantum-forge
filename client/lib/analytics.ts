@@ -54,6 +54,7 @@ class Analytics {
     this.initializeCustomTracking();
     
     this.isInitialized = true;
+    console.log('Analytics initialized');
   }
 
   private initializeGA4() {
@@ -301,6 +302,7 @@ class Analytics {
   trackError(error: Error, context?: string) {
     // Prevent tracking analytics-related errors to avoid infinite loops
     if (error.message?.includes('Failed to fetch') && context?.includes('analytics')) {
+      console.warn('Skipping analytics-related error to prevent loop:', error.message);
       return;
     }
 
@@ -313,6 +315,7 @@ class Analytics {
 
     // Skip if we're already in analytics cooldown
     if (this.shouldSkipAnalytics()) {
+      console.warn('Skipping error tracking due to analytics circuit breaker');
       return;
     }
 
@@ -330,16 +333,19 @@ class Analytics {
         }
       });
     } catch (trackingError) {
+      console.warn('Failed to track error, preventing loop:', trackingError);
     }
   }
 
   // Get real-time analytics data (from your backend API)
   async getRealTimeData() {
     try {
+      console.log('Fetching real-time analytics data...');
       const response = await originalFetch('/api/analytics/realtime');
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Real-time analytics data received:', data);
         return data;
       } else {
         console.error('Analytics API error:', response.status, response.statusText);
@@ -350,6 +356,7 @@ class Analytics {
     }
 
     // Fallback to mock data if API is not available
+    console.log('Falling back to mock data');
     return this.getMockRealTimeData();
   }
 
@@ -429,6 +436,7 @@ class Analytics {
     if (this.isInCooldown && (now - this.lastAnalyticsFailure) >= this.cooldownPeriod) {
       this.isInCooldown = false;
       this.analyticsFailureCount = 0;
+      console.log('Analytics circuit breaker reset - resuming tracking');
     }
 
     return false;
@@ -443,6 +451,7 @@ class Analytics {
     // Activate circuit breaker if too many failures
     if (this.analyticsFailureCount >= this.maxFailures) {
       this.isInCooldown = true;
+      console.warn(`Analytics circuit breaker activated after ${this.maxFailures} failures. Cooling down for ${this.cooldownPeriod / 1000}s`);
     }
   }
 
@@ -508,6 +517,7 @@ class Analytics {
           // Completely silent - ignore all errors including AbortError
           if (fetchError instanceof Error && fetchError.name === 'AbortError') {
             // Timeout occurred, but don't count as failure for abort errors
+            console.debug('Analytics request timed out (this is normal)');
           } else {
             this.analyticsFailureCount++;
           }
@@ -597,6 +607,7 @@ window.fetch = function(...args) {
 
       if (isThirdPartyAnalytics) {
         // Silently ignore third-party analytics fetch errors
+        console.debug('Ignoring third-party analytics fetch error:', error.message);
         // Return a resolved promise to prevent unhandled rejection
         // Use null body for 204 status as per HTTP spec
         return Promise.resolve(new Response(null, { status: 204 }));
@@ -649,6 +660,7 @@ window.addEventListener('error', (event) => {
       event.error?.stack?.includes('fs.js') ||
       event.filename?.includes('edge.fullstory.com') ||
       event.error?.message?.includes('Failed to fetch')) {
+    console.warn('🔄 Skipping analytics/third-party error to prevent loop');
     return;
   }
 
@@ -686,6 +698,7 @@ window.addEventListener('unhandledrejection', (event) => {
       event.reason?.stack?.includes('fs.js') ||
       event.reason?.stack?.includes('edge.fullstory.com') ||
       (event.reason instanceof TypeError && event.reason.message?.includes('Failed to fetch'))) {
+    console.warn('Skipping analytics/third-party promise rejection to prevent loop:', event.reason);
     event.preventDefault(); // Prevent the error from being logged to console
     return;
   }
@@ -693,5 +706,6 @@ window.addEventListener('unhandledrejection', (event) => {
   try {
     analytics.trackError(new Error(event.reason), 'unhandled_promise_rejection');
   } catch (error) {
+    console.warn('Failed to track promise rejection, skipping to prevent loop:', error);
   }
 });

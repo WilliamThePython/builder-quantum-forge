@@ -904,6 +904,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Optimized validation for large models
       let validationReport;
       if (vertexCount < 200000) {
+        console.log('🔍 Full validation for parts export accuracy...');
         validationReport = STLGeometryValidator.validateGeometry(geometry);
       } else {
         console.log('��️ Skipping intensive validation for high-poly model');
@@ -917,14 +918,27 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         addError('Full validation skipped for high-poly model to prevent freezing.');
       }
 
-      // Display only critical validation results (no console spam)
-      if (!validationReport.isValid) {
-        const criticalIssues = validationReport.issues.map(issue => issue.message).join(', ');
-        addError(`STL validation failed: ${criticalIssues}`);
-      }
+      // Display validation results
+      if (!validationReport.isValid || validationReport.warnings.length > 0) {
+        const summary = STLGeometryValidator.generateValidationSummary(validationReport);
+        console.log('📋 Validation Report:\n', summary);
 
-      if (validationReport.stats.zeroAreaFaces > 0) {
-        addError(`Found ${validationReport.stats.zeroAreaFaces} zero-area faces that will cause parts export issues`);
+        // Show critical issues as errors
+        if (!validationReport.isValid) {
+          const criticalIssues = validationReport.issues.map(issue => issue.message).join(', ');
+          addError(`STL validation failed: ${criticalIssues}`);
+        }
+
+        // Show warnings as separate messages
+        validationReport.warnings.forEach(warning => {
+          console.warn(`STL Warning: ${warning.message} - ${warning.details}`);
+        });
+
+        if (validationReport.stats.zeroAreaFaces > 0) {
+          addError(`Found ${validationReport.stats.zeroAreaFaces} zero-area faces that will cause parts export issues`);
+        }
+      } else {
+        console.log('✅ STL validation passed - ready for accurate parts export');
       }
 
       const uploadTime = Date.now() - uploadStartTime;
@@ -936,13 +950,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Final validation before dual geometry setup
       geometry = validateAndFixGeometry(geometry, 'final validation before dual setup');
 
-      // Geometry ready for dual setup
+      // Debug: Log geometry state before dual setup
+      console.log('🔍 BEFORE DUAL GEOMETRY SETUP:', {
+        hasIndex: !!geometry.index,
+        vertices: geometry.attributes.position.count,
+        triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
+        hasPolygonFaces: !!(geometry as any).polygonFaces
+      });
 
       // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
       setDualGeometry(geometry);
       setFileName(file.name);
 
       updateProgress(100, 'Complete', 'Model loaded successfully!');
+
+      console.log('Loading completed successfully');
 
       // Track STL upload analytics
       try {
@@ -1204,6 +1226,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
+      console.log('Starting standard STL export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1214,6 +1237,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const exportFilename = customFilename ||
         (fileName ? fileName.replace(/\.[^/.]+$/, '_exported.stl') : 'exported_model.stl');
 
+      console.log('Calling exportCurrentSTL with filename:', exportFilename);
       console.log('Geometry details:', {
         vertices: geometry.attributes.position.count,
         hasNormals: !!geometry.attributes.normal,
@@ -1222,6 +1246,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       exportCurrentSTL(geometry, exportFilename);
 
+      console.log('STL exported successfully');
 
       // Track export event
       try {
@@ -1254,6 +1279,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     try {
+      console.log('Starting OBJ export...', {
         fileName,
         hasGeometry: !!geometry,
         vertexCount: geometry?.attributes?.position?.count || 0
@@ -1294,6 +1320,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      console.log('OBJ export completed successfully');
 
       // Track export event
       try {
@@ -1333,6 +1360,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const format = options.format || 'stl';
 
     try {
+      console.log('Starting parts export...', {
         format,
         fileName,
         hasGeometry: !!geometry,
@@ -1352,6 +1380,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         await PolygonPartsExporter.exportPartsAsZip(geometry, exportFilename, options);
       }
 
+      console.log(`${format.toUpperCase()} assembly kit export completed successfully`);
 
       // Track export event
       try {
@@ -1512,10 +1541,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         });
       } catch (analyticsError) {
-        // Analytics tracking failed silently
+        console.warn('Failed to track simplification event:', analyticsError);
       }
-
-      console.log('Decimation completed successfully');
 
       return {
         success: true,

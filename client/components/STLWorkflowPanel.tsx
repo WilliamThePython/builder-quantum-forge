@@ -156,6 +156,7 @@ export default function STLWorkflowPanel({
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log(`🚀 Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       loadModelFromFile(file).catch(err => {
         console.error('❌ Upload failed:', err);
         // Make sure the error is visible to the user
@@ -579,6 +580,7 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <Button
                         onClick={() => {
+                          console.log('🔄 Button clicked! Amount:', reductionAmount);
                           onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
                         }}
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
@@ -616,6 +618,7 @@ export default function STLWorkflowPanel({
                             id="decimation-painter"
                             checked={decimationPainterMode}
                             onCheckedChange={(checked) => {
+                              console.log('🎯 Decimation Painter toggle changed:', checked);
                               setDecimationPainterMode(checked);
                             }}
                           />
@@ -1080,6 +1083,7 @@ function MobileWorkflowContent(props: any) {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log(`🚀 Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
       loadModelFromFile(file).catch(err => {
         console.error('❌ Upload failed:', err);
         alert(`Upload failed: ${err.message}`);
@@ -1363,6 +1367,7 @@ function MobileWorkflowContent(props: any) {
 
               <Button
                 onClick={() => {
+                  console.log('🔄 Mobile button clicked! Amount:', reductionAmount);
                   onReducePoints(reductionAmount, 'quadric_edge_collapse' as any);
                 }}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white text-base py-3 h-auto"
