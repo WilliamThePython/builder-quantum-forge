@@ -110,7 +110,9 @@ async def decimate_mesh(
             print("🔧 Applying Open3D quadric decimation...")
 
         decimated_mesh = mesh.simplify_quadric_decimation(
-            target_number_of_triangles=target_triangles
+            target_number_of_triangles=target_triangles,
+            maximum_error=1e30,  # Allow any error to reach target count
+            boundary_weight=1.0 if preserve_boundary else 0.1
         )
 
         # For polygon-preserving mode, try to merge coplanar triangles back into polygons
