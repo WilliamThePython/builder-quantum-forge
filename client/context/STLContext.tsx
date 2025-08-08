@@ -504,7 +504,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       setOriginalFormat(isSTL ? 'stl' : 'obj');
-      console.log(`📁 File format detected: ${isSTL ? 'STL' : 'OBJ'}`);
 
       await updateProgress(10, 'Validating', 'File format validated successfully...');
 
@@ -606,7 +605,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             geometry = loader.parse(arrayBuffer);
           }
 
-          console.log('STL loaded successfully');
 
           // Quick validation of STL loader output
           const rawPositions = geometry.attributes.position.array;
@@ -798,17 +796,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       updateProgress(70, 'Optimizing', 'Ensuring geometry is indexed for operations...');
 
-      // Debug: Log geometry state before indexing
-      console.log('🔍 BEFORE INDEXING:', {
-        hasIndex: !!geometry.index,
-        vertices: geometry.attributes.position.count,
-        triangles: geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3,
-        hasNormals: !!geometry.attributes.normal,
-        boundingBox: geometry.boundingBox
-      });
 
       // TEMPORARILY DISABLED: Skip indexing for STL files to debug cow loading issue
-      console.log('🚨 TEMPORARILY DISABLED: Skipping indexing for STL files to test cow loading');
 
       // CRITICAL: Ensure geometry is indexed for efficient operations like decimation
       // if (!geometry.index) {
