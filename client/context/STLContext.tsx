@@ -1243,7 +1243,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       exportCurrentSTL(geometry, exportFilename);
 
-      console.log('Standard STL export completed successfully');
+      console.log('STL exported successfully');
 
       // Track export event
       try {
