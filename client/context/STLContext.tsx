@@ -816,7 +816,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       //
       //   // Sanity check: ensure indexing didn't break the geometry
       //   if (!geometry.attributes.position || geometry.attributes.position.count === 0) {
-      //     console.error('🚨 INDEXING BROKE THE GEOMETRY! Reverting...');
+      //     console.error('�� INDEXING BROKE THE GEOMETRY! Reverting...');
       //     geometry = beforeGeometry;
       //   }
       // }
@@ -1572,9 +1572,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         result.geometry.uuid = THREE.MathUtils.generateUUID();
         setDualGeometry(result.geometry);
 
-        console.log('=== VIEWER GEOMETRY UPDATE ===');
-        console.log(`🎆 Viewer received geometry: ${result.geometry.attributes.position.count} vertices, ${result.geometry.index ? result.geometry.index.count / 3 : 0} faces`);
-        console.log(`🎆 Geometry UUID: ${result.geometry.uuid}`);
 
         return result;
       } else {
