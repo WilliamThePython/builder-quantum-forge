@@ -194,11 +194,6 @@ export default function Index() {
 
 
 
-      {/* Google AdSense Bottom Banner Ads - Temporarily disabled for testing */}
-      {/* <AdSenseBottomBanners /> */}
-
-      {/* Analytics removed */}
       </div>
-    // </AdManager>
   );
 }
