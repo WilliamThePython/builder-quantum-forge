@@ -409,11 +409,6 @@ export class VertexRemovalStitcher {
     const actualReduction = (originalStats.vertices - newStats.vertices) / originalStats.vertices;
 
 
-    console.log('📤 Output geometry polygon metadata:');
-    console.log('   Has polygonFaces:', !!(simplifiedGeometry as any).polygonFaces);
-    console.log('   PolygonFaces count:', (simplifiedGeometry as any).polygonFaces ? (simplifiedGeometry as any).polygonFaces.length : 'N/A');
-    console.log('   Has polygonType:', !!(simplifiedGeometry as any).polygonType);
-    console.log('   isPolygonPreserved:', !!(simplifiedGeometry as any).isPolygonPreserved);
 
 
     return {
@@ -430,7 +425,6 @@ export class VertexRemovalStitcher {
    * Two vertices become one, all triangles are preserved (just updated indices)
    */
   private static pureQuadricEdgeCollapse(geometry: THREE.BufferGeometry, targetReduction: number): THREE.BufferGeometry {
-    console.log('   Guarantee: ZERO faces deleted, ZERO holes created');
 
     if (targetReduction <= 0) {
       console.log('⚠�� Zero reduction requested - returning original geometry');
