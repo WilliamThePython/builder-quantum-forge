@@ -972,12 +972,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           triangles: triangles,
           upload_time: uploadTime
         });
-        console.log('STL upload tracked successfully');
+        // Analytics tracking
       } catch (error) {
-        console.warn('Failed to track STL upload:', error);
+        // Analytics failed silently
       }
 
-      console.log(`STL loaded successfully: ${file.name} (${triangles.toLocaleString()} triangles)`);
+      console.log('Loading completed successfully');
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load STL file';
