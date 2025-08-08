@@ -114,7 +114,7 @@ export class PolygonPartsExporter {
     this.downloadBlob(zipBlob, filename);
     
     const endTime = Date.now();
-    console.log('Parts export completed successfully');
+    console.log('Export completed successfully');
   }
 
   /**
