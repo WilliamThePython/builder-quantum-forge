@@ -73,7 +73,6 @@ export class GeometryProcessor {
     MaterialSystem.finalizeGeometry(indexedGeometry);
 
     const uniqueVertices = newPositions.length / 3;
-    console.log(`   ✅ Conversion complete: ${vertexCount} → ${uniqueVertices} vertices`);
 
     return indexedGeometry;
   }
@@ -85,7 +84,6 @@ export class GeometryProcessor {
     geometry: THREE.BufferGeometry, 
     targetReduction: number
   ): Promise<ProcessingResult> {
-    console.log('🚀 GeometryProcessor: Starting quadric decimation...');
     const startTime = Date.now();
     
     if (targetReduction <= 0 || targetReduction >= 1) {
@@ -100,7 +98,6 @@ export class GeometryProcessor {
 
     // Ensure indexed geometry for efficient edge operations
     if (!workingGeometry.index) {
-      console.log('   🔧 Converting to indexed geometry...');
       workingGeometry = this.convertToIndexed(workingGeometry);
     }
 
@@ -110,7 +107,6 @@ export class GeometryProcessor {
     const targetVertexCount = Math.floor(originalVertexCount * (1 - targetReduction));
     const verticesToRemove = originalVertexCount - targetVertexCount;
 
-    console.log(`   🎯 Target: Remove ${verticesToRemove} vertices (${(targetReduction * 100).toFixed(1)}%)`);
 
     // Build edge list
     const edges = this.buildEdgeList(indices);
@@ -125,7 +121,6 @@ export class GeometryProcessor {
 
     // Iterative edge collapse
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
-      console.log(`   🔄 Iteration ${iterationCount + 1}/${maxIterations} - Progress: ${mergedCount}/${verticesToRemove}`);
       
       // Sort edges by length (shortest first for optimal collapse)
       edges.sort((a, b) => {
@@ -156,7 +151,6 @@ export class GeometryProcessor {
 
       // Check progress
       if (mergedCount === initialMergeCount) {
-        console.log(`   ⚠️ No progress in iteration ${iterationCount + 1} - stopping`);
         break;
       }
       
@@ -176,8 +170,6 @@ export class GeometryProcessor {
     const finalVertexCount = workingGeometry.attributes.position.count;
     const actualReduction = (originalVertexCount - finalVertexCount) / originalVertexCount;
 
-    console.log(`   ✅ Decimation complete: ${originalVertexCount} → ${finalVertexCount} vertices`);
-    console.log(`   📊 Achieved: ${(actualReduction * 100).toFixed(1)}% reduction in ${Date.now() - startTime}ms`);
 
     return {
       success: true,
@@ -239,12 +231,10 @@ export class GeometryProcessor {
    * Process any geometry to ensure it meets our standards
    */
   static processGeometry(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
-    console.log('🔧 GeometryProcessor: Processing geometry...');
     
     const processed = geometry.clone();
     MaterialSystem.finalizeGeometry(processed);
     
-    console.log('   ✅ Geometry processed with consistent standards');
     return processed;
   }
 }
