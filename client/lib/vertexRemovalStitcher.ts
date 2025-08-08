@@ -475,19 +475,15 @@ export class VertexRemovalStitcher {
     let mergedCount = 0;
 
     // Perform iterative edge collapses until target is reached
-    console.log(`   🔧 Processing ${edges.length} edges for collapse...`);
     let iterationCount = 0;
     const maxIterations = isAggressiveReduction ? 10 : 5; // More iterations for massive reductions
 
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
-      console.log(`   🔄 Iteration ${iterationCount + 1}/${maxIterations} - Progress: ${mergedCount}/${verticesToRemove}`);
 
       // For aggressive reductions, rebuild edge list every iteration to find new collapse opportunities
       if (isAggressiveReduction && iterationCount > 0) {
-        console.log(`   🔧 Rebuilding edge list for iteration ${iterationCount + 1}...`);
         edges = this.buildEdgeList(cloned.index!.array as Uint32Array);
-        console.log(`   📊 Rebuilt edge list: ${edges.length} edges`);
       }
 
       // Sort edges by length for optimal collapse order (shortest first)
@@ -499,7 +495,6 @@ export class VertexRemovalStitcher {
 
       for (const [v1, v2] of edges) {
         if (mergedCount >= verticesToRemove) {
-          console.log(`   ✅ Reached target vertex removal count: ${mergedCount}`);
           break;
         }
 
@@ -533,7 +528,6 @@ export class VertexRemovalStitcher {
       iterationCount++;
     }
 
-    console.log(`   📊 Final merge count: ${mergedCount} vertex pairs merged (${iterationCount} iterations)`);
     if (mergedCount < verticesToRemove) {
       console.log(`   ⚠��� Could only achieve ${((mergedCount / originalVertexCount) * 100).toFixed(1)}% reduction instead of target ${(targetReduction * 100).toFixed(1)}%`);
     }
