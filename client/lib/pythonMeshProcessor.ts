@@ -441,22 +441,17 @@ export class PythonMeshProcessor {
       }
     }
 
-    console.log(`   🔍 POSITION VERIFICATION: ${positionsChanged}/${modifiedPositions.length} position values changed`);
-    console.log(`   🔍 AFTER: First vertex [${modifiedPositions[0].toFixed(3)}, ${modifiedPositions[1].toFixed(3)}, ${modifiedPositions[2].toFixed(3)}]`);
 
     if (positionsChanged === 0) {
       console.error(`   ❌ CRITICAL: NO VERTEX POSITIONS CHANGED! This explains why the model looks the same.`);
       // Force some visible changes if none occurred
-      console.log(`   🔧 FORCING visible changes to demonstrate vertex movement...`);
       for (let i = 0; i < Math.min(5, vertexCount); i++) {
         const offset = i * 3;
         modifiedPositions[offset] += (Math.random() - 0.5) * 5; // Move X
         modifiedPositions[offset + 1] += (Math.random() - 0.5) * 5; // Move Y
         modifiedPositions[offset + 2] += (Math.random() - 0.5) * 5; // Move Z
-        console.log(`   🔧 FORCED MOVE vertex ${i}: [${modifiedPositions[offset].toFixed(3)}, ${modifiedPositions[offset + 1].toFixed(3)}, ${modifiedPositions[offset + 2].toFixed(3)}]`);
       }
     } else {
-      console.log(`   ✅ SUCCESS: ${positionsChanged} vertex positions changed - model should look different!`);
     }
 
     // Create NEW geometry with completely new UUID to force viewer update
