@@ -113,7 +113,7 @@ def test_service():
     finally:
         # Clean up
         os.unlink(test_file_path)
-        print(f"\n🧹 Cleaned up test file")
+        # Cleaned up test file
 
 if __name__ == "__main__":
     test_service()
