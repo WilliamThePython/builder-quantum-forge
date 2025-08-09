@@ -78,21 +78,14 @@ export class CenterTriangulatedMerger {
       return false;
     }
 
-    // Look for shared center vertex
-    const allVertices = faces.flatMap(face => face.originalVertices);
-    const vertexCounts = new Map<string, number>();
-
-    for (const vertex of allVertices) {
-      const key = `${vertex.x.toFixed(3)},${vertex.y.toFixed(3)},${vertex.z.toFixed(3)}`;
-      vertexCounts.set(key, (vertexCounts.get(key) || 0) + 1);
+    // For any group of triangles on the same plane, try to merge them
+    // This is more aggressive but safer for procedural shapes
+    if (faces.length >= 3) {
+      console.log(`   Attempting to merge ${faces.length} triangular faces as center-triangulated group`);
+      return true;
     }
 
-    // Find vertices used by many triangles (likely center)
-    const centerCandidates = Array.from(vertexCounts.entries())
-      .filter(([key, count]) => count >= faces.length * 0.8) // Used by 80%+ of faces
-      .map(([key]) => key);
-
-    return centerCandidates.length > 0;
+    return false;
   }
 
   /**
