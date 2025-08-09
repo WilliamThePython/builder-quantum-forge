@@ -116,8 +116,8 @@ export class VertexRemovalStitcher {
         collapsePosition,
       );
 
-      // STEP 7: Validate and fix coplanarity after decimation using unified merger
-      const validatedFaces = CoplanarMerger.mergeCoplanarFaces(
+      // STEP 7: Validate and fix coplanarity after decimation using edge-adjacent merger
+      const validatedFaces = EdgeAdjacentMerger.groupEdgeAdjacentTriangles(
         updatedPolygonFaces.map((face: any) => ({
           type: face.type,
           originalVertices: face.originalVertices.map((v: any) =>
