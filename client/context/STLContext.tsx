@@ -1826,11 +1826,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         details: "Setting up viewer",
       });
 
-      // Prepare geometry for viewing with unified pipeline
-      const preparedGeometry = prepareGeometryForViewing(
-        bufferGeometry,
-        "initial_load",
-      );
+      // Skip cleanup for procedurally generated geometries - they're already clean
+      let preparedGeometry: THREE.BufferGeometry;
+      if ((bufferGeometry as any).isProcedurallyGenerated) {
+        console.log("✅ Skipping cleanup for procedurally generated geometry");
+        preparedGeometry = bufferGeometry;
+        // Just ensure proper normals for display
+        computeFlatNormals(preparedGeometry);
+      } else {
+        // Only apply full cleanup pipeline to loaded STL files
+        preparedGeometry = prepareGeometryForViewing(
+          bufferGeometry,
+          "initial_load",
+        );
+      }
 
       // Set up dual geometry storage
       setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
