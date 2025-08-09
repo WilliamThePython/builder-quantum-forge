@@ -509,14 +509,56 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       new THREE.Float32BufferAttribute(newPositions, 3),
     );
 
-    // Copy polygon metadata if it exists
-    if ((indexedGeom as any).polygonFaces) {
-      (nonIndexedGeometry as any).polygonFaces = newPolygonFaces;
+    // CRITICAL: Preserve polygon metadata for coloring and wireframe functionality
+    const originalPolygonFaces = (indexedGeom as any).polygonFaces;
+    if (originalPolygonFaces && Array.isArray(originalPolygonFaces)) {
+      // Map polygon faces to non-indexed structure
+      let triangleIndex = 0;
+      const mappedPolygonFaces: any[] = [];
+
+      for (const face of originalPolygonFaces) {
+        const triangleCount = face.triangleCount || Math.max(1, (face.originalVertices?.length || 3) - 2);
+
+        // Create face mapping for non-indexed geometry
+        mappedPolygonFaces.push({
+          type: face.type,
+          startVertex: triangleIndex * 3, // 3 vertices per triangle in non-indexed
+          endVertex: (triangleIndex + triangleCount) * 3 - 1,
+          triangleCount: triangleCount,
+          normal: face.normal,
+          originalVertices: face.originalVertices,
+        });
+
+        triangleIndex += triangleCount;
+      }
+
+      (nonIndexedGeometry as any).polygonFaces = mappedPolygonFaces;
+      console.log("✅ Mapped", mappedPolygonFaces.length, "polygon faces to non-indexed geometry");
+    } else {
+      // Fallback: create simple triangle-based face structure for coloring
+      const triangleCount = Math.floor(newPositions.length / 9); // 3 vertices * 3 coords per triangle
+      const fallbackFaces: any[] = [];
+
+      for (let i = 0; i < triangleCount; i++) {
+        fallbackFaces.push({
+          type: "triangle",
+          startVertex: i * 3,
+          endVertex: i * 3 + 2,
+          triangleCount: 1,
+          normal: new THREE.Vector3(0, 1, 0), // Default normal
+        });
+      }
+
+      (nonIndexedGeometry as any).polygonFaces = fallbackFaces;
+      console.log("⚡ Created fallback triangle faces for", triangleCount, "triangles");
     }
+
+    // Preserve other polygon metadata
     if ((indexedGeom as any).polygonType) {
-      (nonIndexedGeometry as any).polygonType = (
-        indexedGeom as any
-      ).polygonType;
+      (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
+    }
+    if ((indexedGeom as any).isPolygonPreserved) {
+      (nonIndexedGeometry as any).isPolygonPreserved = (indexedGeom as any).isPolygonPreserved;
     }
 
     // Prepare for viewing (flat normals, etc.)
