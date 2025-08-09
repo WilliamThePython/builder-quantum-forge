@@ -1371,11 +1371,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Debug: Log geometry state before dual setup
 
-      // Set up dual geometry storage (indexed for operations, non-indexed for viewing)
+      // Quick Win 4: Progressive loading - show basic geometry immediately
+      updateProgress(85, "Displaying", "Rendering basic geometry...");
+
+      // Set up initial geometry for immediate viewing (basic version)
       setDualGeometry(geometry);
       setFileName(file.name);
 
-      updateProgress(100, "Complete", "Model loaded successfully!");
+      // Progressive enhancement: defer final validation and optimizations
+      updateProgress(90, "Enhancing", "Applying final optimizations...");
+
+      // Now do final validation only once, after all major operations
+      geometry = validateAndFixGeometry(geometry, "final optimization pass");
+
+      // Update with enhanced geometry
+      setDualGeometry(geometry);
+
+      updateProgress(100, "Complete", "Model loaded and optimized successfully!");
 
       // Track STL upload analytics
       try {
