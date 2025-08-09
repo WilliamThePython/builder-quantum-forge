@@ -2380,6 +2380,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       loadModelFromFile,
       loadDefaultSTL,
+      loadSpecificModel,
+      availableModels: getAvailableModels().map(m => ({ name: m.name, description: m.description })),
       updateViewerSettings,
       exportSTL,
       exportOBJ,
