@@ -1406,8 +1406,14 @@ export class PolygonGeometryBuilder {
       new THREE.Float32BufferAttribute(normals, 3),
     );
 
-    // Store face information for export
-    (geometry as any).polygonFaces = faceData;
+    // Store face information in the correct format for the viewer
+    const properPolygonFaces = faceData.map(face => ({
+      type: face.type,
+      originalVertices: face.originalVertices,
+      normal: face.normal,
+      triangleIndices: [] // Will be filled by triangulation
+    }));
+    (geometry as any).polygonFaces = properPolygonFaces;
     (geometry as any).polygonType = polygonGeometry.type;
     // Mark as procedurally generated to indicate it's already clean
     (geometry as any).isProcedurallyGenerated = true;
