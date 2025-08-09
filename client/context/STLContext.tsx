@@ -900,6 +900,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       let geometry = await loadModelFile(file, updateProgress);
       console.log("✅ loadModelFile completed successfully");
 
+      // Validate geometry immediately after loading to catch any NaN values early
+      geometry = validateAndFixGeometry(geometry, "immediately after loading");
+
       // Define file type for later use
       const isSTL = file.name.toLowerCase().endsWith(".stl");
 
