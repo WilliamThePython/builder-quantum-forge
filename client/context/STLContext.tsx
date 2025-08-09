@@ -896,7 +896,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       console.log("✅ loadModelFile completed successfully");
 
       // DISABLED COMPLEX LOADING - delete this entire block later
-      if (false && false) { // Both paths disabled
+      if (true) { // Force skip old loading code
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
         );
