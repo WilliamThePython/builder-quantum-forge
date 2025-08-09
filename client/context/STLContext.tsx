@@ -2438,12 +2438,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // CRITICAL: Fix face orientation after edge decimation to prevent transparency
           ensureSolidObjectDisplay(result.geometry);
 
-          // CRITICAL: Perform edge-adjacent coplanar merging after edge decimation
+          // CRITICAL: Perform hybrid coplanar merging after edge decimation
           try {
-            const { EdgeAdjacentMerger } = await import(
-              "../lib/edgeAdjacentMerger"
+            const { HybridCoplanarMerger } = await import(
+              "../lib/hybridCoplanarMerger"
             );
-            const mergedFaces = EdgeAdjacentMerger.mergeCoplanarTriangles(
+            const mergedFaces = HybridCoplanarMerger.mergeCoplanarTriangles(
               result.geometry,
             );
 
