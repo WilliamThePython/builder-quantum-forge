@@ -1060,7 +1060,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             );
           }
         }
-      } else {
+      } else if (false) { // Disabled OBJ loading path
         const { OBJLoader } = await import(
           "three/examples/jsm/loaders/OBJLoader"
         );
