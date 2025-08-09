@@ -1437,6 +1437,76 @@ export class PolygonGeometryBuilder {
   }
 
   /**
+   * Detect if vertices form a star pattern
+   */
+  static isStarPattern(vertices: THREE.Vector3[]): boolean {
+    if (vertices.length < 6 || vertices.length % 2 !== 0) return false;
+
+    // Star pattern: alternating distances from center (tips and valleys)
+    const center = new THREE.Vector3();
+    for (const vertex of vertices) {
+      center.add(vertex);
+    }
+    center.divideScalar(vertices.length);
+
+    const distances = vertices.map(v => v.distanceTo(center));
+
+    // Check if distances alternate between two distinct values (tips and valleys)
+    const uniqueDistances = [...new Set(distances.map(d => Math.round(d * 1000) / 1000))];
+    if (uniqueDistances.length !== 2) return false;
+
+    // Verify alternating pattern
+    const [shortDist, longDist] = uniqueDistances.sort((a, b) => a - b);
+    const tolerance = (longDist - shortDist) * 0.1;
+
+    for (let i = 0; i < distances.length; i++) {
+      const expectedIsLong = i % 2 === 1; // Odd indices should be tips (longer distance)
+      const actualIsLong = distances[i] > (shortDist + longDist) / 2;
+
+      if (expectedIsLong !== actualIsLong) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Star-aware triangulation that preserves star visual pattern
+   * Connects tips to valleys without using center vertex
+   */
+  static starAwareTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+    const triangulated: THREE.Vector3[] = [];
+    const n = vertices.length;
+
+    if (n < 6) return this.earClippingTriangulation(vertices, normal);
+
+    // For star pattern: create triangles connecting each valley to its adjacent tips
+    // This preserves the star's visual structure without center vertices
+    for (let i = 0; i < n; i += 2) {
+      const valley = i;                    // Valley vertex (even index)
+      const tip1 = (i + 1) % n;           // Next tip
+      const tip2 = (i + 3) % n;           // Tip after next valley
+      const nextValley = (i + 2) % n;     // Next valley
+
+      // Triangle 1: valley -> tip1 -> next valley
+      triangulated.push(
+        vertices[valley],
+        vertices[tip1],
+        vertices[nextValley]
+      );
+
+      // Triangle 2: tip1 -> tip2 -> next valley
+      triangulated.push(
+        vertices[tip1],
+        vertices[tip2],
+        vertices[nextValley]
+      );
+    }
+
+    console.log(`⭐ Star triangulation: Generated ${triangulated.length / 3} triangles preserving star pattern`);
+    return triangulated;
+  }
+
+  /**
    * Ear clipping triangulation algorithm for complex polygons
    * No center vertices - pure perimeter triangulation
    */
