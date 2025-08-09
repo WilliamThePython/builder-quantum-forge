@@ -264,6 +264,8 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
 
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
+  console.log("🔧 Ensuring solid object display...");
+
   // Use flat normals to maintain crisp face shading instead of smooth blending
   computeFlatNormals(geometry);
 
@@ -271,58 +273,106 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   const positions = geometry.attributes.position.array;
   const normals = geometry.attributes.normal.array;
 
-  // Count how many normals point inward vs outward
-  let inwardCount = 0;
-  let outwardCount = 0;
+  if (!normals) {
+    console.warn("⚠️ No normals found, computing them...");
+    computeFlatNormals(geometry);
+    return;
+  }
+
+  // For complex geometries (like torus), use a more sophisticated approach
+  geometry.computeBoundingBox();
+  if (!geometry.boundingBox) {
+    console.warn("⚠️ Could not compute bounding box");
+    return;
+  }
 
   const center = new THREE.Vector3();
-  geometry.computeBoundingBox();
-  if (geometry.boundingBox) {
-    geometry.boundingBox.getCenter(center);
-  }
+  geometry.boundingBox.getCenter(center);
 
-  // Sample some vertices to determine overall normal orientation
-  const sampleCount = Math.min(300, positions.length / 3); // Sample every few vertices
+  // Count normals pointing inward vs outward using triangle centers (more accurate)
+  let inwardCount = 0;
+  let outwardCount = 0;
+  let validSamples = 0;
+
+  const indices = geometry.index?.array;
+  const triangleCount = indices ? indices.length / 3 : positions.length / 9;
+  const sampleCount = Math.min(500, triangleCount); // Sample more triangles
+
   for (let i = 0; i < sampleCount; i++) {
-    const vertexIndex =
-      Math.floor((i / sampleCount) * (positions.length / 3)) * 3;
+    let v1, v2, v3;
 
-    const vertexPos = new THREE.Vector3(
-      positions[vertexIndex],
-      positions[vertexIndex + 1],
-      positions[vertexIndex + 2],
-    );
+    if (indices) {
+      // Indexed geometry
+      const triIndex = Math.floor((i / sampleCount) * (indices.length / 3)) * 3;
+      const i1 = indices[triIndex] * 3;
+      const i2 = indices[triIndex + 1] * 3;
+      const i3 = indices[triIndex + 2] * 3;
 
-    const vertexNormal = new THREE.Vector3(
-      normals[vertexIndex],
-      normals[vertexIndex + 1],
-      normals[vertexIndex + 2],
-    );
-
-    // Vector from center to vertex
-    const centerToVertex = vertexPos.clone().sub(center).normalize();
-
-    // If normal and center-to-vertex point in same direction, normal is outward
-    if (centerToVertex.dot(vertexNormal) > 0) {
-      outwardCount++;
+      v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
+      v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
+      v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
     } else {
+      // Non-indexed geometry
+      const vertexIndex = Math.floor((i / sampleCount) * (positions.length / 9)) * 9;
+      v1 = new THREE.Vector3(positions[vertexIndex], positions[vertexIndex + 1], positions[vertexIndex + 2]);
+      v2 = new THREE.Vector3(positions[vertexIndex + 3], positions[vertexIndex + 4], positions[vertexIndex + 5]);
+      v3 = new THREE.Vector3(positions[vertexIndex + 6], positions[vertexIndex + 7], positions[vertexIndex + 8]);
+    }
+
+    // Calculate triangle center
+    const triangleCenter = new THREE.Vector3()
+      .add(v1)
+      .add(v2)
+      .add(v3)
+      .divideScalar(3);
+
+    // Calculate triangle normal
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+    const triangleNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+    // Skip degenerate triangles
+    if (triangleNormal.length() < 0.5) continue;
+
+    // Vector from geometry center to triangle center
+    const centerToTriangle = new THREE.Vector3().subVectors(triangleCenter, center);
+
+    // For complex shapes like torus, use distance-based weighting
+    const distance = centerToTriangle.length();
+    if (distance < 1e-6) continue; // Skip triangles at center
+
+    centerToTriangle.normalize();
+
+    // Check if normal points outward (away from center)
+    const dot = triangleNormal.dot(centerToTriangle);
+
+    if (dot > 0.1) { // Threshold to handle near-tangent faces
+      outwardCount++;
+    } else if (dot < -0.1) {
       inwardCount++;
     }
+    // Ignore nearly tangent faces (dot near 0)
+
+    validSamples++;
   }
 
-  // If more normals point inward, flip all faces
-  if (inwardCount > outwardCount) {
+  console.log(`🔍 Face orientation check: ${outwardCount} outward, ${inwardCount} inward (${validSamples} valid samples)`);
+
+  // Only flip if there's a clear majority of inward-facing triangles
+  const flipThreshold = 0.6; // 60% must be inward to trigger flip
+  if (validSamples > 10 && inwardCount > outwardCount * flipThreshold) {
+    console.log("🔄 Flipping face orientation...");
+
     // Flip indices to reverse winding order
-    const indices = geometry.index;
     if (indices) {
-      const indexArray = indices.array;
+      const indexArray = geometry.index!.array;
       for (let i = 0; i < indexArray.length; i += 3) {
         // Swap second and third vertices to flip winding
         const temp = indexArray[i + 1];
         indexArray[i + 1] = indexArray[i + 2];
         indexArray[i + 2] = temp;
       }
-      indices.needsUpdate = true;
+      geometry.index!.needsUpdate = true;
     } else {
       // Non-indexed geometry - swap position attributes
       const posArray = new Float32Array(positions);
@@ -340,8 +390,11 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
       );
     }
 
-    // Use flat normals to maintain crisp face shading
+    // Recompute normals after flipping
     computeFlatNormals(geometry);
+    console.log("✅ Face orientation corrected");
+  } else {
+    console.log("✅ Face orientation already correct");
   }
 
   // Ensure proper material-side settings will be respected
@@ -1344,7 +1397,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage.includes("allocation") ||
         errorMessage.includes("heap")
       ) {
-        errorMessage += "\n\n��� Memory issue detected - try:\n";
+        errorMessage += "\n\n💾 Memory issue detected - try:\n";
         errorMessage += "• Closing all other browser tabs\n";
         errorMessage += "• Restarting your browser\n";
         errorMessage += "• Using a computer with more RAM";
@@ -2198,8 +2251,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Fix face orientation to prevent transparency/black faces
         ensureSolidObjectDisplay(result.geometry);
 
-        // Ensure proper normals after all fixes
-        computeFlatNormals(result.geometry);
+        // Final validation to ensure no remaining issues
+        const finalValidation = validateAndFixGeometry(result.geometry, "final post-decimation check");
+        if (finalValidation !== result.geometry) {
+          result.geometry = finalValidation;
+          console.log("✅ Applied final geometry corrections");
+        }
 
         console.log("✅ Geometry fixing completed");
 
