@@ -1047,48 +1047,12 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      console.log("🎨 === COLORING PIPELINE DEBUG ===");
-      console.log("🎨 Geometry UUID:", geometry.uuid);
-      console.log("🎨 Vertex count:", geometry.attributes.position.count);
-      console.log("🎨 Has index:", !!geometry.index);
-      console.log(
-        "🎨 Index count:",
-        geometry.index ? geometry.index.count : "N/A",
-      );
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
 
-      console.log("🎨 Polygon faces available:", !!polygonFaces);
-      console.log(
-        "🎨 Polygon faces type:",
-        Array.isArray(polygonFaces) ? "array" : typeof polygonFaces,
-      );
-      console.log(
-        "🎨 Polygon faces count:",
-        polygonFaces ? polygonFaces.length : "N/A",
-      );
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log("🎨 First few polygon faces:", polygonFaces.slice(0, 3));
-      }
-
-      if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log(
-          `🎨 ✅ POLYGON-AWARE PATH: Coloring ${polygonFaces.length} polygon faces`,
-        );
-        console.log(`🎨 GEOMETRY TYPE DEBUG:`);
-        console.log(`   Is indexed: ${!!geometry.index}`);
-        console.log(`   Vertex count: ${geometry.attributes.position.count}`);
-        console.log(
-          `   Index count: ${geometry.index ? geometry.index.count : "N/A"}`,
-        );
-        console.log(
-          `   Triangle count: ${geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3}`,
-        );
-        console.log(
-          `   Colors array length will be: ${colors.length} (3 * ${geometry.attributes.position.count} vertices)`,
-        );
 
         let triangleOffset = 0;
 
@@ -1116,17 +1080,8 @@ function STLMesh() {
 
           triangleOffset += triangleCount;
         }
-        console.log(
-          `🎨 ✅ Applied POLYGON-AWARE coloring to ${triangleOffset} triangles`,
-        );
       } else {
         // Fallback to triangle-based coloring if no polygon face data
-        console.log(
-          "🎨 ❌ FALLBACK PATH: No polygon faces found, using triangle-based coloring",
-        );
-        console.log(
-          "🎨 ❌ This will break up polygon grouping and cause individual triangle colors!",
-        );
         const color = new THREE.Color();
         for (let i = 0; i < colors.length; i += 9) {
           color.setHSL(Math.random(), 0.7, 0.6);
@@ -1150,9 +1105,8 @@ function STLMesh() {
       geometry.attributes.color.needsUpdate = true;
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
-      console.log("🎨 Ensuring flat normals for crisp face shading...");
       computePolygonAwareFlatNormals(geometry, polygonFaces);
-      console.log("✅ Applied polygon-aware coloring with flat normals");
+      console.log(`✅ Applied ${polygonFaces ? 'polygon-aware' : 'triangle-based'} coloring to ${geometry.attributes.position.count / 3} triangles`);
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute("color");
