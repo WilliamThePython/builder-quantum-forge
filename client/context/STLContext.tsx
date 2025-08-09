@@ -1364,12 +1364,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Log detailed error information for debugging
       console.error("File loading error details:", {
-        error: err,
+        errorMessage: err instanceof Error ? err.message : String(err),
         fileName: file?.name || "unknown",
         fileSize: file?.size || 0,
         fileSizeMB: file ? (file.size / 1024 / 1024).toFixed(1) : "unknown",
         errorStack: err instanceof Error ? err.stack : "No stack trace",
       });
+      console.error("Full error object:", err);
 
       // Provide helpful error messages based on file size and error type
       if (file.size > 20 * 1024 * 1024) {
@@ -1390,7 +1391,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage += "\n\n⏱️ File loading timeout - try:\n";
         errorMessage += "• Refreshing the page and trying again\n";
         errorMessage += "• Using a faster internet connection\n";
-        errorMessage += "�� Reducing the file size";
+        errorMessage += "���� Reducing the file size";
       }
 
       if (
