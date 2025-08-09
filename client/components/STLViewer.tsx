@@ -1145,8 +1145,8 @@ function STLMesh() {
     const colors = geometry.attributes.color?.array as Float32Array;
     if (!colors) return;
 
-    // Reset all colors to original
-    colors.set(originalColors.current);
+    // Don't reset to original colors - preserve merged face colors
+    // colors.set(originalColors.current); // This was overriding merged face colors!
 
     // Highlight polygon face in bright red
     if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
