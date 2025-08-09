@@ -180,7 +180,6 @@ export class OBJConverter {
       polygonFaces.length > 0
     ) {
       objString += "\n# Enhanced polygon faces (preserved structure)\n";
-      console.log(`📐 Processing ${polygonFaces.length} polygon faces...`);
 
       let polygonFaceCount = 0;
       for (const face of polygonFaces) {
@@ -227,12 +226,9 @@ export class OBJConverter {
         }
       }
 
-      console.log(`✅ Processed ${polygonFaceCount} polygon faces`);
       faceCount += polygonFaceCount;
     }
 
-    console.log(`✅ ENHANCED OBJ CONVERSION COMPLETED`);
-    console.log(`   📊 Results: ${vertexCount} vertices, ${faceCount} faces`);
     console.log(
       `   📐 Polygon types: ${hasQuads ? "quads" : "no quads"}, ${hasPolygons ? "polygons" : "no polygons"}`,
     );
@@ -430,7 +426,6 @@ export class OBJConverter {
       console.log("��� Using OBJ file normals");
     } else {
       computeFlatNormals(geometry);
-      console.log("✅ Computed flat normals for crisp face shading");
     }
 
     geometry.computeBoundingBox();
@@ -444,7 +439,7 @@ export class OBJConverter {
 
       console.log(`✅ ENHANCED OBJ PARSING COMPLETED`);
       console.log(
-        `   📊 Results: ${vertexCount} vertices, ${faceCount} triangulated faces`,
+        `   �� Results: ${vertexCount} vertices, ${faceCount} triangulated faces`,
       );
     } else {
       console.log(
