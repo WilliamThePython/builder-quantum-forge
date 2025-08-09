@@ -921,9 +921,34 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Top and bottom faces
-    faces.push(this.createFace([...topVertices], 'polygon'));
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+    // Top and bottom faces - split into separate rectangles for each arm
+    // Horizontal arm (bottom part of cross)
+    const horizontalTop = [topVertices[0], topVertices[1], topVertices[2], topVertices[11]];
+    const horizontalBottom = [bottomVertices[0], bottomVertices[1], bottomVertices[2], bottomVertices[11]];
+
+    // Vertical arm (right side of cross)
+    const verticalRightTop = [topVertices[2], topVertices[3], topVertices[4], topVertices[5]];
+    const verticalRightBottom = [bottomVertices[2], bottomVertices[3], bottomVertices[4], bottomVertices[5]];
+
+    // Vertical arm (top of cross)
+    const verticalTopTop = [topVertices[5], topVertices[6], topVertices[7], topVertices[8]];
+    const verticalTopBottom = [bottomVertices[5], bottomVertices[6], bottomVertices[7], bottomVertices[8]];
+
+    // Vertical arm (left side of cross)
+    const verticalLeftTop = [topVertices[8], topVertices[9], topVertices[10], topVertices[11]];
+    const verticalLeftBottom = [bottomVertices[8], bottomVertices[9], bottomVertices[10], bottomVertices[11]];
+
+    // Add the four rectangular faces for top
+    faces.push(this.createFace(horizontalTop, 'quad'));
+    faces.push(this.createFace(verticalRightTop, 'quad'));
+    faces.push(this.createFace(verticalTopTop, 'quad'));
+    faces.push(this.createFace(verticalLeftTop, 'quad'));
+
+    // Add the four rectangular faces for bottom (reversed for correct orientation)
+    faces.push(this.createFace([...horizontalBottom].reverse(), 'quad'));
+    faces.push(this.createFace([...verticalRightBottom].reverse(), 'quad'));
+    faces.push(this.createFace([...verticalTopBottom].reverse(), 'quad'));
+    faces.push(this.createFace([...verticalLeftBottom].reverse(), 'quad'));
 
     // Side faces - only create faces for actual exterior edges
     // Cross shape has 12 vertices, but we need to skip the interior connections
