@@ -121,7 +121,7 @@ const defaultViewerSettings: ViewerSettings = {
   randomColors: false,
   wireframe: false,
   backgroundColor: "#0a0a0a",
-  triangulated: true, // Default to triangulated view
+  triangulated: false, // Default to coplanar merged faces view
 };
 
 const STLContext = createContext<STLContextType | undefined>(undefined);
@@ -429,11 +429,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Regenerate geometry when triangulated mode changes
   useEffect(() => {
     if (indexedGeometry) {
+      console.log('🔄 Triangulated mode changed to:', viewerSettings.triangulated);
       const nonIndexedGeometry = convertToNonIndexedForViewing(
         indexedGeometry,
         viewerSettings.triangulated
       );
       setGeometry(nonIndexedGeometry);
+      console.log('✅ Geometry updated for triangulated mode:', viewerSettings.triangulated);
     }
   }, [viewerSettings.triangulated, indexedGeometry]);
 
@@ -498,6 +500,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     if (polygonFaces && Array.isArray(polygonFaces) && !triangulated) {
       // Coplanar merged faces mode - preserve polygon grouping
+      console.log('🎨 Using coplanar merged faces mode with', polygonFaces.length, 'polygon faces');
       let triangleOffset = 0;
 
       // Process each polygon face to maintain grouping
@@ -542,6 +545,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
     } else {
       // Triangulated mode or fallback: Just duplicate vertices for each triangle
+      console.log('🔺 Using triangulated mode - creating separate triangles');
       for (let i = 0; i < indices.length; i += 3) {
         const a = indices[i];
         const b = indices[i + 1];
