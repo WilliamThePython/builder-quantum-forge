@@ -536,6 +536,21 @@ export default function STLWorkflowPanel({
                 />
               </div>
 
+              {/* Auto Spin */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RotateCw className="w-4 h-4 text-white/70" />
+                  <Label htmlFor="auto-spin" className="text-sm text-white/80">
+                    Auto Spin
+                  </Label>
+                </div>
+                <Switch
+                  id="auto-spin"
+                  checked={autoSpin}
+                  onCheckedChange={onAutoSpinChange}
+                />
+              </div>
+
               {/* Background Settings - Colored Circles */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -715,7 +730,7 @@ export default function STLWorkflowPanel({
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
                     disabled={isProcessing}
                   >
-                    ��� Apply Quadric Decimation
+                    🔧 Apply Quadric Decimation
                   </Button>
 
                   {/* Decimation Painter Toggle */}
