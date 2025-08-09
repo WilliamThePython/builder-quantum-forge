@@ -196,7 +196,7 @@ export default function Index() {
                     : "text-base md:text-lg mb-4 md:mb-6"
                 }`}
               >
-                Interactive 3D model viewing and manipulation tools
+                Creating creators who create creations
               </p>
               <div
                 className={`text-white/60 space-y-2 ${
