@@ -67,6 +67,11 @@ export default function TriangleStatsDisplay() {
             <span><span className="text-white/60">E:</span> {edgeCount}</span>
           </div>
 
+          <div className="flex gap-3 text-xs justify-center">
+            <span><span className="text-white/60">A:</span> {triangleStats.area.toFixed(1)} mm²</span>
+            <span><span className="text-white/60">P:</span> {triangleStats.perimeter.toFixed(1)} mm</span>
+          </div>
+
           <div className="flex flex-col gap-1 text-xs max-w-full">
             {visibleVertices.map((vertex, index) => (
               <div key={index} className="text-white/70 truncate">
