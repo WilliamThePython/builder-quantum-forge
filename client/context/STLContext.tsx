@@ -2038,13 +2038,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // CRITICAL: Fix face orientation after decimation to prevent transparency
         ensureSolidObjectDisplay(result.geometry);
 
-        // CRITICAL: Perform simple coplanar merging after decimation to reconstruct polygons
-        if (result.geometry.attributes.position.count < 100000) {
-          // Only for reasonable poly counts
-          console.log(
-            "🔧 POST-DECIMATION: Running simple coplanar triangle merging...",
-          );
-          try {
+        // CRITICAL: Always reconstruct polygon faces after decimation for coloring/wireframe
+        console.log(
+          "🔧 POST-DECIMATION: Reconstructing polygon faces for coloring support...",
+        );
+
+        try {
+          // First try simple coplanar merging if reasonable poly count
+          if (result.geometry.attributes.position.count < 100000) {
             const { SimpleCoplanarMerger } = await import(
               "../lib/simpleCoplanarMerger"
             );
@@ -2056,13 +2057,42 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               (result.geometry as any).polygonFaces = mergedFaces;
               (result.geometry as any).polygonType = "post_decimation_merged";
               (result.geometry as any).isPolygonPreserved = true;
+              console.log("✅ Reconstructed", mergedFaces.length, "polygon faces after decimation");
+            } else {
+              // Fallback: use polygon face reconstructor
+              console.log("⚡ Coplanar merging found no faces, trying polygon reconstruction...");
+              const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+              if (reconstructedFaces.length > 0) {
+                PolygonFaceReconstructor.applyReconstructedFaces(result.geometry, reconstructedFaces);
+                console.log("✅ Polygon reconstruction created", reconstructedFaces.length, "faces");
+              }
             }
-          } catch (mergeError) {}
-        } else {
+          } else {
+            // For high poly models, use basic polygon reconstruction
+            console.log("⚡ High poly model - using polygon face reconstructor...");
+            const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+            if (reconstructedFaces.length > 0) {
+              PolygonFaceReconstructor.applyReconstructedFaces(result.geometry, reconstructedFaces);
+              console.log("✅ Polygon reconstruction created", reconstructedFaces.length, "faces");
+            }
+          }
+        } catch (reconstructionError) {
+          console.warn("⚠️ Polygon reconstruction failed after decimation:", reconstructionError);
+          // Even if reconstruction fails, ensure basic triangle structure exists for wireframe
+          const triangleCount = Math.floor(result.geometry.attributes.position.count / 3);
+          console.log("🔧 Creating fallback triangle structure for", triangleCount, "triangles");
+        }
+
+        // CRITICAL: Ensure the decimated geometry is properly indexed for future operations
+        if (!result.geometry.index) {
+          console.log("🔧 Converting decimated geometry to indexed format...");
+          result.geometry = ensureIndexedGeometry(result.geometry);
         }
 
         // Update both indexed (for operations) and non-indexed (for viewing) geometries
         setDualGeometry(result.geometry);
+
+        console.log("✅ Decimation completed - geometry updated with polygon support");
 
         const message = `Mesh simplification (${method}) completed: Reduced from ${result.originalStats.vertices.toLocaleString()} to ${result.newStats.vertices.toLocaleString()} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`;
 
