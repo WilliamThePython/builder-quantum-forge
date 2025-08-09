@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { MeshStats } from "./meshSimplifier";
-import { CoplanarMerger, PolygonFace } from "./coplanarMerger";
+import { EdgeAdjacentMerger } from "./edgeAdjacentMerger";
+import { PolygonFace } from "./coplanarMerger";
 import { computeFlatNormals } from "./flatNormals";
 
 /**
