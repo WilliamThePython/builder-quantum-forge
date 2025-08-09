@@ -123,6 +123,7 @@ const defaultViewerSettings: ViewerSettings = {
   randomColors: false,
   wireframe: false,
   backgroundColor: "#0a0a0a",
+  autoSpin: false,
 };
 
 const STLContext = createContext<STLContextType | undefined>(undefined);
