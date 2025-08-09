@@ -877,11 +877,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     try {
       // Use simplified loading approach
-      const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
+      console.log("🔄 Starting file load process...");
+
+      let loadModelFile;
+      try {
+        const importResult = await import("../lib/simplifiedSTLLoader");
+        loadModelFile = importResult.loadModelFile;
+        console.log("✅ Successfully imported simplified loader");
+      } catch (importError) {
+        console.error("❌ Failed to import simplified loader:", importError);
+        throw new Error(`Failed to load file processing module: ${importError instanceof Error ? importError.message : 'Import error'}`);
+      }
 
       setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
 
+      console.log("🔄 Calling loadModelFile function...");
       const geometry = await loadModelFile(file, updateProgress);
+      console.log("✅ loadModelFile completed successfully");
 
       // DISABLED COMPLEX LOADING - delete this entire block later
       if (false) {
