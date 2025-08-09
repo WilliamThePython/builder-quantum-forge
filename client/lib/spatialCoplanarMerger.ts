@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { PolygonFace } from "./edgeAdjacentMerger";
 
 /**
  * Spatial Coplanar Merger
