@@ -33,6 +33,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { STLToolMode } from "../lib/stlManipulator";
 import { useSTL } from "../context/STLContext";
 import {
@@ -591,7 +597,7 @@ export default function STLWorkflowPanel({
                   >
                     <RefreshCw className="w-3 h-3 mr-2" />
                     {hasBackup
-                      ? "🔄 Undo Simplification"
+                      ? "��� Undo Simplification"
                       : "⚪ No Backup Available"}
                   </Button>
                 </div>
