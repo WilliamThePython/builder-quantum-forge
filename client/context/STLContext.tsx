@@ -1271,11 +1271,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       );
       geometry = preparedGeometry;
 
-      // Final validation before polygon reconstruction
-      geometry = validateAndFixGeometry(
-        geometry,
-        "before polygon reconstruction",
-      );
+      // Quick Win 3: Skip validation before polygon reconstruction (will validate after major operations)
 
       updateProgress(75, "Reconstructing", "Analyzing polygon faces...");
 
@@ -1423,7 +1419,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (file.size > 20 * 1024 * 1024) {
         errorMessage += `\n\n💡 Large file suggestions (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
         errorMessage += "• Close other browser tabs to free memory\n";
-        errorMessage += "��� Try refreshing the page and loading again\n";
+        errorMessage += "• Try refreshing the page and loading again\n";
         errorMessage += "• Use a desktop computer for better performance\n";
         errorMessage += "• Consider reducing the file size before uploading";
       } else if (file.size > 1 * 1024 * 1024) {
