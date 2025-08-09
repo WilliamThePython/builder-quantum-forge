@@ -90,26 +90,48 @@ export class FastSTLLoader {
 
     // Extract geometry from the first mesh found
     let geometry: THREE.BufferGeometry | null = null;
-    
+    const geometries: THREE.BufferGeometry[] = [];
+
+    console.log("🔍 Searching for geometry in OBJ object...");
+
     object.traverse((child) => {
+      console.log("🔍 Found child:", child.type, child.constructor.name);
+
       if (child instanceof THREE.Mesh && child.geometry) {
-        if (!geometry) {
-          geometry = child.geometry.clone();
-        } else {
-          // Merge multiple geometries if found
-          const tempGeometry = child.geometry.clone();
-          if (child.matrix) {
-            tempGeometry.applyMatrix4(child.matrix);
-          }
-          const mergedGeometry = this.mergeGeometries([geometry, tempGeometry]);
-          geometry.dispose();
-          geometry = mergedGeometry;
-        }
+        console.log("✅ Found mesh with geometry:", {
+          vertices: child.geometry.attributes.position?.count || 0,
+          hasNormals: !!child.geometry.attributes.normal,
+          geometryType: child.geometry.constructor.name
+        });
+
+        geometries.push(child.geometry.clone());
       }
     });
 
-    if (!geometry) {
-      throw new Error("No geometry found in OBJ file");
+    console.log(`🔍 Found ${geometries.length} geometries in OBJ file`);
+
+    if (geometries.length === 0) {
+      // Try to get geometry directly from the object
+      if (object.children && object.children.length > 0) {
+        for (const child of object.children) {
+          if ((child as any).geometry) {
+            console.log("✅ Found geometry in child object");
+            geometries.push((child as any).geometry.clone());
+          }
+        }
+      }
+    }
+
+    if (geometries.length === 0) {
+      throw new Error("No geometry found in OBJ file. The file may be empty or contain no mesh data.");
+    }
+
+    // Use first geometry or merge multiple
+    if (geometries.length === 1) {
+      geometry = geometries[0];
+    } else {
+      console.log(`🔧 Merging ${geometries.length} geometries...`);
+      geometry = this.mergeGeometries(geometries);
     }
 
     progressCallback?.(80, "Preparing", "Finalizing geometry...");
