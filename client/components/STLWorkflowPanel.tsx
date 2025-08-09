@@ -141,6 +141,11 @@ export default function STLWorkflowPanel({
     setHighlightedTriangle,
   } = useSTL();
 
+  // Clear face highlight when interacting with menu
+  const clearHighlightOnMenuInteraction = () => {
+    setHighlightedTriangle(null);
+  };
+
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
   const [reductionMethod, setReductionMethod] = useState<
