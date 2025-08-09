@@ -18,16 +18,20 @@ export class FastSTLLoader {
     const isSTL = fileName.endsWith(".stl");
     const isOBJ = fileName.endsWith(".obj");
 
+    console.log(`🔍 Loading file: ${fileName}, detected as: ${isSTL ? 'STL' : isOBJ ? 'OBJ' : 'Unknown'}`);
+
     if (!isSTL && !isOBJ) {
-      throw new Error(`Unsupported file format: ${fileName}`);
+      throw new Error(`Unsupported file format: ${fileName}. Only STL and OBJ files are supported.`);
     }
 
     progressCallback?.(10, "Loading", "Reading file...");
 
     try {
       if (isSTL) {
+        console.log("📄 Processing as STL file");
         return await this.loadSTLFast(file, progressCallback);
       } else {
+        console.log("📄 Processing as OBJ file");
         return await this.loadOBJFast(file, progressCallback);
       }
     } catch (error) {
