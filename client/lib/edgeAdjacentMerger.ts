@@ -106,11 +106,14 @@ export class EdgeAdjacentMerger {
    */
   private static buildEdgeAdjacencyGraph(faces: PolygonFace[]): Map<number, Set<number>> {
     const graph = new Map<number, Set<number>>();
-    
+
     // Initialize empty adjacency lists
     for (let i = 0; i < faces.length; i++) {
       graph.set(i, new Set());
     }
+
+    console.log(`   Building edge adjacency graph for ${faces.length} faces...`);
+    let sharedEdgeCount = 0;
 
     // Check each pair of faces for shared edges
     for (let i = 0; i < faces.length; i++) {
@@ -118,9 +121,23 @@ export class EdgeAdjacentMerger {
         if (this.facesShareCompleteEdge(faces[i], faces[j])) {
           graph.get(i)!.add(j);
           graph.get(j)!.add(i);
+          sharedEdgeCount++;
+
+          if (sharedEdgeCount <= 5) { // Debug first few
+            console.log(`   Found shared edge: face ${i} ↔ face ${j}`);
+          }
         }
       }
     }
+
+    console.log(`   Found ${sharedEdgeCount} shared edges between faces`);
+
+    // Debug graph connectivity
+    let connectedFaces = 0;
+    for (const [faceId, neighbors] of graph) {
+      if (neighbors.size > 0) connectedFaces++;
+    }
+    console.log(`   ${connectedFaces} faces have edge connections`);
 
     return graph;
   }
