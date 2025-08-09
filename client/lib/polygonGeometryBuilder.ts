@@ -1278,12 +1278,43 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Top and bottom faces - create two large polygon faces for the entire cross shape
-    // Top face - entire cross polygon
-    faces.push(this.createFace([...topVertices], "polygon"));
+    // Top and bottom faces - use center triangulation to avoid unwanted connecting triangles
+    // Create center points for triangulation
+    const topCenter = new THREE.Vector3(0, h, 0);
+    const bottomCenter = new THREE.Vector3(0, -h, 0);
+    vertices.push(topCenter, bottomCenter);
+    const topCenterIndex = vertices.length - 2;
+    const bottomCenterIndex = vertices.length - 1;
 
-    // Bottom face - entire cross polygon (reversed for correct orientation)
-    faces.push(this.createFace([...bottomVertices].reverse(), "polygon"));
+    // Top face - create triangular faces from center to each edge
+    for (let i = 0; i < topVertices.length; i++) {
+      const next = (i + 1) % topVertices.length;
+      faces.push(
+        this.createFace(
+          [
+            vertices[topCenterIndex], // center
+            topVertices[i],
+            topVertices[next],
+          ],
+          "triangle",
+        ),
+      );
+    }
+
+    // Bottom face - create triangular faces from center to each edge (reversed)
+    for (let i = 0; i < bottomVertices.length; i++) {
+      const next = (i + 1) % bottomVertices.length;
+      faces.push(
+        this.createFace(
+          [
+            vertices[bottomCenterIndex], // bottom center
+            bottomVertices[next],
+            bottomVertices[i],
+          ],
+          "triangle",
+        ),
+      );
+    }
 
     // Side faces - only create faces for actual exterior edges
     // Cross shape has 12 vertices, but we need to skip the interior connections
