@@ -259,4 +259,53 @@ export class FastSTLLoader {
     if (sizeInMB < 20) return "10-20 seconds";
     return "20+ seconds";
   }
+
+  /**
+   * Load file in chunks to prevent memory issues with large files
+   */
+  private static async loadFileInChunks(
+    file: File,
+    progressCallback?: (progress: number, stage: string, details: string) => void,
+  ): Promise<ArrayBuffer> {
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const chunks: Uint8Array[] = [];
+
+    for (let offset = 0; offset < file.size; offset += chunkSize) {
+      const chunk = file.slice(offset, Math.min(offset + chunkSize, file.size));
+      const arrayBuffer = await chunk.arrayBuffer();
+      chunks.push(new Uint8Array(arrayBuffer));
+
+      const progress = 20 + (offset / file.size) * 30; // 20-50% for file loading
+      progressCallback?.(progress, "Reading", `Loading... ${Math.round(progress)}%`);
+
+      // Yield to browser to prevent blocking
+      await new Promise((resolve) => setTimeout(resolve, 1));
+    }
+
+    // Combine chunks
+    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return result.buffer;
+  }
+
+  /**
+   * Load OBJ file in chunks and convert to text
+   */
+  private static async loadOBJFileInChunks(
+    file: File,
+    progressCallback?: (progress: number, stage: string, details: string) => void,
+  ): Promise<string> {
+    const arrayBuffer = await this.loadFileInChunks(file, progressCallback);
+
+    // Convert ArrayBuffer to string
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(arrayBuffer);
+  }
 }
