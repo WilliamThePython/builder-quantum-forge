@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { EdgeAdjacentMerger } from "./edgeAdjacentMerger";
-import { PolygonFace } from "./coplanarMerger";
+import { EdgeAdjacentMerger, PolygonFace } from "./edgeAdjacentMerger";
 
 /**
  * PolygonFaceReconstructor analyzes triangulated geometries and attempts to
