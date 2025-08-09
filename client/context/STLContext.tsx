@@ -883,7 +883,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       const geometry = await loadModelFile(file, updateProgress);
 
-      // Skip the old complex loading path (now handled by simplified loader)
+      // DISABLED COMPLEX LOADING - delete this entire block later
       if (false) {
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
@@ -1422,7 +1422,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // For medium files (1-20MB), provide simpler suggestions
         errorMessage += `\n\n💡 For ${(file.size / 1024 / 1024).toFixed(1)}MB files, try:\n`;
         errorMessage += "• Refreshing the page and trying again\n";
-        errorMessage += "��� Checking the file is not corrupted\n";
+        errorMessage += "���� Checking the file is not corrupted\n";
         errorMessage += "• Using a different STL/OBJ file";
       }
 
