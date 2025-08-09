@@ -121,6 +121,7 @@ const defaultViewerSettings: ViewerSettings = {
   randomColors: false,
   wireframe: false,
   backgroundColor: "#0a0a0a",
+  triangulated: true, // Default to triangulated view
 };
 
 const STLContext = createContext<STLContextType | undefined>(undefined);
