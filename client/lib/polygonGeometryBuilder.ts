@@ -1481,6 +1481,7 @@ export class PolygonGeometryBuilder {
       triangulated.push(...vertexList);
     }
 
+    console.log(`✅ Ear clipping: Generated ${triangulated.length / 3} triangles from perimeter only`);
     return triangulated;
   }
 
