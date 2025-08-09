@@ -123,7 +123,21 @@ export class FastSTLLoader {
     }
 
     if (geometries.length === 0) {
-      throw new Error("No geometry found in OBJ file. The file may be empty or contain no mesh data.");
+      // Final fallback - check if object itself has geometry
+      if ((object as any).geometry) {
+        console.log("✅ Found geometry directly on object");
+        geometries.push((object as any).geometry.clone());
+      } else {
+        // Log the object structure for debugging
+        console.log("🔍 OBJ object structure:", {
+          type: object.type,
+          children: object.children.length,
+          childTypes: object.children.map(c => c.type),
+          hasGeometry: !!(object as any).geometry
+        });
+
+        throw new Error(`No geometry found in OBJ file. Found ${object.children.length} children but no mesh data. The file may be empty, corrupted, or contain only material/texture definitions.`);
+      }
     }
 
     // Use first geometry or merge multiple
