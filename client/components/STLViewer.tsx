@@ -888,6 +888,15 @@ function STLMesh() {
     duration: 3000, // 3 seconds to die down
   });
 
+  // Auto spin state
+  const autoSpinState = useRef({
+    rotationAxis: { x: 0.3, y: 1, z: 0.1 }, // Current rotation axis
+    targetAxis: { x: 0.3, y: 1, z: 0.1 }, // Target rotation axis
+    axisTransitionSpeed: 0.002, // How fast axis changes
+    rotationSpeed: 0.8, // Rotation speed in radians per second
+    lastTime: 0,
+  });
+
   // Helper method for triangle counting
   const getTriangleCountForPolygon = (face: any): number => {
     if (!face.originalVertices) {
