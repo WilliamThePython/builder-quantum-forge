@@ -1306,8 +1306,10 @@ function MobileWorkflowContent(props: any) {
     geometryStats,
     randomColors,
     wireframe,
+    autoSpin,
     onRandomColorsChange,
     onWireframeChange,
+    onAutoSpinChange,
   } = props;
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
