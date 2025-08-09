@@ -9,7 +9,7 @@ import { EdgeAdjacentMerger, PolygonFace } from "./edgeAdjacentMerger";
  */
 export class PolygonFaceReconstructor {
   /**
-   * Reconstruct polygon faces from a triangulated geometry using unified CoplanarMerger
+   * Reconstruct polygon faces from a triangulated geometry using EdgeAdjacentMerger
    */
   static reconstructPolygonFaces(geometry: THREE.BufferGeometry): any[] {
     if (!geometry || !geometry.attributes.position) {
