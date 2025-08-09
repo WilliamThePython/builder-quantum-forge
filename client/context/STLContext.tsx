@@ -870,6 +870,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
+    const uploadStartTime = Date.now();
     setIsLoading(true);
     setError(null);
     setErrors([]);
