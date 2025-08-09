@@ -887,10 +887,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.log("✅ Successfully imported simplified loader");
       } catch (importError) {
         console.error("❌ Failed to import simplified loader:", importError);
-        throw new Error(`Failed to load file processing module: ${importError instanceof Error ? importError.message : 'Import error'}`);
+        throw new Error(
+          `Failed to load file processing module: ${importError instanceof Error ? importError.message : "Import error"}`,
+        );
       }
 
-      setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
+      setOriginalFormat(
+        file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj",
+      );
 
       console.log("🔄 Calling loadModelFile function...");
       let geometry = await loadModelFile(file, updateProgress);
@@ -900,7 +904,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const isSTL = file.name.toLowerCase().endsWith(".stl");
 
       // DISABLED COMPLEX LOADING - delete this entire block later
-      if (false) { // Disabled - old loading code
+      if (false) {
+        // Disabled - old loading code
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
         );
@@ -1064,7 +1069,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             );
           }
         }
-      } else if (false) { // Disabled OBJ loading path
+      } else if (false) {
+        // Disabled OBJ loading path
         const { OBJLoader } = await import(
           "three/examples/jsm/loaders/OBJLoader"
         );
@@ -1210,7 +1216,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const maxDimension = Math.max(
         box.max.x - box.min.x,
         box.max.y - box.min.y,
-        box.max.z - box.min.z
+        box.max.z - box.min.z,
       );
 
       if (maxDimension === 0) {
@@ -1394,7 +1400,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage = err;
       } else if (err && typeof err === "object") {
         // Handle case where error might be an object with a message property
-        errorMessage = (err as any).message || JSON.stringify(err) || "Unknown error occurred";
+        errorMessage =
+          (err as any).message ||
+          JSON.stringify(err) ||
+          "Unknown error occurred";
       }
 
       // Log detailed error information for debugging

@@ -12,16 +12,24 @@ export class FastSTLLoader {
    */
   static async loadFile(
     file: File,
-    progressCallback?: (progress: number, stage: string, details: string) => void
+    progressCallback?: (
+      progress: number,
+      stage: string,
+      details: string,
+    ) => void,
   ): Promise<THREE.BufferGeometry> {
     const fileName = file.name.toLowerCase();
     const isSTL = fileName.endsWith(".stl");
     const isOBJ = fileName.endsWith(".obj");
 
-    console.log(`🔍 Loading file: ${fileName}, detected as: ${isSTL ? 'STL' : isOBJ ? 'OBJ' : 'Unknown'}`);
+    console.log(
+      `🔍 Loading file: ${fileName}, detected as: ${isSTL ? "STL" : isOBJ ? "OBJ" : "Unknown"}`,
+    );
 
     if (!isSTL && !isOBJ) {
-      throw new Error(`Unsupported file format: ${fileName}. Only STL and OBJ files are supported.`);
+      throw new Error(
+        `Unsupported file format: ${fileName}. Only STL and OBJ files are supported.`,
+      );
     }
 
     progressCallback?.(10, "Loading", "Reading file...");
@@ -36,7 +44,9 @@ export class FastSTLLoader {
       }
     } catch (error) {
       console.error("FastSTLLoader error:", error);
-      throw new Error(`Failed to load ${fileName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to load ${fileName}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -45,13 +55,17 @@ export class FastSTLLoader {
    */
   private static async loadSTLFast(
     file: File,
-    progressCallback?: (progress: number, stage: string, details: string) => void
+    progressCallback?: (
+      progress: number,
+      stage: string,
+      details: string,
+    ) => void,
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading STL data...");
 
     // Simple file read - no chunking or complex optimization
     const arrayBuffer = await file.arrayBuffer();
-    
+
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
     // Basic STL parsing
@@ -79,13 +93,17 @@ export class FastSTLLoader {
    */
   private static async loadOBJFast(
     file: File,
-    progressCallback?: (progress: number, stage: string, details: string) => void
+    progressCallback?: (
+      progress: number,
+      stage: string,
+      details: string,
+    ) => void,
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading OBJ data...");
 
     // Read as text for OBJ
     const text = await file.text();
-    
+
     progressCallback?.(50, "Parsing", "Processing OBJ geometry...");
 
     // Basic OBJ parsing
@@ -105,7 +123,7 @@ export class FastSTLLoader {
         console.log("✅ Found mesh with geometry:", {
           vertices: child.geometry.attributes.position?.count || 0,
           hasNormals: !!child.geometry.attributes.normal,
-          geometryType: child.geometry.constructor.name
+          geometryType: child.geometry.constructor.name,
         });
 
         geometries.push(child.geometry.clone());
@@ -136,11 +154,13 @@ export class FastSTLLoader {
         console.log("🔍 OBJ object structure:", {
           type: object.type,
           children: object.children.length,
-          childTypes: object.children.map(c => c.type),
-          hasGeometry: !!(object as any).geometry
+          childTypes: object.children.map((c) => c.type),
+          hasGeometry: !!(object as any).geometry,
         });
 
-        throw new Error(`No geometry found in OBJ file. Found ${object.children.length} children but no mesh data. The file may be empty, corrupted, or contain only material/texture definitions.`);
+        throw new Error(
+          `No geometry found in OBJ file. Found ${object.children.length} children but no mesh data. The file may be empty, corrupted, or contain only material/texture definitions.`,
+        );
       }
     }
 
@@ -170,35 +190,43 @@ export class FastSTLLoader {
   /**
    * Simple geometry merger - no optimization
    */
-  private static mergeGeometries(geometries: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  private static mergeGeometries(
+    geometries: THREE.BufferGeometry[],
+  ): THREE.BufferGeometry {
     let totalVertices = 0;
-    
+
     for (const geo of geometries) {
       totalVertices += geo.attributes.position.count;
     }
 
     const mergedPositions = new Float32Array(totalVertices * 3);
     const mergedNormals = new Float32Array(totalVertices * 3);
-    
+
     let offset = 0;
-    
+
     for (const geo of geometries) {
       const positions = geo.attributes.position.array as Float32Array;
       const normals = geo.attributes.normal?.array as Float32Array;
-      
+
       mergedPositions.set(positions, offset * 3);
       if (normals) {
         mergedNormals.set(normals, offset * 3);
       }
-      
+
       offset += geo.attributes.position.count;
     }
 
     const merged = new THREE.BufferGeometry();
-    merged.setAttribute('position', new THREE.BufferAttribute(mergedPositions, 3));
-    
-    if (mergedNormals.some(n => n !== 0)) {
-      merged.setAttribute('normal', new THREE.BufferAttribute(mergedNormals, 3));
+    merged.setAttribute(
+      "position",
+      new THREE.BufferAttribute(mergedPositions, 3),
+    );
+
+    if (mergedNormals.some((n) => n !== 0)) {
+      merged.setAttribute(
+        "normal",
+        new THREE.BufferAttribute(mergedNormals, 3),
+      );
     }
 
     return merged;
@@ -209,7 +237,7 @@ export class FastSTLLoader {
    */
   static canLoadQuickly(file: File): boolean {
     const sizeInMB = file.size / (1024 * 1024);
-    
+
     // Files under 5MB should load very quickly
     // Files under 15MB should load reasonably fast
     return sizeInMB < 15;
@@ -220,7 +248,7 @@ export class FastSTLLoader {
    */
   static getEstimatedLoadTime(file: File): string {
     const sizeInMB = file.size / (1024 * 1024);
-    
+
     if (sizeInMB < 1) return "< 1 second";
     if (sizeInMB < 5) return "< 5 seconds";
     if (sizeInMB < 10) return "5-10 seconds";
