@@ -651,10 +651,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     useState<ProcessedModel | null>(null);
   const [hasBackup, setHasBackup] = useState(false);
 
-  // Initialize the provider after mount
-  useEffect(() => {
-    setIsInitialized(true);
-  }, []);
+  // Provider is initialized immediately
 
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
