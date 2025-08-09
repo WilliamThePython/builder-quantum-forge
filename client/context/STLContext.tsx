@@ -137,16 +137,16 @@ export const useSTL = () => {
       new Error().stack,
     );
     console.error(
-      "STL Context Error: Component tried to use STL context outside provider"
+      "STL Context Error: Component tried to use STL context outside provider",
     );
     console.error(
-      "This usually happens during hot reload or component tree changes"
+      "This usually happens during hot reload or component tree changes",
     );
 
     // During development, provide a more helpful error
     if (import.meta.env.DEV) {
       console.error(
-        "🔧 Dev tip: This error often resolves after a page refresh during development"
+        "🔧 Dev tip: This error often resolves after a page refresh during development",
       );
 
       // In development, trigger a page reload to recover from hot reload issues

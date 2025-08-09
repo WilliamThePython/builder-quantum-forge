@@ -85,7 +85,6 @@ export class EdgeAdjacentMerger {
    * Group coplanar triangles that share complete edges
    */
   static groupEdgeAdjacentTriangles(faces: PolygonFace[]): PolygonFace[] {
-
     // Debug first few faces to understand the geometry
     for (let i = 0; i < Math.min(5, faces.length); i++) {
       const face = faces[i];
@@ -139,11 +138,9 @@ export class EdgeAdjacentMerger {
           graph.get(i)!.add(j);
           graph.get(j)!.add(i);
           sharedEdgeCount++;
-
         }
       }
     }
-
 
     // Debug graph connectivity
     let connectedFaces = 0;

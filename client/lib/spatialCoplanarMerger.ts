@@ -17,7 +17,6 @@ export class SpatialCoplanarMerger {
   static groupSpatiallyContiguousTriangles(
     faces: PolygonFace[],
   ): PolygonFace[] {
-
     // Group faces by plane (normal + distance)
     const planeGroups = this.groupFacesByPlane(faces);
 

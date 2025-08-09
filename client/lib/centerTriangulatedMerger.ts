@@ -14,7 +14,6 @@ export class CenterTriangulatedMerger {
    * Merge center-triangulated faces - only perimeter triangles on same plane
    */
   static mergeCenterTriangulatedFaces(faces: PolygonFace[]): PolygonFace[] {
-
     // Group faces by plane normal
     const planeGroups = this.groupFacesByPlane(faces);
     const mergedFaces: PolygonFace[] = [];
@@ -51,7 +50,6 @@ export class CenterTriangulatedMerger {
     faces: PolygonFace[],
   ): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
-
 
     for (let i = 0; i < faces.length; i++) {
       const face = faces[i];
