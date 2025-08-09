@@ -950,43 +950,25 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // For shapes with center voids (gears), use center triangulation to avoid unwanted spanning
-    // Create center vertices for star pattern
-    const topCenter = new THREE.Vector3(0, h, 0);
-    const bottomCenter = new THREE.Vector3(0, -h, 0);
-    vertices.push(topCenter, bottomCenter);
-    const topCenterIndex = vertices.length - 2;
-    const bottomCenterIndex = vertices.length - 1;
+    // NO center vertices - create single polygon faces that will be ear-clipped
+    // This eliminates the unwanted center point visible in wireframe
 
-    // Top face - create triangular faces from center to each edge
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[topCenterIndex], // center
-            topVertices[i],
-            topVertices[next],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Top gear face - single polygon that will be ear-clipped during triangulation
+    faces.push(
+      this.createFace(
+        topVertices, // All perimeter vertices in order
+        "polygon",
+      ),
+    );
 
-    // Bottom face - create triangular faces from center to each edge (reversed)
-    for (let i = 0; i < bottomVertices.length; i++) {
-      const next = (i + 1) % bottomVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[bottomCenterIndex], // bottom center
-            bottomVertices[next],
-            bottomVertices[i],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Bottom gear face - single polygon (reversed for correct winding)
+    const reversedBottomVertices = [...bottomVertices].reverse();
+    faces.push(
+      this.createFace(
+        reversedBottomVertices, // Reversed for proper normal orientation
+        "polygon",
+      ),
+    );
 
     // Create side faces - only for actual gear profile edges
     // Each tooth has 4 vertices: valley1, tip1, tip2, valley2
