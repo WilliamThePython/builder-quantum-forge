@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
 /**
- * Unified utility for merging coplanar triangles and polygons
- * Provides consistent methodology across all parts of the application
+ * Legacy coplanar merger - DEPRECATED
+ * Use EdgeAdjacentMerger or SpatialCoplanarMerger instead for better results
+ * This merger can create unwanted connections across voids/gaps
  */
 export class CoplanarMerger {
   // Configuration constants - more aggressive for symmetry preservation
