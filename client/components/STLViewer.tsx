@@ -1281,7 +1281,9 @@ function STLMesh() {
         );
         setHighlightedTriangle(faceIndex);
       } else {
-        setHighlightedTriangle(null);
+        // Don't clear highlighted triangle immediately - let it persist
+        // This allows users to interact with the info bar (hover for coordinate expansion)
+        // The triangle will be cleared when a new face is hovered or other interactions occur
       }
     };
 
