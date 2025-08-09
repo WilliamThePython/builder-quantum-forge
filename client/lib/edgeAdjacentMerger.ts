@@ -24,9 +24,9 @@ export interface PolygonFace {
  * This is now the ONLY coplanar merging approach in the codebase
  */
 export class EdgeAdjacentMerger {
-  private static readonly DISTANCE_TOLERANCE = 0.001;
-  private static readonly NORMAL_TOLERANCE = 0.999; // Very strict - cos of ~2.5 degrees
-  private static readonly EDGE_TOLERANCE = 0.001;
+  private static readonly DISTANCE_TOLERANCE = 0.01; // Slightly more permissive for procedural shapes
+  private static readonly NORMAL_TOLERANCE = 0.995; // Still strict but allow tiny variations
+  private static readonly EDGE_TOLERANCE = 0.01; // More permissive for edge matching
 
   /**
    * Merge coplanar triangles in a BufferGeometry (main interface)
