@@ -34,7 +34,7 @@ export class HybridCoplanarMerger {
     );
 
     console.log(
-      `�� Hybrid merging complete: ${faces.length} → ${finalFaces.length} faces`,
+      `✅ Hybrid merging complete: ${faces.length} → ${finalFaces.length} faces`,
     );
     return finalFaces;
   }
@@ -60,7 +60,6 @@ export class HybridCoplanarMerger {
 
     // Stage 1: Extract faces from geometry
     const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
-    console.log(`   Stage 1: Extracted ${faces.length} faces from geometry`);
 
     // Stage 2: Edge-adjacent merging ONLY (strict edge sharing requirement)
     const edgeMergedFaces =
