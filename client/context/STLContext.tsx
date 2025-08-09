@@ -2242,12 +2242,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         );
 
         try {
-          // First try simple coplanar merging if reasonable poly count
+          // First try edge-adjacent coplanar merging if reasonable poly count
           if (result.geometry.attributes.position.count < 100000) {
-            const { SimpleCoplanarMerger } = await import(
-              "../lib/simpleCoplanarMerger"
+            const { EdgeAdjacentMerger } = await import(
+              "../lib/edgeAdjacentMerger"
             );
-            const mergedFaces = SimpleCoplanarMerger.mergeCoplanarTriangles(
+            const mergedFaces = EdgeAdjacentMerger.mergeCoplanarTriangles(
               result.geometry,
             );
 
