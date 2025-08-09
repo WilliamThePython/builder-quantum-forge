@@ -870,23 +870,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
-    console.log("🚀 loadModelFromFile called with:", {
-      fileName: file.name,
-      fileSize: file.size,
-      fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
-      fileType: file.type,
-    });
-
     setIsLoading(true);
     setError(null);
+    setErrors([]);
     updateProgress(0, "Starting", "Initializing upload...");
 
     try {
-      await updateProgress(
-        5,
-        "Validating",
-        `Checking ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)...`,
-      );
 
       // Enhanced file validation for both STL and OBJ
       const fileName = file.name.toLowerCase();
