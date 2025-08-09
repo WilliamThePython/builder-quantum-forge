@@ -1485,7 +1485,7 @@ export class PolygonGeometryBuilder {
 
   /**
    * Star-aware triangulation that creates proper star rays
-   * Each star tip gets its own triangular ray connecting to adjacent valleys
+   * Handles both normal and reversed vertex order automatically
    */
   static starAwareTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
     const triangulated: THREE.Vector3[] = [];
@@ -1493,40 +1493,76 @@ export class PolygonGeometryBuilder {
 
     if (n < 6) return this.earClippingTriangulation(vertices, normal);
 
-    // Simple star ray approach: each tip forms a triangle with its two adjacent valleys
-    // This creates clean star rays without complex inner connections
-    for (let i = 1; i < n; i += 2) { // i = tip indices (odd numbers)
-      const tip = i;
-      const prevValley = (i - 1 + n) % n;  // Previous valley
-      const nextValley = (i + 1) % n;      // Next valley
+    // Determine which vertices are tips by checking distances from center
+    const center = new THREE.Vector3();
+    for (const vertex of vertices) {
+      center.add(vertex);
+    }
+    center.divideScalar(vertices.length);
 
-      // Create one triangle per star ray: valley -> tip -> valley
-      triangulated.push(
-        vertices[prevValley],
-        vertices[tip],
-        vertices[nextValley]
-      );
+    const distances = vertices.map(v => v.distanceTo(center));
+    const [shortDist, longDist] = [...new Set(distances.map(d => Math.round(d * 1000) / 1000))].sort((a, b) => a - b);
+    const tipIndices: number[] = [];
+    const valleyIndices: number[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const isLong = distances[i] > (shortDist + longDist) / 2;
+      if (isLong) {
+        tipIndices.push(i);
+      } else {
+        valleyIndices.push(i);
+      }
     }
 
-    // Now connect the inner valleys to complete the star center
-    // Use a simple approach: connect every other valley to form the inner polygon
-    const numRays = n / 2;
-    if (numRays > 2) {
-      // Connect valleys in a fan from the first valley
-      for (let i = 0; i < numRays - 2; i++) {
-        const valley1 = 0;                    // First valley (index 0)
-        const valley2 = (i + 1) * 2;         // Next valley (index 2, 4, 6, ...)
-        const valley3 = (i + 2) * 2;         // Valley after that (index 4, 6, 8, ...)
+    console.log(`⭐ Detected ${tipIndices.length} tips at indices [${tipIndices.join(', ')}]`);
+    console.log(`⭐ Detected ${valleyIndices.length} valleys at indices [${valleyIndices.join(', ')}]`);
 
+    // Create triangles for each star ray: tip with its two adjacent valleys
+    for (const tipIndex of tipIndices) {
+      // Find the two closest valleys to this tip
+      let prevValley = -1;
+      let nextValley = -1;
+
+      // Find previous valley (going backwards in the array)
+      for (let offset = 1; offset < n; offset++) {
+        const checkIndex = (tipIndex - offset + n) % n;
+        if (valleyIndices.includes(checkIndex)) {
+          prevValley = checkIndex;
+          break;
+        }
+      }
+
+      // Find next valley (going forwards in the array)
+      for (let offset = 1; offset < n; offset++) {
+        const checkIndex = (tipIndex + offset) % n;
+        if (valleyIndices.includes(checkIndex)) {
+          nextValley = checkIndex;
+          break;
+        }
+      }
+
+      if (prevValley !== -1 && nextValley !== -1) {
+        // Create star ray triangle: valley -> tip -> valley
         triangulated.push(
-          vertices[valley1],
-          vertices[valley2],
-          vertices[valley3]
+          vertices[prevValley],
+          vertices[tipIndex],
+          vertices[nextValley]
         );
       }
     }
 
-    console.log(`⭐ Star triangulation: Generated ${triangulated.length / 3} triangles (${numRays} rays + inner triangles)`);
+    // Connect inner valleys to complete the star center using fan triangulation
+    if (valleyIndices.length > 2) {
+      for (let i = 1; i < valleyIndices.length - 1; i++) {
+        triangulated.push(
+          vertices[valleyIndices[0]],
+          vertices[valleyIndices[i]],
+          vertices[valleyIndices[i + 1]]
+        );
+      }
+    }
+
+    console.log(`⭐ Star triangulation: Generated ${triangulated.length / 3} triangles (${tipIndices.length} rays + inner triangles)`);
     return triangulated;
   }
 
