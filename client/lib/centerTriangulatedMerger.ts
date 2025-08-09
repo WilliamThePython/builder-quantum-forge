@@ -56,11 +56,11 @@ export class CenterTriangulatedMerger {
       const center = this.getFaceCenter(face.originalVertices);
       const distance = center.dot(normal);
 
-      // Create discrete plane key with looser rounding
-      const nx = Math.round(normal.x * 100) / 100;
-      const ny = Math.round(normal.y * 100) / 100;
-      const nz = Math.round(normal.z * 100) / 100;
-      const d = Math.round(distance * 100) / 100;
+      // Create discrete plane key with very loose rounding for procedural shapes
+      const nx = Math.round(normal.x * 10) / 10;
+      const ny = Math.round(normal.y * 10) / 10;
+      const nz = Math.round(normal.z * 10) / 10;
+      const d = Math.round(distance * 10) / 10;
       const key = `${nx},${ny},${nz},${d}`;
 
       if (!groups.has(key)) {
