@@ -670,40 +670,18 @@ export class PolygonGeometryBuilder {
     vertices.push(...outerVertices);
 
     // Create faces for the L-bracket
-    // Split the L into two separate rectangular arms to avoid connecting faces across the void
+    // Create proper L-shaped top and bottom faces
 
-    // Bottom face - create two separate rectangles for horizontal and vertical arms
-    // Horizontal arm rectangle (bottom strip)
+    // Bottom L-shaped face (vertices 0-5)
+    const bottomLFace = vertices.slice(0, 6);
     faces.push(
-      this.createFace(
-        [vertices[0], vertices[1], vertices[7], vertices[6]],
-        "quad",
-      ),
+      this.createFace(bottomLFace, "polygon")
     );
 
-    // Vertical arm rectangle (left strip)
+    // Top L-shaped face (vertices 6-11) - reversed for proper normal
+    const topLFace = vertices.slice(6, 12).reverse();
     faces.push(
-      this.createFace(
-        [vertices[4], vertices[5], vertices[11], vertices[10]],
-        "quad",
-      ),
-    );
-
-    // Top face - create two separate rectangles for horizontal and vertical arms
-    // Horizontal arm rectangle (bottom strip) - reversed for proper normal
-    faces.push(
-      this.createFace(
-        [vertices[6], vertices[7], vertices[1], vertices[0]],
-        "quad",
-      ),
-    );
-
-    // Vertical arm rectangle (left strip) - reversed for proper normal
-    faces.push(
-      this.createFace(
-        [vertices[10], vertices[11], vertices[5], vertices[4]],
-        "quad",
-      ),
+      this.createFace(topLFace, "polygon")
     );
 
     // Side faces - only for actual L-bracket exterior edges
