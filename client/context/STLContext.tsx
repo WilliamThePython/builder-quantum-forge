@@ -1826,13 +1826,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         details: "Setting up viewer",
       });
 
-      // Skip cleanup for procedurally generated geometries - they're already clean
+      // For procedurally generated geometries, do NOTHING - they're perfect as-is
       let preparedGeometry: THREE.BufferGeometry;
       if ((bufferGeometry as any).isProcedurallyGenerated) {
-        console.log("✅ Skipping cleanup for procedurally generated geometry");
+        console.log("✅ Using procedurally generated geometry as-is - no processing");
+        // Use the geometry exactly as generated - no modifications whatsoever
         preparedGeometry = bufferGeometry;
-        // Just ensure proper normals for display
-        computeFlatNormals(preparedGeometry);
+        // Don't even touch the normals - they're already computed correctly
       } else {
         // Only apply full cleanup pipeline to loaded STL files
         preparedGeometry = prepareGeometryForViewing(
