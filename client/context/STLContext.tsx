@@ -698,7 +698,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           const { HybridCoplanarMerger } = await import(
             "../lib/hybridCoplanarMerger"
           );
-          const mergedFaces = HybridCoplanarMerger.mergeCoplanarTriangles(
+          const mergedFaces = HybridCoplanarMerger.mergeProceduralTriangles(
             newIndexedGeometry,
           );
 
