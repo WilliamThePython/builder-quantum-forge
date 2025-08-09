@@ -7,9 +7,9 @@ import { PolygonFace } from "./edgeAdjacentMerger";
  * Perfect for gear faces, star faces, cross sections, etc.
  */
 export class FlatSurfaceMerger {
-  private static readonly NORMAL_TOLERANCE = 0.999; // Very strict coplanarity
-  private static readonly DISTANCE_TOLERANCE = 0.001;
-  private static readonly MIN_SURFACE_AREA = 0.1; // Minimum area to consider a "flat surface"
+  private static readonly NORMAL_TOLERANCE = 0.95; // More permissive for procedural shapes
+  private static readonly DISTANCE_TOLERANCE = 0.01; // Allow for small floating point errors
+  private static readonly MIN_SURFACE_AREA = 0.01; // Lower threshold for procedural shapes
 
   /**
    * Detect flat surfaces and merge all triangles in each surface
@@ -66,13 +66,13 @@ export class FlatSurfaceMerger {
   }
 
   /**
-   * Create a discrete key for a normal vector
+   * Create a discrete key for a normal vector - more aggressive rounding
    */
   private static getNormalKey(normal: THREE.Vector3): string {
-    // Round to create discrete buckets for grouping
-    const nx = Math.round(normal.x * 1000) / 1000;
-    const ny = Math.round(normal.y * 1000) / 1000;
-    const nz = Math.round(normal.z * 1000) / 1000;
+    // Use more aggressive rounding for better grouping
+    const nx = Math.round(normal.x * 100) / 100;
+    const ny = Math.round(normal.y * 100) / 100;
+    const nz = Math.round(normal.z * 100) / 100;
     return `${nx},${ny},${nz}`;
   }
 
