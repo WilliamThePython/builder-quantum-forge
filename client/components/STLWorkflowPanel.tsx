@@ -1571,6 +1571,24 @@ function MobileWorkflowContent(props: any) {
               />
             </div>
 
+            {/* Auto Spin - compact for mobile */}
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-1.5">
+                <RotateCw className="w-3 h-3 text-white/70" />
+                <Label
+                  htmlFor="auto-spin-mobile"
+                  className="text-xs text-white/80"
+                >
+                  Auto Spin
+                </Label>
+              </div>
+              <Switch
+                id="auto-spin-mobile"
+                checked={autoSpin}
+                onCheckedChange={onAutoSpinChange}
+              />
+            </div>
+
             {/* Background Settings - Colored Circles Mobile */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
