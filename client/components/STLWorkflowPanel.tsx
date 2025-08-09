@@ -75,8 +75,10 @@ export default function STLWorkflowPanel({
   geometryStats,
   randomColors,
   wireframe,
+  triangulated,
   onRandomColorsChange,
   onWireframeChange,
+  onTriangulatedChange,
 }: STLWorkflowPanelProps) {
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
