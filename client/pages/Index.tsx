@@ -111,8 +111,10 @@ export default function Index() {
         geometryStats={getGeometryStats()}
         randomColors={viewerSettings.randomColors}
         wireframe={viewerSettings.wireframe}
+        triangulated={viewerSettings.triangulated}
         onRandomColorsChange={handleRandomColorsChange}
         onWireframeChange={handleWireframeChange}
+        onTriangulatedChange={handleTriangulatedChange}
       />
 
       {/* Top Right Navigation - adjusted for mobile */}
