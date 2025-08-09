@@ -292,8 +292,10 @@ export default function STLWorkflowPanel({
               geometryStats={geometryStats}
               randomColors={randomColors}
               wireframe={wireframe}
+              autoSpin={autoSpin}
               onRandomColorsChange={onRandomColorsChange}
               onWireframeChange={onWireframeChange}
+              onAutoSpinChange={onAutoSpinChange}
             />
           </div>
         </div>
