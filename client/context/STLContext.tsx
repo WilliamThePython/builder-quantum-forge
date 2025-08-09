@@ -895,6 +895,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       let geometry = await loadModelFile(file, updateProgress);
       console.log("✅ loadModelFile completed successfully");
 
+      // Define file type for later use
+      const isSTL = file.name.toLowerCase().endsWith(".stl");
+
       // DISABLED COMPLEX LOADING - delete this entire block later
       if (false) { // Disabled - old loading code
         const { STLLoader } = await import(
