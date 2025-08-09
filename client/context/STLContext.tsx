@@ -1371,6 +1371,211 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             ),
           description: "Random cone variation",
         },
+
+        // HIGH-POLY MODELS FOR DECIMATION TESTING
+
+        // High-resolution cylinders
+        {
+          name: "high-res-cylinder-24.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 25, 24),
+          description: "High-resolution cylinder (24 sides, 96 faces)",
+        },
+        {
+          name: "high-res-cylinder-32.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 25, 32),
+          description: "Ultra high-res cylinder (32 sides, 128 faces)",
+        },
+        {
+          name: "high-res-cylinder-48.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 25, 48),
+          description: "Ultra high-res cylinder (48 sides, 192 faces)",
+        },
+
+        // Complex mechanical parts
+        {
+          name: "gear-wheel-12.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createGearWheel(8, 16, 4, 12),
+          description: "12-tooth gear wheel (144 faces)",
+        },
+        {
+          name: "gear-wheel-16.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createGearWheel(8, 16, 4, 16),
+          description: "16-tooth gear wheel (192 faces)",
+        },
+        {
+          name: "gear-wheel-24.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createGearWheel(8, 16, 4, 24),
+          description: "24-tooth gear wheel (288 faces)",
+        },
+
+        // Multi-level structures
+        {
+          name: "stepped-pyramid-5.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createSteppedPyramid(20, 5, 25),
+          description: "5-level stepped pyramid (250+ faces)",
+        },
+        {
+          name: "stepped-pyramid-8.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createSteppedPyramid(25, 8, 30),
+          description: "8-level stepped pyramid (400+ faces)",
+        },
+        {
+          name: "stepped-pyramid-12.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createSteppedPyramid(30, 12, 35),
+          description: "12-level stepped pyramid (600+ faces)",
+        },
+
+        // Star shapes with many points
+        {
+          name: "star-8-point.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createStarShape(18, 10, 6, 8),
+          description: "8-pointed star (128 faces)",
+        },
+        {
+          name: "star-12-point.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createStarShape(18, 10, 6, 12),
+          description: "12-pointed star (192 faces)",
+        },
+        {
+          name: "star-16-point.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createStarShape(18, 10, 6, 16),
+          description: "16-pointed star (256 faces)",
+        },
+
+        // High-resolution ellipsoids/spheres
+        {
+          name: "ellipsoid-16-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createEllipsoid(15, 12, 18, 16),
+          description: "High-res ellipsoid (16 segments, 256+ faces)",
+        },
+        {
+          name: "ellipsoid-20-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createEllipsoid(15, 15, 15, 20),
+          description: "Sphere-like ellipsoid (20 segments, 400+ faces)",
+        },
+        {
+          name: "ellipsoid-24-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createEllipsoid(16, 14, 18, 24),
+          description: "Ultra high-res ellipsoid (24 segments, 576+ faces)",
+        },
+
+        // Washers/toroids with high resolution
+        {
+          name: "washer-24-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createWasher(16, 8, 6, 24),
+          description: "High-res washer/torus (24 segments, 192 faces)",
+        },
+        {
+          name: "washer-32-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createWasher(16, 8, 6, 32),
+          description: "Ultra high-res washer (32 segments, 256 faces)",
+        },
+        {
+          name: "washer-48-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createWasher(16, 8, 6, 48),
+          description: "Extreme high-res washer (48 segments, 384 faces)",
+        },
+
+        // Complex architectural shapes
+        {
+          name: "simple-house.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createSimpleHouse(20, 15, 25, 10),
+          description: "Simple house with roof (54 faces)",
+        },
+
+        // Wedges with high resolution
+        {
+          name: "wedge-16-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createWedge(15, 20, 16),
+          description: "High-res wedge (16 segments, 96 faces)",
+        },
+        {
+          name: "wedge-24-seg.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createWedge(15, 20, 24),
+          description: "Ultra high-res wedge (24 segments, 144 faces)",
+        },
+
+        // Cross shapes for mechanical testing
+        {
+          name: "cross-shape.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createCrossShape(12, 20, 4, 8),
+          description: "Cross/plus shape (48 faces)",
+        },
+
+        // L-brackets for mechanical parts
+        {
+          name: "l-bracket.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createLBracket(20, 25, 15, 3),
+          description: "L-bracket mechanical part (72 faces)",
+        },
+
+        // Complex random combinations
+        {
+          name: "random-high-poly-cylinder.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createCylinderWithPolygons(
+              12 + Math.random() * 8,
+              14 + Math.random() * 6,
+              20 + Math.random() * 10,
+              16 + Math.floor(Math.random() * 24), // 16-40 segments
+            ),
+          description: "Random high-poly cylinder (200-500+ faces)",
+        },
+        {
+          name: "random-complex-gear.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createGearWheel(
+              6 + Math.random() * 4,
+              14 + Math.random() * 6,
+              3 + Math.random() * 4,
+              8 + Math.floor(Math.random() * 20), // 8-28 teeth
+            ),
+          description: "Random complex gear wheel (100-400+ faces)",
+        },
+        {
+          name: "random-multi-star.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createStarShape(
+              14 + Math.random() * 8,
+              6 + Math.random() * 6,
+              4 + Math.random() * 6,
+              6 + Math.floor(Math.random() * 12), // 6-18 points
+            ),
+          description: "Random multi-pointed star (100-300+ faces)",
+        },
+        {
+          name: "random-stepped-structure.stl",
+          generator: () =>
+            PolygonGeometryBuilder.createSteppedPyramid(
+              15 + Math.random() * 10,
+              3 + Math.floor(Math.random() * 8), // 3-11 levels
+              20 + Math.random() * 15,
+            ),
+          description: "Random stepped pyramid structure (150-500+ faces)",
+        },
       ];
 
       // Randomly select a model
