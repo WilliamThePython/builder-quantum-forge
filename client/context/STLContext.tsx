@@ -1198,6 +1198,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         );
       }
 
+      // Calculate maxDimension from bounding box
+      if (!geometry.boundingBox) {
+        geometry.computeBoundingBox();
+      }
+      const box = geometry.boundingBox!;
+      const maxDimension = Math.max(
+        box.max.x - box.min.x,
+        box.max.y - box.min.y,
+        box.max.z - box.min.z
+      );
+
       if (maxDimension === 0) {
         throw new Error("STL geometry has zero dimensions");
       }
