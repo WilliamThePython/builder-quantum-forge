@@ -53,13 +53,13 @@ export class HybridCoplanarMerger {
     const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
     console.log(`   Stage 1: Extracted ${faces.length} faces from geometry`);
 
-    // Stage 2: Center triangulated merging (for gears, stars, crosses)
-    const centerMergedFaces = CenterTriangulatedMerger.mergeCenterTriangulatedFaces(faces);
-    console.log(`   Stage 2: Center triangulated merging → ${centerMergedFaces.length} faces`);
+    // Stage 2: Aggressive coplanar merging (for procedural shapes)
+    const aggressiveMergedFaces = AggressiveCoplanarMerger.mergeAggressively(faces);
+    console.log(`   Stage 2: Aggressive merging → ${aggressiveMergedFaces.length} faces`);
 
-    // Stage 3: Edge-adjacent merging on remaining faces
-    const finalFaces = EdgeAdjacentMerger.groupEdgeAdjacentTriangles(centerMergedFaces);
-    console.log(`   Stage 3: Edge-adjacent merging → ${finalFaces.length} faces`);
+    // No need for stage 3 - aggressive merger handles everything
+    const finalFaces = aggressiveMergedFaces;
+    console.log(`   Final: ${finalFaces.length} faces`);
 
     console.log(`✅ Procedural merging: ${faces.length} → ${finalFaces.length} faces`);
     return finalFaces;
