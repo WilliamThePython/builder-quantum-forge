@@ -198,18 +198,19 @@ export class CenterTriangulatedMerger {
 
   private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
-    const tolerance = 0.001;
-    
+    const tolerance = 0.01; // More generous tolerance for procedural shapes
+
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing => 
+      const isDuplicate = unique.some(existing =>
         existing.distanceTo(vertex) < tolerance
       );
-      
+
       if (!isDuplicate) {
         unique.push(vertex);
       }
     }
-    
+
+    console.log(`   Removed duplicates: ${vertices.length} → ${unique.length} vertices`);
     return unique;
   }
 
