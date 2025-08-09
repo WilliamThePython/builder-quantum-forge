@@ -439,7 +439,10 @@ export default function STLWorkflowPanel({
                           {availableModels.map((model) => (
                             <DropdownMenuItem
                               key={model.name}
-                              onClick={() => loadSpecificModel(model.name)}
+                              onClick={() => {
+                                clearHighlightOnMenuInteraction();
+                                loadSpecificModel(model.name);
+                              }}
                               className="text-white hover:bg-slate-700 cursor-pointer"
                             >
                               <div>
