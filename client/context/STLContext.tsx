@@ -132,7 +132,9 @@ export const useSTL = () => {
   const context = useContext(STLContext);
   if (!context) {
     // Log error for debugging but don't spam console
-    console.error("useSTL: Context not available - component rendered outside STLProvider");
+    console.error(
+      "useSTL: Context not available - component rendered outside STLProvider",
+    );
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;
@@ -2516,9 +2518,5 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   );
 
   // Always provide the context and render children to prevent context errors
-  return (
-    <STLContext.Provider value={value}>
-      {children}
-    </STLContext.Provider>
-  );
+  return <STLContext.Provider value={value}>{children}</STLContext.Provider>;
 };
