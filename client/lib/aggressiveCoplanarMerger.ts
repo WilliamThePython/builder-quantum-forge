@@ -14,8 +14,6 @@ export class AggressiveCoplanarMerger {
    * Aggressively merge all coplanar triangles
    */
   static mergeAggressively(faces: PolygonFace[]): PolygonFace[] {
-    console.log("⚡ AGGRESSIVE COPLANAR MERGER - Max aggression mode");
-    console.log(`   Input: ${faces.length} faces`);
 
     // Group by major plane directions only
     const planeGroups = this.groupByMajorPlanes(faces);
@@ -77,9 +75,6 @@ export class AggressiveCoplanarMerger {
     }
 
     console.log(`   Created ${groups.size} major plane groups:`);
-    for (const [key, groupFaces] of groups) {
-      console.log(`     ${key}: ${groupFaces.length} faces`);
-    }
 
     return groups;
   }
