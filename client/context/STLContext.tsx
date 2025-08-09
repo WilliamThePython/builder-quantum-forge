@@ -485,7 +485,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const newPositions: number[] = [];
     const newPolygonFaces: any[] = [];
 
-    if (polygonFaces && Array.isArray(polygonFaces)) {
+    if (polygonFaces && Array.isArray(polygonFaces) && !triangulated) {
+      // Coplanar merged faces mode - preserve polygon grouping
       let triangleOffset = 0;
 
       // Process each polygon face to maintain grouping
