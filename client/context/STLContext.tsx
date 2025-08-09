@@ -1175,56 +1175,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         }
       }
 
-      // Validate parsed geometry
-      if (
-        !geometry.attributes.position ||
-        geometry.attributes.position.count === 0
-      ) {
-        throw new Error("STL file contains no valid geometry data");
-      }
-
-      // Check vertex count for performance implications
+      // Simplified validation (detailed processing done by simplified loader)
       const vertexCount = geometry.attributes.position.count;
-      const triangleCount = Math.floor(vertexCount / 3);
+      console.log(`✅ Model loaded: ${vertexCount.toLocaleString()} vertices`);
 
-      updateProgress(
-        50,
-        "Analyzing",
-        `${(vertexCount / 1000).toFixed(0)}K vertices, ${(triangleCount / 1000).toFixed(0)}K triangles`,
-      );
-
-      // Handle extremely high-poly models
-      const maxRecommendedVertices = 500000; // 500K vertices for smooth performance
-      const maxAbsoluteVertices = 2000000; // 2M vertices absolute limit
-
-      if (vertexCount > maxAbsoluteVertices) {
-        throw new Error(
-          `Model too complex (${vertexCount.toLocaleString()} vertices). Maximum supported: ${maxAbsoluteVertices.toLocaleString()} vertices. Please use a mesh decimation tool to reduce complexity.`,
-        );
-      }
-
-      if (vertexCount > maxRecommendedVertices) {
+      // Quick high-poly check
+      if (vertexCount > 1000000) {
         addError(
-          `High-poly model (${(vertexCount / 1000).toFixed(0)}K vertices). Performance may be impacted. Use "3. REDUCE MODEL" after loading for better performance.`,
+          `High-poly model (${(vertexCount / 1000).toFixed(0)}K vertices). Performance may be impacted.`,
         );
-
-        // Add a short delay to prevent UI freezing during processing
-        await new Promise((resolve) => setTimeout(resolve, 100));
       }
-
-      updateProgress(60, "Processing", "Centering and scaling geometry...");
-      // Center and scale the geometry
-      geometry.computeBoundingBox();
-
-      if (!geometry.boundingBox) {
-        throw new Error("Unable to compute geometry bounds");
-      }
-
-      const center = geometry.boundingBox.getCenter(new THREE.Vector3());
-      geometry.translate(-center.x, -center.y, -center.z);
-
-      const size = geometry.boundingBox.getSize(new THREE.Vector3());
-      const maxDimension = Math.max(size.x, size.y, size.z);
 
       if (maxDimension === 0) {
         throw new Error("STL geometry has zero dimensions");
@@ -1430,7 +1390,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage += "\n\n⏱️ File loading timeout - try:\n";
         errorMessage += "• Refreshing the page and trying again\n";
         errorMessage += "• Using a faster internet connection\n";
-        errorMessage += "• Reducing the file size";
+        errorMessage += "�� Reducing the file size";
       }
 
       if (
