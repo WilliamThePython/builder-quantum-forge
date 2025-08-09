@@ -48,22 +48,35 @@ export class CenterTriangulatedMerger {
   private static groupFacesByPlane(faces: PolygonFace[]): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
 
-    for (const face of faces) {
+    console.log(`   Grouping ${faces.length} faces by plane...`);
+
+    for (let i = 0; i < faces.length; i++) {
+      const face = faces[i];
       const normal = this.ensureVector3(face.normal).normalize();
       const center = this.getFaceCenter(face.originalVertices);
       const distance = center.dot(normal);
 
-      // Create discrete plane key
-      const nx = Math.round(normal.x * 1000) / 1000;
-      const ny = Math.round(normal.y * 1000) / 1000;
-      const nz = Math.round(normal.z * 1000) / 1000;
-      const d = Math.round(distance * 1000) / 1000;
+      // Create discrete plane key with looser rounding
+      const nx = Math.round(normal.x * 100) / 100;
+      const ny = Math.round(normal.y * 100) / 100;
+      const nz = Math.round(normal.z * 100) / 100;
+      const d = Math.round(distance * 100) / 100;
       const key = `${nx},${ny},${nz},${d}`;
 
       if (!groups.has(key)) {
         groups.set(key, []);
+        console.log(`   New plane group: ${key}`);
       }
       groups.get(key)!.push(face);
+
+      if (i < 5) { // Debug first 5 faces
+        console.log(`   Face ${i}: normal(${normal.x.toFixed(3)}, ${normal.y.toFixed(3)}, ${normal.z.toFixed(3)}) → key: ${key}`);
+      }
+    }
+
+    console.log(`   Created ${groups.size} plane groups:`);
+    for (const [key, groupFaces] of groups) {
+      console.log(`     ${key}: ${groupFaces.length} faces`);
     }
 
     return groups;
