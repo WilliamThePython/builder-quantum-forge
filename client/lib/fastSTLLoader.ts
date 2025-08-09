@@ -63,8 +63,10 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading STL data...");
 
-    // Simple file read - no chunking or complex optimization
-    const arrayBuffer = await file.arrayBuffer();
+    // Use chunked loading for files larger than 1MB to prevent memory issues
+    const arrayBuffer = file.size > 1024 * 1024
+      ? await this.loadFileInChunks(file, progressCallback)
+      : await file.arrayBuffer();
 
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
