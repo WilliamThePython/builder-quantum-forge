@@ -85,18 +85,26 @@ export async function loadModelFile(
 
   } catch (error) {
     console.error("❌ File loading failed:", error);
-    
+
+    let errorMessage = "Unknown error occurred";
+
     if (error instanceof Error) {
+      errorMessage = error.message;
       // Provide helpful error messages
-      if (error.message.includes("timeout")) {
+      if (errorMessage.includes("timeout")) {
         throw new Error(`File loading timeout - try a smaller file or close other browser tabs`);
-      } else if (error.message.includes("memory") || error.message.includes("Memory")) {
+      } else if (errorMessage.includes("memory") || errorMessage.includes("Memory")) {
         throw new Error(`Not enough memory to load this file - try a smaller file or restart your browser`);
       } else {
-        throw new Error(`Failed to load ${file.name}: ${error.message}`);
+        throw new Error(`Failed to load ${file.name}: ${errorMessage}`);
       }
-    } else {
-      throw new Error(`Failed to load ${file.name}: Unknown error`);
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object") {
+      // Handle cases where error might be an object
+      errorMessage = (error as any).message || String(error) || "Object error occurred";
     }
+
+    throw new Error(`Failed to load ${file.name}: ${errorMessage}`);
   }
 }
