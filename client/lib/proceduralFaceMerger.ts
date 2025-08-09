@@ -14,8 +14,6 @@ export class ProceduralFaceMerger {
    * Aggressively merge all coplanar faces in procedural shapes
    */
   static mergeProceduralFaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log("🎯 PROCEDURAL FACE MERGER - Ultra-aggressive merging");
-    console.log(`   Input: ${faces.length} faces`);
 
     // Group by normal direction with very aggressive bucketing
     const normalGroups = this.groupByAggressiveNormals(faces);
