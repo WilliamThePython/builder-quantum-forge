@@ -557,12 +557,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       new THREE.Float32BufferAttribute(newPositions, 3),
     );
 
-    // Apply updated polygon metadata for non-indexed structure
-    if (newPolygonFaces.length > 0) {
+    // Apply updated polygon metadata for non-indexed structure (only for coplanar mode)
+    if (newPolygonFaces.length > 0 && !triangulated) {
       (nonIndexedGeometry as any).polygonFaces = newPolygonFaces;
       console.log("   ✅ Updated polygon faces for non-indexed geometry");
+    } else if (triangulated) {
+      // In triangulated mode, remove polygon face grouping
+      (nonIndexedGeometry as any).polygonFaces = null;
+      console.log("   ✅ Triangulated mode: removed polygon face grouping");
     }
-    if ((indexedGeom as any).polygonType) {
+    if ((indexedGeom as any).polygonType && !triangulated) {
       (nonIndexedGeometry as any).polygonType = (
         indexedGeom as any
       ).polygonType;
