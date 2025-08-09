@@ -1,5 +1,12 @@
 import * as THREE from "three";
 
+export interface PolygonFace {
+  type: string;
+  originalVertices: THREE.Vector3[];
+  normal: THREE.Vector3;
+  triangleIndices?: number[];
+}
+
 /**
  * Edge-Adjacent Coplanar Merger
  * Only merges triangles that share complete edges AND are coplanar
