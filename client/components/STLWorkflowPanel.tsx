@@ -138,6 +138,7 @@ export default function STLWorkflowPanel({
     restoreFromBackup,
     decimationPainterMode,
     setDecimationPainterMode,
+    setHighlightedTriangle,
   } = useSTL();
 
   const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
