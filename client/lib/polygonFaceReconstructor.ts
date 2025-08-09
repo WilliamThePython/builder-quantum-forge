@@ -3,9 +3,9 @@ import { EdgeAdjacentMerger, PolygonFace } from "./edgeAdjacentMerger";
 
 /**
  * PolygonFaceReconstructor analyzes triangulated geometries and attempts to
- * reconstruct the original polygon faces by finding coplanar triangles
+ * reconstruct the original polygon faces by finding edge-adjacent coplanar triangles
  *
- * Now uses the unified CoplanarMerger for consistent methodology
+ * Uses EdgeAdjacentMerger for precise face grouping that respects shape boundaries
  */
 export class PolygonFaceReconstructor {
   /**
