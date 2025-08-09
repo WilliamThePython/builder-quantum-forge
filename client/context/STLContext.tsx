@@ -1193,16 +1193,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
     } catch (err) {
       let errorMessage =
-        err instanceof Error ? err.message : "Failed to load STL file";
+        err instanceof Error ? err.message : "Failed to load file";
 
-      // Provide helpful error messages for large files
+      // Log detailed error information for debugging
+      console.error("File loading error details:", {
+        error: err,
+        fileName: file?.name || "unknown",
+        fileSize: file?.size || 0,
+        fileSizeMB: file ? (file.size / 1024 / 1024).toFixed(1) : "unknown",
+        errorStack: err instanceof Error ? err.stack : "No stack trace",
+      });
+
+      // Provide helpful error messages based on file size and error type
       if (file.size > 20 * 1024 * 1024) {
-        errorMessage += `\n\n💡 Suggestions for large files (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
+        errorMessage += `\n\n💡 Large file suggestions (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
         errorMessage += "• Close other browser tabs to free memory\n";
         errorMessage += "• Try refreshing the page and loading again\n";
         errorMessage += "• Use a desktop computer for better performance\n";
-        errorMessage += "• Consider reducing the file size before uploading\n";
-        errorMessage += "• Enable hardware acceleration in browser settings";
+        errorMessage += "• Consider reducing the file size before uploading";
+      } else if (file.size > 1 * 1024 * 1024) {
+        // For medium files (1-20MB), provide simpler suggestions
+        errorMessage += `\n\n💡 For ${(file.size / 1024 / 1024).toFixed(1)}MB files, try:\n`;
+        errorMessage += "• Refreshing the page and trying again\n";
+        errorMessage += "• Checking the file is not corrupted\n";
+        errorMessage += "• Using a different STL/OBJ file";
       }
 
       if (errorMessage.includes("timeout")) {
@@ -1220,17 +1234,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage += "\n\n💾 Memory issue detected - try:\n";
         errorMessage += "• Closing all other browser tabs\n";
         errorMessage += "• Restarting your browser\n";
-        errorMessage += "• Using a computer with more RAM\n";
-        errorMessage += "• Reducing the model complexity";
+        errorMessage += "• Using a computer with more RAM";
+      }
+
+      // Check for specific STL/OBJ format issues
+      if (errorMessage.includes("parse") || errorMessage.includes("format")) {
+        errorMessage += "\n\n🔧 File format issue - try:\n";
+        errorMessage += "• Checking the file is a valid STL or OBJ file\n";
+        errorMessage += "• Re-exporting the file from your 3D software\n";
+        errorMessage += "• Using a different file format (STL or OBJ)";
       }
 
       addError(errorMessage);
-      console.error("STL loading error details:", {
-        error: err,
-        message: errorMessage,
-        fileName: file?.name || "unknown",
-        fileSize: file?.size || 0,
-      });
     } finally {
       // Keep loading state for a moment to show completion
       setTimeout(() => {
