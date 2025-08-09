@@ -1226,11 +1226,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
 
-      // Update bounding box only once after scaling, using cached calculations
-      geometry.boundingBox = cachedBox.clone();
-      geometry.boundingBox.min.multiplyScalar(scale);
-      geometry.boundingBox.max.multiplyScalar(scale);
-      geometry.boundingSphere = null; // Will be computed when needed
+      // Recompute bounding box after scaling to ensure accuracy
+      // (The cached box approach was causing positioning issues)
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
 
       // Quick Win 3: Skip intermediate validation after scaling (will validate later)
 
