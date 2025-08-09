@@ -1,19 +1,21 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * PolygonGeometryBuilder creates geometries with higher-order polygon faces
  * instead of triangulating everything. Flat faces are preserved as polygons.
  */
 export class PolygonGeometryBuilder {
-  
   /**
    * Face represents a polygon face with vertices and metadata
    */
-  static createFace(vertices: THREE.Vector3[], faceType: 'triangle' | 'quad' | 'polygon'): PolygonFace {
+  static createFace(
+    vertices: THREE.Vector3[],
+    faceType: "triangle" | "quad" | "polygon",
+  ): PolygonFace {
     return {
       vertices,
       faceType,
-      normal: this.calculateFaceNormal(vertices)
+      normal: this.calculateFaceNormal(vertices),
     };
   }
 
@@ -46,17 +48,20 @@ export class PolygonGeometryBuilder {
   /**
    * Ensure face winding is consistent for outward normals
    */
-  static ensureOutwardFaceWinding(face: PolygonFace, geometryCenter?: THREE.Vector3): PolygonFace {
+  static ensureOutwardFaceWinding(
+    face: PolygonFace,
+    geometryCenter?: THREE.Vector3,
+  ): PolygonFace {
     if (!geometryCenter) {
       // Calculate geometry center from face vertices
       geometryCenter = new THREE.Vector3();
-      face.vertices.forEach(v => geometryCenter!.add(v));
+      face.vertices.forEach((v) => geometryCenter!.add(v));
       geometryCenter.divideScalar(face.vertices.length);
     }
 
     // Calculate face center
     const faceCenter = new THREE.Vector3();
-    face.vertices.forEach(v => faceCenter.add(v));
+    face.vertices.forEach((v) => faceCenter.add(v));
     faceCenter.divideScalar(face.vertices.length);
 
     // Vector from geometry center to face center
@@ -70,7 +75,7 @@ export class PolygonGeometryBuilder {
       return {
         vertices: [...face.vertices].reverse(),
         faceType: face.faceType,
-        normal: face.normal.clone().negate()
+        normal: face.normal.clone().negate(),
       };
     }
 
@@ -80,7 +85,11 @@ export class PolygonGeometryBuilder {
   /**
    * Create a rectangular prism with 6 quadrilateral faces
    */
-  static createBoxWithQuads(width: number, height: number, depth: number): PolygonGeometry {
+  static createBoxWithQuads(
+    width: number,
+    height: number,
+    depth: number,
+  ): PolygonGeometry {
     const w = width / 2;
     const h = height / 2;
     const d = depth / 2;
@@ -88,66 +97,116 @@ export class PolygonGeometryBuilder {
     // 8 vertices of the box
     const vertices = [
       new THREE.Vector3(-w, -h, -d), // 0
-      new THREE.Vector3(w, -h, -d),  // 1
-      new THREE.Vector3(w, h, -d),   // 2
-      new THREE.Vector3(-w, h, -d),  // 3
-      new THREE.Vector3(-w, -h, d),  // 4
-      new THREE.Vector3(w, -h, d),   // 5
-      new THREE.Vector3(w, h, d),    // 6
-      new THREE.Vector3(-w, h, d)    // 7
+      new THREE.Vector3(w, -h, -d), // 1
+      new THREE.Vector3(w, h, -d), // 2
+      new THREE.Vector3(-w, h, -d), // 3
+      new THREE.Vector3(-w, -h, d), // 4
+      new THREE.Vector3(w, -h, d), // 5
+      new THREE.Vector3(w, h, d), // 6
+      new THREE.Vector3(-w, h, d), // 7
     ];
 
     // 6 quadrilateral faces - consistent counter-clockwise winding for outward normals
     const faces = [
-      this.createFace([vertices[0], vertices[1], vertices[2], vertices[3]], 'quad'), // front
-      this.createFace([vertices[5], vertices[4], vertices[7], vertices[6]], 'quad'), // back
-      this.createFace([vertices[4], vertices[0], vertices[3], vertices[7]], 'quad'), // left
-      this.createFace([vertices[1], vertices[5], vertices[6], vertices[2]], 'quad'), // right
-      this.createFace([vertices[3], vertices[2], vertices[6], vertices[7]], 'quad'), // top
-      this.createFace([vertices[0], vertices[4], vertices[5], vertices[1]], 'quad')  // bottom - fixed winding
+      this.createFace(
+        [vertices[0], vertices[1], vertices[2], vertices[3]],
+        "quad",
+      ), // front
+      this.createFace(
+        [vertices[5], vertices[4], vertices[7], vertices[6]],
+        "quad",
+      ), // back
+      this.createFace(
+        [vertices[4], vertices[0], vertices[3], vertices[7]],
+        "quad",
+      ), // left
+      this.createFace(
+        [vertices[1], vertices[5], vertices[6], vertices[2]],
+        "quad",
+      ), // right
+      this.createFace(
+        [vertices[3], vertices[2], vertices[6], vertices[7]],
+        "quad",
+      ), // top
+      this.createFace(
+        [vertices[0], vertices[4], vertices[5], vertices[1]],
+        "quad",
+      ), // bottom - fixed winding
     ];
 
-    return { vertices, faces, type: 'box' };
+    return { vertices, faces, type: "box" };
   }
 
   /**
    * Create a triangular prism with 2 triangular faces and 3 rectangular faces
    */
-  static createTriangularPrism(radius: number, height: number): PolygonGeometry {
+  static createTriangularPrism(
+    radius: number,
+    height: number,
+  ): PolygonGeometry {
     const h = height / 2;
-    
+
     // Create triangle vertices (equilateral triangle)
     const angle1 = 0;
     const angle2 = (2 * Math.PI) / 3;
     const angle3 = (4 * Math.PI) / 3;
-    
+
     // Front triangle vertices
-    const v0 = new THREE.Vector3(radius * Math.cos(angle1), radius * Math.sin(angle1), -h);
-    const v1 = new THREE.Vector3(radius * Math.cos(angle2), radius * Math.sin(angle2), -h);
-    const v2 = new THREE.Vector3(radius * Math.cos(angle3), radius * Math.sin(angle3), -h);
-    
+    const v0 = new THREE.Vector3(
+      radius * Math.cos(angle1),
+      radius * Math.sin(angle1),
+      -h,
+    );
+    const v1 = new THREE.Vector3(
+      radius * Math.cos(angle2),
+      radius * Math.sin(angle2),
+      -h,
+    );
+    const v2 = new THREE.Vector3(
+      radius * Math.cos(angle3),
+      radius * Math.sin(angle3),
+      -h,
+    );
+
     // Back triangle vertices
-    const v3 = new THREE.Vector3(radius * Math.cos(angle1), radius * Math.sin(angle1), h);
-    const v4 = new THREE.Vector3(radius * Math.cos(angle2), radius * Math.sin(angle2), h);
-    const v5 = new THREE.Vector3(radius * Math.cos(angle3), radius * Math.sin(angle3), h);
+    const v3 = new THREE.Vector3(
+      radius * Math.cos(angle1),
+      radius * Math.sin(angle1),
+      h,
+    );
+    const v4 = new THREE.Vector3(
+      radius * Math.cos(angle2),
+      radius * Math.sin(angle2),
+      h,
+    );
+    const v5 = new THREE.Vector3(
+      radius * Math.cos(angle3),
+      radius * Math.sin(angle3),
+      h,
+    );
 
     const vertices = [v0, v1, v2, v3, v4, v5];
 
     const faces = [
-      this.createFace([v0, v1, v2], 'triangle'),           // front triangle
-      this.createFace([v5, v4, v3], 'triangle'),           // back triangle
-      this.createFace([v0, v3, v4, v1], 'quad'),           // side rectangle 1
-      this.createFace([v1, v4, v5, v2], 'quad'),           // side rectangle 2
-      this.createFace([v2, v5, v3, v0], 'quad')            // side rectangle 3
+      this.createFace([v0, v1, v2], "triangle"), // front triangle
+      this.createFace([v5, v4, v3], "triangle"), // back triangle
+      this.createFace([v0, v3, v4, v1], "quad"), // side rectangle 1
+      this.createFace([v1, v4, v5, v2], "quad"), // side rectangle 2
+      this.createFace([v2, v5, v3, v0], "quad"), // side rectangle 3
     ];
 
-    return { vertices, faces, type: 'triangular_prism' };
+    return { vertices, faces, type: "triangular_prism" };
   }
 
   /**
    * Create a cylinder with circular top/bottom and rectangular sides
    */
-  static createCylinderWithPolygons(radiusTop: number, radiusBottom: number, height: number, segments: number = 8): PolygonGeometry {
+  static createCylinderWithPolygons(
+    radiusTop: number,
+    radiusBottom: number,
+    height: number,
+    segments: number = 8,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -179,8 +238,8 @@ export class PolygonGeometryBuilder {
     const geometryCenter = new THREE.Vector3(0, 0, 0);
 
     // Top and bottom faces (polygons) - ensure correct winding for outward normals
-    let topFace = this.createFace([...topVertices], 'polygon');
-    let bottomFace = this.createFace([...bottomVertices], 'polygon');
+    let topFace = this.createFace([...topVertices], "polygon");
+    let bottomFace = this.createFace([...bottomVertices], "polygon");
 
     // Ensure outward normals
     topFace = this.ensureOutwardFaceWinding(topFace, geometryCenter);
@@ -192,24 +251,31 @@ export class PolygonGeometryBuilder {
     // Side faces (rectangles) - ensure correct winding for outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      let sideFace = this.createFace([
-        bottomVertices[i],
-        bottomVertices[next],
-        topVertices[next],
-        topVertices[i]
-      ], 'quad');
+      let sideFace = this.createFace(
+        [
+          bottomVertices[i],
+          bottomVertices[next],
+          topVertices[next],
+          topVertices[i],
+        ],
+        "quad",
+      );
 
       sideFace = this.ensureOutwardFaceWinding(sideFace, geometryCenter);
       faces.push(sideFace);
     }
 
-    return { vertices, faces, type: 'cylinder' };
+    return { vertices, faces, type: "cylinder" };
   }
 
   /**
    * Create a cone with circular base and triangular sides
    */
-  static createConeWithPolygons(radius: number, height: number, segments: number = 8): PolygonGeometry {
+  static createConeWithPolygons(
+    radius: number,
+    height: number,
+    segments: number = 8,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -234,24 +300,23 @@ export class PolygonGeometryBuilder {
     const geometryCenter = new THREE.Vector3(0, 0, 0);
 
     // Base face (polygon) - ensure outward normal
-    let baseFace = this.createFace([...baseVertices], 'polygon');
+    let baseFace = this.createFace([...baseVertices], "polygon");
     baseFace = this.ensureOutwardFaceWinding(baseFace, geometryCenter);
     faces.push(baseFace);
 
     // Side faces (triangles) - ensure outward normals
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
-      let sideFace = this.createFace([
-        apex,
-        baseVertices[next],
-        baseVertices[i]
-      ], 'triangle');
+      let sideFace = this.createFace(
+        [apex, baseVertices[next], baseVertices[i]],
+        "triangle",
+      );
 
       sideFace = this.ensureOutwardFaceWinding(sideFace, geometryCenter);
       faces.push(sideFace);
     }
 
-    return { vertices, faces, type: 'cone' };
+    return { vertices, faces, type: "cone" };
   }
 
   /**
@@ -262,20 +327,20 @@ export class PolygonGeometryBuilder {
     const h = s * Math.sqrt(2 / 3); // Height for regular tetrahedron
 
     const vertices = [
-      new THREE.Vector3(0, h, 0),              // apex
-      new THREE.Vector3(-s, -h/3, s),          // base vertex 1
-      new THREE.Vector3(s, -h/3, s),           // base vertex 2
-      new THREE.Vector3(0, -h/3, -s)           // base vertex 3
+      new THREE.Vector3(0, h, 0), // apex
+      new THREE.Vector3(-s, -h / 3, s), // base vertex 1
+      new THREE.Vector3(s, -h / 3, s), // base vertex 2
+      new THREE.Vector3(0, -h / 3, -s), // base vertex 3
     ];
 
     const faces = [
-      this.createFace([vertices[0], vertices[1], vertices[2]], 'triangle'), // front face - fixed winding
-      this.createFace([vertices[0], vertices[2], vertices[3]], 'triangle'), // right face - fixed winding
-      this.createFace([vertices[0], vertices[3], vertices[1]], 'triangle'), // left face - fixed winding
-      this.createFace([vertices[3], vertices[2], vertices[1]], 'triangle')  // base - fixed winding
+      this.createFace([vertices[0], vertices[1], vertices[2]], "triangle"), // front face - fixed winding
+      this.createFace([vertices[0], vertices[2], vertices[3]], "triangle"), // right face - fixed winding
+      this.createFace([vertices[0], vertices[3], vertices[1]], "triangle"), // left face - fixed winding
+      this.createFace([vertices[3], vertices[2], vertices[1]], "triangle"), // base - fixed winding
     ];
 
-    return { vertices, faces, type: 'tetrahedron' };
+    return { vertices, faces, type: "tetrahedron" };
   }
 
   /**
@@ -285,28 +350,28 @@ export class PolygonGeometryBuilder {
     const s = size / 2;
 
     const vertices = [
-      new THREE.Vector3(0, s, 0),    // top
-      new THREE.Vector3(0, -s, 0),   // bottom
-      new THREE.Vector3(s, 0, 0),    // right
-      new THREE.Vector3(-s, 0, 0),   // left
-      new THREE.Vector3(0, 0, s),    // front
-      new THREE.Vector3(0, 0, -s)    // back
+      new THREE.Vector3(0, s, 0), // top
+      new THREE.Vector3(0, -s, 0), // bottom
+      new THREE.Vector3(s, 0, 0), // right
+      new THREE.Vector3(-s, 0, 0), // left
+      new THREE.Vector3(0, 0, s), // front
+      new THREE.Vector3(0, 0, -s), // back
     ];
 
     const faces = [
       // Top pyramid faces - consistent outward winding
-      this.createFace([vertices[0], vertices[4], vertices[2]], 'triangle'),
-      this.createFace([vertices[0], vertices[2], vertices[5]], 'triangle'),
-      this.createFace([vertices[0], vertices[5], vertices[3]], 'triangle'),
-      this.createFace([vertices[0], vertices[3], vertices[4]], 'triangle'),
+      this.createFace([vertices[0], vertices[4], vertices[2]], "triangle"),
+      this.createFace([vertices[0], vertices[2], vertices[5]], "triangle"),
+      this.createFace([vertices[0], vertices[5], vertices[3]], "triangle"),
+      this.createFace([vertices[0], vertices[3], vertices[4]], "triangle"),
       // Bottom pyramid faces - reversed winding for outward normals
-      this.createFace([vertices[1], vertices[2], vertices[4]], 'triangle'),
-      this.createFace([vertices[1], vertices[5], vertices[2]], 'triangle'),
-      this.createFace([vertices[1], vertices[3], vertices[5]], 'triangle'),
-      this.createFace([vertices[1], vertices[4], vertices[3]], 'triangle')
+      this.createFace([vertices[1], vertices[2], vertices[4]], "triangle"),
+      this.createFace([vertices[1], vertices[5], vertices[2]], "triangle"),
+      this.createFace([vertices[1], vertices[3], vertices[5]], "triangle"),
+      this.createFace([vertices[1], vertices[4], vertices[3]], "triangle"),
     ];
 
-    return { vertices, faces, type: 'octahedron' };
+    return { vertices, faces, type: "octahedron" };
   }
 
   /**
@@ -320,41 +385,87 @@ export class PolygonGeometryBuilder {
     // Create the 20 vertices of a dodecahedron using proper coordinates
     const vertices = [
       // Cube vertices scaled by 1
-      new THREE.Vector3(s, s, s), new THREE.Vector3(s, s, -s),
-      new THREE.Vector3(s, -s, s), new THREE.Vector3(s, -s, -s),
-      new THREE.Vector3(-s, s, s), new THREE.Vector3(-s, s, -s),
-      new THREE.Vector3(-s, -s, s), new THREE.Vector3(-s, -s, -s),
+      new THREE.Vector3(s, s, s),
+      new THREE.Vector3(s, s, -s),
+      new THREE.Vector3(s, -s, s),
+      new THREE.Vector3(s, -s, -s),
+      new THREE.Vector3(-s, s, s),
+      new THREE.Vector3(-s, s, -s),
+      new THREE.Vector3(-s, -s, s),
+      new THREE.Vector3(-s, -s, -s),
 
       // Golden rectangles in XY plane
-      new THREE.Vector3(0, s * phi, s / phi), new THREE.Vector3(0, s * phi, -s / phi),
-      new THREE.Vector3(0, -s * phi, s / phi), new THREE.Vector3(0, -s * phi, -s / phi),
+      new THREE.Vector3(0, s * phi, s / phi),
+      new THREE.Vector3(0, s * phi, -s / phi),
+      new THREE.Vector3(0, -s * phi, s / phi),
+      new THREE.Vector3(0, -s * phi, -s / phi),
 
       // Golden rectangles in YZ plane
-      new THREE.Vector3(s / phi, 0, s * phi), new THREE.Vector3(-s / phi, 0, s * phi),
-      new THREE.Vector3(s / phi, 0, -s * phi), new THREE.Vector3(-s / phi, 0, -s * phi),
+      new THREE.Vector3(s / phi, 0, s * phi),
+      new THREE.Vector3(-s / phi, 0, s * phi),
+      new THREE.Vector3(s / phi, 0, -s * phi),
+      new THREE.Vector3(-s / phi, 0, -s * phi),
 
       // Golden rectangles in XZ plane
-      new THREE.Vector3(s * phi, s / phi, 0), new THREE.Vector3(s * phi, -s / phi, 0),
-      new THREE.Vector3(-s * phi, s / phi, 0), new THREE.Vector3(-s * phi, -s / phi, 0)
+      new THREE.Vector3(s * phi, s / phi, 0),
+      new THREE.Vector3(s * phi, -s / phi, 0),
+      new THREE.Vector3(-s * phi, s / phi, 0),
+      new THREE.Vector3(-s * phi, -s / phi, 0),
     ];
 
     // Define the 12 pentagonal faces with correct vertex ordering
     const faces = [
-      this.createFace([vertices[0], vertices[8], vertices[4], vertices[12], vertices[16]], 'polygon'),
-      this.createFace([vertices[1], vertices[16], vertices[14], vertices[9], vertices[5]], 'polygon'),
-      this.createFace([vertices[2], vertices[17], vertices[16], vertices[0], vertices[12]], 'polygon'),
-      this.createFace([vertices[3], vertices[14], vertices[16], vertices[17], vertices[11]], 'polygon'),
-      this.createFace([vertices[4], vertices[8], vertices[9], vertices[5], vertices[18]], 'polygon'),
-      this.createFace([vertices[5], vertices[9], vertices[14], vertices[3], vertices[15]], 'polygon'),
-      this.createFace([vertices[6], vertices[13], vertices[12], vertices[0], vertices[19]], 'polygon'),
-      this.createFace([vertices[7], vertices[15], vertices[3], vertices[11], vertices[10]], 'polygon'),
-      this.createFace([vertices[8], vertices[0], vertices[19], vertices[18], vertices[9]], 'polygon'),
-      this.createFace([vertices[10], vertices[6], vertices[19], vertices[18], vertices[13]], 'polygon'),
-      this.createFace([vertices[11], vertices[17], vertices[2], vertices[6], vertices[10]], 'polygon'),
-      this.createFace([vertices[12], vertices[13], vertices[18], vertices[4], vertices[2]], 'polygon')
+      this.createFace(
+        [vertices[0], vertices[8], vertices[4], vertices[12], vertices[16]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[1], vertices[16], vertices[14], vertices[9], vertices[5]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[2], vertices[17], vertices[16], vertices[0], vertices[12]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[3], vertices[14], vertices[16], vertices[17], vertices[11]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[4], vertices[8], vertices[9], vertices[5], vertices[18]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[5], vertices[9], vertices[14], vertices[3], vertices[15]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[6], vertices[13], vertices[12], vertices[0], vertices[19]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[7], vertices[15], vertices[3], vertices[11], vertices[10]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[8], vertices[0], vertices[19], vertices[18], vertices[9]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[10], vertices[6], vertices[19], vertices[18], vertices[13]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[11], vertices[17], vertices[2], vertices[6], vertices[10]],
+        "polygon",
+      ),
+      this.createFace(
+        [vertices[12], vertices[13], vertices[18], vertices[4], vertices[2]],
+        "polygon",
+      ),
     ];
 
-    return { vertices, faces, type: 'dodecahedron' };
+    return { vertices, faces, type: "dodecahedron" };
   }
 
   /**
@@ -366,60 +477,70 @@ export class PolygonGeometryBuilder {
 
     const vertices = [
       // Rectangle in XY plane
-      new THREE.Vector3(-s, s * phi, 0), new THREE.Vector3(s, s * phi, 0),
-      new THREE.Vector3(-s, -s * phi, 0), new THREE.Vector3(s, -s * phi, 0),
+      new THREE.Vector3(-s, s * phi, 0),
+      new THREE.Vector3(s, s * phi, 0),
+      new THREE.Vector3(-s, -s * phi, 0),
+      new THREE.Vector3(s, -s * phi, 0),
       // Rectangle in YZ plane
-      new THREE.Vector3(0, -s, s * phi), new THREE.Vector3(0, s, s * phi),
-      new THREE.Vector3(0, -s, -s * phi), new THREE.Vector3(0, s, -s * phi),
+      new THREE.Vector3(0, -s, s * phi),
+      new THREE.Vector3(0, s, s * phi),
+      new THREE.Vector3(0, -s, -s * phi),
+      new THREE.Vector3(0, s, -s * phi),
       // Rectangle in XZ plane
-      new THREE.Vector3(s * phi, 0, -s), new THREE.Vector3(s * phi, 0, s),
-      new THREE.Vector3(-s * phi, 0, -s), new THREE.Vector3(-s * phi, 0, s)
+      new THREE.Vector3(s * phi, 0, -s),
+      new THREE.Vector3(s * phi, 0, s),
+      new THREE.Vector3(-s * phi, 0, -s),
+      new THREE.Vector3(-s * phi, 0, s),
     ];
 
     const faces = [
       // Top cap triangles
-      this.createFace([vertices[0], vertices[11], vertices[5]], 'triangle'),
-      this.createFace([vertices[0], vertices[5], vertices[1]], 'triangle'),
-      this.createFace([vertices[0], vertices[1], vertices[7]], 'triangle'),
-      this.createFace([vertices[0], vertices[7], vertices[10]], 'triangle'),
-      this.createFace([vertices[0], vertices[10], vertices[11]], 'triangle'),
+      this.createFace([vertices[0], vertices[11], vertices[5]], "triangle"),
+      this.createFace([vertices[0], vertices[5], vertices[1]], "triangle"),
+      this.createFace([vertices[0], vertices[1], vertices[7]], "triangle"),
+      this.createFace([vertices[0], vertices[7], vertices[10]], "triangle"),
+      this.createFace([vertices[0], vertices[10], vertices[11]], "triangle"),
       // Upper belt triangles
-      this.createFace([vertices[1], vertices[5], vertices[9]], 'triangle'),
-      this.createFace([vertices[5], vertices[11], vertices[4]], 'triangle'),
-      this.createFace([vertices[11], vertices[10], vertices[2]], 'triangle'),
-      this.createFace([vertices[10], vertices[7], vertices[6]], 'triangle'),
-      this.createFace([vertices[7], vertices[1], vertices[8]], 'triangle'),
+      this.createFace([vertices[1], vertices[5], vertices[9]], "triangle"),
+      this.createFace([vertices[5], vertices[11], vertices[4]], "triangle"),
+      this.createFace([vertices[11], vertices[10], vertices[2]], "triangle"),
+      this.createFace([vertices[10], vertices[7], vertices[6]], "triangle"),
+      this.createFace([vertices[7], vertices[1], vertices[8]], "triangle"),
       // Lower belt triangles
-      this.createFace([vertices[3], vertices[9], vertices[4]], 'triangle'),
-      this.createFace([vertices[3], vertices[4], vertices[2]], 'triangle'),
-      this.createFace([vertices[3], vertices[2], vertices[6]], 'triangle'),
-      this.createFace([vertices[3], vertices[6], vertices[8]], 'triangle'),
-      this.createFace([vertices[3], vertices[8], vertices[9]], 'triangle'),
+      this.createFace([vertices[3], vertices[9], vertices[4]], "triangle"),
+      this.createFace([vertices[3], vertices[4], vertices[2]], "triangle"),
+      this.createFace([vertices[3], vertices[2], vertices[6]], "triangle"),
+      this.createFace([vertices[3], vertices[6], vertices[8]], "triangle"),
+      this.createFace([vertices[3], vertices[8], vertices[9]], "triangle"),
       // Bottom cap triangles
-      this.createFace([vertices[4], vertices[9], vertices[5]], 'triangle'),
-      this.createFace([vertices[2], vertices[4], vertices[11]], 'triangle'),
-      this.createFace([vertices[6], vertices[2], vertices[10]], 'triangle'),
-      this.createFace([vertices[8], vertices[6], vertices[7]], 'triangle'),
-      this.createFace([vertices[9], vertices[8], vertices[1]], 'triangle')
+      this.createFace([vertices[4], vertices[9], vertices[5]], "triangle"),
+      this.createFace([vertices[2], vertices[4], vertices[11]], "triangle"),
+      this.createFace([vertices[6], vertices[2], vertices[10]], "triangle"),
+      this.createFace([vertices[8], vertices[6], vertices[7]], "triangle"),
+      this.createFace([vertices[9], vertices[8], vertices[1]], "triangle"),
     ];
 
-    return { vertices, faces, type: 'icosahedron' };
+    return { vertices, faces, type: "icosahedron" };
   }
 
   /**
    * Create a stepped pyramid with multiple levels - ensure minimum spacing
    */
-  static createSteppedPyramid(baseSize: number, levels: number, height: number): PolygonGeometry {
+  static createSteppedPyramid(
+    baseSize: number,
+    levels: number,
+    height: number,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const levelHeight = height / levels;
 
     // Ensure minimum size difference between levels to prevent vertex merging
-    const minSizeReduction = Math.max(0.8, baseSize * 0.1 / levels);
+    const minSizeReduction = Math.max(0.8, (baseSize * 0.1) / levels);
 
     for (let level = 0; level <= levels; level++) {
       // Use a more aggressive size reduction to ensure distinct levels
-      const levelSize = baseSize * Math.max(0.2, 1 - (level * 0.7 / levels));
+      const levelSize = baseSize * Math.max(0.2, 1 - (level * 0.7) / levels);
       const y = -height / 2 + level * levelHeight;
       const s = levelSize / 2;
 
@@ -429,15 +550,22 @@ export class PolygonGeometryBuilder {
         new THREE.Vector3(-s, y, -s),
         new THREE.Vector3(s, y, -s),
         new THREE.Vector3(s, y, s),
-        new THREE.Vector3(-s, y, s)
+        new THREE.Vector3(-s, y, s),
       );
 
       if (level === 0) {
         // Bottom face
-        faces.push(this.createFace([
-          vertices[levelStart + 3], vertices[levelStart + 2],
-          vertices[levelStart + 1], vertices[levelStart]
-        ], 'quad'));
+        faces.push(
+          this.createFace(
+            [
+              vertices[levelStart + 3],
+              vertices[levelStart + 2],
+              vertices[levelStart + 1],
+              vertices[levelStart],
+            ],
+            "quad",
+          ),
+        );
       } else {
         // Connect to previous level with side faces
         const prevStart = levelStart - 4;
@@ -446,17 +574,25 @@ export class PolygonGeometryBuilder {
         for (let i = 0; i < 4; i++) {
           const next = (i + 1) % 4;
           // Side wall of this step
-          faces.push(this.createFace([
-            vertices[prevStart + i], vertices[prevStart + next],
-            vertices[levelStart + next], vertices[levelStart + i]
-          ], 'quad'));
+          faces.push(
+            this.createFace(
+              [
+                vertices[prevStart + i],
+                vertices[prevStart + next],
+                vertices[levelStart + next],
+                vertices[levelStart + i],
+              ],
+              "quad",
+            ),
+          );
         }
 
         // Create horizontal step surfaces
         if (level < levels) {
           // Top of this level (will be covered by next level, creating the step)
-          const stepWidth = (vertices[prevStart].x - vertices[levelStart].x); // Size difference
-          if (stepWidth > 0.1) { // Only create step surface if there's significant size difference
+          const stepWidth = vertices[prevStart].x - vertices[levelStart].x; // Size difference
+          if (stepWidth > 0.1) {
+            // Only create step surface if there's significant size difference
             for (let i = 0; i < 4; i++) {
               const next = (i + 1) % 4;
               // Create the horizontal step surface around the smaller level
@@ -466,30 +602,45 @@ export class PolygonGeometryBuilder {
               const innerNext = vertices[levelStart + next];
 
               // Create L-shaped step surface
-              faces.push(this.createFace([
-                outerPrev, outerNext, innerNext, innerThis
-              ], 'quad'));
+              faces.push(
+                this.createFace(
+                  [outerPrev, outerNext, innerNext, innerThis],
+                  "quad",
+                ),
+              );
             }
           }
         }
 
         if (level === levels) {
           // Top face of pyramid
-          faces.push(this.createFace([
-            vertices[levelStart], vertices[levelStart + 1],
-            vertices[levelStart + 2], vertices[levelStart + 3]
-          ], 'quad'));
+          faces.push(
+            this.createFace(
+              [
+                vertices[levelStart],
+                vertices[levelStart + 1],
+                vertices[levelStart + 2],
+                vertices[levelStart + 3],
+              ],
+              "quad",
+            ),
+          );
         }
       }
     }
 
-    return { vertices, faces, type: 'stepped_pyramid' };
+    return { vertices, faces, type: "stepped_pyramid" };
   }
 
   /**
    * Create an L-bracket - common mechanical part
    */
-  static createLBracket(width: number, height: number, depth: number, thickness: number): PolygonGeometry {
+  static createLBracket(
+    width: number,
+    height: number,
+    depth: number,
+    thickness: number,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
 
@@ -501,13 +652,19 @@ export class PolygonGeometryBuilder {
     // Define the L-shape vertices
     const outerVertices = [
       // Bottom outer rectangle
-      new THREE.Vector3(-w, -h, -d), new THREE.Vector3(w, -h, -d),
-      new THREE.Vector3(w, -h + thickness, -d), new THREE.Vector3(-w + thickness, -h + thickness, -d),
-      new THREE.Vector3(-w + thickness, h, -d), new THREE.Vector3(-w, h, -d),
+      new THREE.Vector3(-w, -h, -d),
+      new THREE.Vector3(w, -h, -d),
+      new THREE.Vector3(w, -h + thickness, -d),
+      new THREE.Vector3(-w + thickness, -h + thickness, -d),
+      new THREE.Vector3(-w + thickness, h, -d),
+      new THREE.Vector3(-w, h, -d),
       // Top outer rectangle
-      new THREE.Vector3(-w, -h, d), new THREE.Vector3(w, -h, d),
-      new THREE.Vector3(w, -h + thickness, d), new THREE.Vector3(-w + thickness, -h + thickness, d),
-      new THREE.Vector3(-w + thickness, h, d), new THREE.Vector3(-w, h, d)
+      new THREE.Vector3(-w, -h, d),
+      new THREE.Vector3(w, -h, d),
+      new THREE.Vector3(w, -h + thickness, d),
+      new THREE.Vector3(-w + thickness, -h + thickness, d),
+      new THREE.Vector3(-w + thickness, h, d),
+      new THREE.Vector3(-w, h, d),
     ];
 
     vertices.push(...outerVertices);
@@ -517,50 +674,70 @@ export class PolygonGeometryBuilder {
 
     // Bottom faces - split into two rectangles
     // Bottom horizontal rectangle (bottom arm of L)
-    faces.push(this.createFace([
-      vertices[0], vertices[1], vertices[2], vertices[5]
-    ].reverse(), 'quad'));
+    faces.push(
+      this.createFace(
+        [vertices[0], vertices[1], vertices[2], vertices[5]].reverse(),
+        "quad",
+      ),
+    );
 
     // Bottom vertical rectangle (vertical arm of L)
-    faces.push(this.createFace([
-      vertices[2], vertices[3], vertices[4], vertices[5]
-    ].reverse(), 'quad'));
+    faces.push(
+      this.createFace(
+        [vertices[2], vertices[3], vertices[4], vertices[5]].reverse(),
+        "quad",
+      ),
+    );
 
     // Top faces - split into two rectangles
     // Top horizontal rectangle (bottom arm of L)
-    faces.push(this.createFace([
-      vertices[6], vertices[7], vertices[8], vertices[11]
-    ], 'quad'));
+    faces.push(
+      this.createFace(
+        [vertices[6], vertices[7], vertices[8], vertices[11]],
+        "quad",
+      ),
+    );
 
     // Top vertical rectangle (vertical arm of L)
-    faces.push(this.createFace([
-      vertices[8], vertices[9], vertices[10], vertices[11]
-    ], 'quad'));
+    faces.push(
+      this.createFace(
+        [vertices[8], vertices[9], vertices[10], vertices[11]],
+        "quad",
+      ),
+    );
 
     // Side faces - only for actual L-bracket exterior edges
     // L-bracket vertices form a complex profile, need to map correctly
     const lBracketEdges = [
-      [0, 1],   // bottom horizontal edge
-      [1, 2],   // right short vertical
-      [2, 3],   // inner horizontal
-      [3, 4],   // inner vertical
-      [4, 5],   // top horizontal
-      [5, 0]    // left vertical (closing the L)
+      [0, 1], // bottom horizontal edge
+      [1, 2], // right short vertical
+      [2, 3], // inner horizontal
+      [3, 4], // inner vertical
+      [4, 5], // top horizontal
+      [5, 0], // left vertical (closing the L)
     ];
 
     for (const [i, next] of lBracketEdges) {
-      faces.push(this.createFace([
-        vertices[i], vertices[next], vertices[next + 6], vertices[i + 6]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [vertices[i], vertices[next], vertices[next + 6], vertices[i + 6]],
+          "quad",
+        ),
+      );
     }
 
-    return { vertices, faces, type: 'l_bracket' };
+    return { vertices, faces, type: "l_bracket" };
   }
 
   /**
    * Create a washer/ring - torus-like shape
    */
-  static createWasher(outerRadius: number, innerRadius: number, height: number, segments: number = 16): PolygonGeometry {
+  static createWasher(
+    outerRadius: number,
+    innerRadius: number,
+    height: number,
+    segments: number = 16,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -577,51 +754,97 @@ export class PolygonGeometryBuilder {
       const sin = Math.sin(angle);
 
       // Top vertices
-      topOuterVertices.push(new THREE.Vector3(outerRadius * cos, outerRadius * sin, h));
-      topInnerVertices.push(new THREE.Vector3(innerRadius * cos, innerRadius * sin, h));
+      topOuterVertices.push(
+        new THREE.Vector3(outerRadius * cos, outerRadius * sin, h),
+      );
+      topInnerVertices.push(
+        new THREE.Vector3(innerRadius * cos, innerRadius * sin, h),
+      );
 
       // Bottom vertices
-      bottomOuterVertices.push(new THREE.Vector3(outerRadius * cos, outerRadius * sin, -h));
-      bottomInnerVertices.push(new THREE.Vector3(innerRadius * cos, innerRadius * sin, -h));
+      bottomOuterVertices.push(
+        new THREE.Vector3(outerRadius * cos, outerRadius * sin, -h),
+      );
+      bottomInnerVertices.push(
+        new THREE.Vector3(innerRadius * cos, innerRadius * sin, -h),
+      );
     }
 
-    vertices.push(...topOuterVertices, ...topInnerVertices, ...bottomOuterVertices, ...bottomInnerVertices);
+    vertices.push(
+      ...topOuterVertices,
+      ...topInnerVertices,
+      ...bottomOuterVertices,
+      ...bottomInnerVertices,
+    );
 
     // Top and bottom faces (rings)
     for (let i = 0; i < segments; i++) {
       const next = (i + 1) % segments;
       // Top ring segment
-      faces.push(this.createFace([
-        topOuterVertices[i], topOuterVertices[next],
-        topInnerVertices[next], topInnerVertices[i]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            topOuterVertices[i],
+            topOuterVertices[next],
+            topInnerVertices[next],
+            topInnerVertices[i],
+          ],
+          "quad",
+        ),
+      );
 
       // Bottom ring segment
-      faces.push(this.createFace([
-        bottomOuterVertices[i], bottomInnerVertices[i],
-        bottomInnerVertices[next], bottomOuterVertices[next]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomOuterVertices[i],
+            bottomInnerVertices[i],
+            bottomInnerVertices[next],
+            bottomOuterVertices[next],
+          ],
+          "quad",
+        ),
+      );
 
       // Outer side face
-      faces.push(this.createFace([
-        bottomOuterVertices[i], bottomOuterVertices[next],
-        topOuterVertices[next], topOuterVertices[i]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomOuterVertices[i],
+            bottomOuterVertices[next],
+            topOuterVertices[next],
+            topOuterVertices[i],
+          ],
+          "quad",
+        ),
+      );
 
       // Inner side face
-      faces.push(this.createFace([
-        bottomInnerVertices[i], topInnerVertices[i],
-        topInnerVertices[next], bottomInnerVertices[next]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomInnerVertices[i],
+            topInnerVertices[i],
+            topInnerVertices[next],
+            bottomInnerVertices[next],
+          ],
+          "quad",
+        ),
+      );
     }
 
-    return { vertices, faces, type: 'washer' };
+    return { vertices, faces, type: "washer" };
   }
 
   /**
    * Create a simple house - cube base with triangular roof
    */
-  static createSimpleHouse(width: number, height: number, depth: number, roofHeight: number): PolygonGeometry {
+  static createSimpleHouse(
+    width: number,
+    height: number,
+    depth: number,
+    roofHeight: number,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
 
@@ -632,40 +855,94 @@ export class PolygonGeometryBuilder {
 
     // Base cube vertices
     const baseVertices = [
-      new THREE.Vector3(-w, -h, -d), new THREE.Vector3(w, -h, -d),
-      new THREE.Vector3(w, h, -d), new THREE.Vector3(-w, h, -d),
-      new THREE.Vector3(-w, -h, d), new THREE.Vector3(w, -h, d),
-      new THREE.Vector3(w, h, d), new THREE.Vector3(-w, h, d)
+      new THREE.Vector3(-w, -h, -d),
+      new THREE.Vector3(w, -h, -d),
+      new THREE.Vector3(w, h, -d),
+      new THREE.Vector3(-w, h, -d),
+      new THREE.Vector3(-w, -h, d),
+      new THREE.Vector3(w, -h, d),
+      new THREE.Vector3(w, h, d),
+      new THREE.Vector3(-w, h, d),
     ];
 
     // Roof peak vertices
     const roofVertices = [
       new THREE.Vector3(-w, h + rh, 0), // peak front
-      new THREE.Vector3(w, h + rh, 0)   // peak back
+      new THREE.Vector3(w, h + rh, 0), // peak back
     ];
 
     vertices.push(...baseVertices, ...roofVertices);
 
     // Base faces (bottom and 4 walls)
-    faces.push(this.createFace([baseVertices[4], baseVertices[5], baseVertices[1], baseVertices[0]], 'quad')); // bottom
-    faces.push(this.createFace([baseVertices[0], baseVertices[1], baseVertices[2], baseVertices[3]], 'quad')); // front
-    faces.push(this.createFace([baseVertices[5], baseVertices[4], baseVertices[7], baseVertices[6]], 'quad')); // back
-    faces.push(this.createFace([baseVertices[4], baseVertices[0], baseVertices[3], baseVertices[7]], 'quad')); // left
-    faces.push(this.createFace([baseVertices[1], baseVertices[5], baseVertices[6], baseVertices[2]], 'quad')); // right
+    faces.push(
+      this.createFace(
+        [baseVertices[4], baseVertices[5], baseVertices[1], baseVertices[0]],
+        "quad",
+      ),
+    ); // bottom
+    faces.push(
+      this.createFace(
+        [baseVertices[0], baseVertices[1], baseVertices[2], baseVertices[3]],
+        "quad",
+      ),
+    ); // front
+    faces.push(
+      this.createFace(
+        [baseVertices[5], baseVertices[4], baseVertices[7], baseVertices[6]],
+        "quad",
+      ),
+    ); // back
+    faces.push(
+      this.createFace(
+        [baseVertices[4], baseVertices[0], baseVertices[3], baseVertices[7]],
+        "quad",
+      ),
+    ); // left
+    faces.push(
+      this.createFace(
+        [baseVertices[1], baseVertices[5], baseVertices[6], baseVertices[2]],
+        "quad",
+      ),
+    ); // right
 
     // Roof faces
-    faces.push(this.createFace([baseVertices[3], baseVertices[2], roofVertices[1], roofVertices[0]], 'quad')); // front roof
-    faces.push(this.createFace([baseVertices[7], roofVertices[0], roofVertices[1], baseVertices[6]], 'quad')); // back roof
-    faces.push(this.createFace([baseVertices[3], roofVertices[0], baseVertices[7]], 'triangle')); // left gable
-    faces.push(this.createFace([baseVertices[2], baseVertices[6], roofVertices[1]], 'triangle')); // right gable
+    faces.push(
+      this.createFace(
+        [baseVertices[3], baseVertices[2], roofVertices[1], roofVertices[0]],
+        "quad",
+      ),
+    ); // front roof
+    faces.push(
+      this.createFace(
+        [baseVertices[7], roofVertices[0], roofVertices[1], baseVertices[6]],
+        "quad",
+      ),
+    ); // back roof
+    faces.push(
+      this.createFace(
+        [baseVertices[3], roofVertices[0], baseVertices[7]],
+        "triangle",
+      ),
+    ); // left gable
+    faces.push(
+      this.createFace(
+        [baseVertices[2], baseVertices[6], roofVertices[1]],
+        "triangle",
+      ),
+    ); // right gable
 
-    return { vertices, faces, type: 'simple_house' };
+    return { vertices, faces, type: "simple_house" };
   }
 
   /**
    * Create a gear wheel - circle with teeth around edge
    */
-  static createGearWheel(innerRadius: number, outerRadius: number, height: number, teeth: number): PolygonGeometry {
+  static createGearWheel(
+    innerRadius: number,
+    outerRadius: number,
+    height: number,
+    teeth: number,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -680,10 +957,10 @@ export class PolygonGeometryBuilder {
 
       // Add 4 points per tooth for clear gear shape
       const angles = [
-        baseAngle - toothHalfWidth,     // valley 1 (inner)
+        baseAngle - toothHalfWidth, // valley 1 (inner)
         baseAngle - toothHalfWidth * 0.5, // tip 1 (outer)
         baseAngle + toothHalfWidth * 0.5, // tip 2 (outer)
-        baseAngle + toothHalfWidth      // valley 2 (inner)
+        baseAngle + toothHalfWidth, // valley 2 (inner)
       ];
 
       const radii = [innerRadius, outerRadius, outerRadius, innerRadius];
@@ -700,8 +977,8 @@ export class PolygonGeometryBuilder {
     vertices.push(...topVertices, ...bottomVertices);
 
     // Create top and bottom faces as star-like polygons
-    faces.push(this.createFace([...topVertices], 'polygon'));
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+    faces.push(this.createFace([...topVertices], "polygon"));
+    faces.push(this.createFace([...bottomVertices].reverse(), "polygon"));
 
     // Create side faces - only for actual gear profile edges
     // Each tooth has 4 vertices: valley1, tip1, tip2, valley2
@@ -711,27 +988,39 @@ export class PolygonGeometryBuilder {
 
       // Faces for each tooth (4 edges per tooth)
       const toothEdges = [
-        [baseIndex, baseIndex + 1],     // valley to tip (rising edge)
+        [baseIndex, baseIndex + 1], // valley to tip (rising edge)
         [baseIndex + 1, baseIndex + 2], // tip to tip (tooth top)
         [baseIndex + 2, baseIndex + 3], // tip to valley (falling edge)
-        [baseIndex + 3, (baseIndex + 4) % topVertices.length] // valley to next valley
+        [baseIndex + 3, (baseIndex + 4) % topVertices.length], // valley to next valley
       ];
 
       for (const [i, next] of toothEdges) {
-        faces.push(this.createFace([
-          bottomVertices[i], bottomVertices[next],
-          topVertices[next], topVertices[i]
-        ], 'quad'));
+        faces.push(
+          this.createFace(
+            [
+              bottomVertices[i],
+              bottomVertices[next],
+              topVertices[next],
+              topVertices[i],
+            ],
+            "quad",
+          ),
+        );
       }
     }
 
-    return { vertices, faces, type: 'gear_wheel' };
+    return { vertices, faces, type: "gear_wheel" };
   }
 
   /**
    * Create an ellipsoid - stretched sphere
    */
-  static createEllipsoid(radiusX: number, radiusY: number, radiusZ: number, segments: number = 12): PolygonGeometry {
+  static createEllipsoid(
+    radiusX: number,
+    radiusY: number,
+    radiusZ: number,
+    segments: number = 12,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
 
@@ -758,20 +1047,32 @@ export class PolygonGeometryBuilder {
         const belowNext = (i + 1) * (segments * 2) + ((j + 1) % (segments * 2));
 
         if (i < segments) {
-          faces.push(this.createFace([
-            vertices[current], vertices[next], vertices[belowNext], vertices[below]
-          ], 'quad'));
+          faces.push(
+            this.createFace(
+              [
+                vertices[current],
+                vertices[next],
+                vertices[belowNext],
+                vertices[below],
+              ],
+              "quad",
+            ),
+          );
         }
       }
     }
 
-    return { vertices, faces, type: 'ellipsoid' };
+    return { vertices, faces, type: "ellipsoid" };
   }
 
   /**
    * Create a wedge - half of a cylinder cut diagonally
    */
-  static createWedge(radius: number, height: number, segments: number = 8): PolygonGeometry {
+  static createWedge(
+    radius: number,
+    height: number,
+    segments: number = 8,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -793,40 +1094,60 @@ export class PolygonGeometryBuilder {
 
     // Curved face - side of the half cylinder
     for (let i = 0; i < segments; i++) {
-      faces.push(this.createFace([
-        bottomVertices[i], bottomVertices[i + 1],
-        topVertices[i + 1], topVertices[i]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomVertices[i],
+            bottomVertices[i + 1],
+            topVertices[i + 1],
+            topVertices[i],
+          ],
+          "quad",
+        ),
+      );
     }
 
     // Top half-circle face
-    faces.push(this.createFace([...topVertices], 'polygon'));
+    faces.push(this.createFace([...topVertices], "polygon"));
 
     // Bottom half-circle face
-    faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
+    faces.push(this.createFace([...bottomVertices].reverse(), "polygon"));
 
     // Flat side 1 (at angle 0)
-    faces.push(this.createFace([
-      bottomVertices[0], topVertices[0], topVertices[segments], bottomVertices[segments]
-    ], 'quad'));
+    faces.push(
+      this.createFace(
+        [
+          bottomVertices[0],
+          topVertices[0],
+          topVertices[segments],
+          bottomVertices[segments],
+        ],
+        "quad",
+      ),
+    );
 
     // The wedge should also have the flat cut face - this was missing!
     // Create the diagonal cut face that makes it a "wedge"
     const cutFaceVertices = [
-      bottomVertices[0],    // Start of bottom arc
+      bottomVertices[0], // Start of bottom arc
       bottomVertices[segments], // End of bottom arc
-      topVertices[segments],    // End of top arc
-      topVertices[0]        // Start of top arc
+      topVertices[segments], // End of top arc
+      topVertices[0], // Start of top arc
     ];
-    faces.push(this.createFace(cutFaceVertices, 'quad'));
+    faces.push(this.createFace(cutFaceVertices, "quad"));
 
-    return { vertices, faces, type: 'wedge' };
+    return { vertices, faces, type: "wedge" };
   }
 
   /**
    * Create a star shape - extruded star polygon with proper triangulation
    */
-  static createStarShape(outerRadius: number, innerRadius: number, height: number, points: number = 5): PolygonGeometry {
+  static createStarShape(
+    outerRadius: number,
+    innerRadius: number,
+    height: number,
+    points: number = 5,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -858,39 +1179,61 @@ export class PolygonGeometryBuilder {
     // Top star face - triangulate from center
     for (let i = 0; i < topVertices.length; i++) {
       const next = (i + 1) % topVertices.length;
-      faces.push(this.createFace([
-        vertices[centerIndex], // center
-        topVertices[i],
-        topVertices[next]
-      ], 'triangle'));
+      faces.push(
+        this.createFace(
+          [
+            vertices[centerIndex], // center
+            topVertices[i],
+            topVertices[next],
+          ],
+          "triangle",
+        ),
+      );
     }
 
     // Bottom star face - triangulate from center
     for (let i = 0; i < bottomVertices.length; i++) {
       const next = (i + 1) % bottomVertices.length;
-      faces.push(this.createFace([
-        vertices[bottomCenterIndex], // bottom center
-        bottomVertices[next],
-        bottomVertices[i]
-      ], 'triangle'));
+      faces.push(
+        this.createFace(
+          [
+            vertices[bottomCenterIndex], // bottom center
+            bottomVertices[next],
+            bottomVertices[i],
+          ],
+          "triangle",
+        ),
+      );
     }
 
     // Side faces - rectangular strips
     for (let i = 0; i < topVertices.length; i++) {
       const next = (i + 1) % topVertices.length;
-      faces.push(this.createFace([
-        bottomVertices[i], bottomVertices[next],
-        topVertices[next], topVertices[i]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomVertices[i],
+            bottomVertices[next],
+            topVertices[next],
+            topVertices[i],
+          ],
+          "quad",
+        ),
+      );
     }
 
-    return { vertices, faces, type: 'star_shape' };
+    return { vertices, faces, type: "star_shape" };
   }
 
   /**
    * Create a cross shape - plus sign extruded
    */
-  static createCrossShape(width: number, length: number, thickness: number, height: number): PolygonGeometry {
+  static createCrossShape(
+    width: number,
+    length: number,
+    thickness: number,
+    height: number,
+  ): PolygonGeometry {
     const vertices: THREE.Vector3[] = [];
     const faces: PolygonFace[] = [];
     const h = height / 2;
@@ -901,98 +1244,159 @@ export class PolygonGeometryBuilder {
 
     // Create cross profile vertices (plus sign) - correct Z coordinate
     const crossProfile = [
-      new THREE.Vector3(-t, -l, 0),  // bottom center
+      new THREE.Vector3(-t, -l, 0), // bottom center
       new THREE.Vector3(t, -l, 0),
-      new THREE.Vector3(t, -t, 0),   // bottom right inner
-      new THREE.Vector3(w, -t, 0),   // right bottom
-      new THREE.Vector3(w, t, 0),    // right top
-      new THREE.Vector3(t, t, 0),    // top right inner
-      new THREE.Vector3(t, l, 0),    // top center right
-      new THREE.Vector3(-t, l, 0),   // top center left
-      new THREE.Vector3(-t, t, 0),   // top left inner
-      new THREE.Vector3(-w, t, 0),   // left top
-      new THREE.Vector3(-w, -t, 0),  // left bottom
-      new THREE.Vector3(-t, -t, 0)   // bottom left inner
+      new THREE.Vector3(t, -t, 0), // bottom right inner
+      new THREE.Vector3(w, -t, 0), // right bottom
+      new THREE.Vector3(w, t, 0), // right top
+      new THREE.Vector3(t, t, 0), // top right inner
+      new THREE.Vector3(t, l, 0), // top center right
+      new THREE.Vector3(-t, l, 0), // top center left
+      new THREE.Vector3(-t, t, 0), // top left inner
+      new THREE.Vector3(-w, t, 0), // left top
+      new THREE.Vector3(-w, -t, 0), // left bottom
+      new THREE.Vector3(-t, -t, 0), // bottom left inner
     ];
 
     // Create top and bottom vertices - correct Y coordinates for height
-    const topVertices = crossProfile.map(v => new THREE.Vector3(v.x, h, v.y));
-    const bottomVertices = crossProfile.map(v => new THREE.Vector3(v.x, -h, v.y));
+    const topVertices = crossProfile.map((v) => new THREE.Vector3(v.x, h, v.y));
+    const bottomVertices = crossProfile.map(
+      (v) => new THREE.Vector3(v.x, -h, v.y),
+    );
 
     vertices.push(...topVertices, ...bottomVertices);
 
     // Top and bottom faces - split into separate rectangles for each arm
     // Horizontal arm (bottom part of cross)
-    const horizontalTop = [topVertices[0], topVertices[1], topVertices[2], topVertices[11]];
-    const horizontalBottom = [bottomVertices[0], bottomVertices[1], bottomVertices[2], bottomVertices[11]];
+    const horizontalTop = [
+      topVertices[0],
+      topVertices[1],
+      topVertices[2],
+      topVertices[11],
+    ];
+    const horizontalBottom = [
+      bottomVertices[0],
+      bottomVertices[1],
+      bottomVertices[2],
+      bottomVertices[11],
+    ];
 
     // Vertical arm (right side of cross)
-    const verticalRightTop = [topVertices[2], topVertices[3], topVertices[4], topVertices[5]];
-    const verticalRightBottom = [bottomVertices[2], bottomVertices[3], bottomVertices[4], bottomVertices[5]];
+    const verticalRightTop = [
+      topVertices[2],
+      topVertices[3],
+      topVertices[4],
+      topVertices[5],
+    ];
+    const verticalRightBottom = [
+      bottomVertices[2],
+      bottomVertices[3],
+      bottomVertices[4],
+      bottomVertices[5],
+    ];
 
     // Vertical arm (top of cross)
-    const verticalTopTop = [topVertices[5], topVertices[6], topVertices[7], topVertices[8]];
-    const verticalTopBottom = [bottomVertices[5], bottomVertices[6], bottomVertices[7], bottomVertices[8]];
+    const verticalTopTop = [
+      topVertices[5],
+      topVertices[6],
+      topVertices[7],
+      topVertices[8],
+    ];
+    const verticalTopBottom = [
+      bottomVertices[5],
+      bottomVertices[6],
+      bottomVertices[7],
+      bottomVertices[8],
+    ];
 
     // Vertical arm (left side of cross)
-    const verticalLeftTop = [topVertices[8], topVertices[9], topVertices[10], topVertices[11]];
-    const verticalLeftBottom = [bottomVertices[8], bottomVertices[9], bottomVertices[10], bottomVertices[11]];
+    const verticalLeftTop = [
+      topVertices[8],
+      topVertices[9],
+      topVertices[10],
+      topVertices[11],
+    ];
+    const verticalLeftBottom = [
+      bottomVertices[8],
+      bottomVertices[9],
+      bottomVertices[10],
+      bottomVertices[11],
+    ];
 
     // Add the four rectangular faces for top
-    faces.push(this.createFace(horizontalTop, 'quad'));
-    faces.push(this.createFace(verticalRightTop, 'quad'));
-    faces.push(this.createFace(verticalTopTop, 'quad'));
-    faces.push(this.createFace(verticalLeftTop, 'quad'));
+    faces.push(this.createFace(horizontalTop, "quad"));
+    faces.push(this.createFace(verticalRightTop, "quad"));
+    faces.push(this.createFace(verticalTopTop, "quad"));
+    faces.push(this.createFace(verticalLeftTop, "quad"));
 
     // Add the four rectangular faces for bottom (reversed for correct orientation)
-    faces.push(this.createFace([...horizontalBottom].reverse(), 'quad'));
-    faces.push(this.createFace([...verticalRightBottom].reverse(), 'quad'));
-    faces.push(this.createFace([...verticalTopBottom].reverse(), 'quad'));
-    faces.push(this.createFace([...verticalLeftBottom].reverse(), 'quad'));
+    faces.push(this.createFace([...horizontalBottom].reverse(), "quad"));
+    faces.push(this.createFace([...verticalRightBottom].reverse(), "quad"));
+    faces.push(this.createFace([...verticalTopBottom].reverse(), "quad"));
+    faces.push(this.createFace([...verticalLeftBottom].reverse(), "quad"));
 
     // Side faces - only create faces for actual exterior edges
     // Cross shape has 12 vertices, but we need to skip the interior connections
     const exteriorEdges = [
-      [0, 1],   // bottom center edge
-      [1, 2],   // bottom right vertical
-      [2, 3],   // bottom right horizontal
-      [3, 4],   // right vertical
-      [4, 5],   // top right horizontal
-      [5, 6],   // top right vertical
-      [6, 7],   // top center edge
-      [7, 8],   // top left vertical
-      [8, 9],   // top left horizontal
-      [9, 10],  // left vertical
+      [0, 1], // bottom center edge
+      [1, 2], // bottom right vertical
+      [2, 3], // bottom right horizontal
+      [3, 4], // right vertical
+      [4, 5], // top right horizontal
+      [5, 6], // top right vertical
+      [6, 7], // top center edge
+      [7, 8], // top left vertical
+      [8, 9], // top left horizontal
+      [9, 10], // left vertical
       [10, 11], // bottom left horizontal
-      [11, 0]   // bottom left vertical
+      [11, 0], // bottom left vertical
     ];
 
     for (const [i, next] of exteriorEdges) {
-      faces.push(this.createFace([
-        bottomVertices[i], bottomVertices[next],
-        topVertices[next], topVertices[i]
-      ], 'quad'));
+      faces.push(
+        this.createFace(
+          [
+            bottomVertices[i],
+            bottomVertices[next],
+            topVertices[next],
+            topVertices[i],
+          ],
+          "quad",
+        ),
+      );
     }
 
-    return { vertices, faces, type: 'cross_shape' };
+    return { vertices, faces, type: "cross_shape" };
   }
 
   /**
    * Convert PolygonGeometry to Three.js BufferGeometry by triangulating
    */
-  static toBufferGeometry(polygonGeometry: PolygonGeometry): THREE.BufferGeometry {
-    console.log(`🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${polygonGeometry.faces.length} faces`);
+  static toBufferGeometry(
+    polygonGeometry: PolygonGeometry,
+  ): THREE.BufferGeometry {
+    console.log(
+      `🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${polygonGeometry.faces.length} faces`,
+    );
 
     const positions: number[] = [];
     const normals: number[] = [];
     const faceData: FaceInfo[] = [];
 
-    for (let faceIndex = 0; faceIndex < polygonGeometry.faces.length; faceIndex++) {
+    for (
+      let faceIndex = 0;
+      faceIndex < polygonGeometry.faces.length;
+      faceIndex++
+    ) {
       const face = polygonGeometry.faces[faceIndex];
-      console.log(`  Face ${faceIndex}: ${face.faceType} with ${face.vertices.length} vertices`);
+      console.log(
+        `  Face ${faceIndex}: ${face.faceType} with ${face.vertices.length} vertices`,
+      );
 
       const triangulatedVertices = this.triangulateFace(face);
-      console.log(`    Triangulated into ${triangulatedVertices.length / 3} triangles`);
+      console.log(
+        `    Triangulated into ${triangulatedVertices.length / 3} triangles`,
+      );
 
       const startIndex = positions.length / 3;
 
@@ -1007,13 +1411,19 @@ export class PolygonGeometryBuilder {
         startVertex: startIndex,
         endVertex: endIndex - 1,
         originalVertices: face.vertices,
-        normal: face.normal
+        normal: face.normal,
       });
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3),
+    );
 
     // Store face information for export
     (geometry as any).polygonFaces = faceData;
@@ -1052,7 +1462,7 @@ export class PolygonGeometryBuilder {
 // Types for polygon geometry
 export interface PolygonFace {
   vertices: THREE.Vector3[];
-  faceType: 'triangle' | 'quad' | 'polygon';
+  faceType: "triangle" | "quad" | "polygon";
   normal: THREE.Vector3;
 }
 
@@ -1063,7 +1473,7 @@ export interface PolygonGeometry {
 }
 
 export interface FaceInfo {
-  type: 'triangle' | 'quad' | 'polygon';
+  type: "triangle" | "quad" | "polygon";
   startVertex: number;
   endVertex: number;
   originalVertices: THREE.Vector3[];

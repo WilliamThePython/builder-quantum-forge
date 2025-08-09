@@ -1047,13 +1047,10 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
 
-
       if (polygonFaces && Array.isArray(polygonFaces)) {
-
         let triangleOffset = 0;
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
@@ -1106,7 +1103,9 @@ function STLMesh() {
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
       computePolygonAwareFlatNormals(geometry, polygonFaces);
-      console.log(`✅ Applied ${polygonFaces ? 'polygon-aware' : 'triangle-based'} coloring to ${geometry.attributes.position.count / 3} triangles`);
+      console.log(
+        `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
+      );
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
       geometry.deleteAttribute("color");

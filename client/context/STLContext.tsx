@@ -156,7 +156,9 @@ const defaultSTLFiles = [
 ];
 
 // Helper function to remove degenerate triangles that cause black voids
-const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+const removeDegenearteTriangles = (
+  geometry: THREE.BufferGeometry,
+): THREE.BufferGeometry => {
   console.log("🔧 Removing degenerate triangles...");
 
   const positions = geometry.attributes.position.array as Float32Array;
@@ -169,9 +171,21 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
 
     for (let i = 0; i < positions.length; i += 9) {
       // Get triangle vertices
-      const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-      const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-      const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+      const v1 = new THREE.Vector3(
+        positions[i],
+        positions[i + 1],
+        positions[i + 2],
+      );
+      const v2 = new THREE.Vector3(
+        positions[i + 3],
+        positions[i + 4],
+        positions[i + 5],
+      );
+      const v3 = new THREE.Vector3(
+        positions[i + 6],
+        positions[i + 7],
+        positions[i + 8],
+      );
 
       // Calculate triangle area using cross product
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
@@ -183,10 +197,12 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
       const minArea = 1e-10;
       const minDistance = 1e-8;
 
-      if (area > minArea &&
-          v1.distanceTo(v2) > minDistance &&
-          v2.distanceTo(v3) > minDistance &&
-          v3.distanceTo(v1) > minDistance) {
+      if (
+        area > minArea &&
+        v1.distanceTo(v2) > minDistance &&
+        v2.distanceTo(v3) > minDistance &&
+        v3.distanceTo(v1) > minDistance
+      ) {
         // Valid triangle - keep it
         newPositions.push(...positions.slice(i, i + 9));
       } else {
@@ -197,19 +213,22 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
     if (removedCount > 0) {
       console.log(`✅ Removed ${removedCount} degenerate triangles`);
       const newGeometry = new THREE.BufferGeometry();
-      newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+      newGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(newPositions, 3),
+      );
 
       // Copy other attributes if they exist
       if (geometry.attributes.normal) {
-        newGeometry.setAttribute('normal', geometry.attributes.normal);
+        newGeometry.setAttribute("normal", geometry.attributes.normal);
       }
       if (geometry.attributes.uv) {
-        newGeometry.setAttribute('uv', geometry.attributes.uv);
+        newGeometry.setAttribute("uv", geometry.attributes.uv);
       }
 
       // Copy metadata
-      Object.keys(geometry).forEach(key => {
-        if (key.startsWith('polygon') || key === 'isPolygonPreserved') {
+      Object.keys(geometry).forEach((key) => {
+        if (key.startsWith("polygon") || key === "isPolygonPreserved") {
           (newGeometry as any)[key] = (geometry as any)[key];
         }
       });
@@ -227,9 +246,21 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
       const i3 = indices[i + 2] * 3;
 
       // Get triangle vertices
-      const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
-      const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
-      const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      const v1 = new THREE.Vector3(
+        positions[i1],
+        positions[i1 + 1],
+        positions[i1 + 2],
+      );
+      const v2 = new THREE.Vector3(
+        positions[i2],
+        positions[i2 + 1],
+        positions[i2 + 2],
+      );
+      const v3 = new THREE.Vector3(
+        positions[i3],
+        positions[i3 + 1],
+        positions[i3 + 2],
+      );
 
       // Calculate triangle area
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
@@ -241,13 +272,15 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
       const minArea = 1e-10;
       const minDistance = 1e-8;
 
-      if (area > minArea &&
-          v1.distanceTo(v2) > minDistance &&
-          v2.distanceTo(v3) > minDistance &&
-          v3.distanceTo(v1) > minDistance &&
-          indices[i] !== indices[i + 1] &&
-          indices[i + 1] !== indices[i + 2] &&
-          indices[i + 2] !== indices[i]) {
+      if (
+        area > minArea &&
+        v1.distanceTo(v2) > minDistance &&
+        v2.distanceTo(v3) > minDistance &&
+        v3.distanceTo(v1) > minDistance &&
+        indices[i] !== indices[i + 1] &&
+        indices[i + 1] !== indices[i + 2] &&
+        indices[i + 2] !== indices[i]
+      ) {
         // Valid triangle - keep indices
         validIndices.push(indices[i], indices[i + 1], indices[i + 2]);
       } else {
@@ -256,7 +289,9 @@ const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.Buffer
     }
 
     if (removedCount > 0) {
-      console.log(`✅ Removed ${removedCount} degenerate triangles from indexed geometry`);
+      console.log(
+        `✅ Removed ${removedCount} degenerate triangles from indexed geometry`,
+      );
       geometry.setIndex(validIndices);
     }
   }
@@ -310,15 +345,40 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
       const i2 = indices[triIndex + 1] * 3;
       const i3 = indices[triIndex + 2] * 3;
 
-      v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
-      v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
-      v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      v1 = new THREE.Vector3(
+        positions[i1],
+        positions[i1 + 1],
+        positions[i1 + 2],
+      );
+      v2 = new THREE.Vector3(
+        positions[i2],
+        positions[i2 + 1],
+        positions[i2 + 2],
+      );
+      v3 = new THREE.Vector3(
+        positions[i3],
+        positions[i3 + 1],
+        positions[i3 + 2],
+      );
     } else {
       // Non-indexed geometry
-      const vertexIndex = Math.floor((i / sampleCount) * (positions.length / 9)) * 9;
-      v1 = new THREE.Vector3(positions[vertexIndex], positions[vertexIndex + 1], positions[vertexIndex + 2]);
-      v2 = new THREE.Vector3(positions[vertexIndex + 3], positions[vertexIndex + 4], positions[vertexIndex + 5]);
-      v3 = new THREE.Vector3(positions[vertexIndex + 6], positions[vertexIndex + 7], positions[vertexIndex + 8]);
+      const vertexIndex =
+        Math.floor((i / sampleCount) * (positions.length / 9)) * 9;
+      v1 = new THREE.Vector3(
+        positions[vertexIndex],
+        positions[vertexIndex + 1],
+        positions[vertexIndex + 2],
+      );
+      v2 = new THREE.Vector3(
+        positions[vertexIndex + 3],
+        positions[vertexIndex + 4],
+        positions[vertexIndex + 5],
+      );
+      v3 = new THREE.Vector3(
+        positions[vertexIndex + 6],
+        positions[vertexIndex + 7],
+        positions[vertexIndex + 8],
+      );
     }
 
     // Calculate triangle center
@@ -331,13 +391,18 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     // Calculate triangle normal
     const edge1 = new THREE.Vector3().subVectors(v2, v1);
     const edge2 = new THREE.Vector3().subVectors(v3, v1);
-    const triangleNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+    const triangleNormal = new THREE.Vector3()
+      .crossVectors(edge1, edge2)
+      .normalize();
 
     // Skip degenerate triangles
     if (triangleNormal.length() < 0.5) continue;
 
     // Vector from geometry center to triangle center
-    const centerToTriangle = new THREE.Vector3().subVectors(triangleCenter, center);
+    const centerToTriangle = new THREE.Vector3().subVectors(
+      triangleCenter,
+      center,
+    );
 
     // For complex shapes like torus, use distance-based weighting
     const distance = centerToTriangle.length();
@@ -348,7 +413,8 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     // Check if normal points outward (away from center)
     const dot = triangleNormal.dot(centerToTriangle);
 
-    if (dot > 0.1) { // Threshold to handle near-tangent faces
+    if (dot > 0.1) {
+      // Threshold to handle near-tangent faces
       outwardCount++;
     } else if (dot < -0.1) {
       inwardCount++;
@@ -358,7 +424,9 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
     validSamples++;
   }
 
-  console.log(`🔍 Face orientation check: ${outwardCount} outward, ${inwardCount} inward (${validSamples} valid samples)`);
+  console.log(
+    `🔍 Face orientation check: ${outwardCount} outward, ${inwardCount} inward (${validSamples} valid samples)`,
+  );
 
   // Only flip if there's a clear majority of inward-facing triangles
   const flipThreshold = 0.6; // 60% must be inward to trigger flip
@@ -588,7 +656,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setIsInitialized(true);
   }, []);
 
-
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
@@ -620,7 +687,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Skip all processing for procedurally generated geometries
     if ((newIndexedGeometry as any).isProcedurallyGenerated) {
       console.log("✅ PROCEDURAL GEOMETRY: Setting with zero processing");
-      console.log(`   - Vertices: ${newIndexedGeometry.attributes.position.count}`);
+      console.log(
+        `   - Vertices: ${newIndexedGeometry.attributes.position.count}`,
+      );
       console.log(`   - Type: ${(newIndexedGeometry as any).polygonType}`);
       console.log("   - NO triangulation, NO orientation fixing, NO cleanup");
       setIndexedGeometry(newIndexedGeometry);
@@ -693,7 +762,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const mappedPolygonFaces: any[] = [];
 
       for (const face of originalPolygonFaces) {
-        const triangleCount = face.triangleCount || Math.max(1, (face.originalVertices?.length || 3) - 2);
+        const triangleCount =
+          face.triangleCount ||
+          Math.max(1, (face.originalVertices?.length || 3) - 2);
 
         // Create face mapping for non-indexed geometry
         mappedPolygonFaces.push({
@@ -709,7 +780,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       (nonIndexedGeometry as any).polygonFaces = mappedPolygonFaces;
-      console.log("✅ Mapped", mappedPolygonFaces.length, "polygon faces to non-indexed geometry");
+      console.log(
+        "✅ Mapped",
+        mappedPolygonFaces.length,
+        "polygon faces to non-indexed geometry",
+      );
     } else {
       // Fallback: create simple triangle-based face structure for coloring
       const triangleCount = Math.floor(newPositions.length / 9); // 3 vertices * 3 coords per triangle
@@ -726,15 +801,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       (nonIndexedGeometry as any).polygonFaces = fallbackFaces;
-      console.log("⚡ Created fallback triangle faces for", triangleCount, "triangles");
+      console.log(
+        "⚡ Created fallback triangle faces for",
+        triangleCount,
+        "triangles",
+      );
     }
 
     // Preserve other polygon metadata
     if ((indexedGeom as any).polygonType) {
-      (nonIndexedGeometry as any).polygonType = (indexedGeom as any).polygonType;
+      (nonIndexedGeometry as any).polygonType = (
+        indexedGeom as any
+      ).polygonType;
     }
     if ((indexedGeom as any).isPolygonPreserved) {
-      (nonIndexedGeometry as any).isPolygonPreserved = (indexedGeom as any).isPolygonPreserved;
+      (nonIndexedGeometry as any).isPolygonPreserved = (
+        indexedGeom as any
+      ).isPolygonPreserved;
     }
 
     // Prepare for viewing (flat normals, etc.)
@@ -765,7 +848,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       fileName: file.name,
       fileSize: file.size,
       fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
-      fileType: file.type
+      fileType: file.type,
     });
 
     setIsLoading(true);
@@ -810,8 +893,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Simple warning for larger files
       if (file.size > 15 * 1024 * 1024) {
-        console.warn(`⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`);
-        addError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below.`);
+        console.warn(
+          `⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`,
+        );
+        addError(
+          `Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below.`,
+        );
 
         // Give UI time to update progress bar before heavy processing
         await new Promise((resolve) => setTimeout(resolve, 200));
@@ -1498,7 +1585,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // For procedurally generated geometries, do NOTHING - they're perfect as-is
       let preparedGeometry: THREE.BufferGeometry;
       if ((bufferGeometry as any).isProcedurallyGenerated) {
-        console.log("✅ Using procedurally generated geometry as-is - no processing");
+        console.log(
+          "✅ Using procedurally generated geometry as-is - no processing",
+        );
         // Use the geometry exactly as generated - no modifications whatsoever
         preparedGeometry = bufferGeometry;
         // Don't even touch the normals - they're already computed correctly
@@ -1542,20 +1631,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Basic rectangular shapes (known to work)
       {
         name: "cube.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20),
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20),
         description: "Simple cube with 6 quad faces",
       },
       {
         name: "wide-block.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createBoxWithQuads(35, 12, 20),
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(35, 12, 20),
         description: "Wide rectangular block",
       },
       {
         name: "tall-tower.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createBoxWithQuads(12, 40, 12),
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(12, 40, 12),
         description: "Tall tower shape",
       },
       {
@@ -1582,33 +1668,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Gear wheels
       {
         name: "gear-wheel-12.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 12),
+        generator: () => PolygonGeometryBuilder.createGearWheel(8, 16, 4, 12),
         description: "12-tooth gear wheel",
       },
       {
         name: "gear-wheel-16.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 16),
+        generator: () => PolygonGeometryBuilder.createGearWheel(8, 16, 4, 16),
         description: "16-tooth gear wheel",
       },
       {
         name: "gear-wheel-24.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 24),
+        generator: () => PolygonGeometryBuilder.createGearWheel(8, 16, 4, 24),
         description: "24-tooth gear wheel",
       },
       // Star shapes
       {
         name: "star-8-point.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createStarShape(18, 10, 6, 8),
+        generator: () => PolygonGeometryBuilder.createStarShape(18, 10, 6, 8),
         description: "8-pointed star",
       },
       {
         name: "star-12-point.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createStarShape(18, 10, 6, 12),
+        generator: () => PolygonGeometryBuilder.createStarShape(18, 10, 6, 12),
         description: "12-pointed star",
       },
       // High-res shapes
@@ -1620,21 +1701,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       },
       {
         name: "washer-24-seg.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createWasher(16, 8, 6, 24),
+        generator: () => PolygonGeometryBuilder.createWasher(16, 8, 6, 24),
         description: "High-res washer/torus (24 segments)",
       },
       // Architectural shapes
       {
         name: "cross-shape.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createCrossShape(12, 20, 4, 8),
+        generator: () => PolygonGeometryBuilder.createCrossShape(12, 20, 4, 8),
         description: "Cross/plus shape",
       },
       {
         name: "l-bracket.stl",
-        generator: () =>
-          PolygonGeometryBuilder.createLBracket(20, 25, 15, 3),
+        generator: () => PolygonGeometryBuilder.createLBracket(20, 25, 15, 3),
         description: "L-bracket mechanical part",
       },
       {
@@ -1647,100 +1725,108 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, []);
 
   // Load a specific model by name
-  const loadSpecificModel = useCallback(async (modelName: string) => {
-    setIsLoading(true);
-    setError(null);
-    setLoadingProgress({
-      percentage: 0,
-      stage: "Loading model...",
-      details: `Loading ${modelName}`,
-    });
-
-    try {
-      const workingModels = getAvailableModels();
-      const selectedModel = workingModels.find(model => model.name === modelName);
-
-      if (!selectedModel) {
-        throw new Error(`Model "${modelName}" not found`);
-      }
-
+  const loadSpecificModel = useCallback(
+    async (modelName: string) => {
+      setIsLoading(true);
+      setError(null);
       setLoadingProgress({
-        percentage: 20,
-        stage: "Creating geometry...",
-        details: selectedModel.description,
+        percentage: 0,
+        stage: "Loading model...",
+        details: `Loading ${modelName}`,
       });
 
-      // Generate the model
-      const polygonGeometry = selectedModel.generator();
-
-      setLoadingProgress({
-        percentage: 50,
-        stage: "Converting geometry...",
-        details: "Triangulating faces",
-      });
-
-      const bufferGeometry =
-        PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
-
-      setLoadingProgress({
-        percentage: 70,
-        stage: "Validating geometry...",
-        details: "Checking structure",
-      });
-
-      // Validate the geometry
-      if (
-        !bufferGeometry.attributes.position ||
-        bufferGeometry.attributes.position.count === 0
-      ) {
-        throw new Error(
-          `Generated geometry has no vertices: ${selectedModel.name}`,
+      try {
+        const workingModels = getAvailableModels();
+        const selectedModel = workingModels.find(
+          (model) => model.name === modelName,
         );
+
+        if (!selectedModel) {
+          throw new Error(`Model "${modelName}" not found`);
+        }
+
+        setLoadingProgress({
+          percentage: 20,
+          stage: "Creating geometry...",
+          details: selectedModel.description,
+        });
+
+        // Generate the model
+        const polygonGeometry = selectedModel.generator();
+
+        setLoadingProgress({
+          percentage: 50,
+          stage: "Converting geometry...",
+          details: "Triangulating faces",
+        });
+
+        const bufferGeometry =
+          PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+
+        setLoadingProgress({
+          percentage: 70,
+          stage: "Validating geometry...",
+          details: "Checking structure",
+        });
+
+        // Validate the geometry
+        if (
+          !bufferGeometry.attributes.position ||
+          bufferGeometry.attributes.position.count === 0
+        ) {
+          throw new Error(
+            `Generated geometry has no vertices: ${selectedModel.name}`,
+          );
+        }
+
+        setLoadingProgress({
+          percentage: 90,
+          stage: "Finalizing...",
+          details: "Setting up viewer",
+        });
+
+        // For procedurally generated geometries, do NOTHING - they're perfect as-is
+        let preparedGeometry: THREE.BufferGeometry;
+        if ((bufferGeometry as any).isProcedurallyGenerated) {
+          console.log(
+            "✅ Using procedurally generated geometry as-is - no processing",
+          );
+          // Use the geometry exactly as generated - no modifications whatsoever
+          preparedGeometry = bufferGeometry;
+          // Don't even touch the normals - they're already computed correctly
+        } else {
+          // Only apply full cleanup pipeline to loaded STL files
+          preparedGeometry = prepareGeometryForViewing(
+            bufferGeometry,
+            "initial_load",
+          );
+        }
+
+        // Set up dual geometry storage
+        setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
+        setFileName(selectedModel.name);
+        setOriginalFormat("stl");
+
+        setLoadingProgress({
+          percentage: 100,
+          stage: "Complete",
+          details: `${selectedModel.name} loaded successfully`,
+        });
+        console.log(`${selectedModel.name} loaded successfully`);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        addError(`Failed to load model: ${errorMessage}`);
+      } finally {
+        setIsLoading(false);
+        // Clear progress after a longer delay so you can see the result
+        setTimeout(() => {
+          setLoadingProgress({ percentage: 0, stage: "", details: "" });
+        }, 2000);
       }
-
-      setLoadingProgress({
-        percentage: 90,
-        stage: "Finalizing...",
-        details: "Setting up viewer",
-      });
-
-      // For procedurally generated geometries, do NOTHING - they're perfect as-is
-      let preparedGeometry: THREE.BufferGeometry;
-      if ((bufferGeometry as any).isProcedurallyGenerated) {
-        console.log("✅ Using procedurally generated geometry as-is - no processing");
-        // Use the geometry exactly as generated - no modifications whatsoever
-        preparedGeometry = bufferGeometry;
-        // Don't even touch the normals - they're already computed correctly
-      } else {
-        // Only apply full cleanup pipeline to loaded STL files
-        preparedGeometry = prepareGeometryForViewing(
-          bufferGeometry,
-          "initial_load",
-        );
-      }
-
-      // Set up dual geometry storage
-      setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
-      setFileName(selectedModel.name);
-      setOriginalFormat("stl");
-
-      setLoadingProgress({
-        percentage: 100,
-        stage: "Complete",
-        details: `${selectedModel.name} loaded successfully`,
-      });
-      console.log(`${selectedModel.name} loaded successfully`);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      addError(`Failed to load model: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
-      // Clear progress after a longer delay so you can see the result
-      setTimeout(() => {
-        setLoadingProgress({ percentage: 0, stage: "", details: "" });
-      }, 2000);
-    }
-  }, [getAvailableModels]);
+    },
+    [getAvailableModels],
+  );
 
   const updateViewerSettings = useCallback(
     (newSettings: Partial<ViewerSettings>) => {
@@ -2127,7 +2213,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.log("🔧 POST-DECIMATION: Fixing geometry issues...");
 
         // First, validate and fix any NaN or invalid values
-        result.geometry = validateAndFixGeometry(result.geometry, "post-decimation validation");
+        result.geometry = validateAndFixGeometry(
+          result.geometry,
+          "post-decimation validation",
+        );
 
         // Remove degenerate triangles that can cause black voids
         result.geometry = removeDegenearteTriangles(result.geometry);
@@ -2136,7 +2225,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         ensureSolidObjectDisplay(result.geometry);
 
         // Final validation to ensure no remaining issues
-        const finalValidation = validateAndFixGeometry(result.geometry, "final post-decimation check");
+        const finalValidation = validateAndFixGeometry(
+          result.geometry,
+          "final post-decimation check",
+        );
         if (finalValidation !== result.geometry) {
           result.geometry = finalValidation;
           console.log("✅ Applied final geometry corrections");
@@ -2163,30 +2255,65 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               (result.geometry as any).polygonFaces = mergedFaces;
               (result.geometry as any).polygonType = "post_decimation_merged";
               (result.geometry as any).isPolygonPreserved = true;
-              console.log("✅ Reconstructed", mergedFaces.length, "polygon faces after decimation");
+              console.log(
+                "✅ Reconstructed",
+                mergedFaces.length,
+                "polygon faces after decimation",
+              );
             } else {
               // Fallback: use polygon face reconstructor
-              console.log("⚡ Coplanar merging found no faces, trying polygon reconstruction...");
-              const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+              console.log(
+                "⚡ Coplanar merging found no faces, trying polygon reconstruction...",
+              );
+              const reconstructedFaces =
+                PolygonFaceReconstructor.reconstructPolygonFaces(
+                  result.geometry,
+                );
               if (reconstructedFaces.length > 0) {
-                PolygonFaceReconstructor.applyReconstructedFaces(result.geometry, reconstructedFaces);
-                console.log("✅ Polygon reconstruction created", reconstructedFaces.length, "faces");
+                PolygonFaceReconstructor.applyReconstructedFaces(
+                  result.geometry,
+                  reconstructedFaces,
+                );
+                console.log(
+                  "✅ Polygon reconstruction created",
+                  reconstructedFaces.length,
+                  "faces",
+                );
               }
             }
           } else {
             // For high poly models, use basic polygon reconstruction
-            console.log("⚡ High poly model - using polygon face reconstructor...");
-            const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+            console.log(
+              "⚡ High poly model - using polygon face reconstructor...",
+            );
+            const reconstructedFaces =
+              PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
             if (reconstructedFaces.length > 0) {
-              PolygonFaceReconstructor.applyReconstructedFaces(result.geometry, reconstructedFaces);
-              console.log("✅ Polygon reconstruction created", reconstructedFaces.length, "faces");
+              PolygonFaceReconstructor.applyReconstructedFaces(
+                result.geometry,
+                reconstructedFaces,
+              );
+              console.log(
+                "✅ Polygon reconstruction created",
+                reconstructedFaces.length,
+                "faces",
+              );
             }
           }
         } catch (reconstructionError) {
-          console.warn("⚠️ Polygon reconstruction failed after decimation:", reconstructionError);
+          console.warn(
+            "⚠️ Polygon reconstruction failed after decimation:",
+            reconstructionError,
+          );
           // Even if reconstruction fails, ensure basic triangle structure exists for wireframe
-          const triangleCount = Math.floor(result.geometry.attributes.position.count / 3);
-          console.log("🔧 Creating fallback triangle structure for", triangleCount, "triangles");
+          const triangleCount = Math.floor(
+            result.geometry.attributes.position.count / 3,
+          );
+          console.log(
+            "🔧 Creating fallback triangle structure for",
+            triangleCount,
+            "triangles",
+          );
         }
 
         // CRITICAL: Ensure the decimated geometry is properly indexed for future operations
@@ -2198,7 +2325,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Update both indexed (for operations) and non-indexed (for viewing) geometries
         setDualGeometry(result.geometry);
 
-        console.log("✅ Decimation completed - geometry updated with polygon support");
+        console.log(
+          "✅ Decimation completed - geometry updated with polygon support",
+        );
 
         const message = `Mesh simplification (${method}) completed: Reduced from ${result.originalStats.vertices.toLocaleString()} to ${result.newStats.vertices.toLocaleString()} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`;
 
@@ -2384,7 +2513,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       loadModelFromFile,
       loadDefaultSTL,
       loadSpecificModel,
-      availableModels: getAvailableModels().map(m => ({ name: m.name, description: m.description })),
+      availableModels: getAvailableModels().map((m) => ({
+        name: m.name,
+        description: m.description,
+      })),
       updateViewerSettings,
       exportSTL,
       exportOBJ,

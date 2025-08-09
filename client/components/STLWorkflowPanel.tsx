@@ -437,8 +437,12 @@ export default function STLWorkflowPanel({
                               className="text-white hover:bg-slate-700 cursor-pointer"
                             >
                               <div>
-                                <div className="font-medium text-sm">{model.name}</div>
-                                <div className="text-xs text-white/60">{model.description}</div>
+                                <div className="font-medium text-sm">
+                                  {model.name}
+                                </div>
+                                <div className="text-xs text-white/60">
+                                  {model.description}
+                                </div>
                               </div>
                             </DropdownMenuItem>
                           ))}
