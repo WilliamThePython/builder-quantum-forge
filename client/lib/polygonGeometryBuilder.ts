@@ -1421,9 +1421,16 @@ export class PolygonGeometryBuilder {
       triangulated.push(vertices[0], vertices[1], vertices[2]);
       triangulated.push(vertices[0], vertices[2], vertices[3]);
     } else {
-      // Complex polygon - use ear clipping
-      const earClippedTriangles = this.earClippingTriangulation(vertices, face.normal);
-      triangulated.push(...earClippedTriangles);
+      // Complex polygon - check if it's a star pattern and handle specially
+      if (this.isStarPattern(vertices)) {
+        console.log(`⭐ Detected star pattern with ${vertices.length} vertices - using star-aware triangulation`);
+        const starTriangles = this.starAwareTriangulation(vertices, face.normal);
+        triangulated.push(...starTriangles);
+      } else {
+        // Regular complex polygon - use ear clipping
+        const earClippedTriangles = this.earClippingTriangulation(vertices, face.normal);
+        triangulated.push(...earClippedTriangles);
+      }
     }
 
     return triangulated;
