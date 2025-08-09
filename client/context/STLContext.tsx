@@ -619,7 +619,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
     // Skip all processing for procedurally generated geometries
     if ((newIndexedGeometry as any).isProcedurallyGenerated) {
-      console.log("✅ Setting procedural geometry with zero processing");
+      console.log("✅ PROCEDURAL GEOMETRY: Setting with zero processing");
+      console.log(`   - Vertices: ${newIndexedGeometry.attributes.position.count}`);
+      console.log(`   - Type: ${(newIndexedGeometry as any).polygonType}`);
+      console.log("   - NO triangulation, NO orientation fixing, NO cleanup");
       setIndexedGeometry(newIndexedGeometry);
       // Use the geometry directly for viewing - it's already non-indexed and perfect
       setGeometry(newIndexedGeometry);
