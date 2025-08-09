@@ -284,19 +284,6 @@ export class EdgeAdjacentMerger {
     const normalCheck = normalDot >= this.NORMAL_TOLERANCE;
 
     if (!normalCheck) {
-      // Debug why faces aren't considered coplanar
-      if (normalDot < 0.99) {
-        // Only log significantly different normals
-        console.log(
-          `     Coplanarity fail: normal dot ${normalDot.toFixed(4)} < ${this.NORMAL_TOLERANCE}`,
-        );
-        console.log(
-          `       Normal1: (${normal1.x.toFixed(3)}, ${normal1.y.toFixed(3)}, ${normal1.z.toFixed(3)})`,
-        );
-        console.log(
-          `       Normal2: (${normal2.x.toFixed(3)}, ${normal2.y.toFixed(3)}, ${normal2.z.toFixed(3)})`,
-        );
-      }
       return false;
     }
 
@@ -309,12 +296,6 @@ export class EdgeAdjacentMerger {
       normal2,
     );
     const planeCheck = Math.abs(planeDistance) < this.DISTANCE_TOLERANCE;
-
-    if (!planeCheck) {
-      console.log(
-        `     Coplanarity fail: plane distance ${Math.abs(planeDistance).toFixed(4)} > ${this.DISTANCE_TOLERANCE}`,
-      );
-    }
 
     return planeCheck;
   }
