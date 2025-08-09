@@ -883,8 +883,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       const geometry = await loadModelFile(file, updateProgress);
 
-      // Fast loading complete - skip all complex processing
-      if (false) { // Disabled complex path
+      // Skip the old complex loading path (now handled by simplified loader)
+      if (false) {
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
         );
@@ -1004,7 +1004,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Only log if there are issues
           if (nanCount > 0 || infCount > 0) {
             console.error(
-              `🚨 STL loader issues: ${nanCount} NaN, ${infCount} infinite values`,
+              `�� STL loader issues: ${nanCount} NaN, ${infCount} infinite values`,
             );
 
             if (nanCount > rawPositions.length * 0.1) {
@@ -2242,7 +2242,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           }
         } catch (reconstructionError) {
           console.warn(
-            "⚠️ Polygon reconstruction failed after decimation:",
+            "���️ Polygon reconstruction failed after decimation:",
             reconstructionError,
           );
           // Even if reconstruction fails, ensure basic triangle structure exists for wireframe
