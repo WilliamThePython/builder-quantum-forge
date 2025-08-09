@@ -963,8 +963,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         `${geometry.attributes.position.count.toLocaleString()} vertices loaded`,
       );
 
-      // Skip to final processing - no more complex loading logic needed
-      if (false) { // Disable the old complex loading path
+      // Fast loading complete - skip all complex processing
+      if (false) { // Disabled complex path
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
         );
