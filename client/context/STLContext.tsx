@@ -213,7 +213,7 @@ const removeDegenearteTriangles = (
     }
 
     if (removedCount > 0) {
-      console.log(`✅ Removed ${removedCount} degenerate triangles`);
+      console.log(`��� Removed ${removedCount} degenerate triangles`);
       const newGeometry = new THREE.BufferGeometry();
       newGeometry.setAttribute(
         "position",
@@ -876,20 +876,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     updateProgress(0, "Starting", "Initializing upload...");
 
     try {
+      // Use simplified loading approach
+      const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
 
-      // Enhanced file validation for both STL and OBJ
-      const fileName = file.name.toLowerCase();
-      const isSTL = fileName.endsWith(".stl");
-      const isOBJ = fileName.endsWith(".obj");
-
-      if (!isSTL && !isOBJ) {
-        addError(
-          `Invalid file format: "${file.name}". Please select a valid STL or OBJ file.`,
-        );
-        return;
-      }
-
-      setOriginalFormat(isSTL ? "stl" : "obj");
+      setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
 
       await updateProgress(
         10,
