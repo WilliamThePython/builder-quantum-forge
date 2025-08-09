@@ -15,8 +15,6 @@ export class FlatSurfaceMerger {
    * Detect flat surfaces and merge all triangles in each surface
    */
   static mergeFlatsurfaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log("🔄 FLAT SURFACE MERGER");
-    console.log(`   Input: ${faces.length} faces`);
 
     // Group faces by plane normal (round to discrete buckets)
     const normalGroups = this.groupFacesByNormal(faces);
