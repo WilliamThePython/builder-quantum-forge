@@ -552,9 +552,10 @@ export default function STLWorkflowPanel({
                           : "border-white/30 hover:border-white/60"
                       }`}
                       style={{ background: bg.color }}
-                      onClick={() =>
-                        updateViewerSettings({ backgroundColor: bg.color })
-                      }
+                      onClick={() => {
+                        clearHighlightOnMenuInteraction();
+                        updateViewerSettings({ backgroundColor: bg.color });
+                      }}
                       title={bg.name}
                     />
                   ))}
