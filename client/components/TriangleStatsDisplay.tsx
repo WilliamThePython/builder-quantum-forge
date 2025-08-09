@@ -125,6 +125,8 @@ export default function TriangleStatsDisplay() {
           <div className="flex gap-4 text-sm">
             <span><span className="text-white/60">Vertices:</span> <span className="text-white/90">{vertexCount}</span></span>
             <span><span className="text-white/60">Edges:</span> <span className="text-white/90">{edgeCount}</span></span>
+            <span><span className="text-white/60">Area:</span> <span className="text-white/90">{triangleStats.area.toFixed(2)} mm²</span></span>
+            <span><span className="text-white/60">Perimeter:</span> <span className="text-white/90">{triangleStats.perimeter.toFixed(1)} mm</span></span>
           </div>
         </div>
 
