@@ -670,38 +670,38 @@ export class PolygonGeometryBuilder {
     vertices.push(...outerVertices);
 
     // Create faces for the L-bracket
-    // Split the L-shape into two rectangular sections to avoid interior triangular faces
+    // Split the L-shape into two separate rectangular sections
 
-    // Bottom faces - split into two rectangles
-    // Bottom horizontal rectangle (bottom arm of L)
+    // Bottom faces - create two separate rectangles for each arm of the L
+    // Bottom horizontal arm rectangle
     faces.push(
       this.createFace(
-        [vertices[0], vertices[1], vertices[2], vertices[5]].reverse(),
+        [vertices[0], vertices[1], vertices[7], vertices[6]],
         "quad",
       ),
     );
 
-    // Bottom vertical rectangle (vertical arm of L)
+    // Bottom vertical arm rectangle
     faces.push(
       this.createFace(
-        [vertices[2], vertices[3], vertices[4], vertices[5]].reverse(),
+        [vertices[3], vertices[4], vertices[10], vertices[9]],
         "quad",
       ),
     );
 
-    // Top faces - split into two rectangles
-    // Top horizontal rectangle (bottom arm of L)
+    // Top faces - create two separate rectangles for each arm of the L
+    // Top horizontal arm rectangle
     faces.push(
       this.createFace(
-        [vertices[6], vertices[7], vertices[8], vertices[11]],
+        [vertices[6], vertices[7], vertices[1], vertices[0]],
         "quad",
       ),
     );
 
-    // Top vertical rectangle (vertical arm of L)
+    // Top vertical arm rectangle
     faces.push(
       this.createFace(
-        [vertices[8], vertices[9], vertices[10], vertices[11]],
+        [vertices[9], vertices[10], vertices[4], vertices[3]],
         "quad",
       ),
     );
