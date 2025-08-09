@@ -38,6 +38,7 @@ interface ViewerSettings {
   randomColors: boolean;
   wireframe: boolean;
   backgroundColor: string;
+  autoSpin: boolean;
 }
 
 interface ErrorMessage {
