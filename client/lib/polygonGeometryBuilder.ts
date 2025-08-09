@@ -689,13 +689,26 @@ export class PolygonGeometryBuilder {
     faces.push(this.createFace([...topVertices], 'polygon'));
     faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
 
-    // Create side faces
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
-      faces.push(this.createFace([
-        bottomVertices[i], bottomVertices[next],
-        topVertices[next], topVertices[i]
-      ], 'quad'));
+    // Create side faces - only for actual gear profile edges
+    // Each tooth has 4 vertices: valley1, tip1, tip2, valley2
+    // We need faces for: valley1->tip1, tip1->tip2, tip2->valley2, valley2->next_valley1
+    for (let tooth = 0; tooth < teeth; tooth++) {
+      const baseIndex = tooth * 4;
+
+      // Faces for each tooth (4 edges per tooth)
+      const toothEdges = [
+        [baseIndex, baseIndex + 1],     // valley to tip (rising edge)
+        [baseIndex + 1, baseIndex + 2], // tip to tip (tooth top)
+        [baseIndex + 2, baseIndex + 3], // tip to valley (falling edge)
+        [baseIndex + 3, (baseIndex + 4) % topVertices.length] // valley to next valley
+      ];
+
+      for (const [i, next] of toothEdges) {
+        faces.push(this.createFace([
+          bottomVertices[i], bottomVertices[next],
+          topVertices[next], topVertices[i]
+        ], 'quad'));
+      }
     }
 
     return { vertices, faces, type: 'gear_wheel' };
