@@ -92,9 +92,6 @@ export default function Index() {
     }
   };
 
-  const handleTriangulatedChange = (checked: boolean) => {
-    updateViewerSettings({ triangulated: checked });
-  };
   return (
     <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 relative">
       {/* Fullscreen 3D Canvas */}
@@ -111,10 +108,8 @@ export default function Index() {
         geometryStats={getGeometryStats()}
         randomColors={viewerSettings.randomColors}
         wireframe={viewerSettings.wireframe}
-        triangulated={viewerSettings.triangulated}
         onRandomColorsChange={handleRandomColorsChange}
         onWireframeChange={handleWireframeChange}
-        onTriangulatedChange={handleTriangulatedChange}
       />
 
       {/* Top Right Navigation - adjusted for mobile */}
