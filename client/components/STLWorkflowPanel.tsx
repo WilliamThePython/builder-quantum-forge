@@ -126,6 +126,8 @@ export default function STLWorkflowPanel({
     geometry,
     loadModelFromFile,
     loadDefaultSTL,
+    loadSpecificModel,
+    availableModels,
     exportSTL,
     exportOBJ,
     exportParts,
@@ -597,7 +599,7 @@ export default function STLWorkflowPanel({
                   >
                     <RefreshCw className="w-3 h-3 mr-2" />
                     {hasBackup
-                      ? "��� Undo Simplification"
+                      ? "🔄 Undo Simplification"
                       : "⚪ No Backup Available"}
                   </Button>
                 </div>
