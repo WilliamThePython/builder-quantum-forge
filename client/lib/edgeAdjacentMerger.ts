@@ -12,12 +12,16 @@ export interface PolygonFace {
  * Only merges triangles that share complete edges AND are coplanar
  * This prevents unwanted merging across voids/gaps in shapes like crosses
  *
+ * REPLACES: CoplanarMerger and SimpleCoplanarMerger (removed)
+ * WHY: Old mergers created unwanted connections across gaps by merging
+ *      triangles that only shared vertices, not complete edges
+ *
  * USE THIS APPROACH FOR:
  * - Shapes with voids/holes (crosses, rings, L-brackets)
  * - When you need clean faces but no connections across gaps
  * - General-purpose coplanar merging that respects geometric boundaries
  *
- * This is now the DEFAULT coplanar merging approach
+ * This is now the ONLY coplanar merging approach in the codebase
  */
 export class EdgeAdjacentMerger {
   private static readonly DISTANCE_TOLERANCE = 0.001;
