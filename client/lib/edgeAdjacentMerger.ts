@@ -3,7 +3,14 @@ import * as THREE from "three";
 /**
  * Edge-Adjacent Coplanar Merger
  * Only merges triangles that share complete edges AND are coplanar
- * This prevents unwanted merging across voids/gaps in shapes
+ * This prevents unwanted merging across voids/gaps in shapes like crosses
+ *
+ * USE THIS APPROACH FOR:
+ * - Shapes with voids/holes (crosses, rings, L-brackets)
+ * - When you need clean faces but no connections across gaps
+ * - General-purpose coplanar merging that respects geometric boundaries
+ *
+ * This is now the DEFAULT coplanar merging approach
  */
 export class EdgeAdjacentMerger {
   private static readonly DISTANCE_TOLERANCE = 0.001;
