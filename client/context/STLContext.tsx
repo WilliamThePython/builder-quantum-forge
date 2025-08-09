@@ -1232,11 +1232,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       geometry.boundingBox.max.multiplyScalar(scale);
       geometry.boundingSphere = null; // Will be computed when needed
 
-      // Validate geometry after scaling operations
-      geometry = validateAndFixGeometry(
-        geometry,
-        "after centering and scaling",
-      );
+      // Quick Win 3: Skip intermediate validation after scaling (will validate later)
 
       updateProgress(
         70,
@@ -1427,7 +1423,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (file.size > 20 * 1024 * 1024) {
         errorMessage += `\n\n💡 Large file suggestions (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
         errorMessage += "• Close other browser tabs to free memory\n";
-        errorMessage += "• Try refreshing the page and loading again\n";
+        errorMessage += "��� Try refreshing the page and loading again\n";
         errorMessage += "• Use a desktop computer for better performance\n";
         errorMessage += "• Consider reducing the file size before uploading";
       } else if (file.size > 1 * 1024 * 1024) {
