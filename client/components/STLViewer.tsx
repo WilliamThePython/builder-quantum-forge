@@ -1166,29 +1166,51 @@ function STLMesh() {
         highlightedTriangle < polygonFaces.length
       ) {
         // Polygon-based highlighting: highlight entire polygon face
-        let triangleOffset = 0;
-
-        // Calculate which triangles belong to this polygon face
-        for (let faceIndex = 0; faceIndex < highlightedTriangle; faceIndex++) {
-          const face = polygonFaces[faceIndex];
-          triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
-        }
-
         const currentFace = polygonFaces[highlightedTriangle];
-        const triangleCount =
-          STLManipulator.getTriangleCountForPolygon(currentFace);
 
-        // Highlight all triangles in this polygon face
-        for (let t = 0; t < triangleCount; t++) {
-          const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
+        // Use triangleIndices if available (from merged faces)
+        if (currentFace.triangleIndices && currentFace.triangleIndices.length > 0) {
+          console.log(`🔴 Highlighting merged face ${highlightedTriangle} with ${currentFace.triangleIndices.length} triangle indices`);
 
-          for (let i = 0; i < 9; i += 3) {
-            const idx = triangleStart + i;
-            if (idx < colors.length) {
-              // Set to bright red color
-              colors[idx] = 1.0; // Red
-              colors[idx + 1] = 0.0; // Green
-              colors[idx + 2] = 0.0; // Blue
+          // Highlight specific triangles identified by triangleIndices
+          for (const triangleIndex of currentFace.triangleIndices) {
+            const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
+
+            // Apply red color to all 3 vertices of the triangle
+            for (let v = 0; v < 9; v += 3) {
+              if (triangleStart + v + 2 < colors.length) {
+                colors[triangleStart + v] = 1.0; // Red
+                colors[triangleStart + v + 1] = 0.0; // Green
+                colors[triangleStart + v + 2] = 0.0; // Blue
+              }
+            }
+          }
+        } else {
+          // Fallback to sequential indexing for faces without triangleIndices
+          console.log(`🔴 Highlighting face ${highlightedTriangle} with sequential indexing`);
+
+          let triangleOffset = 0;
+
+          // Calculate which triangles belong to this polygon face
+          for (let faceIndex = 0; faceIndex < highlightedTriangle; faceIndex++) {
+            const face = polygonFaces[faceIndex];
+            triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
+          }
+
+          const triangleCount = STLManipulator.getTriangleCountForPolygon(currentFace);
+
+          // Highlight all triangles in this polygon face
+          for (let t = 0; t < triangleCount; t++) {
+            const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
+
+            for (let i = 0; i < 9; i += 3) {
+              const idx = triangleStart + i;
+              if (idx < colors.length) {
+                // Set to bright red color
+                colors[idx] = 1.0; // Red
+                colors[idx + 1] = 0.0; // Green
+                colors[idx + 2] = 0.0; // Blue
+              }
             }
           }
         }
