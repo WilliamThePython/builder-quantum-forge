@@ -1051,31 +1051,55 @@ function STLMesh() {
       const polygonFaces = (geometry as any).polygonFaces;
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        let triangleOffset = 0;
+        console.log(`🎨 Coloring ${polygonFaces.length} polygon faces...`);
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
-          const triangleCount = getTriangleCountForPolygon(face);
 
           // Generate one color per polygon face
           const color = new THREE.Color();
           color.setHSL(Math.random(), 0.8, 0.6);
 
-          // Apply this color to all triangles that make up this polygon face
-          for (let t = 0; t < triangleCount; t++) {
-            const triangleStart = (triangleOffset + t) * 9; // 9 values per triangle
+          // Use triangleIndices if available (from merged faces)
+          if (face.triangleIndices && face.triangleIndices.length > 0) {
+            console.log(`  Face ${faceIndex}: Using ${face.triangleIndices.length} triangle indices`);
 
-            // Apply same color to all 3 vertices of the triangle
-            for (let v = 0; v < 9; v += 3) {
-              if (triangleStart + v + 2 < colors.length) {
-                colors[triangleStart + v] = color.r;
-                colors[triangleStart + v + 1] = color.g;
-                colors[triangleStart + v + 2] = color.b;
+            // Color specific triangles identified by triangleIndices
+            for (const triangleIndex of face.triangleIndices) {
+              const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
+
+              // Apply same color to all 3 vertices of the triangle
+              for (let v = 0; v < 9; v += 3) {
+                if (triangleStart + v + 2 < colors.length) {
+                  colors[triangleStart + v] = color.r;
+                  colors[triangleStart + v + 1] = color.g;
+                  colors[triangleStart + v + 2] = color.b;
+                }
+              }
+            }
+          } else {
+            // Fallback to sequential indexing for faces without triangleIndices
+            const triangleCount = getTriangleCountForPolygon(face);
+            console.log(`  Face ${faceIndex}: Fallback sequential coloring for ${triangleCount} triangles`);
+
+            let triangleOffset = 0;
+            // Calculate offset by summing previous faces
+            for (let i = 0; i < faceIndex; i++) {
+              triangleOffset += getTriangleCountForPolygon(polygonFaces[i]);
+            }
+
+            for (let t = 0; t < triangleCount; t++) {
+              const triangleStart = (triangleOffset + t) * 9;
+
+              for (let v = 0; v < 9; v += 3) {
+                if (triangleStart + v + 2 < colors.length) {
+                  colors[triangleStart + v] = color.r;
+                  colors[triangleStart + v + 1] = color.g;
+                  colors[triangleStart + v + 2] = color.b;
+                }
               }
             }
           }
-
-          triangleOffset += triangleCount;
         }
       } else {
         // Fallback to triangle-based coloring if no polygon face data
