@@ -148,6 +148,12 @@ export const useSTL = () => {
       console.error(
         "🔧 Dev tip: This error often resolves after a page refresh during development"
       );
+
+      // In development, trigger a page reload to recover from hot reload issues
+      setTimeout(() => {
+        console.log("🔄 Auto-reloading page to recover from context error...");
+        window.location.reload();
+      }, 1000);
     }
 
     throw new Error("useSTL must be used within an STLProvider");
@@ -2145,7 +2151,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setDualGeometry(restored);
       setProcessedModel(backupProcessedModel);
     } else {
-      console.warn("⚠️ No backup available to restore from");
+      console.warn("��️ No backup available to restore from");
     }
   }, [backupIndexedGeometry, backupProcessedModel, hasBackup]);
 
