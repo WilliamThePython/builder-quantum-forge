@@ -15,14 +15,14 @@ export class FlatSurfaceMerger {
    * Detect flat surfaces and merge all triangles in each surface
    */
   static mergeFlatsurfaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log('🔄 FLAT SURFACE MERGER');
+    console.log("🔄 FLAT SURFACE MERGER");
     console.log(`   Input: ${faces.length} faces`);
 
     // Group faces by plane normal (round to discrete buckets)
     const normalGroups = this.groupFacesByNormal(faces);
-    
+
     const mergedFaces: PolygonFace[] = [];
-    
+
     for (const [normalKey, normalFaces] of normalGroups) {
       if (normalFaces.length === 1) {
         mergedFaces.push(normalFaces[0]);
@@ -31,9 +31,14 @@ export class FlatSurfaceMerger {
 
       // Check if this is a large flat surface worth merging
       const totalArea = this.calculateTotalArea(normalFaces);
-      
-      if (totalArea >= this.MIN_SURFACE_AREA && this.isContiguousSurface(normalFaces)) {
-        console.log(`   Merging flat surface: ${normalFaces.length} faces → 1 polygon (area: ${totalArea.toFixed(3)})`);
+
+      if (
+        totalArea >= this.MIN_SURFACE_AREA &&
+        this.isContiguousSurface(normalFaces)
+      ) {
+        console.log(
+          `   Merging flat surface: ${normalFaces.length} faces → 1 polygon (area: ${totalArea.toFixed(3)})`,
+        );
         const merged = this.mergeIntoSinglePolygon(normalFaces);
         mergedFaces.push(merged);
       } else {
@@ -42,20 +47,24 @@ export class FlatSurfaceMerger {
       }
     }
 
-    console.log(`✅ Output: ${mergedFaces.length} faces (flat surfaces merged)`);
+    console.log(
+      `✅ Output: ${mergedFaces.length} faces (flat surfaces merged)`,
+    );
     return mergedFaces;
   }
 
   /**
    * Group faces by their normal direction (discretized for grouping)
    */
-  private static groupFacesByNormal(faces: PolygonFace[]): Map<string, PolygonFace[]> {
+  private static groupFacesByNormal(
+    faces: PolygonFace[],
+  ): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
 
     for (const face of faces) {
       const normal = this.ensureVector3(face.normal).normalize();
       const key = this.getNormalKey(normal);
-      
+
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -81,11 +90,11 @@ export class FlatSurfaceMerger {
    */
   private static calculateTotalArea(faces: PolygonFace[]): number {
     let totalArea = 0;
-    
+
     for (const face of faces) {
       totalArea += this.calculatePolygonArea(face.originalVertices);
     }
-    
+
     return totalArea;
   }
 
@@ -94,16 +103,16 @@ export class FlatSurfaceMerger {
    */
   private static calculatePolygonArea(vertices: THREE.Vector3[]): number {
     if (vertices.length < 3) return 0;
-    
+
     let area = 0;
     const n = vertices.length;
-    
+
     for (let i = 0; i < n; i++) {
       const j = (i + 1) % n;
       area += vertices[i].x * vertices[j].y;
       area -= vertices[j].x * vertices[i].y;
     }
-    
+
     return Math.abs(area) / 2;
   }
 
@@ -120,13 +129,17 @@ export class FlatSurfaceMerger {
     for (let i = 1; i < faces.length; i++) {
       const faceNormal = this.ensureVector3(faces[i].normal);
       const faceCenter = this.getFaceCenter(faces[i].originalVertices);
-      
+
       // Check normal similarity
       const normalDot = Math.abs(referenceNormal.dot(faceNormal));
       if (normalDot < this.NORMAL_TOLERANCE) return false;
-      
+
       // Check plane distance
-      const planeDistance = this.distanceToPlane(faceCenter, referencePlane, referenceNormal);
+      const planeDistance = this.distanceToPlane(
+        faceCenter,
+        referencePlane,
+        referenceNormal,
+      );
       if (Math.abs(planeDistance) > this.DISTANCE_TOLERANCE) return false;
     }
 
@@ -148,14 +161,18 @@ export class FlatSurfaceMerger {
 
     // Remove duplicate vertices
     const uniqueVertices = this.removeDuplicateVertices(allVertices);
-    
+
     // Order vertices around the perimeter
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
     // Determine face type
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
     return {
       type: faceType,
@@ -168,7 +185,11 @@ export class FlatSurfaceMerger {
   // Helper methods
   private static ensureVector3(vector: any): THREE.Vector3 {
     if (vector instanceof THREE.Vector3) return vector;
-    if (vector?.x !== undefined && vector?.y !== undefined && vector?.z !== undefined) {
+    if (
+      vector?.x !== undefined &&
+      vector?.y !== undefined &&
+      vector?.z !== undefined
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
     return new THREE.Vector3(0, 0, 1);
@@ -184,31 +205,36 @@ export class FlatSurfaceMerger {
   }
 
   private static distanceToPlane(
-    point: THREE.Vector3, 
-    planePoint: THREE.Vector3, 
-    planeNormal: THREE.Vector3
+    point: THREE.Vector3,
+    planePoint: THREE.Vector3,
+    planeNormal: THREE.Vector3,
   ): number {
     const diff = point.clone().sub(planePoint);
     return diff.dot(planeNormal);
   }
 
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeDuplicateVertices(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
-    
+
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing => 
-        existing.distanceTo(vertex) < this.DISTANCE_TOLERANCE
+      const isDuplicate = unique.some(
+        (existing) => existing.distanceTo(vertex) < this.DISTANCE_TOLERANCE,
       );
-      
+
       if (!isDuplicate) {
         unique.push(vertex);
       }
     }
-    
+
     return unique;
   }
 
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
     // Calculate centroid
@@ -230,10 +256,10 @@ export class FlatSurfaceMerger {
     return vertices.sort((a, b) => {
       const vecA = a.clone().sub(centroid);
       const vecB = b.clone().sub(centroid);
-      
+
       const angleA = Math.atan2(vecA.dot(v), vecA.dot(u));
       const angleB = Math.atan2(vecB.dot(v), vecB.dot(u));
-      
+
       return angleA - angleB;
     });
   }

@@ -674,15 +674,11 @@ export class PolygonGeometryBuilder {
 
     // Bottom L-shaped face (vertices 0-5)
     const bottomLFace = vertices.slice(0, 6);
-    faces.push(
-      this.createFace(bottomLFace, "polygon")
-    );
+    faces.push(this.createFace(bottomLFace, "polygon"));
 
     // Top L-shaped face (vertices 6-11) - reversed for proper normal
     const topLFace = vertices.slice(6, 12).reverse();
-    faces.push(
-      this.createFace(topLFace, "polygon")
-    );
+    faces.push(this.createFace(topLFace, "polygon"));
 
     // Side faces - only for actual L-bracket exterior edges
     // L-bracket vertices form a complex profile, need to map correctly
@@ -1408,10 +1404,13 @@ export class PolygonGeometryBuilder {
 
     // Store face information in the correct format for the viewer
     let triangleIndex = 0;
-    const properPolygonFaces = faceData.map(face => {
-      const triangleCount = face.type === "triangle" ? 1 :
-                           face.type === "quad" ? 2 :
-                           face.originalVertices.length - 2; // fan triangulation
+    const properPolygonFaces = faceData.map((face) => {
+      const triangleCount =
+        face.type === "triangle"
+          ? 1
+          : face.type === "quad"
+            ? 2
+            : face.originalVertices.length - 2; // fan triangulation
 
       const triangleIndices = [];
       for (let i = 0; i < triangleCount; i++) {
@@ -1422,14 +1421,18 @@ export class PolygonGeometryBuilder {
         type: face.type,
         originalVertices: face.originalVertices,
         normal: face.normal,
-        triangleIndices: triangleIndices
+        triangleIndices: triangleIndices,
       };
     });
 
-    console.log(`🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${properPolygonFaces.length} faces`);
+    console.log(
+      `🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${properPolygonFaces.length} faces`,
+    );
     for (let i = 0; i < Math.min(5, properPolygonFaces.length); i++) {
       const face = properPolygonFaces[i];
-      console.log(`  Face ${i}: ${face.type} with ${face.originalVertices.length} vertices`);
+      console.log(
+        `  Face ${i}: ${face.type} with ${face.originalVertices.length} vertices`,
+      );
     }
     (geometry as any).polygonFaces = properPolygonFaces;
     (geometry as any).polygonType = polygonGeometry.type;

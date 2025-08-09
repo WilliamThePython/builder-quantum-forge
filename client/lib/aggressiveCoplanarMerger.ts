@@ -14,7 +14,7 @@ export class AggressiveCoplanarMerger {
    * Aggressively merge all coplanar triangles
    */
   static mergeAggressively(faces: PolygonFace[]): PolygonFace[] {
-    console.log('⚡ AGGRESSIVE COPLANAR MERGER - Max aggression mode');
+    console.log("⚡ AGGRESSIVE COPLANAR MERGER - Max aggression mode");
     console.log(`   Input: ${faces.length} faces`);
 
     // Group by major plane directions only
@@ -27,24 +27,30 @@ export class AggressiveCoplanarMerger {
         continue;
       }
 
-      console.log(`   Merging plane ${planeKey}: ${planeFaces.length} faces → 1 polygon`);
+      console.log(
+        `   Merging plane ${planeKey}: ${planeFaces.length} faces → 1 polygon`,
+      );
       const merged = this.mergeAllFacesInPlane(planeFaces);
       mergedFaces.push(merged);
     }
 
-    console.log(`✅ Aggressive merging: ${faces.length} → ${mergedFaces.length} faces`);
+    console.log(
+      `✅ Aggressive merging: ${faces.length} → ${mergedFaces.length} faces`,
+    );
     return mergedFaces;
   }
 
   /**
    * Group by major plane directions (up, down, sides)
    */
-  private static groupByMajorPlanes(faces: PolygonFace[]): Map<string, PolygonFace[]> {
+  private static groupByMajorPlanes(
+    faces: PolygonFace[],
+  ): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
 
     for (const face of faces) {
       const normal = this.ensureVector3(face.normal).normalize();
-      
+
       // Determine major direction with more permissive thresholds
       let key: string;
       if (Math.abs(normal.y) > 0.5) {
@@ -63,7 +69,7 @@ export class AggressiveCoplanarMerger {
         const nz = Math.round(normal.z * 2) / 2;
         key = `${nx},${ny},${nz}`;
       }
-      
+
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -83,11 +89,11 @@ export class AggressiveCoplanarMerger {
    */
   private static mergeAllFacesInPlane(faces: PolygonFace[]): PolygonFace {
     // Collect all vertices
-    const allVertices = faces.flatMap(face => face.originalVertices);
-    
+    const allVertices = faces.flatMap((face) => face.originalVertices);
+
     // Remove duplicates with generous tolerance
     const uniqueVertices = this.removeDuplicateVertices(allVertices);
-    
+
     // Order vertices around perimeter
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
@@ -100,12 +106,20 @@ export class AggressiveCoplanarMerger {
       }
     }
 
-    console.log(`   Collected ${allTriangleIndices.length} triangle indices from ${faces.length} merged faces`);
+    console.log(
+      `   Collected ${allTriangleIndices.length} triangle indices from ${faces.length} merged faces`,
+    );
 
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
-    console.log(`   Created ${faceType} with ${orderedVertices.length} vertices from ${faces.length} input faces`);
+    console.log(
+      `   Created ${faceType} with ${orderedVertices.length} vertices from ${faces.length} input faces`,
+    );
 
     return {
       type: faceType,
@@ -118,13 +132,15 @@ export class AggressiveCoplanarMerger {
   /**
    * Remove duplicate vertices with ultra-generous tolerance
    */
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeDuplicateVertices(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
     const tolerance = 0.1; // Ultra-generous tolerance for procedural shapes
 
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing =>
-        existing.distanceTo(vertex) < tolerance
+      const isDuplicate = unique.some(
+        (existing) => existing.distanceTo(vertex) < tolerance,
       );
 
       if (!isDuplicate) {
@@ -132,14 +148,19 @@ export class AggressiveCoplanarMerger {
       }
     }
 
-    console.log(`   Removed duplicates: ${vertices.length} → ${unique.length} vertices (tolerance: ${tolerance})`);
+    console.log(
+      `   Removed duplicates: ${vertices.length} → ${unique.length} vertices (tolerance: ${tolerance})`,
+    );
     return unique;
   }
 
   /**
    * Order polygon vertices around perimeter
    */
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
     // Calculate centroid
@@ -161,10 +182,10 @@ export class AggressiveCoplanarMerger {
     return vertices.sort((a, b) => {
       const vecA = a.clone().sub(centroid);
       const vecB = b.clone().sub(centroid);
-      
+
       const angleA = Math.atan2(vecA.dot(v), vecA.dot(u));
       const angleB = Math.atan2(vecB.dot(v), vecB.dot(u));
-      
+
       return angleA - angleB;
     });
   }
@@ -172,7 +193,11 @@ export class AggressiveCoplanarMerger {
   // Helper methods
   private static ensureVector3(vector: any): THREE.Vector3 {
     if (vector instanceof THREE.Vector3) return vector;
-    if (vector?.x !== undefined && vector?.y !== undefined && vector?.z !== undefined) {
+    if (
+      vector?.x !== undefined &&
+      vector?.y !== undefined &&
+      vector?.z !== undefined
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
     return new THREE.Vector3(0, 0, 1);

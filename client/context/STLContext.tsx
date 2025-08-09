@@ -686,7 +686,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
     // Apply coplanar merging to procedurally generated geometries for clean faces
     if ((newIndexedGeometry as any).isProcedurallyGenerated) {
-      console.log("🔧 PROCEDURAL GEOMETRY: Applying coplanar merging for clean faces");
+      console.log(
+        "🔧 PROCEDURAL GEOMETRY: Applying coplanar merging for clean faces",
+      );
       console.log(
         `   - Vertices: ${newIndexedGeometry.attributes.position.count}`,
       );
@@ -698,17 +700,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           const { HybridCoplanarMerger } = await import(
             "../lib/hybridCoplanarMerger"
           );
-          const mergedFaces = HybridCoplanarMerger.mergeProceduralTriangles(
-            newIndexedGeometry,
-          );
+          const mergedFaces =
+            HybridCoplanarMerger.mergeProceduralTriangles(newIndexedGeometry);
 
           if (mergedFaces.length > 0) {
             (newIndexedGeometry as any).polygonFaces = mergedFaces;
-            (newIndexedGeometry as any).polygonType = (newIndexedGeometry as any).polygonType + "_merged";
-            console.log(`✅ Applied coplanar merging: ${mergedFaces.length} clean faces`);
+            (newIndexedGeometry as any).polygonType =
+              (newIndexedGeometry as any).polygonType + "_merged";
+            console.log(
+              `✅ Applied coplanar merging: ${mergedFaces.length} clean faces`,
+            );
           }
         } catch (error) {
-          console.warn("Failed to apply coplanar merging to procedural geometry:", error);
+          console.warn(
+            "Failed to apply coplanar merging to procedural geometry:",
+            error,
+          );
         }
       })();
 

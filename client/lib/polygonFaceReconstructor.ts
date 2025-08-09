@@ -28,7 +28,9 @@ export class PolygonFaceReconstructor {
   /**
    * Extract triangles as PolygonFaces for edge-adjacent merging
    */
-  private static extractTrianglesAsPolygonFaces(geometry: THREE.BufferGeometry): PolygonFace[] {
+  private static extractTrianglesAsPolygonFaces(
+    geometry: THREE.BufferGeometry,
+  ): PolygonFace[] {
     const positions = geometry.attributes.position;
     const faces: PolygonFace[] = [];
 

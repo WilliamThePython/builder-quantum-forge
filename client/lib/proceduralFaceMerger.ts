@@ -14,14 +14,14 @@ export class ProceduralFaceMerger {
    * Aggressively merge all coplanar faces in procedural shapes
    */
   static mergeProceduralFaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log('🎯 PROCEDURAL FACE MERGER - Ultra-aggressive merging');
+    console.log("🎯 PROCEDURAL FACE MERGER - Ultra-aggressive merging");
     console.log(`   Input: ${faces.length} faces`);
 
     // Group by normal direction with very aggressive bucketing
     const normalGroups = this.groupByAggressiveNormals(faces);
-    
+
     const mergedFaces: PolygonFace[] = [];
-    
+
     for (const [normalKey, groupFaces] of normalGroups) {
       if (groupFaces.length === 1) {
         mergedFaces.push(groupFaces[0]);
@@ -29,25 +29,31 @@ export class ProceduralFaceMerger {
       }
 
       // Merge all faces in this normal group into one big polygon
-      console.log(`   Merging ${groupFaces.length} faces with normal ${normalKey} → 1 polygon`);
+      console.log(
+        `   Merging ${groupFaces.length} faces with normal ${normalKey} → 1 polygon`,
+      );
       const merged = this.mergeAllFacesInGroup(groupFaces);
       mergedFaces.push(merged);
     }
 
-    console.log(`✅ Procedural merging: ${faces.length} → ${mergedFaces.length} faces`);
+    console.log(
+      `✅ Procedural merging: ${faces.length} → ${mergedFaces.length} faces`,
+    );
     return mergedFaces;
   }
 
   /**
    * Group faces by normal with very aggressive bucketing
    */
-  private static groupByAggressiveNormals(faces: PolygonFace[]): Map<string, PolygonFace[]> {
+  private static groupByAggressiveNormals(
+    faces: PolygonFace[],
+  ): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
 
     for (const face of faces) {
       const normal = this.ensureVector3(face.normal).normalize();
       const key = this.getAggressiveNormalKey(normal);
-      
+
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -89,14 +95,18 @@ export class ProceduralFaceMerger {
 
     // Remove duplicates with generous tolerance
     const uniqueVertices = this.removeAggressiveDuplicates(allVertices);
-    
+
     // Order vertices around perimeter
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
     // Determine face type
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
     return {
       type: faceType,
@@ -109,27 +119,32 @@ export class ProceduralFaceMerger {
   /**
    * Remove duplicate vertices with generous tolerance
    */
-  private static removeAggressiveDuplicates(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeAggressiveDuplicates(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
     const tolerance = 0.05; // Very generous tolerance
-    
+
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing => 
-        existing.distanceTo(vertex) < tolerance
+      const isDuplicate = unique.some(
+        (existing) => existing.distanceTo(vertex) < tolerance,
       );
-      
+
       if (!isDuplicate) {
         unique.push(vertex);
       }
     }
-    
+
     return unique;
   }
 
   /**
    * Order polygon vertices around perimeter
    */
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
     // Calculate centroid
@@ -151,10 +166,10 @@ export class ProceduralFaceMerger {
     return vertices.sort((a, b) => {
       const vecA = a.clone().sub(centroid);
       const vecB = b.clone().sub(centroid);
-      
+
       const angleA = Math.atan2(vecA.dot(v), vecA.dot(u));
       const angleB = Math.atan2(vecB.dot(v), vecB.dot(u));
-      
+
       return angleA - angleB;
     });
   }
@@ -162,7 +177,11 @@ export class ProceduralFaceMerger {
   // Helper methods
   private static ensureVector3(vector: any): THREE.Vector3 {
     if (vector instanceof THREE.Vector3) return vector;
-    if (vector?.x !== undefined && vector?.y !== undefined && vector?.z !== undefined) {
+    if (
+      vector?.x !== undefined &&
+      vector?.y !== undefined &&
+      vector?.z !== undefined
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
     return new THREE.Vector3(0, 0, 1);

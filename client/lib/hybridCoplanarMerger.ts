@@ -11,29 +11,35 @@ import { AggressiveCoplanarMerger } from "./aggressiveCoplanarMerger";
  * 2. Flat surface detection for large planar areas (gear faces, etc.)
  */
 export class HybridCoplanarMerger {
-  
   /**
    * Apply both edge-adjacent merging and flat surface merging
    */
   static mergeCoplanarTriangles(geometry: THREE.BufferGeometry): PolygonFace[] {
-    console.log('🔗 HYBRID COPLANAR MERGER - Two-stage approach');
-    
+    console.log("🔗 HYBRID COPLANAR MERGER - Two-stage approach");
+
     // Stage 1: Extract faces from geometry
     const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
     console.log(`   Stage 1: Extracted ${faces.length} faces from geometry`);
-    
+
     // Stage 2: Edge-adjacent merging (safe boundary-respecting merging)
-    const edgeMergedFaces = EdgeAdjacentMerger.groupEdgeAdjacentTriangles(faces);
-    console.log(`   Stage 2: Edge-adjacent merging → ${edgeMergedFaces.length} faces`);
-    
+    const edgeMergedFaces =
+      EdgeAdjacentMerger.groupEdgeAdjacentTriangles(faces);
+    console.log(
+      `   Stage 2: Edge-adjacent merging → ${edgeMergedFaces.length} faces`,
+    );
+
     // Stage 3: Flat surface merging (for large planar areas)
     const finalFaces = FlatSurfaceMerger.mergeFlatsurfaces(edgeMergedFaces);
-    console.log(`   Stage 3: Flat surface merging → ${finalFaces.length} faces`);
-    
-    console.log(`✅ Hybrid merging complete: ${faces.length} → ${finalFaces.length} faces`);
+    console.log(
+      `   Stage 3: Flat surface merging → ${finalFaces.length} faces`,
+    );
+
+    console.log(
+      `✅ Hybrid merging complete: ${faces.length} → ${finalFaces.length} faces`,
+    );
     return finalFaces;
   }
-  
+
   /**
    * Apply only flat surface merging (skip edge-adjacent)
    */
@@ -46,22 +52,33 @@ export class HybridCoplanarMerger {
    * Strict edge-adjacent merging for procedural shapes (gears, stars, etc.)
    * Only merges triangles that share complete edges - no spatial grouping
    */
-  static mergeProceduralTriangles(geometry: THREE.BufferGeometry): PolygonFace[] {
-    console.log('🎯 PROCEDURAL EDGE-ADJACENT MERGER - Strict edge-sharing only');
+  static mergeProceduralTriangles(
+    geometry: THREE.BufferGeometry,
+  ): PolygonFace[] {
+    console.log(
+      "🎯 PROCEDURAL EDGE-ADJACENT MERGER - Strict edge-sharing only",
+    );
 
     // Stage 1: Extract faces from geometry
     const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
     console.log(`   Stage 1: Extracted ${faces.length} faces from geometry`);
 
     // Stage 2: Edge-adjacent merging ONLY (strict edge sharing requirement)
-    const edgeMergedFaces = EdgeAdjacentMerger.groupEdgeAdjacentTriangles(faces);
-    console.log(`   Stage 2: Edge-adjacent merging → ${edgeMergedFaces.length} faces`);
+    const edgeMergedFaces =
+      EdgeAdjacentMerger.groupEdgeAdjacentTriangles(faces);
+    console.log(
+      `   Stage 2: Edge-adjacent merging → ${edgeMergedFaces.length} faces`,
+    );
 
     // Stage 3: Apply flat surface merging with STRICT edge-adjacency
     const finalFaces = FlatSurfaceMerger.mergeFlatsurfaces(edgeMergedFaces);
-    console.log(`   Stage 3: Flat surface merging → ${finalFaces.length} faces`);
+    console.log(
+      `   Stage 3: Flat surface merging → ${finalFaces.length} faces`,
+    );
 
-    console.log(`✅ Procedural merging: ${faces.length} → ${finalFaces.length} faces`);
+    console.log(
+      `✅ Procedural merging: ${faces.length} → ${finalFaces.length} faces`,
+    );
     return finalFaces;
   }
 
@@ -98,8 +115,16 @@ export class HybridCoplanarMerger {
       }
 
       // Check if these faces are truly coplanar and contiguous
-      if (this.areStrictlyCoplanar(groupFaces, STRICT_NORMAL_TOLERANCE, STRICT_DISTANCE_TOLERANCE)) {
-        console.log(`   Merging ${groupFaces.length} strictly coplanar faces (normal: ${normalKey})`);
+      if (
+        this.areStrictlyCoplanar(
+          groupFaces,
+          STRICT_NORMAL_TOLERANCE,
+          STRICT_DISTANCE_TOLERANCE,
+        )
+      ) {
+        console.log(
+          `   Merging ${groupFaces.length} strictly coplanar faces (normal: ${normalKey})`,
+        );
         const merged = this.mergeStrictCoplanarFaces(groupFaces);
         mergedFaces.push(merged);
       } else {
@@ -111,7 +136,11 @@ export class HybridCoplanarMerger {
     return mergedFaces;
   }
 
-  private static areStrictlyCoplanar(faces: PolygonFace[], normalTol: number, distTol: number): boolean {
+  private static areStrictlyCoplanar(
+    faces: PolygonFace[],
+    normalTol: number,
+    distTol: number,
+  ): boolean {
     if (faces.length < 2) return true;
 
     const refNormal = this.ensureVector3(faces[0].normal);
@@ -126,7 +155,9 @@ export class HybridCoplanarMerger {
       if (dot < normalTol) return false;
 
       // Strict plane distance check
-      const planeDist = Math.abs(faceCenter.clone().sub(refCenter).dot(refNormal));
+      const planeDist = Math.abs(
+        faceCenter.clone().sub(refCenter).dot(refNormal),
+      );
       if (planeDist > distTol) return false;
     }
 
@@ -146,8 +177,12 @@ export class HybridCoplanarMerger {
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
     return {
       type: faceType,
@@ -160,7 +195,11 @@ export class HybridCoplanarMerger {
   // Helper methods
   private static ensureVector3(vector: any): THREE.Vector3 {
     if (vector instanceof THREE.Vector3) return vector;
-    if (vector?.x !== undefined && vector?.y !== undefined && vector?.z !== undefined) {
+    if (
+      vector?.x !== undefined &&
+      vector?.y !== undefined &&
+      vector?.z !== undefined
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
     return new THREE.Vector3(0, 0, 1);
@@ -175,13 +214,15 @@ export class HybridCoplanarMerger {
     return center;
   }
 
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeDuplicateVertices(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
     const tolerance = 0.001;
 
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing =>
-        existing.distanceTo(vertex) < tolerance
+      const isDuplicate = unique.some(
+        (existing) => existing.distanceTo(vertex) < tolerance,
       );
 
       if (!isDuplicate) {
@@ -192,7 +233,10 @@ export class HybridCoplanarMerger {
     return unique;
   }
 
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
     const centroid = new THREE.Vector3();

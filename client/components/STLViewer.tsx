@@ -1062,9 +1062,15 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
-            console.log(`🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`);
-            console.log(`   Color: RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`);
-            console.log(`   Triangle indices: [${face.triangleIndices.slice(0, 5).join(', ')}${face.triangleIndices.length > 5 ? '...' : ''}]`);
+            console.log(
+              `🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`,
+            );
+            console.log(
+              `   Color: RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`,
+            );
+            console.log(
+              `   Triangle indices: [${face.triangleIndices.slice(0, 5).join(", ")}${face.triangleIndices.length > 5 ? "..." : ""}]`,
+            );
 
             // Color specific triangles identified by triangleIndices
             for (const triangleIndex of face.triangleIndices) {
@@ -1077,16 +1083,22 @@ function STLMesh() {
                   colors[triangleStart + v + 1] = color.g;
                   colors[triangleStart + v + 2] = color.b;
                 } else {
-                  console.warn(`   ⚠️ Triangle ${triangleIndex}: position ${triangleStart + v} out of bounds (max: ${colors.length})`);
+                  console.warn(
+                    `   ⚠️ Triangle ${triangleIndex}: position ${triangleStart + v} out of bounds (max: ${colors.length})`,
+                  );
                 }
               }
             }
 
-            console.log(`   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`)
+            console.log(
+              `   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`,
+            );
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
             const triangleCount = getTriangleCountForPolygon(face);
-            console.log(`  Face ${faceIndex}: Fallback sequential coloring for ${triangleCount} triangles`);
+            console.log(
+              `  Face ${faceIndex}: Fallback sequential coloring for ${triangleCount} triangles`,
+            );
 
             let triangleOffset = 0;
             // Calculate offset by summing previous faces
@@ -1135,7 +1147,9 @@ function STLMesh() {
       computePolygonAwareFlatNormals(geometry, polygonFaces);
 
       // Debug: Sample some colors to verify they're applied
-      console.log(`🎨 Color verification: First few colors [${colors[0].toFixed(3)}, ${colors[1].toFixed(3)}, ${colors[2].toFixed(3)}], [${colors[9].toFixed(3)}, ${colors[10].toFixed(3)}, ${colors[11].toFixed(3)}]`);
+      console.log(
+        `🎨 Color verification: First few colors [${colors[0].toFixed(3)}, ${colors[1].toFixed(3)}, ${colors[2].toFixed(3)}], [${colors[9].toFixed(3)}, ${colors[10].toFixed(3)}, ${colors[11].toFixed(3)}]`,
+      );
       console.log(
         `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
       );
@@ -1169,8 +1183,13 @@ function STLMesh() {
         const currentFace = polygonFaces[highlightedTriangle];
 
         // Use triangleIndices if available (from merged faces)
-        if (currentFace.triangleIndices && currentFace.triangleIndices.length > 0) {
-          console.log(`🔴 Highlighting merged face ${highlightedTriangle} with ${currentFace.triangleIndices.length} triangle indices`);
+        if (
+          currentFace.triangleIndices &&
+          currentFace.triangleIndices.length > 0
+        ) {
+          console.log(
+            `🔴 Highlighting merged face ${highlightedTriangle} with ${currentFace.triangleIndices.length} triangle indices`,
+          );
 
           // Highlight specific triangles identified by triangleIndices
           for (const triangleIndex of currentFace.triangleIndices) {
@@ -1187,17 +1206,24 @@ function STLMesh() {
           }
         } else {
           // Fallback to sequential indexing for faces without triangleIndices
-          console.log(`🔴 Highlighting face ${highlightedTriangle} with sequential indexing`);
+          console.log(
+            `🔴 Highlighting face ${highlightedTriangle} with sequential indexing`,
+          );
 
           let triangleOffset = 0;
 
           // Calculate which triangles belong to this polygon face
-          for (let faceIndex = 0; faceIndex < highlightedTriangle; faceIndex++) {
+          for (
+            let faceIndex = 0;
+            faceIndex < highlightedTriangle;
+            faceIndex++
+          ) {
             const face = polygonFaces[faceIndex];
             triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
           }
 
-          const triangleCount = STLManipulator.getTriangleCountForPolygon(currentFace);
+          const triangleCount =
+            STLManipulator.getTriangleCountForPolygon(currentFace);
 
           // Highlight all triangles in this polygon face
           for (let t = 0; t < triangleCount; t++) {

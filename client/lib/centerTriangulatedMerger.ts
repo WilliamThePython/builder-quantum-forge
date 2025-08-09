@@ -14,7 +14,7 @@ export class CenterTriangulatedMerger {
    * Merge center-triangulated faces - only perimeter triangles on same plane
    */
   static mergeCenterTriangulatedFaces(faces: PolygonFace[]): PolygonFace[] {
-    console.log('🎯 CENTER TRIANGULATED MERGER');
+    console.log("🎯 CENTER TRIANGULATED MERGER");
     console.log(`   Input: ${faces.length} faces`);
 
     // Group faces by plane normal
@@ -29,7 +29,9 @@ export class CenterTriangulatedMerger {
 
       // Check if this group forms a center-triangulated pattern
       if (this.isCenterTriangulatedGroup(planeFaces)) {
-        console.log(`   Merging center-triangulated group: ${planeFaces.length} triangles → 1 polygon`);
+        console.log(
+          `   Merging center-triangulated group: ${planeFaces.length} triangles → 1 polygon`,
+        );
         const merged = this.mergeCenterTriangulatedGroup(planeFaces);
         mergedFaces.push(merged);
       } else {
@@ -38,14 +40,18 @@ export class CenterTriangulatedMerger {
       }
     }
 
-    console.log(`✅ Center triangulated merging: ${faces.length} → ${mergedFaces.length} faces`);
+    console.log(
+      `✅ Center triangulated merging: ${faces.length} → ${mergedFaces.length} faces`,
+    );
     return mergedFaces;
   }
 
   /**
    * Group faces by their plane (normal + distance)
    */
-  private static groupFacesByPlane(faces: PolygonFace[]): Map<string, PolygonFace[]> {
+  private static groupFacesByPlane(
+    faces: PolygonFace[],
+  ): Map<string, PolygonFace[]> {
     const groups = new Map<string, PolygonFace[]>();
 
     console.log(`   Grouping ${faces.length} faces by plane...`);
@@ -69,8 +75,11 @@ export class CenterTriangulatedMerger {
       }
       groups.get(key)!.push(face);
 
-      if (i < 5) { // Debug first 5 faces
-        console.log(`   Face ${i}: normal(${normal.x.toFixed(3)}, ${normal.y.toFixed(3)}, ${normal.z.toFixed(3)}) → key: ${key}`);
+      if (i < 5) {
+        // Debug first 5 faces
+        console.log(
+          `   Face ${i}: normal(${normal.x.toFixed(3)}, ${normal.y.toFixed(3)}, ${normal.z.toFixed(3)}) → key: ${key}`,
+        );
       }
     }
 
@@ -87,14 +96,16 @@ export class CenterTriangulatedMerger {
    */
   private static isCenterTriangulatedGroup(faces: PolygonFace[]): boolean {
     // All faces must be triangles
-    if (!faces.every(face => face.originalVertices.length === 3)) {
+    if (!faces.every((face) => face.originalVertices.length === 3)) {
       return false;
     }
 
     // For any group of triangles on the same plane, try to merge them
     // This is more aggressive but safer for procedural shapes
     if (faces.length >= 3) {
-      console.log(`   Attempting to merge ${faces.length} triangular faces as center-triangulated group`);
+      console.log(
+        `   Attempting to merge ${faces.length} triangular faces as center-triangulated group`,
+      );
       return true;
     }
 
@@ -104,14 +115,20 @@ export class CenterTriangulatedMerger {
   /**
    * Merge center-triangulated group into a single polygon
    */
-  private static mergeCenterTriangulatedGroup(faces: PolygonFace[]): PolygonFace {
-    console.log(`   Merging ${faces.length} triangular faces into single polygon`);
+  private static mergeCenterTriangulatedGroup(
+    faces: PolygonFace[],
+  ): PolygonFace {
+    console.log(
+      `   Merging ${faces.length} triangular faces into single polygon`,
+    );
 
     // Use simple approach: collect all unique vertices and order them
-    const allVertices = faces.flatMap(face => face.originalVertices);
+    const allVertices = faces.flatMap((face) => face.originalVertices);
     const uniqueVertices = this.removeDuplicateVertices(allVertices);
 
-    console.log(`   Found ${uniqueVertices.length} unique vertices from ${allVertices.length} total vertices`);
+    console.log(
+      `   Found ${uniqueVertices.length} unique vertices from ${allVertices.length} total vertices`,
+    );
 
     // Order vertices around perimeter
     const normal = this.ensureVector3(faces[0].normal);
@@ -123,10 +140,16 @@ export class CenterTriangulatedMerger {
       allTriangleIndices.push(...(face.triangleIndices || []));
     }
 
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
-    console.log(`   Created ${faceType} with ${orderedVertices.length} vertices`);
+    console.log(
+      `   Created ${faceType} with ${orderedVertices.length} vertices`,
+    );
 
     return {
       type: faceType,
@@ -140,9 +163,9 @@ export class CenterTriangulatedMerger {
    * Order vertices around a center point
    */
   private static orderVerticesAroundCenter(
-    vertices: THREE.Vector3[], 
-    center: THREE.Vector3, 
-    normal: THREE.Vector3
+    vertices: THREE.Vector3[],
+    center: THREE.Vector3,
+    normal: THREE.Vector3,
   ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
@@ -158,10 +181,10 @@ export class CenterTriangulatedMerger {
     return vertices.sort((a, b) => {
       const vecA = a.clone().sub(center);
       const vecB = b.clone().sub(center);
-      
+
       const angleA = Math.atan2(vecA.dot(v), vecA.dot(u));
       const angleB = Math.atan2(vecB.dot(v), vecB.dot(u));
-      
+
       return angleA - angleB;
     });
   }
@@ -170,7 +193,7 @@ export class CenterTriangulatedMerger {
    * Fallback merge if center detection fails
    */
   private static fallbackMerge(faces: PolygonFace[]): PolygonFace {
-    const allVertices = faces.flatMap(face => face.originalVertices);
+    const allVertices = faces.flatMap((face) => face.originalVertices);
     const uniqueVertices = this.removeDuplicateVertices(allVertices);
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
@@ -180,8 +203,12 @@ export class CenterTriangulatedMerger {
       allTriangleIndices.push(...(face.triangleIndices || []));
     }
 
-    const faceType = orderedVertices.length === 3 ? "triangle" :
-                    orderedVertices.length === 4 ? "quad" : "polygon";
+    const faceType =
+      orderedVertices.length === 3
+        ? "triangle"
+        : orderedVertices.length === 4
+          ? "quad"
+          : "polygon";
 
     return {
       type: faceType,
@@ -194,7 +221,11 @@ export class CenterTriangulatedMerger {
   // Helper methods
   private static ensureVector3(vector: any): THREE.Vector3 {
     if (vector instanceof THREE.Vector3) return vector;
-    if (vector?.x !== undefined && vector?.y !== undefined && vector?.z !== undefined) {
+    if (
+      vector?.x !== undefined &&
+      vector?.y !== undefined &&
+      vector?.z !== undefined
+    ) {
       return new THREE.Vector3(vector.x, vector.y, vector.z);
     }
     return new THREE.Vector3(0, 0, 1);
@@ -209,13 +240,15 @@ export class CenterTriangulatedMerger {
     return center;
   }
 
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+  private static removeDuplicateVertices(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
     const tolerance = 0.01; // More generous tolerance for procedural shapes
 
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing =>
-        existing.distanceTo(vertex) < tolerance
+      const isDuplicate = unique.some(
+        (existing) => existing.distanceTo(vertex) < tolerance,
       );
 
       if (!isDuplicate) {
@@ -223,11 +256,16 @@ export class CenterTriangulatedMerger {
       }
     }
 
-    console.log(`   Removed duplicates: ${vertices.length} → ${unique.length} vertices`);
+    console.log(
+      `   Removed duplicates: ${vertices.length} → ${unique.length} vertices`,
+    );
     return unique;
   }
 
-  private static orderPolygonVertices(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  private static orderPolygonVertices(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length <= 3) return vertices;
 
     const centroid = new THREE.Vector3();
@@ -246,10 +284,10 @@ export class CenterTriangulatedMerger {
     return vertices.sort((a, b) => {
       const vecA = a.clone().sub(centroid);
       const vecB = b.clone().sub(centroid);
-      
+
       const angleA = Math.atan2(vecA.dot(v), vecA.dot(u));
       const angleB = Math.atan2(vecB.dot(v), vecB.dot(u));
-      
+
       return angleA - angleB;
     });
   }
