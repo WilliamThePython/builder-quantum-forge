@@ -881,66 +881,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
 
-      await updateProgress(
-        10,
-        "Validating",
-        "File format validated successfully...",
-      );
-
-      // Smart file size limits - more generous for better user experience
-      const maxSize = 40 * 1024 * 1024; // Increased to 40MB to handle larger models
-      if (file.size > maxSize) {
-        addError(
-          `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size: 40MB`,
-        );
-        return;
-      }
-
-      // Simple warning for larger files
-      if (file.size > 15 * 1024 * 1024) {
-        console.warn(
-          `⚠️ Large file detected (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing may take longer...`,
-        );
-        addError(
-          `Large file (${(file.size / 1024 / 1024).toFixed(1)}MB) - loading progress will be shown below.`,
-        );
-
-        // Give UI time to update progress bar before heavy processing
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-
-      updateProgress(
-        15,
-        "Loading",
-        `Preparing ${isSTL ? "STL" : "OBJ"} loader...`,
-      );
-
-      const uploadStartTime = Date.now();
-      updateProgress(
-        20,
-        "Reading",
-        `Reading ${(file.size / 1024 / 1024).toFixed(1)}MB file...`,
-      );
-
-      let geometry: THREE.BufferGeometry;
-
-      // Use fast loading for all files - prioritize speed over optimization
-      console.log(`⚡ Fast loading ${(file.size / 1024 / 1024).toFixed(1)}MB file`);
-
-      const { FastSTLLoader } = await import("../lib/fastSTLLoader");
-
-      geometry = await FastSTLLoader.loadFile(
-        file,
-        (progress, stage, details) => {
-          updateProgress(20 + progress * 0.5, stage, details); // 20-70% range
-        },
-      );
-
-      await updateProgress(
-        70,
-        "Ready",
-        `${geometry.attributes.position.count.toLocaleString()} vertices loaded`,
-      );
+      const geometry = await loadModelFile(file, updateProgress);
 
       // Fast loading complete - skip all complex processing
       if (false) { // Disabled complex path
