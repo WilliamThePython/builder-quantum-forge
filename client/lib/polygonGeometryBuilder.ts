@@ -1176,43 +1176,25 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // For star shapes, break into triangular faces instead of complex polygon
-    // This ensures better triangulation
-    const center = new THREE.Vector3(0, h, 0);
-    const bottomCenter = new THREE.Vector3(0, -h, 0);
-    vertices.push(center, bottomCenter);
-    const centerIndex = topVertices.length * 2;
-    const bottomCenterIndex = centerIndex + 1;
+    // NO center vertices - create single polygon faces that will be ear-clipped
+    // This eliminates the unwanted center point visible in wireframe
 
-    // Top star face - triangulate from center
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[centerIndex], // center
-            topVertices[i],
-            topVertices[next],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Top star face - single polygon that will be ear-clipped during triangulation
+    faces.push(
+      this.createFace(
+        topVertices, // All perimeter vertices in order
+        "polygon",
+      ),
+    );
 
-    // Bottom star face - triangulate from center
-    for (let i = 0; i < bottomVertices.length; i++) {
-      const next = (i + 1) % bottomVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[bottomCenterIndex], // bottom center
-            bottomVertices[next],
-            bottomVertices[i],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Bottom star face - single polygon (reversed for correct winding)
+    const reversedBottomVertices = [...bottomVertices].reverse();
+    faces.push(
+      this.createFace(
+        reversedBottomVertices, // Reversed for proper normal orientation
+        "polygon",
+      ),
+    );
 
     // Side faces - rectangular strips
     for (let i = 0; i < topVertices.length; i++) {
