@@ -112,22 +112,23 @@ export class AggressiveCoplanarMerger {
   }
 
   /**
-   * Remove duplicate vertices with very generous tolerance
+   * Remove duplicate vertices with ultra-generous tolerance
    */
   private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
     const unique: THREE.Vector3[] = [];
-    const tolerance = 0.05; // Very generous tolerance
-    
+    const tolerance = 0.1; // Ultra-generous tolerance for procedural shapes
+
     for (const vertex of vertices) {
-      const isDuplicate = unique.some(existing => 
+      const isDuplicate = unique.some(existing =>
         existing.distanceTo(vertex) < tolerance
       );
-      
+
       if (!isDuplicate) {
         unique.push(vertex);
       }
     }
-    
+
+    console.log(`   Removed duplicates: ${vertices.length} → ${unique.length} vertices (tolerance: ${tolerance})`);
     return unique;
   }
 
