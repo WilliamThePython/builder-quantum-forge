@@ -1280,7 +1280,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Different polygon handling for STL vs OBJ
       if (isSTL) {
         // STL files need polygon reconstruction from triangulation
-        if (vertexCount < 100000) {
+        // Reduced threshold for better performance: 40K triangles = 120K vertices
+        if (vertexCount < 120000) {
           try {
             const reconstructionStart = Date.now();
             const reconstructedFaces =
