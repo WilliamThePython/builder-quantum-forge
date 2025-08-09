@@ -270,7 +270,6 @@ export class GeometryCleanup {
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
 
-    console.log('✅ Minimal cleanup completed for procedural geometry - preserved all vertices and faces');
     return results;
   }
 
