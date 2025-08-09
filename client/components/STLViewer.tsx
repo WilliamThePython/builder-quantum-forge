@@ -1287,10 +1287,29 @@ function STLMesh() {
       }
     };
 
+    const handleClick = (event: MouseEvent) => {
+      // Clear highlighted triangle when clicking and not hitting any face
+      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObject(meshRef.current!);
+
+      if (intersects.length === 0) {
+        // Clicked outside model - clear highlight
+        setHighlightedTriangle(null);
+      }
+    };
+
     const canvas = document.querySelector("canvas");
     if (canvas) {
       canvas.addEventListener("mousemove", handleMouseMove);
-      return () => canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.addEventListener("click", handleClick);
+      return () => {
+        canvas.removeEventListener("mousemove", handleMouseMove);
+        canvas.removeEventListener("click", handleClick);
+      };
     }
   }, [toolMode, geometry, camera, raycaster, pointer]);
 
