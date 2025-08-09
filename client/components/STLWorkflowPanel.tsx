@@ -7,7 +7,6 @@ import {
   Settings,
   Palette,
   Eye,
-  Grid3x3,
   X,
   ChevronDown,
   ChevronRight,
@@ -61,10 +60,8 @@ interface STLWorkflowPanelProps {
   } | null;
   randomColors: boolean;
   wireframe: boolean;
-  triangulated: boolean;
   onRandomColorsChange: (checked: boolean) => void;
   onWireframeChange: (checked: boolean) => void;
-  onTriangulatedChange: (checked: boolean) => void;
 }
 
 export default function STLWorkflowPanel({
@@ -75,10 +72,8 @@ export default function STLWorkflowPanel({
   geometryStats,
   randomColors,
   wireframe,
-  triangulated,
   onRandomColorsChange,
   onWireframeChange,
-  onTriangulatedChange,
 }: STLWorkflowPanelProps) {
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -451,21 +446,6 @@ export default function STLWorkflowPanel({
 
           {expandedSections.visualization && (
             <div className="mt-4 space-y-4">
-              {/* Triangulated */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Grid3x3 className="w-4 h-4 text-white/70" />
-                  <Label htmlFor="triangulated" className="text-sm text-white/80">
-                    Triangulated
-                  </Label>
-                </div>
-                <Switch
-                  id="triangulated"
-                  checked={triangulated}
-                  onCheckedChange={onTriangulatedChange}
-                />
-              </div>
-
               {/* Colors */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
