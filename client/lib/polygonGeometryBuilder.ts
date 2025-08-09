@@ -1423,12 +1423,20 @@ export class PolygonGeometryBuilder {
     } else {
       // Complex polygon - check if it's a star pattern and handle specially
       if (this.isStarPattern(vertices)) {
-        console.log(`⭐ Detected star pattern with ${vertices.length} vertices - using star-aware triangulation`);
-        const starTriangles = this.starAwareTriangulation(vertices, face.normal);
+        console.log(
+          `⭐ Detected star pattern with ${vertices.length} vertices - using star-aware triangulation`,
+        );
+        const starTriangles = this.starAwareTriangulation(
+          vertices,
+          face.normal,
+        );
         triangulated.push(...starTriangles);
       } else {
         // Regular complex polygon - use ear clipping
-        const earClippedTriangles = this.earClippingTriangulation(vertices, face.normal);
+        const earClippedTriangles = this.earClippingTriangulation(
+          vertices,
+          face.normal,
+        );
         triangulated.push(...earClippedTriangles);
       }
     }
@@ -1449,10 +1457,12 @@ export class PolygonGeometryBuilder {
     }
     center.divideScalar(vertices.length);
 
-    const distances = vertices.map(v => v.distanceTo(center));
+    const distances = vertices.map((v) => v.distanceTo(center));
 
     // Check if distances alternate between two distinct values (tips and valleys)
-    const uniqueDistances = [...new Set(distances.map(d => Math.round(d * 1000) / 1000))];
+    const uniqueDistances = [
+      ...new Set(distances.map((d) => Math.round(d * 1000) / 1000)),
+    ];
     if (uniqueDistances.length !== 2) return false;
 
     // Check for alternating pattern (try both starting patterns)
@@ -1487,7 +1497,10 @@ export class PolygonGeometryBuilder {
    * Star-aware triangulation that creates proper star rays
    * Handles both normal and reversed vertex order automatically
    */
-  static starAwareTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  static starAwareTriangulation(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     const triangulated: THREE.Vector3[] = [];
     const n = vertices.length;
 
@@ -1500,8 +1513,10 @@ export class PolygonGeometryBuilder {
     }
     center.divideScalar(vertices.length);
 
-    const distances = vertices.map(v => v.distanceTo(center));
-    const [shortDist, longDist] = [...new Set(distances.map(d => Math.round(d * 1000) / 1000))].sort((a, b) => a - b);
+    const distances = vertices.map((v) => v.distanceTo(center));
+    const [shortDist, longDist] = [
+      ...new Set(distances.map((d) => Math.round(d * 1000) / 1000)),
+    ].sort((a, b) => a - b);
     const tipIndices: number[] = [];
     const valleyIndices: number[] = [];
 
@@ -1514,8 +1529,12 @@ export class PolygonGeometryBuilder {
       }
     }
 
-    console.log(`⭐ Detected ${tipIndices.length} tips at indices [${tipIndices.join(', ')}]`);
-    console.log(`⭐ Detected ${valleyIndices.length} valleys at indices [${valleyIndices.join(', ')}]`);
+    console.log(
+      `⭐ Detected ${tipIndices.length} tips at indices [${tipIndices.join(", ")}]`,
+    );
+    console.log(
+      `⭐ Detected ${valleyIndices.length} valleys at indices [${valleyIndices.join(", ")}]`,
+    );
 
     // Create triangles for each star ray: tip with its two adjacent valleys
     for (const tipIndex of tipIndices) {
@@ -1546,7 +1565,7 @@ export class PolygonGeometryBuilder {
         triangulated.push(
           vertices[prevValley],
           vertices[tipIndex],
-          vertices[nextValley]
+          vertices[nextValley],
         );
       }
     }
@@ -1557,12 +1576,14 @@ export class PolygonGeometryBuilder {
         triangulated.push(
           vertices[valleyIndices[0]],
           vertices[valleyIndices[i]],
-          vertices[valleyIndices[i + 1]]
+          vertices[valleyIndices[i + 1]],
         );
       }
     }
 
-    console.log(`⭐ Star triangulation: Generated ${triangulated.length / 3} triangles (${tipIndices.length} rays + inner triangles)`);
+    console.log(
+      `⭐ Star triangulation: Generated ${triangulated.length / 3} triangles (${tipIndices.length} rays + inner triangles)`,
+    );
     return triangulated;
   }
 
@@ -1570,11 +1591,16 @@ export class PolygonGeometryBuilder {
    * Ear clipping triangulation algorithm for complex polygons
    * No center vertices - pure perimeter triangulation
    */
-  static earClippingTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+  static earClippingTriangulation(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[] {
     if (vertices.length < 3) return [];
     if (vertices.length === 3) return [...vertices];
 
-    console.log(`🎯 Ear clipping: Starting with ${vertices.length} vertices (NO center vertex)`);
+    console.log(
+      `🎯 Ear clipping: Starting with ${vertices.length} vertices (NO center vertex)`,
+    );
     const triangulated: THREE.Vector3[] = [];
     const vertexList = [...vertices]; // Work with a copy
 
@@ -1593,7 +1619,7 @@ export class PolygonGeometryBuilder {
           triangulated.push(
             vertexList[prev],
             vertexList[curr],
-            vertexList[next]
+            vertexList[next],
           );
 
           // Remove the ear vertex
@@ -1605,7 +1631,9 @@ export class PolygonGeometryBuilder {
 
       // If no ear found, fall back to fan triangulation to prevent infinite loop
       if (!earFound) {
-        console.warn("⚠️ Ear clipping failed, falling back to fan triangulation");
+        console.warn(
+          "⚠️ Ear clipping failed, falling back to fan triangulation",
+        );
         for (let i = 1; i < vertexList.length - 1; i++) {
           triangulated.push(vertexList[0], vertexList[i], vertexList[i + 1]);
         }
@@ -1618,14 +1646,22 @@ export class PolygonGeometryBuilder {
       triangulated.push(...vertexList);
     }
 
-    console.log(`✅ Ear clipping: Generated ${triangulated.length / 3} triangles from perimeter only`);
+    console.log(
+      `✅ Ear clipping: Generated ${triangulated.length / 3} triangles from perimeter only`,
+    );
     return triangulated;
   }
 
   /**
    * Check if three consecutive vertices form a valid ear
    */
-  static isEar(vertices: THREE.Vector3[], prev: number, curr: number, next: number, normal: THREE.Vector3): boolean {
+  static isEar(
+    vertices: THREE.Vector3[],
+    prev: number,
+    curr: number,
+    next: number,
+    normal: THREE.Vector3,
+  ): boolean {
     const v1 = vertices[prev];
     const v2 = vertices[curr];
     const v3 = vertices[next];
@@ -1655,7 +1691,12 @@ export class PolygonGeometryBuilder {
   /**
    * Check if a point is inside a triangle using barycentric coordinates
    */
-  static isPointInTriangle(point: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): boolean {
+  static isPointInTriangle(
+    point: THREE.Vector3,
+    a: THREE.Vector3,
+    b: THREE.Vector3,
+    c: THREE.Vector3,
+  ): boolean {
     const v0 = new THREE.Vector3().subVectors(c, a);
     const v1 = new THREE.Vector3().subVectors(b, a);
     const v2 = new THREE.Vector3().subVectors(point, a);
@@ -1670,7 +1711,7 @@ export class PolygonGeometryBuilder {
     const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
     const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-    return (u >= 0) && (v >= 0) && (u + v <= 1);
+    return u >= 0 && v >= 0 && u + v <= 1;
   }
 }
 

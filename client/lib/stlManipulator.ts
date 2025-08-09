@@ -235,13 +235,17 @@ export class STLManipulator {
     }
 
     // Simplified approach: Get triangle index directly from intersection
-    const triangleIndex = intersection.faceIndex || Math.floor(intersection.face.a / 3);
+    const triangleIndex =
+      intersection.faceIndex || Math.floor(intersection.face.a / 3);
 
     // Use triangleIndices if available (for merged faces)
     for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
       const face = polygonFaces[faceIndex];
 
-      if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
+      if (
+        face.triangleIndices &&
+        face.triangleIndices.includes(triangleIndex)
+      ) {
         return faceIndex;
       }
     }

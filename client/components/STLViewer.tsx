@@ -1045,9 +1045,15 @@ function STLMesh() {
         isDecelerating: true,
         startTime: Date.now(),
         initialRotationSpeed: {
-          x: autoSpinState.current.rotationAxis.x * autoSpinState.current.rotationSpeed,
-          y: autoSpinState.current.rotationAxis.y * autoSpinState.current.rotationSpeed,
-          z: autoSpinState.current.rotationAxis.z * autoSpinState.current.rotationSpeed,
+          x:
+            autoSpinState.current.rotationAxis.x *
+            autoSpinState.current.rotationSpeed,
+          y:
+            autoSpinState.current.rotationAxis.y *
+            autoSpinState.current.rotationSpeed,
+          z:
+            autoSpinState.current.rotationAxis.z *
+            autoSpinState.current.rotationSpeed,
         },
         duration: 2000,
       };
@@ -1062,7 +1068,10 @@ function STLMesh() {
     if (!meshRef.current) return;
 
     const currentTime = Date.now();
-    const deltaTime = autoSpinState.current.lastTime > 0 ? (currentTime - autoSpinState.current.lastTime) / 1000 : 0;
+    const deltaTime =
+      autoSpinState.current.lastTime > 0
+        ? (currentTime - autoSpinState.current.lastTime) / 1000
+        : 0;
     autoSpinState.current.lastTime = currentTime;
 
     // Handle temporary spinning animation (on model load)
@@ -1087,31 +1096,47 @@ function STLMesh() {
     // Handle auto spin (continuous rotation with changing axis)
     if (viewerSettings.autoSpin && deltaTime > 0) {
       // Randomly change target axis occasionally (every 3-8 seconds)
-      if (Math.random() < 0.001) { // ~0.1% chance per frame at 60fps = change every ~5 seconds
+      if (Math.random() < 0.001) {
+        // ~0.1% chance per frame at 60fps = change every ~5 seconds
         autoSpinState.current.targetAxis = {
           x: (Math.random() - 0.5) * 1.5, // Random axis between -0.75 and 0.75
-          y: 0.5 + Math.random() * 0.5,   // Mostly vertical with some variation
+          y: 0.5 + Math.random() * 0.5, // Mostly vertical with some variation
           z: (Math.random() - 0.5) * 1.5, // Random axis between -0.75 and 0.75
         };
       }
 
       // Smoothly interpolate current axis toward target axis
       const axisSpeed = autoSpinState.current.axisTransitionSpeed;
-      autoSpinState.current.rotationAxis.x += (autoSpinState.current.targetAxis.x - autoSpinState.current.rotationAxis.x) * axisSpeed;
-      autoSpinState.current.rotationAxis.y += (autoSpinState.current.targetAxis.y - autoSpinState.current.rotationAxis.y) * axisSpeed;
-      autoSpinState.current.rotationAxis.z += (autoSpinState.current.targetAxis.z - autoSpinState.current.rotationAxis.z) * axisSpeed;
+      autoSpinState.current.rotationAxis.x +=
+        (autoSpinState.current.targetAxis.x -
+          autoSpinState.current.rotationAxis.x) *
+        axisSpeed;
+      autoSpinState.current.rotationAxis.y +=
+        (autoSpinState.current.targetAxis.y -
+          autoSpinState.current.rotationAxis.y) *
+        axisSpeed;
+      autoSpinState.current.rotationAxis.z +=
+        (autoSpinState.current.targetAxis.z -
+          autoSpinState.current.rotationAxis.z) *
+        axisSpeed;
 
       // Apply rotation around the current axis
       const rotationAmount = autoSpinState.current.rotationSpeed * deltaTime;
-      meshRef.current.rotation.x += autoSpinState.current.rotationAxis.x * rotationAmount;
-      meshRef.current.rotation.y += autoSpinState.current.rotationAxis.y * rotationAmount;
-      meshRef.current.rotation.z += autoSpinState.current.rotationAxis.z * rotationAmount;
+      meshRef.current.rotation.x +=
+        autoSpinState.current.rotationAxis.x * rotationAmount;
+      meshRef.current.rotation.y +=
+        autoSpinState.current.rotationAxis.y * rotationAmount;
+      meshRef.current.rotation.z +=
+        autoSpinState.current.rotationAxis.z * rotationAmount;
     }
 
     // Handle natural deceleration when auto spin is turned off
     if (autoSpinDeceleration.current.isDecelerating && deltaTime > 0) {
       const elapsed = currentTime - autoSpinDeceleration.current.startTime;
-      const progress = Math.min(elapsed / autoSpinDeceleration.current.duration, 1);
+      const progress = Math.min(
+        elapsed / autoSpinDeceleration.current.duration,
+        1,
+      );
 
       // Easing function for smooth deceleration (cubic ease-out)
       const easeOut = 1 - Math.pow(1 - progress, 3);
@@ -1123,9 +1148,12 @@ function STLMesh() {
       } else {
         // Continue rotating with decreasing speed based on last rotation speeds
         const rotationAmount = deltaTime * currentRotationMultiplier;
-        meshRef.current.rotation.x += autoSpinDeceleration.current.initialRotationSpeed.x * rotationAmount;
-        meshRef.current.rotation.y += autoSpinDeceleration.current.initialRotationSpeed.y * rotationAmount;
-        meshRef.current.rotation.z += autoSpinDeceleration.current.initialRotationSpeed.z * rotationAmount;
+        meshRef.current.rotation.x +=
+          autoSpinDeceleration.current.initialRotationSpeed.x * rotationAmount;
+        meshRef.current.rotation.y +=
+          autoSpinDeceleration.current.initialRotationSpeed.y * rotationAmount;
+        meshRef.current.rotation.z +=
+          autoSpinDeceleration.current.initialRotationSpeed.z * rotationAmount;
       }
     }
   });
