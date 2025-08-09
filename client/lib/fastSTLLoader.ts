@@ -64,9 +64,10 @@ export class FastSTLLoader {
     progressCallback?.(20, "Reading", "Loading STL data...");
 
     // Use chunked loading for files larger than 1MB to prevent memory issues
-    const arrayBuffer = file.size > 1024 * 1024
-      ? await this.loadFileInChunks(file, progressCallback)
-      : await file.arrayBuffer();
+    const arrayBuffer =
+      file.size > 1024 * 1024
+        ? await this.loadFileInChunks(file, progressCallback)
+        : await file.arrayBuffer();
 
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
@@ -104,9 +105,10 @@ export class FastSTLLoader {
     progressCallback?.(20, "Reading", "Loading OBJ data...");
 
     // Use chunked loading for files larger than 1MB to prevent memory issues
-    const text = file.size > 1024 * 1024
-      ? await this.loadOBJFileInChunks(file, progressCallback)
-      : await file.text();
+    const text =
+      file.size > 1024 * 1024
+        ? await this.loadOBJFileInChunks(file, progressCallback)
+        : await file.text();
 
     progressCallback?.(50, "Parsing", "Processing OBJ geometry...");
 
@@ -265,7 +267,11 @@ export class FastSTLLoader {
    */
   private static async loadFileInChunks(
     file: File,
-    progressCallback?: (progress: number, stage: string, details: string) => void,
+    progressCallback?: (
+      progress: number,
+      stage: string,
+      details: string,
+    ) => void,
   ): Promise<ArrayBuffer> {
     const chunkSize = 1024 * 1024; // 1MB chunks
     const chunks: Uint8Array[] = [];
@@ -276,7 +282,11 @@ export class FastSTLLoader {
       chunks.push(new Uint8Array(arrayBuffer));
 
       const progress = 20 + (offset / file.size) * 30; // 20-50% for file loading
-      progressCallback?.(progress, "Reading", `Loading... ${Math.round(progress)}%`);
+      progressCallback?.(
+        progress,
+        "Reading",
+        `Loading... ${Math.round(progress)}%`,
+      );
 
       // Yield to browser to prevent blocking
       await new Promise((resolve) => setTimeout(resolve, 1));
@@ -300,12 +310,16 @@ export class FastSTLLoader {
    */
   private static async loadOBJFileInChunks(
     file: File,
-    progressCallback?: (progress: number, stage: string, details: string) => void,
+    progressCallback?: (
+      progress: number,
+      stage: string,
+      details: string,
+    ) => void,
   ): Promise<string> {
     const arrayBuffer = await this.loadFileInChunks(file, progressCallback);
 
     // Convert ArrayBuffer to string
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder("utf-8");
     return decoder.decode(arrayBuffer);
   }
 }
