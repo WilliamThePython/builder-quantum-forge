@@ -91,6 +91,10 @@ export default function Index() {
       updateViewerSettings({ wireframe: false });
     }
   };
+
+  const handleTriangulatedChange = (checked: boolean) => {
+    updateViewerSettings({ triangulated: checked });
+  };
   return (
     <div className="w-screen h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-purple-950 relative">
       {/* Fullscreen 3D Canvas */}
