@@ -2077,8 +2077,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         const outputPositions = result.geometry.attributes.position.array;
 
-        // CRITICAL: Fix face orientation after decimation to prevent transparency
+        // CRITICAL: Comprehensive geometry fixing after decimation to prevent black voids
+        console.log("🔧 POST-DECIMATION: Fixing geometry issues...");
+
+        // First, validate and fix any NaN or invalid values
+        result.geometry = validateAndFixGeometry(result.geometry, "post-decimation validation");
+
+        // Remove degenerate triangles that can cause black voids
+        result.geometry = removeDegenearteTriangles(result.geometry);
+
+        // Fix face orientation to prevent transparency/black faces
         ensureSolidObjectDisplay(result.geometry);
+
+        // Ensure proper normals after all fixes
+        computeFlatNormals(result.geometry);
+
+        console.log("✅ Geometry fixing completed");
 
         // CRITICAL: Always reconstruct polygon faces after decimation for coloring/wireframe
         console.log(
