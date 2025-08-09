@@ -108,8 +108,10 @@ export default function Index() {
         geometryStats={getGeometryStats()}
         randomColors={viewerSettings.randomColors}
         wireframe={viewerSettings.wireframe}
+        autoSpin={viewerSettings.autoSpin}
         onRandomColorsChange={handleRandomColorsChange}
         onWireframeChange={handleWireframeChange}
+        onAutoSpinChange={(checked: boolean) => updateViewerSettings({ autoSpin: checked })}
       />
 
       {/* Top Right Navigation - adjusted for mobile */}
