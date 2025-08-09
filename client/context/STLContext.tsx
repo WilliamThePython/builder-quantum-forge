@@ -1359,8 +1359,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Analytics failed silently
       }
     } catch (err) {
-      let errorMessage =
-        err instanceof Error ? err.message : "Failed to load file";
+      let errorMessage = "Failed to load file";
+
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      } else if (err && typeof err === "object") {
+        // Handle case where error might be an object with a message property
+        errorMessage = (err as any).message || JSON.stringify(err) || "Unknown error occurred";
+      }
 
       // Log detailed error information for debugging
       console.error("File loading error details:", {
@@ -1391,7 +1399,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage += "\n\n⏱️ File loading timeout - try:\n";
         errorMessage += "• Refreshing the page and trying again\n";
         errorMessage += "• Using a faster internet connection\n";
-        errorMessage += "���� Reducing the file size";
+        errorMessage += "�� Reducing the file size";
       }
 
       if (
