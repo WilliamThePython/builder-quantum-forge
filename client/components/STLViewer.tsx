@@ -1029,6 +1029,16 @@ function STLMesh() {
     }
   }, [geometry, isDecimating]);
 
+  // Reset rotation when auto spin is disabled
+  useEffect(() => {
+    if (!viewerSettings.autoSpin && meshRef.current && !spinState.current.isSpinning) {
+      // Smoothly reset rotation to a neutral position
+      meshRef.current.rotation.x = 0;
+      meshRef.current.rotation.y = 0;
+      meshRef.current.rotation.z = 0;
+    }
+  }, [viewerSettings.autoSpin]);
+
   // Spinning animation frame loop
   useFrame(() => {
     if (!meshRef.current) return;
