@@ -1437,6 +1437,7 @@ export class PolygonGeometryBuilder {
     if (vertices.length < 3) return [];
     if (vertices.length === 3) return [...vertices];
 
+    console.log(`🎯 Ear clipping: Starting with ${vertices.length} vertices (NO center vertex)`);
     const triangulated: THREE.Vector3[] = [];
     const vertexList = [...vertices]; // Work with a copy
 
