@@ -92,54 +92,17 @@ export class CenterTriangulatedMerger {
    * Merge center-triangulated group into a single polygon
    */
   private static mergeCenterTriangulatedGroup(faces: PolygonFace[]): PolygonFace {
-    // Find center vertex (most frequently used)
-    const vertexCounts = new Map<string, THREE.Vector3>();
-    const vertexFreq = new Map<string, number>();
+    console.log(`   Merging ${faces.length} triangular faces into single polygon`);
 
-    for (const face of faces) {
-      for (const vertex of face.originalVertices) {
-        const key = `${vertex.x.toFixed(3)},${vertex.y.toFixed(3)},${vertex.z.toFixed(3)}`;
-        vertexCounts.set(key, vertex);
-        vertexFreq.set(key, (vertexFreq.get(key) || 0) + 1);
-      }
-    }
+    // Use simple approach: collect all unique vertices and order them
+    const allVertices = faces.flatMap(face => face.originalVertices);
+    const uniqueVertices = this.removeDuplicateVertices(allVertices);
 
-    // Find center vertex (highest frequency)
-    let centerVertex: THREE.Vector3 | null = null;
-    let maxFreq = 0;
-    for (const [key, freq] of vertexFreq) {
-      if (freq > maxFreq) {
-        maxFreq = freq;
-        centerVertex = vertexCounts.get(key)!;
-      }
-    }
+    console.log(`   Found ${uniqueVertices.length} unique vertices from ${allVertices.length} total vertices`);
 
-    if (!centerVertex) {
-      // Fallback: merge all vertices
-      return this.fallbackMerge(faces);
-    }
-
-    // Collect perimeter vertices (non-center vertices)
-    const perimeterVertices: THREE.Vector3[] = [];
-    const tolerance = 0.001;
-
-    for (const face of faces) {
-      for (const vertex of face.originalVertices) {
-        if (vertex.distanceTo(centerVertex) > tolerance) {
-          // Check if we already have this perimeter vertex
-          const isDuplicate = perimeterVertices.some(existing => 
-            existing.distanceTo(vertex) < tolerance
-          );
-          if (!isDuplicate) {
-            perimeterVertices.push(vertex);
-          }
-        }
-      }
-    }
-
-    // Order perimeter vertices around center
+    // Order vertices around perimeter
     const normal = this.ensureVector3(faces[0].normal);
-    const orderedVertices = this.orderVerticesAroundCenter(perimeterVertices, centerVertex, normal);
+    const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
     // Collect all triangle indices
     const allTriangleIndices: number[] = [];
@@ -149,6 +112,8 @@ export class CenterTriangulatedMerger {
 
     const faceType = orderedVertices.length === 3 ? "triangle" :
                     orderedVertices.length === 4 ? "quad" : "polygon";
+
+    console.log(`   Created ${faceType} with ${orderedVertices.length} vertices`);
 
     return {
       type: faceType,
