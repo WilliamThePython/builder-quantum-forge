@@ -1029,13 +1029,31 @@ function STLMesh() {
     }
   }, [geometry, isDecimating]);
 
-  // Reset rotation when auto spin is disabled
+  // Auto spin deceleration state
+  const autoSpinDeceleration = useRef({
+    isDecelerating: false,
+    startTime: 0,
+    initialRotationSpeed: { x: 0, y: 0, z: 0 },
+    duration: 2000, // 2 seconds to naturally stop
+  });
+
+  // Start deceleration when auto spin is disabled
   useEffect(() => {
-    if (!viewerSettings.autoSpin && meshRef.current && !spinState.current.isSpinning) {
-      // Smoothly reset rotation to a neutral position
-      meshRef.current.rotation.x = 0;
-      meshRef.current.rotation.y = 0;
-      meshRef.current.rotation.z = 0;
+    if (!viewerSettings.autoSpin && meshRef.current) {
+      // Capture current rotation speeds for deceleration
+      autoSpinDeceleration.current = {
+        isDecelerating: true,
+        startTime: Date.now(),
+        initialRotationSpeed: {
+          x: autoSpinState.current.rotationAxis.x * autoSpinState.current.rotationSpeed,
+          y: autoSpinState.current.rotationAxis.y * autoSpinState.current.rotationSpeed,
+          z: autoSpinState.current.rotationAxis.z * autoSpinState.current.rotationSpeed,
+        },
+        duration: 2000,
+      };
+    } else if (viewerSettings.autoSpin) {
+      // Stop deceleration if auto spin is re-enabled
+      autoSpinDeceleration.current.isDecelerating = false;
     }
   }, [viewerSettings.autoSpin]);
 
