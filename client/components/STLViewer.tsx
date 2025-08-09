@@ -1062,7 +1062,9 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
-            console.log(`  Face ${faceIndex}: Using ${face.triangleIndices.length} triangle indices`);
+            console.log(`🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`);
+            console.log(`   Color: HSL(${(color.getHSL({})).h.toFixed(2)}, ${(color.getHSL({})).s.toFixed(2)}, ${(color.getHSL({})).l.toFixed(2)}) → RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`);
+            console.log(`   Triangle indices: [${face.triangleIndices.slice(0, 5).join(', ')}${face.triangleIndices.length > 5 ? '...' : ''}]`);
 
             // Color specific triangles identified by triangleIndices
             for (const triangleIndex of face.triangleIndices) {
@@ -1074,9 +1076,13 @@ function STLMesh() {
                   colors[triangleStart + v] = color.r;
                   colors[triangleStart + v + 1] = color.g;
                   colors[triangleStart + v + 2] = color.b;
+                } else {
+                  console.warn(`   ⚠️ Triangle ${triangleIndex}: position ${triangleStart + v} out of bounds (max: ${colors.length})`);
                 }
               }
             }
+
+            console.log(`   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`)
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
             const triangleCount = getTriangleCountForPolygon(face);
