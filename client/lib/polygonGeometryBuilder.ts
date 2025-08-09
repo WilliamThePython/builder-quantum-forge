@@ -1437,7 +1437,7 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Detect if vertices form a star pattern
+   * Detect if vertices form a star pattern (works with normal or reversed order)
    */
   static isStarPattern(vertices: THREE.Vector3[]): boolean {
     if (vertices.length < 6 || vertices.length % 2 !== 0) return false;
@@ -1455,18 +1455,32 @@ export class PolygonGeometryBuilder {
     const uniqueDistances = [...new Set(distances.map(d => Math.round(d * 1000) / 1000))];
     if (uniqueDistances.length !== 2) return false;
 
-    // Verify alternating pattern
+    // Check for alternating pattern (try both starting patterns)
     const [shortDist, longDist] = uniqueDistances.sort((a, b) => a - b);
-    const tolerance = (longDist - shortDist) * 0.1;
 
+    // Pattern 1: odd indices are tips (normal order)
+    let pattern1Valid = true;
     for (let i = 0; i < distances.length; i++) {
-      const expectedIsLong = i % 2 === 1; // Odd indices should be tips (longer distance)
+      const expectedIsLong = i % 2 === 1;
       const actualIsLong = distances[i] > (shortDist + longDist) / 2;
-
-      if (expectedIsLong !== actualIsLong) return false;
+      if (expectedIsLong !== actualIsLong) {
+        pattern1Valid = false;
+        break;
+      }
     }
 
-    return true;
+    // Pattern 2: even indices are tips (reversed order)
+    let pattern2Valid = true;
+    for (let i = 0; i < distances.length; i++) {
+      const expectedIsLong = i % 2 === 0;
+      const actualIsLong = distances[i] > (shortDist + longDist) / 2;
+      if (expectedIsLong !== actualIsLong) {
+        pattern2Valid = false;
+        break;
+      }
+    }
+
+    return pattern1Valid || pattern2Valid;
   }
 
   /**
