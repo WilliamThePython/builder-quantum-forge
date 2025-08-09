@@ -684,14 +684,34 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to set both indexed and non-indexed geometries
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
-    // Skip all processing for procedurally generated geometries
+    // Apply coplanar merging to procedurally generated geometries for clean faces
     if ((newIndexedGeometry as any).isProcedurallyGenerated) {
-      console.log("✅ PROCEDURAL GEOMETRY: Setting with zero processing");
+      console.log("🔧 PROCEDURAL GEOMETRY: Applying coplanar merging for clean faces");
       console.log(
         `   - Vertices: ${newIndexedGeometry.attributes.position.count}`,
       );
       console.log(`   - Type: ${(newIndexedGeometry as any).polygonType}`);
-      console.log("   - NO triangulation, NO orientation fixing, NO cleanup");
+
+      // Apply hybrid coplanar merging to get clean polygon faces
+      (async () => {
+        try {
+          const { HybridCoplanarMerger } = await import(
+            "../lib/hybridCoplanarMerger"
+          );
+          const mergedFaces = HybridCoplanarMerger.mergeCoplanarTriangles(
+            newIndexedGeometry,
+          );
+
+          if (mergedFaces.length > 0) {
+            (newIndexedGeometry as any).polygonFaces = mergedFaces;
+            (newIndexedGeometry as any).polygonType = (newIndexedGeometry as any).polygonType + "_merged";
+            console.log(`✅ Applied coplanar merging: ${mergedFaces.length} clean faces`);
+          }
+        } catch (error) {
+          console.warn("Failed to apply coplanar merging to procedural geometry:", error);
+        }
+      })();
+
       setIndexedGeometry(newIndexedGeometry);
       // Use the geometry directly for viewing - it's already non-indexed and perfect
       setGeometry(newIndexedGeometry);
