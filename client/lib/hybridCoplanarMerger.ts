@@ -39,4 +39,22 @@ export class HybridCoplanarMerger {
     const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
     return FlatSurfaceMerger.mergeFlatsurfaces(faces);
   }
+
+  /**
+   * Ultra-aggressive merging for procedural shapes (gears, stars, etc.)
+   */
+  static mergeProceduralTriangles(geometry: THREE.BufferGeometry): PolygonFace[] {
+    console.log('🎯 PROCEDURAL HYBRID MERGER - Ultra-aggressive for clean shapes');
+
+    // Stage 1: Extract faces from geometry
+    const faces = EdgeAdjacentMerger.extractTrianglesFromGeometry(geometry);
+    console.log(`   Stage 1: Extracted ${faces.length} faces from geometry`);
+
+    // Stage 2: Procedural face merger (ultra-aggressive)
+    const finalFaces = ProceduralFaceMerger.mergeProceduralFaces(faces);
+    console.log(`   Stage 2: Procedural merging → ${finalFaces.length} faces`);
+
+    console.log(`✅ Procedural hybrid merging: ${faces.length} → ${finalFaces.length} faces`);
+    return finalFaces;
+  }
 }
