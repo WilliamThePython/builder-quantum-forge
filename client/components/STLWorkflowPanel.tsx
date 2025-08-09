@@ -1260,6 +1260,7 @@ function MobileWorkflowContent(props: any) {
     restoreFromBackup,
     decimationPainterMode,
     setDecimationPainterMode,
+    setHighlightedTriangle,
   } = useSTL();
 
   // Get other props
