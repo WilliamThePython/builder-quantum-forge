@@ -60,28 +60,34 @@ export async function loadModelFile(
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
-    // Center and scale the geometry
+    // Center and scale the geometry (Quick Win 2: Cache bounding box calculations)
     if (geometry.boundingBox) {
+      const cachedBox = geometry.boundingBox.clone();
       const center = new THREE.Vector3();
-      geometry.boundingBox.getCenter(center);
+      cachedBox.getCenter(center);
 
       // Only translate to center if significantly off-center
       if (center.length() > 0.1) {
         geometry.translate(-center.x, -center.y, -center.z);
-        geometry.computeBoundingBox();
-        geometry.computeBoundingSphere();
+        // Update cached box instead of recomputing
+        cachedBox.translate(-center.x, -center.y, -center.z);
+        geometry.boundingBox = cachedBox;
+        geometry.boundingSphere = null; // Will be computed when needed
       }
 
       // Scale to reasonable size if needed
       const size = new THREE.Vector3();
-      geometry.boundingBox.getSize(size);
+      cachedBox.getSize(size);
       const maxDimension = Math.max(size.x, size.y, size.z);
 
       if (maxDimension > 200) {
         const scale = 200 / maxDimension;
         geometry.scale(scale, scale, scale);
-        geometry.computeBoundingBox();
-        geometry.computeBoundingSphere();
+        // Update cached box with scale instead of recomputing
+        cachedBox.min.multiplyScalar(scale);
+        cachedBox.max.multiplyScalar(scale);
+        geometry.boundingBox = cachedBox;
+        geometry.boundingSphere = null; // Will be computed when needed
       }
     }
 
