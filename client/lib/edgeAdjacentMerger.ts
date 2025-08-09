@@ -98,13 +98,21 @@ export class EdgeAdjacentMerger {
     
     // Find connected components of coplanar faces
     const components = this.findCoplanarComponents(faces, adjacencyGraph);
-    
-    // Merge each component into a single polygon
-    const mergedFaces = components.map(component => 
-      this.mergeComponent(component, faces)
-    );
 
-    console.log(`✅ Output: ${mergedFaces.length} merged faces`);
+    console.log(`   Found ${components.length} connected components:`);
+    for (let i = 0; i < Math.min(10, components.length); i++) {
+      console.log(`     Component ${i}: ${components[i].length} faces`);
+    }
+
+    // Merge each component into a single polygon
+    const mergedFaces = components.map((component, index) => {
+      if (component.length > 1) {
+        console.log(`   Merging component ${index}: ${component.length} faces → 1 polygon`);
+      }
+      return this.mergeComponent(component, faces);
+    });
+
+    console.log(`✅ Output: ${mergedFaces.length} merged faces (from ${components.length} components)`);
     return mergedFaces;
   }
 
