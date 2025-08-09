@@ -1,5 +1,6 @@
 import { EdgeAdjacentMerger, PolygonFace } from "./edgeAdjacentMerger";
 import { FlatSurfaceMerger } from "./flatSurfaceMerger";
+import { ProceduralFaceMerger } from "./proceduralFaceMerger";
 
 /**
  * Hybrid Coplanar Merger
