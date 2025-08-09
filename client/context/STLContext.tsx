@@ -2220,7 +2220,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             } else {
               // Fallback: use polygon face reconstructor
               console.log(
-                "��� Coplanar merging found no faces, trying polygon reconstruction...",
+                "���� Coplanar merging found no faces, trying polygon reconstruction...",
               );
               const reconstructedFaces =
                 PolygonFaceReconstructor.reconstructPolygonFaces(
@@ -2515,19 +2515,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     ],
   );
 
-  // Always provide the context to prevent hot reload errors
+  // Always provide the context and render children to prevent context errors
   return (
     <STLContext.Provider value={value}>
-      {!isInitialized ? (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Initializing...</p>
-          </div>
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </STLContext.Provider>
   );
 };
