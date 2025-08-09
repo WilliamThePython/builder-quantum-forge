@@ -1878,6 +1878,212 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Helper function to get available models list
+  const getAvailableModels = useCallback(() => {
+    return [
+      // Basic rectangular shapes (known to work)
+      {
+        name: "cube.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createBoxWithQuads(20, 20, 20),
+        description: "Simple cube with 6 quad faces",
+      },
+      {
+        name: "wide-block.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createBoxWithQuads(35, 12, 20),
+        description: "Wide rectangular block",
+      },
+      {
+        name: "tall-tower.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createBoxWithQuads(12, 40, 12),
+        description: "Tall tower shape",
+      },
+      {
+        name: "flat-plate.stl",
+        generator: () => PolygonGeometryBuilder.createBoxWithQuads(30, 5, 25),
+        description: "Flat plate",
+      },
+      // Basic shapes with triangles
+      {
+        name: "tetrahedron.stl",
+        generator: () => PolygonGeometryBuilder.createTetrahedron(18),
+        description: "Tetrahedron - 4 triangular faces",
+      },
+      {
+        name: "octahedron.stl",
+        generator: () => PolygonGeometryBuilder.createOctahedron(15),
+        description: "Octahedron - 8 triangular faces",
+      },
+      {
+        name: "icosahedron.stl",
+        generator: () => PolygonGeometryBuilder.createIcosahedron(16),
+        description: "Icosahedron - 20 triangular faces",
+      },
+      // Gear wheels
+      {
+        name: "gear-wheel-12.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 12),
+        description: "12-tooth gear wheel",
+      },
+      {
+        name: "gear-wheel-16.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 16),
+        description: "16-tooth gear wheel",
+      },
+      {
+        name: "gear-wheel-24.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createGearWheel(8, 16, 4, 24),
+        description: "24-tooth gear wheel",
+      },
+      // Star shapes
+      {
+        name: "star-8-point.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createStarShape(18, 10, 6, 8),
+        description: "8-pointed star",
+      },
+      {
+        name: "star-12-point.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createStarShape(18, 10, 6, 12),
+        description: "12-pointed star",
+      },
+      // High-res shapes
+      {
+        name: "high-res-cylinder-24.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createCylinderWithPolygons(15, 15, 25, 24),
+        description: "High-resolution cylinder (24 sides)",
+      },
+      {
+        name: "washer-24-seg.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createWasher(16, 8, 6, 24),
+        description: "High-res washer/torus (24 segments)",
+      },
+      // Architectural shapes
+      {
+        name: "cross-shape.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createCrossShape(12, 20, 4, 8),
+        description: "Cross/plus shape",
+      },
+      {
+        name: "l-bracket.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createLBracket(20, 25, 15, 3),
+        description: "L-bracket mechanical part",
+      },
+      {
+        name: "simple-house.stl",
+        generator: () =>
+          PolygonGeometryBuilder.createSimpleHouse(20, 15, 25, 10),
+        description: "Simple house with roof",
+      },
+    ];
+  }, []);
+
+  // Load a specific model by name
+  const loadSpecificModel = useCallback(async (modelName: string) => {
+    setIsLoading(true);
+    setError(null);
+    setLoadingProgress({
+      percentage: 0,
+      stage: "Loading model...",
+      details: `Loading ${modelName}`,
+    });
+
+    try {
+      const workingModels = getAvailableModels();
+      const selectedModel = workingModels.find(model => model.name === modelName);
+
+      if (!selectedModel) {
+        throw new Error(`Model "${modelName}" not found`);
+      }
+
+      setLoadingProgress({
+        percentage: 20,
+        stage: "Creating geometry...",
+        details: selectedModel.description,
+      });
+
+      // Generate the model
+      const polygonGeometry = selectedModel.generator();
+
+      setLoadingProgress({
+        percentage: 50,
+        stage: "Converting geometry...",
+        details: "Triangulating faces",
+      });
+
+      const bufferGeometry =
+        PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+
+      setLoadingProgress({
+        percentage: 70,
+        stage: "Validating geometry...",
+        details: "Checking structure",
+      });
+
+      // Validate the geometry
+      if (
+        !bufferGeometry.attributes.position ||
+        bufferGeometry.attributes.position.count === 0
+      ) {
+        throw new Error(
+          `Generated geometry has no vertices: ${selectedModel.name}`,
+        );
+      }
+
+      setLoadingProgress({
+        percentage: 90,
+        stage: "Finalizing...",
+        details: "Setting up viewer",
+      });
+
+      // For procedurally generated geometries, do NOTHING - they're perfect as-is
+      let preparedGeometry: THREE.BufferGeometry;
+      if ((bufferGeometry as any).isProcedurallyGenerated) {
+        console.log("✅ Using procedurally generated geometry as-is - no processing");
+        // Use the geometry exactly as generated - no modifications whatsoever
+        preparedGeometry = bufferGeometry;
+        // Don't even touch the normals - they're already computed correctly
+      } else {
+        // Only apply full cleanup pipeline to loaded STL files
+        preparedGeometry = prepareGeometryForViewing(
+          bufferGeometry,
+          "initial_load",
+        );
+      }
+
+      // Set up dual geometry storage
+      setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
+      setFileName(selectedModel.name);
+      setOriginalFormat("stl");
+
+      setLoadingProgress({
+        percentage: 100,
+        stage: "Complete",
+        details: `${selectedModel.name} loaded successfully`,
+      });
+      console.log(`${selectedModel.name} loaded successfully`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      addError(`Failed to load model: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+      // Clear progress after a longer delay so you can see the result
+      setTimeout(() => {
+        setLoadingProgress({ percentage: 0, stage: "", details: "" });
+      }, 2000);
+    }
+  }, [getAvailableModels]);
+
   const updateViewerSettings = useCallback(
     (newSettings: Partial<ViewerSettings>) => {
       setViewerSettings((prev) => {
