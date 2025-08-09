@@ -723,32 +723,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           `Loading ${(fileSize / 1024 / 1024).toFixed(1)}MB into memory...`,
         );
 
-        // Load with adaptive timeout based on file size
-        const baseTimeout = 15000; // 15s base
-        const sizeMultiplier = Math.min(
-          Math.max(fileSize / (10 * 1024 * 1024), 1),
-          4,
-        ); // 1x-4x multiplier
-        const timeoutMs = baseTimeout * sizeMultiplier;
+        // Simplified loading for smaller files (under 10MB)
+        let arrayBuffer: ArrayBuffer;
 
-        console.log(
-          `⏱️ File loading timeout: ${Math.round(timeoutMs / 1000)}s for ${(fileSize / 1024 / 1024).toFixed(1)}MB file`,
-        );
-
-        const arrayBuffer = await Promise.race([
-          file.arrayBuffer(),
-          new Promise<never>((_, reject) =>
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    `File loading timeout after ${Math.round(timeoutMs / 1000)}s - try closing other browser tabs or using a smaller file`,
+        if (fileSize < 10 * 1024 * 1024) {
+          // Simple loading for small files
+          arrayBuffer = await file.arrayBuffer();
+        } else {
+          // Timeout protection for medium files (10-15MB)
+          const timeoutMs = 20000; // 20s timeout
+          arrayBuffer = await Promise.race([
+            file.arrayBuffer(),
+            new Promise<never>((_, reject) =>
+              setTimeout(
+                () =>
+                  reject(
+                    new Error(
+                      `File loading timeout after 20s - try closing other browser tabs or using a smaller file`,
+                    ),
                   ),
-                ),
-              timeoutMs,
+                timeoutMs,
+              ),
             ),
-          ),
-        ]);
+          ]);
+        }
 
         updateProgress(35, "Parsing", "Processing STL geometry...");
 
