@@ -234,14 +234,19 @@ export class STLManipulator {
       return this.getTriangleIndexFromIntersection(geometry, intersection);
     }
 
-    // Get the triangle index that was hit
-    const triangleIndex = !geometry.index
-      ? Math.floor(intersection.face.a / 3)
-      : this.findTriangleIndexFromFace(geometry, intersection.face);
+    // Simplified approach: Get triangle index directly from intersection
+    const triangleIndex = intersection.faceIndex || Math.floor(intersection.face.a / 3);
 
-    if (triangleIndex === null) return null;
+    // Use triangleIndices if available (for merged faces)
+    for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+      const face = polygonFaces[faceIndex];
 
-    // Find which polygon face contains this triangle
+      if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
+        return faceIndex;
+      }
+    }
+
+    // Fallback to sequential calculation for non-merged faces
     let currentTriangleCount = 0;
     for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
       const face = polygonFaces[faceIndex];
