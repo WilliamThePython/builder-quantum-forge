@@ -892,7 +892,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
 
       console.log("🔄 Calling loadModelFile function...");
-      const geometry = await loadModelFile(file, updateProgress);
+      let geometry = await loadModelFile(file, updateProgress);
       console.log("✅ loadModelFile completed successfully");
 
       // DISABLED COMPLEX LOADING - delete this entire block later
@@ -2195,7 +2195,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             } else {
               // Fallback: use polygon face reconstructor
               console.log(
-                "⚡ Coplanar merging found no faces, trying polygon reconstruction...",
+                "��� Coplanar merging found no faces, trying polygon reconstruction...",
               );
               const reconstructedFaces =
                 PolygonFaceReconstructor.reconstructPolygonFaces(
