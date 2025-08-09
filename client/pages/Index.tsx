@@ -187,7 +187,7 @@ export default function Index() {
                     : "text-2xl md:text-3xl mb-3 md:mb-4"
                 }`}
               >
-                STL Viewer Platform
+                IntelliMesh
               </h1>
               <p
                 className={`text-white/80 ${
