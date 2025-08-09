@@ -38,7 +38,6 @@ interface ViewerSettings {
   randomColors: boolean;
   wireframe: boolean;
   backgroundColor: string;
-  triangulated: boolean;
 }
 
 interface ErrorMessage {
@@ -121,7 +120,6 @@ const defaultViewerSettings: ViewerSettings = {
   randomColors: false,
   wireframe: false,
   backgroundColor: "#0a0a0a",
-  triangulated: false, // Default to coplanar merged faces view
 };
 
 const STLContext = createContext<STLContextType | undefined>(undefined);
@@ -426,18 +424,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setIsInitialized(true);
   }, []);
 
-  // Regenerate geometry when triangulated mode changes
-  useEffect(() => {
-    if (indexedGeometry) {
-      console.log('🔄 Triangulated mode changed to:', viewerSettings.triangulated);
-      const nonIndexedGeometry = convertToNonIndexedForViewing(
-        indexedGeometry,
-        viewerSettings.triangulated
-      );
-      setGeometry(nonIndexedGeometry);
-      console.log('✅ Geometry updated for triangulated mode:', viewerSettings.triangulated);
-    }
-  }, [viewerSettings.triangulated, indexedGeometry]);
 
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
@@ -475,7 +461,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     setIndexedGeometry(newIndexedGeometry);
     const nonIndexedGeometry =
-      convertToNonIndexedForViewing(newIndexedGeometry, viewerSettings.triangulated);
+      convertToNonIndexedForViewing(newIndexedGeometry);
     setGeometry(nonIndexedGeometry);
   };
 
@@ -483,7 +469,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (
     indexedGeom: THREE.BufferGeometry,
-    triangulated: boolean = true,
   ): THREE.BufferGeometry => {
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
@@ -498,71 +483,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const newPositions: number[] = [];
     const newPolygonFaces: any[] = [];
 
-    if (polygonFaces && Array.isArray(polygonFaces) && !triangulated) {
-      // Coplanar merged faces mode - preserve polygon grouping
-      console.log('🎨 Using coplanar merged faces mode with', polygonFaces.length, 'polygon faces');
-      let triangleOffset = 0;
+    // Just duplicate vertices for each triangle
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i];
+      const b = indices[i + 1];
+      const c = indices[i + 2];
 
-      // Process each polygon face to maintain grouping
-      for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
-        const face = polygonFaces[faceIndex];
-        const triangleCount = getTriangleCountForPolygon(face);
-
-        // Convert triangles for this polygon face
-        const startTriangleIndex = triangleOffset;
-        for (let t = 0; t < triangleCount; t++) {
-          const triangleIndexStart = (triangleOffset + t) * 3;
-          const a = indices[triangleIndexStart];
-          const b = indices[triangleIndexStart + 1];
-          const c = indices[triangleIndexStart + 2];
-
-          // Copy vertex positions
-          newPositions.push(
-            positions[a * 3],
-            positions[a * 3 + 1],
-            positions[a * 3 + 2],
-            positions[b * 3],
-            positions[b * 3 + 1],
-            positions[b * 3 + 2],
-            positions[c * 3],
-            positions[c * 3 + 1],
-            positions[c * 3 + 2],
-          );
-        }
-
-        // Create updated polygon face info for non-indexed geometry
-        const newFace = {
-          type: face.type,
-          startVertex: startTriangleIndex * 3, // 3 vertices per triangle
-          endVertex: (startTriangleIndex + triangleCount) * 3 - 1,
-          originalVertices: face.originalVertices,
-          normal: face.normal,
-          triangleCount: triangleCount,
-        };
-
-        newPolygonFaces.push(newFace);
-        triangleOffset += triangleCount;
-      }
-    } else {
-      // Triangulated mode or fallback: Just duplicate vertices for each triangle
-      console.log('🔺 Using triangulated mode - creating separate triangles');
-      for (let i = 0; i < indices.length; i += 3) {
-        const a = indices[i];
-        const b = indices[i + 1];
-        const c = indices[i + 2];
-
-        newPositions.push(
-          positions[a * 3],
-          positions[a * 3 + 1],
-          positions[a * 3 + 2],
-          positions[b * 3],
-          positions[b * 3 + 1],
-          positions[b * 3 + 2],
-          positions[c * 3],
-          positions[c * 3 + 1],
-          positions[c * 3 + 2],
-        );
-      }
+      newPositions.push(
+        positions[a * 3],
+        positions[a * 3 + 1],
+        positions[a * 3 + 2],
+        positions[b * 3],
+        positions[b * 3 + 1],
+        positions[b * 3 + 2],
+        positions[c * 3],
+        positions[c * 3 + 1],
+        positions[c * 3 + 2],
+      );
     }
 
     // Create new non-indexed geometry
@@ -572,16 +509,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       new THREE.Float32BufferAttribute(newPositions, 3),
     );
 
-    // Apply updated polygon metadata for non-indexed structure (only for coplanar mode)
-    if (newPolygonFaces.length > 0 && !triangulated) {
+    // Copy polygon metadata if it exists
+    if ((indexedGeom as any).polygonFaces) {
       (nonIndexedGeometry as any).polygonFaces = newPolygonFaces;
-      console.log("   ✅ Updated polygon faces for non-indexed geometry");
-    } else if (triangulated) {
-      // In triangulated mode, remove polygon face grouping
-      (nonIndexedGeometry as any).polygonFaces = null;
-      console.log("   ✅ Triangulated mode: removed polygon face grouping");
     }
-    if ((indexedGeom as any).polygonType && !triangulated) {
+    if ((indexedGeom as any).polygonType) {
       (nonIndexedGeometry as any).polygonType = (
         indexedGeom as any
       ).polygonType;
