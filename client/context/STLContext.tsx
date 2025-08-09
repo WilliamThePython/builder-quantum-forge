@@ -131,31 +131,8 @@ const STLContext = createContext<STLContextType | undefined>(undefined);
 export const useSTL = () => {
   const context = useContext(STLContext);
   if (!context) {
-    // More detailed error with stack trace for debugging
-    console.error(
-      "useSTL called outside of STLProvider. Stack trace:",
-      new Error().stack,
-    );
-    console.error(
-      "STL Context Error: Component tried to use STL context outside provider",
-    );
-    console.error(
-      "This usually happens during hot reload or component tree changes",
-    );
-
-    // During development, provide a more helpful error
-    if (import.meta.env.DEV) {
-      console.error(
-        "🔧 Dev tip: This error often resolves after a page refresh during development",
-      );
-
-      // In development, trigger a page reload to recover from hot reload issues
-      setTimeout(() => {
-        console.log("🔄 Auto-reloading page to recover from context error...");
-        window.location.reload();
-      }, 1000);
-    }
-
+    // Log error for debugging but don't spam console
+    console.error("useSTL: Context not available - component rendered outside STLProvider");
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;
