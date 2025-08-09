@@ -81,8 +81,10 @@ export default function STLWorkflowPanel({
   geometryStats,
   randomColors,
   wireframe,
+  autoSpin,
   onRandomColorsChange,
   onWireframeChange,
+  onAutoSpinChange,
 }: STLWorkflowPanelProps) {
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -713,7 +715,7 @@ export default function STLWorkflowPanel({
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
                     disabled={isProcessing}
                   >
-                    🔧 Apply Quadric Decimation
+                    ��� Apply Quadric Decimation
                   </Button>
 
                   {/* Decimation Painter Toggle */}
