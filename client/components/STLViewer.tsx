@@ -960,7 +960,7 @@ function STLMesh() {
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
         console.warn(
-          "⚠️ Face missing original vertices, using fallback for face:",
+          "��️ Face missing original vertices, using fallback for face:",
           faceIndex,
         );
       }
@@ -1106,6 +1106,27 @@ function STLMesh() {
       meshRef.current.rotation.x += autoSpinState.current.rotationAxis.x * rotationAmount;
       meshRef.current.rotation.y += autoSpinState.current.rotationAxis.y * rotationAmount;
       meshRef.current.rotation.z += autoSpinState.current.rotationAxis.z * rotationAmount;
+    }
+
+    // Handle natural deceleration when auto spin is turned off
+    if (autoSpinDeceleration.current.isDecelerating && deltaTime > 0) {
+      const elapsed = currentTime - autoSpinDeceleration.current.startTime;
+      const progress = Math.min(elapsed / autoSpinDeceleration.current.duration, 1);
+
+      // Easing function for smooth deceleration (cubic ease-out)
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const currentRotationMultiplier = 1 - easeOut;
+
+      if (progress >= 1) {
+        // Deceleration complete, stop naturally
+        autoSpinDeceleration.current.isDecelerating = false;
+      } else {
+        // Continue rotating with decreasing speed based on last rotation speeds
+        const rotationAmount = deltaTime * currentRotationMultiplier;
+        meshRef.current.rotation.x += autoSpinDeceleration.current.initialRotationSpeed.x * rotationAmount;
+        meshRef.current.rotation.y += autoSpinDeceleration.current.initialRotationSpeed.y * rotationAmount;
+        meshRef.current.rotation.z += autoSpinDeceleration.current.initialRotationSpeed.z * rotationAmount;
+      }
     }
   });
 
