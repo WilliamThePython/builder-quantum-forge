@@ -103,8 +103,10 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading OBJ data...");
 
-    // Read as text for OBJ
-    const text = await file.text();
+    // Use chunked loading for files larger than 1MB to prevent memory issues
+    const text = file.size > 1024 * 1024
+      ? await this.loadOBJFileInChunks(file, progressCallback)
+      : await file.text();
 
     progressCallback?.(50, "Parsing", "Processing OBJ geometry...");
 
