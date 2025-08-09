@@ -110,11 +110,6 @@ export class EdgeAdjacentMerger {
 
     // Merge each component into a single polygon
     const mergedFaces = components.map((component, index) => {
-      if (component.length > 1) {
-        console.log(
-          `   Merging component ${index}: ${component.length} faces → 1 polygon`,
-        );
-      }
       return this.mergeComponent(component, faces);
     });
 
