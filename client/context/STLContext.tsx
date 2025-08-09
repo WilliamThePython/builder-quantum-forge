@@ -945,32 +945,26 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       let geometry: THREE.BufferGeometry;
 
-      // Use optimized loading for large files
-      const fileSize = file.size;
-      const isLargeFile = fileSize > 15 * 1024 * 1024; // 15MB threshold
+      // Use fast loading for all files - prioritize speed over optimization
+      console.log(`⚡ Fast loading ${(file.size / 1024 / 1024).toFixed(1)}MB file`);
 
-      if (isLargeFile) {
-        console.log(
-          `⚡ Large file detected (${(fileSize / 1024 / 1024).toFixed(1)}MB) - using optimized loader`,
-        );
+      const { FastSTLLoader } = await import("../lib/fastSTLLoader");
 
-        const { LargeFileOptimizer } = await import(
-          "../lib/largeFileOptimizer"
-        );
+      geometry = await FastSTLLoader.loadFile(
+        file,
+        (progress, stage, details) => {
+          updateProgress(20 + progress * 0.5, stage, details); // 20-70% range
+        },
+      );
 
-        geometry = await LargeFileOptimizer.processLargeFile(
-          file,
-          (progress, message) => {
-            updateProgress(20 + progress * 0.3, "Processing", message); // 20-50% range
-          },
-        );
+      await updateProgress(
+        70,
+        "Ready",
+        `${geometry.attributes.position.count.toLocaleString()} vertices loaded`,
+      );
 
-        await updateProgress(
-          50,
-          "Analyzing",
-          `${geometry.attributes.position.count} vertices loaded`,
-        );
-      } else if (isSTL) {
+      // Skip to final processing - no more complex loading logic needed
+      if (false) { // Disable the old complex loading path
         const { STLLoader } = await import(
           "three/examples/jsm/loaders/STLLoader"
         );
@@ -1508,7 +1502,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // For medium files (1-20MB), provide simpler suggestions
         errorMessage += `\n\n💡 For ${(file.size / 1024 / 1024).toFixed(1)}MB files, try:\n`;
         errorMessage += "• Refreshing the page and trying again\n";
-        errorMessage += "• Checking the file is not corrupted\n";
+        errorMessage += "��� Checking the file is not corrupted\n";
         errorMessage += "• Using a different STL/OBJ file";
       }
 
