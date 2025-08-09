@@ -426,6 +426,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setIsInitialized(true);
   }, []);
 
+  // Regenerate geometry when triangulated mode changes
+  useEffect(() => {
+    if (indexedGeometry) {
+      const nonIndexedGeometry = convertToNonIndexedForViewing(
+        indexedGeometry,
+        viewerSettings.triangulated
+      );
+      setGeometry(nonIndexedGeometry);
+    }
+  }, [viewerSettings.triangulated, indexedGeometry]);
+
   // STL Tools state
   const [toolMode, setToolMode] = useState<STLToolMode>(STLToolMode.Highlight);
   const [isProcessingTool, setIsProcessingTool] = useState(false);
