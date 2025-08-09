@@ -1208,15 +1208,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         );
       }
 
-      // Calculate maxDimension from bounding box
+      // Cache bounding box calculations to avoid redundant computations
       if (!geometry.boundingBox) {
         geometry.computeBoundingBox();
       }
-      const box = geometry.boundingBox!;
+      const cachedBox = geometry.boundingBox!.clone(); // Cache the original box
       const maxDimension = Math.max(
-        box.max.x - box.min.x,
-        box.max.y - box.min.y,
-        box.max.z - box.min.z,
+        cachedBox.max.x - cachedBox.min.x,
+        cachedBox.max.y - cachedBox.min.y,
+        cachedBox.max.z - cachedBox.min.z,
       );
 
       if (maxDimension === 0) {
@@ -1225,6 +1225,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       const scale = 50 / maxDimension; // Scale to fit in a 50-unit cube
       geometry.scale(scale, scale, scale);
+
+      // Update bounding box only once after scaling, using cached calculations
+      geometry.boundingBox = cachedBox.clone();
+      geometry.boundingBox.min.multiplyScalar(scale);
+      geometry.boundingBox.max.multiplyScalar(scale);
+      geometry.boundingSphere = null; // Will be computed when needed
 
       // Validate geometry after scaling operations
       geometry = validateAndFixGeometry(
