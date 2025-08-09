@@ -45,22 +45,22 @@ export class AggressiveCoplanarMerger {
     for (const face of faces) {
       const normal = this.ensureVector3(face.normal).normalize();
       
-      // Determine major direction
+      // Determine major direction with more permissive thresholds
       let key: string;
-      if (Math.abs(normal.y) > 0.8) {
-        // Mostly vertical (up/down)
+      if (Math.abs(normal.y) > 0.5) {
+        // More permissive vertical grouping (up/down)
         key = normal.y > 0 ? "UP" : "DOWN";
-      } else if (Math.abs(normal.x) > 0.8) {
-        // Mostly X direction
+      } else if (Math.abs(normal.x) > 0.5) {
+        // More permissive X direction
         key = normal.x > 0 ? "RIGHT" : "LEFT";
-      } else if (Math.abs(normal.z) > 0.8) {
-        // Mostly Z direction
+      } else if (Math.abs(normal.z) > 0.5) {
+        // More permissive Z direction
         key = normal.z > 0 ? "FRONT" : "BACK";
       } else {
-        // Diagonal - use rounded normal
-        const nx = Math.round(normal.x);
-        const ny = Math.round(normal.y);
-        const nz = Math.round(normal.z);
+        // Diagonal - use very loose rounding
+        const nx = Math.round(normal.x * 2) / 2; // Round to 0.5 increments
+        const ny = Math.round(normal.y * 2) / 2;
+        const nz = Math.round(normal.z * 2) / 2;
         key = `${nx},${ny},${nz}`;
       }
       
