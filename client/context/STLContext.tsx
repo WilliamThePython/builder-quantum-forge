@@ -84,6 +84,8 @@ interface STLContextType {
 
   loadModelFromFile: (file: File) => Promise<void>; // Renamed to support both formats
   loadDefaultSTL: () => Promise<void>;
+  loadSpecificModel: (modelName: string) => Promise<void>; // New function to load specific model
+  availableModels: Array<{ name: string; description: string }>; // List of available models
   updateViewerSettings: (settings: Partial<ViewerSettings>) => void;
   exportSTL: (customFilename?: string) => void;
   exportOBJ: (customFilename?: string) => void;
