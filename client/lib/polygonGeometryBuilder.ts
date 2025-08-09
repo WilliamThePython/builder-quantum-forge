@@ -670,46 +670,41 @@ export class PolygonGeometryBuilder {
     vertices.push(...outerVertices);
 
     // Create faces for the L-bracket
-    // Use triangulation from center point to avoid unwanted connecting faces across the L void
+    // Split the L into two separate rectangular arms to avoid connecting faces across the void
 
-    // Create center points for the L shape
-    const topCenter = new THREE.Vector3((-w + thickness) / 2, h, (-h + thickness) / 2);
-    const bottomCenter = new THREE.Vector3((-w + thickness) / 2, -h, (-h + thickness) / 2);
-    vertices.push(topCenter, bottomCenter);
-    const topCenterIndex = vertices.length - 2;
-    const bottomCenterIndex = vertices.length - 1;
+    // Bottom face - create two separate rectangles for horizontal and vertical arms
+    // Horizontal arm rectangle (bottom strip)
+    faces.push(
+      this.createFace(
+        [vertices[0], vertices[1], vertices[7], vertices[6]],
+        "quad",
+      ),
+    );
 
-    // Bottom L face - create triangular faces from center to each edge
-    const bottomVertices = vertices.slice(0, 6);
-    for (let i = 0; i < bottomVertices.length; i++) {
-      const next = (i + 1) % bottomVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[bottomCenterIndex], // center
-            bottomVertices[next],
-            bottomVertices[i],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Vertical arm rectangle (left strip)
+    faces.push(
+      this.createFace(
+        [vertices[4], vertices[5], vertices[11], vertices[10]],
+        "quad",
+      ),
+    );
 
-    // Top L face - create triangular faces from center to each edge
-    const topVertices = vertices.slice(6, 12);
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[topCenterIndex], // center
-            topVertices[i],
-            topVertices[next],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Top face - create two separate rectangles for horizontal and vertical arms
+    // Horizontal arm rectangle (bottom strip) - reversed for proper normal
+    faces.push(
+      this.createFace(
+        [vertices[6], vertices[7], vertices[1], vertices[0]],
+        "quad",
+      ),
+    );
+
+    // Vertical arm rectangle (left strip) - reversed for proper normal
+    faces.push(
+      this.createFace(
+        [vertices[10], vertices[11], vertices[5], vertices[4]],
+        "quad",
+      ),
+    );
 
     // Side faces - only for actual L-bracket exterior edges
     // L-bracket vertices form a complex profile, need to map correctly
