@@ -1387,7 +1387,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Update with enhanced geometry
       setDualGeometry(geometry);
 
-      updateProgress(100, "Complete", "Model loaded and optimized successfully!");
+      updateProgress(
+        100,
+        "Complete",
+        "Model loaded and optimized successfully!",
+      );
 
       // Track STL upload analytics
       try {
