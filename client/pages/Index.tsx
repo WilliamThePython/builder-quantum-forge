@@ -154,11 +154,11 @@ export default function Index() {
               isMobile ? "text-xs" : "text-xs md:text-sm"
             }`}
           >
-            STL Viewer Platform
+            IntelliMesh
           </div>
           {!isMobile && (
             <div className="text-xs text-white/50 hidden md:block">
-              Interactive 3D Model Viewer
+              Creating creators who create creations
             </div>
           )}
         </div>
