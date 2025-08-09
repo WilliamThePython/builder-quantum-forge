@@ -92,11 +92,15 @@ export class AggressiveCoplanarMerger {
     const normal = this.ensureVector3(faces[0].normal);
     const orderedVertices = this.orderPolygonVertices(uniqueVertices, normal);
 
-    // Collect all triangle indices
+    // Collect all triangle indices and ensure they're properly preserved
     const allTriangleIndices: number[] = [];
     for (const face of faces) {
-      allTriangleIndices.push(...(face.triangleIndices || []));
+      if (face.triangleIndices && face.triangleIndices.length > 0) {
+        allTriangleIndices.push(...face.triangleIndices);
+      }
     }
+
+    console.log(`   Collected ${allTriangleIndices.length} triangle indices from ${faces.length} merged faces`);
 
     const faceType = orderedVertices.length === 3 ? "triangle" :
                     orderedVertices.length === 4 ? "quad" : "polygon";
