@@ -86,6 +86,13 @@ export class EdgeAdjacentMerger {
     console.log('🔗 EDGE-ADJACENT COPLANAR MERGER');
     console.log(`   Input: ${faces.length} faces`);
 
+    // Debug first few faces to understand the geometry
+    for (let i = 0; i < Math.min(5, faces.length); i++) {
+      const face = faces[i];
+      const normal = this.ensureVector3(face.normal);
+      console.log(`   Face ${i}: ${face.type}, normal(${normal.x.toFixed(3)}, ${normal.y.toFixed(3)}, ${normal.z.toFixed(3)}), vertices: ${face.originalVertices.length}`);
+    }
+
     // Build adjacency graph based on shared edges
     const adjacencyGraph = this.buildEdgeAdjacencyGraph(faces);
     
