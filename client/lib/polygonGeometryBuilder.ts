@@ -954,43 +954,14 @@ export class PolygonGeometryBuilder {
 
     vertices.push(...topVertices, ...bottomVertices);
 
-    // Split top and bottom faces into smaller polygons to avoid unwanted triangulation
-    // Create center vertices for star pattern
-    const topCenter = new THREE.Vector3(0, h, 0);
-    const bottomCenter = new THREE.Vector3(0, -h, 0);
-    vertices.push(topCenter, bottomCenter);
-    const topCenterIndex = vertices.length - 2;
-    const bottomCenterIndex = vertices.length - 1;
+    // Create top and bottom faces as single polygons (like cylinders)
+    // This allows EdgeAdjacentMerger to work properly
 
-    // Top face - create triangular faces from center to each edge
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[topCenterIndex], // center
-            topVertices[i],
-            topVertices[next],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Top face - single gear-shaped polygon
+    faces.push(this.createFace([...topVertices], "polygon"));
 
-    // Bottom face - create triangular faces from center to each edge (reversed)
-    for (let i = 0; i < bottomVertices.length; i++) {
-      const next = (i + 1) % bottomVertices.length;
-      faces.push(
-        this.createFace(
-          [
-            vertices[bottomCenterIndex], // bottom center
-            bottomVertices[next],
-            bottomVertices[i],
-          ],
-          "triangle",
-        ),
-      );
-    }
+    // Bottom face - single gear-shaped polygon (reversed for proper normal)
+    faces.push(this.createFace([...bottomVertices].reverse(), "polygon"));
 
     // Create side faces - only for actual gear profile edges
     // Each tooth has 4 vertices: valley1, tip1, tip2, valley2
