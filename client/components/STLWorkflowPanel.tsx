@@ -403,7 +403,10 @@ export default function STLWorkflowPanel({
 
               {/* Random Model */}
               <Button
-                onClick={loadDefaultSTL}
+                onClick={() => {
+                  clearHighlightOnMenuInteraction();
+                  loadDefaultSTL();
+                }}
                 disabled={isLoading}
                 className="w-full border-gray-300 bg-white/10 hover:bg-white/20 text-white font-medium h-10"
                 variant="outline"
