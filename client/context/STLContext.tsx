@@ -462,7 +462,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     setIndexedGeometry(newIndexedGeometry);
     const nonIndexedGeometry =
-      convertToNonIndexedForViewing(newIndexedGeometry);
+      convertToNonIndexedForViewing(newIndexedGeometry, viewerSettings.triangulated);
     setGeometry(nonIndexedGeometry);
   };
 
