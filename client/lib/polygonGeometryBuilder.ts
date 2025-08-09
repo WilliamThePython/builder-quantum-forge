@@ -1413,6 +1413,12 @@ export class PolygonGeometryBuilder {
       normal: face.normal,
       triangleIndices: [] // Will be filled by triangulation
     }));
+
+    console.log(`🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${properPolygonFaces.length} faces`);
+    for (let i = 0; i < Math.min(5, properPolygonFaces.length); i++) {
+      const face = properPolygonFaces[i];
+      console.log(`  Face ${i}: ${face.type} with ${face.originalVertices.length} vertices`);
+    }
     (geometry as any).polygonFaces = properPolygonFaces;
     (geometry as any).polygonType = polygonGeometry.type;
     // Mark as procedurally generated to indicate it's already clean
