@@ -588,6 +588,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
+    console.log("🚀 loadModelFromFile called with:", {
+      fileName: file.name,
+      fileSize: file.size,
+      fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
+      fileType: file.type
+    });
+
     setIsLoading(true);
     setError(null);
     updateProgress(0, "Starting", "Initializing upload...");
