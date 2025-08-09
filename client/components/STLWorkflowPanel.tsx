@@ -7,6 +7,7 @@ import {
   Settings,
   Palette,
   Eye,
+  Grid3x3,
   X,
   ChevronDown,
   ChevronRight,
