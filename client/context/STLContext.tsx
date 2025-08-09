@@ -470,6 +470,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (
     indexedGeom: THREE.BufferGeometry,
+    triangulated: boolean = true,
   ): THREE.BufferGeometry => {
     if (!indexedGeom.index) {
       // Already non-indexed, just prepare for viewing
