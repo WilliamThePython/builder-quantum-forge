@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { CoplanarMerger, PolygonFace } from "./coplanarMerger";
+import { EdgeAdjacentMerger } from "./edgeAdjacentMerger";
+import { PolygonFace } from "./coplanarMerger";
 
 /**
  * PolygonFaceReconstructor analyzes triangulated geometries and attempts to
@@ -18,8 +19,9 @@ export class PolygonFaceReconstructor {
 
     const triangleCount = Math.floor(geometry.attributes.position.count / 3);
 
-    // Use the unified CoplanarMerger for consistent methodology
-    const mergedFaces = CoplanarMerger.mergeGeometryTriangles(geometry);
+    // Use the improved EdgeAdjacentMerger for precise face grouping
+    const faces = this.extractTrianglesAsPolygonFaces(geometry);
+    const mergedFaces = EdgeAdjacentMerger.groupEdgeAdjacentTriangles(faces);
 
     return mergedFaces;
   }
