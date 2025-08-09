@@ -27,6 +27,49 @@ export class PolygonFaceReconstructor {
   }
 
   /**
+   * Extract triangles as PolygonFaces for edge-adjacent merging
+   */
+  private static extractTrianglesAsPolygonFaces(geometry: THREE.BufferGeometry): PolygonFace[] {
+    const positions = geometry.attributes.position;
+    const faces: PolygonFace[] = [];
+
+    for (let i = 0; i < positions.count; i += 3) {
+      const v1 = new THREE.Vector3(
+        positions.getX(i),
+        positions.getY(i),
+        positions.getZ(i),
+      );
+      const v2 = new THREE.Vector3(
+        positions.getX(i + 1),
+        positions.getY(i + 1),
+        positions.getZ(i + 1),
+      );
+      const v3 = new THREE.Vector3(
+        positions.getX(i + 2),
+        positions.getY(i + 2),
+        positions.getZ(i + 2),
+      );
+
+      // Calculate normal
+      const edge1 = new THREE.Vector3().subVectors(v2, v1);
+      const edge2 = new THREE.Vector3().subVectors(v3, v1);
+      const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+      // Skip degenerate triangles
+      if (normal.length() > 0.001) {
+        faces.push({
+          type: "triangle",
+          originalVertices: [v1, v2, v3],
+          normal: normal,
+          triangleIndices: [Math.floor(i / 3)],
+        });
+      }
+    }
+
+    return faces;
+  }
+
+  /**
    * Extract triangle data from geometry
    */
   private static extractTriangles(geometry: THREE.BufferGeometry): Triangle[] {
