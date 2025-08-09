@@ -530,7 +530,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         triangleOffset += triangleCount;
       }
     } else {
-      // Fallback: Just duplicate vertices for each triangle
+      // Triangulated mode or fallback: Just duplicate vertices for each triangle
       for (let i = 0; i < indices.length; i += 3) {
         const a = indices[i];
         const b = indices[i + 1];
