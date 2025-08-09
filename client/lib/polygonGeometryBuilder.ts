@@ -523,9 +523,18 @@ export class PolygonGeometryBuilder {
       vertices[6], vertices[7], vertices[8], vertices[9], vertices[10], vertices[11]
     ], 'polygon'));
 
-    // Side faces
-    for (let i = 0; i < 6; i++) {
-      const next = (i + 1) % 6;
+    // Side faces - only for actual L-bracket exterior edges
+    // L-bracket vertices form a complex profile, need to map correctly
+    const lBracketEdges = [
+      [0, 1],   // bottom horizontal edge
+      [1, 2],   // right short vertical
+      [2, 3],   // inner horizontal
+      [3, 4],   // inner vertical
+      [4, 5],   // top horizontal
+      [5, 0]    // left vertical (closing the L)
+    ];
+
+    for (const [i, next] of lBracketEdges) {
       faces.push(this.createFace([
         vertices[i], vertices[next], vertices[next + 6], vertices[i + 6]
       ], 'quad'));
@@ -889,9 +898,24 @@ export class PolygonGeometryBuilder {
     faces.push(this.createFace([...topVertices], 'polygon'));
     faces.push(this.createFace([...bottomVertices].reverse(), 'polygon'));
 
-    // Side faces
-    for (let i = 0; i < topVertices.length; i++) {
-      const next = (i + 1) % topVertices.length;
+    // Side faces - only create faces for actual exterior edges
+    // Cross shape has 12 vertices, but we need to skip the interior connections
+    const exteriorEdges = [
+      [0, 1],   // bottom center edge
+      [1, 2],   // bottom right vertical
+      [2, 3],   // bottom right horizontal
+      [3, 4],   // right vertical
+      [4, 5],   // top right horizontal
+      [5, 6],   // top right vertical
+      [6, 7],   // top center edge
+      [7, 8],   // top left vertical
+      [8, 9],   // top left horizontal
+      [9, 10],  // left vertical
+      [10, 11], // bottom left horizontal
+      [11, 0]   // bottom left vertical
+    ];
+
+    for (const [i, next] of exteriorEdges) {
       faces.push(this.createFace([
         bottomVertices[i], bottomVertices[next],
         topVertices[next], topVertices[i]
