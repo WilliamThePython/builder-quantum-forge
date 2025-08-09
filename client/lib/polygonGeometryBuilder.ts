@@ -1407,12 +1407,24 @@ export class PolygonGeometryBuilder {
     );
 
     // Store face information in the correct format for the viewer
-    const properPolygonFaces = faceData.map(face => ({
-      type: face.type,
-      originalVertices: face.originalVertices,
-      normal: face.normal,
-      triangleIndices: [] // Will be filled by triangulation
-    }));
+    let triangleIndex = 0;
+    const properPolygonFaces = faceData.map(face => {
+      const triangleCount = face.type === "triangle" ? 1 :
+                           face.type === "quad" ? 2 :
+                           face.originalVertices.length - 2; // fan triangulation
+
+      const triangleIndices = [];
+      for (let i = 0; i < triangleCount; i++) {
+        triangleIndices.push(triangleIndex++);
+      }
+
+      return {
+        type: face.type,
+        originalVertices: face.originalVertices,
+        normal: face.normal,
+        triangleIndices: triangleIndices
+      };
+    });
 
     console.log(`🔧 Converting ${polygonGeometry.type} to BufferGeometry with ${properPolygonFaces.length} faces`);
     for (let i = 0; i < Math.min(5, properPolygonFaces.length); i++) {
