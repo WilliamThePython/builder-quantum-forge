@@ -615,9 +615,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to set both indexed and non-indexed geometries
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
-    // Quick validation
+    // Skip all processing for procedurally generated geometries
+    if ((newIndexedGeometry as any).isProcedurallyGenerated) {
+      console.log("✅ Setting procedural geometry with zero processing");
+      setIndexedGeometry(newIndexedGeometry);
+      // Use the geometry directly for viewing - it's already non-indexed and perfect
+      setGeometry(newIndexedGeometry);
+      return;
+    }
+
+    // Quick validation for loaded geometries
     if (hasNaNValues(newIndexedGeometry)) {
-      console.error("���� setDualGeometry received geometry with NaN values!");
+      console.error("🚨 setDualGeometry received geometry with NaN values!");
       return;
     }
 
