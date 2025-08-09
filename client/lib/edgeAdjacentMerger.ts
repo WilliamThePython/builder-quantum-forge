@@ -272,14 +272,29 @@ export class EdgeAdjacentMerger {
 
     // Check normal similarity
     const normalDot = Math.abs(normal1.dot(normal2));
-    if (normalDot < this.NORMAL_TOLERANCE) return false;
+    const normalCheck = normalDot >= this.NORMAL_TOLERANCE;
+
+    if (!normalCheck) {
+      // Debug why faces aren't considered coplanar
+      if (normalDot < 0.99) { // Only log significantly different normals
+        console.log(`     Coplanarity fail: normal dot ${normalDot.toFixed(4)} < ${this.NORMAL_TOLERANCE}`);
+        console.log(`       Normal1: (${normal1.x.toFixed(3)}, ${normal1.y.toFixed(3)}, ${normal1.z.toFixed(3)})`);
+        console.log(`       Normal2: (${normal2.x.toFixed(3)}, ${normal2.y.toFixed(3)}, ${normal2.z.toFixed(3)})`);
+      }
+      return false;
+    }
 
     // Check if faces lie on the same plane
     const face1Center = this.getFaceCenter(face1.originalVertices);
     const face2Center = this.getFaceCenter(face2.originalVertices);
     const planeDistance = this.distanceToPlane(face1Center, face2Center, normal2);
-    
-    return Math.abs(planeDistance) < this.DISTANCE_TOLERANCE;
+    const planeCheck = Math.abs(planeDistance) < this.DISTANCE_TOLERANCE;
+
+    if (!planeCheck) {
+      console.log(`     Coplanarity fail: plane distance ${Math.abs(planeDistance).toFixed(4)} > ${this.DISTANCE_TOLERANCE}`);
+    }
+
+    return planeCheck;
   }
 
   /**
