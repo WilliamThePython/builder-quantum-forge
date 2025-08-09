@@ -1443,7 +1443,7 @@ export class PolygonGeometryBuilder {
   }
 
   /**
-   * Triangulate a polygon face - simplified version
+   * Triangulate a polygon face using ear clipping for complex shapes
    */
   static triangulateFace(face: PolygonFace): THREE.Vector3[] {
     const vertices = face.vertices;
@@ -1457,13 +1457,117 @@ export class PolygonGeometryBuilder {
       triangulated.push(vertices[0], vertices[1], vertices[2]);
       triangulated.push(vertices[0], vertices[2], vertices[3]);
     } else {
-      // Polygon - simple fan triangulation from first vertex
-      for (let i = 1; i < vertices.length - 1; i++) {
-        triangulated.push(vertices[0], vertices[i], vertices[i + 1]);
-      }
+      // Complex polygon - use ear clipping
+      const earClippedTriangles = this.earClippingTriangulation(vertices, face.normal);
+      triangulated.push(...earClippedTriangles);
     }
 
     return triangulated;
+  }
+
+  /**
+   * Ear clipping triangulation algorithm for complex polygons
+   * No center vertices - pure perimeter triangulation
+   */
+  static earClippingTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[] {
+    if (vertices.length < 3) return [];
+    if (vertices.length === 3) return [...vertices];
+
+    const triangulated: THREE.Vector3[] = [];
+    const vertexList = [...vertices]; // Work with a copy
+
+    // Continue until we have only 3 vertices left
+    while (vertexList.length > 3) {
+      let earFound = false;
+
+      // Try each vertex as a potential ear
+      for (let i = 0; i < vertexList.length; i++) {
+        const prev = (i - 1 + vertexList.length) % vertexList.length;
+        const curr = i;
+        const next = (i + 1) % vertexList.length;
+
+        if (this.isEar(vertexList, prev, curr, next, normal)) {
+          // Found an ear - add the triangle and remove the middle vertex
+          triangulated.push(
+            vertexList[prev],
+            vertexList[curr],
+            vertexList[next]
+          );
+
+          // Remove the ear vertex
+          vertexList.splice(curr, 1);
+          earFound = true;
+          break;
+        }
+      }
+
+      // If no ear found, fall back to fan triangulation to prevent infinite loop
+      if (!earFound) {
+        console.warn("⚠️ Ear clipping failed, falling back to fan triangulation");
+        for (let i = 1; i < vertexList.length - 1; i++) {
+          triangulated.push(vertexList[0], vertexList[i], vertexList[i + 1]);
+        }
+        break;
+      }
+    }
+
+    // Add the final triangle
+    if (vertexList.length === 3) {
+      triangulated.push(...vertexList);
+    }
+
+    return triangulated;
+  }
+
+  /**
+   * Check if three consecutive vertices form a valid ear
+   */
+  static isEar(vertices: THREE.Vector3[], prev: number, curr: number, next: number, normal: THREE.Vector3): boolean {
+    const v1 = vertices[prev];
+    const v2 = vertices[curr];
+    const v3 = vertices[next];
+
+    // Check if the triangle is convex (ear candidates must be convex)
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v2);
+    const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+
+    // Check if triangle orientation matches face normal
+    if (cross.dot(normal) <= 0) {
+      return false; // Reflex angle, not an ear
+    }
+
+    // Check if any other vertex is inside this triangle
+    for (let i = 0; i < vertices.length; i++) {
+      if (i === prev || i === curr || i === next) continue;
+
+      if (this.isPointInTriangle(vertices[i], v1, v2, v3)) {
+        return false; // Another vertex is inside, not a valid ear
+      }
+    }
+
+    return true; // Valid ear
+  }
+
+  /**
+   * Check if a point is inside a triangle using barycentric coordinates
+   */
+  static isPointInTriangle(point: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): boolean {
+    const v0 = new THREE.Vector3().subVectors(c, a);
+    const v1 = new THREE.Vector3().subVectors(b, a);
+    const v2 = new THREE.Vector3().subVectors(point, a);
+
+    const dot00 = v0.dot(v0);
+    const dot01 = v0.dot(v1);
+    const dot02 = v0.dot(v2);
+    const dot11 = v1.dot(v1);
+    const dot12 = v1.dot(v2);
+
+    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0) && (v >= 0) && (u + v <= 1);
   }
 }
 
