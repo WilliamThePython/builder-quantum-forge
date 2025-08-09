@@ -153,6 +153,115 @@ const defaultSTLFiles = [
   "/default-stl/cylinder.stl",
 ];
 
+// Helper function to remove degenerate triangles that cause black voids
+const removeDegenearteTriangles = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+  console.log("🔧 Removing degenerate triangles...");
+
+  const positions = geometry.attributes.position.array as Float32Array;
+  const indices = geometry.index?.array;
+
+  if (!indices) {
+    // Non-indexed geometry - check triangles directly
+    const newPositions: number[] = [];
+    let removedCount = 0;
+
+    for (let i = 0; i < positions.length; i += 9) {
+      // Get triangle vertices
+      const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+      const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
+      const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+
+      // Calculate triangle area using cross product
+      const edge1 = new THREE.Vector3().subVectors(v2, v1);
+      const edge2 = new THREE.Vector3().subVectors(v3, v1);
+      const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+      const area = cross.length() / 2;
+
+      // Skip degenerate triangles (very small area or identical vertices)
+      const minArea = 1e-10;
+      const minDistance = 1e-8;
+
+      if (area > minArea &&
+          v1.distanceTo(v2) > minDistance &&
+          v2.distanceTo(v3) > minDistance &&
+          v3.distanceTo(v1) > minDistance) {
+        // Valid triangle - keep it
+        newPositions.push(...positions.slice(i, i + 9));
+      } else {
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      console.log(`✅ Removed ${removedCount} degenerate triangles`);
+      const newGeometry = new THREE.BufferGeometry();
+      newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+
+      // Copy other attributes if they exist
+      if (geometry.attributes.normal) {
+        newGeometry.setAttribute('normal', geometry.attributes.normal);
+      }
+      if (geometry.attributes.uv) {
+        newGeometry.setAttribute('uv', geometry.attributes.uv);
+      }
+
+      // Copy metadata
+      Object.keys(geometry).forEach(key => {
+        if (key.startsWith('polygon') || key === 'isPolygonPreserved') {
+          (newGeometry as any)[key] = (geometry as any)[key];
+        }
+      });
+
+      return newGeometry;
+    }
+  } else {
+    // Indexed geometry - check triangles using indices
+    const validIndices: number[] = [];
+    let removedCount = 0;
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const i1 = indices[i] * 3;
+      const i2 = indices[i + 1] * 3;
+      const i3 = indices[i + 2] * 3;
+
+      // Get triangle vertices
+      const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
+      const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
+      const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+
+      // Calculate triangle area
+      const edge1 = new THREE.Vector3().subVectors(v2, v1);
+      const edge2 = new THREE.Vector3().subVectors(v3, v1);
+      const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+      const area = cross.length() / 2;
+
+      // Check for degenerate conditions
+      const minArea = 1e-10;
+      const minDistance = 1e-8;
+
+      if (area > minArea &&
+          v1.distanceTo(v2) > minDistance &&
+          v2.distanceTo(v3) > minDistance &&
+          v3.distanceTo(v1) > minDistance &&
+          indices[i] !== indices[i + 1] &&
+          indices[i + 1] !== indices[i + 2] &&
+          indices[i + 2] !== indices[i]) {
+        // Valid triangle - keep indices
+        validIndices.push(indices[i], indices[i + 1], indices[i + 2]);
+      } else {
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      console.log(`✅ Removed ${removedCount} degenerate triangles from indexed geometry`);
+      geometry.setIndex(validIndices);
+    }
+  }
+
+  return geometry;
+};
+
 // Helper function to ensure geometries display as solid objects
 const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
   // Use flat normals to maintain crisp face shading instead of smooth blending
@@ -1235,7 +1344,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         errorMessage.includes("allocation") ||
         errorMessage.includes("heap")
       ) {
-        errorMessage += "\n\n💾 Memory issue detected - try:\n";
+        errorMessage += "\n\n��� Memory issue detected - try:\n";
         errorMessage += "• Closing all other browser tabs\n";
         errorMessage += "• Restarting your browser\n";
         errorMessage += "• Using a computer with more RAM";
