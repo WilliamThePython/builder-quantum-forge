@@ -61,8 +61,10 @@ interface STLWorkflowPanelProps {
   } | null;
   randomColors: boolean;
   wireframe: boolean;
+  triangulated: boolean;
   onRandomColorsChange: (checked: boolean) => void;
   onWireframeChange: (checked: boolean) => void;
+  onTriangulatedChange: (checked: boolean) => void;
 }
 
 export default function STLWorkflowPanel({
