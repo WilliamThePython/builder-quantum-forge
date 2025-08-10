@@ -39,9 +39,12 @@ export class PolygonPartsExporter {
     const polygonType = (geometry as any).polygonType;
 
     if (!polygonFaces) {
+      console.log("No polygon faces found - falling back to triangle-by-triangle export");
       // Fallback to triangle-based export for non-polygon geometries
       return this.exportTriangleFallback(geometry, filename, options);
     }
+
+    console.log(`Starting polygon parts export: ${polygonFaces.length} polygon faces found`);
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
