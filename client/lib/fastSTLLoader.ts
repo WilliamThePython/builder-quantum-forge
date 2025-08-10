@@ -65,9 +65,11 @@ export class FastSTLLoader {
       originalConsoleError.apply(console, args);
     };
 
+    let geometry: THREE.BufferGeometry;
+
     try {
       const loader = new STLLoader();
-      const geometry = loader.parse(arrayBuffer);
+      geometry = loader.parse(arrayBuffer);
 
       // Restore console.error
       console.error = originalConsoleError;
@@ -81,18 +83,18 @@ export class FastSTLLoader {
 
       // Always recompute normals for STL files to fix any malformed faces
       geometry.computeVertexNormals();
+
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+
+      progressCallback?.(100, "Ready", "Model loaded successfully");
+
+      return geometry;
     } catch (error) {
       // Restore console.error in case of exception
       console.error = originalConsoleError;
       throw error;
     }
-
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-
-    progressCallback?.(100, "Ready", "Model loaded successfully");
-
-    return geometry;
   }
 
   private static async loadOBJFast(
