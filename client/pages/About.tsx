@@ -81,20 +81,20 @@ export default function About() {
             
             <div className={`text-lg leading-relaxed space-y-4 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
               <p>
-                Intellimesh is a next-generation platform for intelligent 3D mesh manipulation and fabrication. 
-                Built for designers, engineers, and 3D enthusiasts worldwide, we believe intelligent mesh 
+                Intellimesh is a next-generation platform for 3D mesh manipulation and fabrication.
+                Built for designers, engineers, and 3D enthusiasts worldwide, we believe advanced mesh
                 manipulation should be accessible to all creators.
               </p>
-              
+
               <p>
-                Our platform provides smart tools for analyzing, optimizing, and fabricating 3D models with 
-                AI-powered precision and professional-grade results. We're bridging the gap between creative 
-                modeling and precision fabrication, building the future where intelligent mesh processing 
+                Our platform provides powerful tools for analyzing, optimizing, and fabricating 3D models with
+                precision and professional-grade results. We're bridging the gap between creative
+                modeling and precision fabrication, building the future where advanced mesh processing
                 enables seamless workflows from design concept to physical creation.
               </p>
-              
+
               <p>
-                Whether you're prototyping, manufacturing, or exploring 3D design, Intellimesh offers 
+                Whether you're prototyping, manufacturing, or exploring 3D design, Intellimesh offers
                 advanced geometric processing tools that make complex mesh operations simple and accessible.
               </p>
             </div>
