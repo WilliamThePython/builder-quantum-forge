@@ -162,10 +162,10 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Use the original triangulation from the polygon face - no new triangulation!
-   * For simple shapes, just do basic fan triangulation
+   * Create a flat polygon face that fills the polygon area properly
+   * Uses minimal triangulation to avoid waterwheel effects
    */
-  private static useOriginalTriangulation(
+  private static createFlatPolygonFace(
     vertices: THREE.Vector3[],
     normal: THREE.Vector3,
   ): string {
@@ -181,9 +181,16 @@ export class PolygonPartsExporter {
       content += this.addTriangleToSTL(vertices[0], vertices[1], vertices[2], normal);
       content += this.addTriangleToSTL(vertices[0], vertices[2], vertices[3], normal);
     } else {
-      // Complex polygon - use simple fan triangulation (works for any shape)
-      for (let i = 1; i < vertices.length - 1; i++) {
-        content += this.addTriangleToSTL(vertices[0], vertices[i], vertices[i + 1], normal);
+      // For complex polygons: use center point method to avoid interior crossing
+      // Calculate centroid
+      const center = new THREE.Vector3();
+      vertices.forEach(v => center.add(v));
+      center.divideScalar(vertices.length);
+
+      // Create triangles from center to each edge
+      for (let i = 0; i < vertices.length; i++) {
+        const next = (i + 1) % vertices.length;
+        content += this.addTriangleToSTL(center, vertices[i], vertices[next], normal);
       }
     }
 
