@@ -23,13 +23,13 @@ export default function About() {
       <div className="max-w-3xl mx-auto px-6 pb-12">
         
         {/* Main About Card */}
-        <Card className={`${cardStyles[selectedBackground as keyof typeof cardStyles]} mb-8`}>
+        <Card className="bg-white/10 border-white/20 backdrop-blur-sm mb-8">
           <CardContent className="p-8">
             <h1 className="text-4xl font-bold mb-6 text-center">
               About Intellimesh
             </h1>
-            
-            <div className={`text-lg leading-relaxed space-y-4 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
+
+            <div className="text-lg leading-relaxed space-y-4 text-gray-300">
               <p>
                 Intellimesh is a next-generation platform for 3D mesh manipulation and fabrication.
                 Built for designers, engineers, and 3D enthusiasts worldwide, we believe advanced mesh
