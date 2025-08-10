@@ -285,31 +285,84 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Simple check if polygon is convex by checking if all cross products have same sign
+   * Remove duplicate vertices that are too close together
    */
-  private static isConvexPolygon(vertices: THREE.Vector3[], normal: THREE.Vector3): boolean {
-    if (vertices.length < 3) return false;
+  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+    if (vertices.length < 2) return vertices;
 
-    let sign = 0;
-    for (let i = 0; i < vertices.length; i++) {
-      const curr = vertices[i];
-      const next = vertices[(i + 1) % vertices.length];
-      const nextNext = vertices[(i + 2) % vertices.length];
+    const cleanVertices: THREE.Vector3[] = [vertices[0]];
+    const tolerance = 0.0001;
 
-      const v1 = new THREE.Vector3().subVectors(next, curr);
-      const v2 = new THREE.Vector3().subVectors(nextNext, next);
-      const cross = new THREE.Vector3().crossVectors(v1, v2);
-      const dot = cross.dot(normal);
+    for (let i = 1; i < vertices.length; i++) {
+      const current = vertices[i];
+      const last = cleanVertices[cleanVertices.length - 1];
 
-      if (Math.abs(dot) > 0.001) { // Not degenerate
-        if (sign === 0) {
-          sign = Math.sign(dot);
-        } else if (Math.sign(dot) !== sign) {
-          return false; // Concave
-        }
+      if (current.distanceTo(last) > tolerance) {
+        cleanVertices.push(current);
       }
     }
-    return true;
+
+    // Check if first and last vertices are duplicates
+    if (cleanVertices.length > 1) {
+      const first = cleanVertices[0];
+      const last = cleanVertices[cleanVertices.length - 1];
+      if (first.distanceTo(last) <= tolerance) {
+        cleanVertices.pop();
+      }
+    }
+
+    return cleanVertices;
+  }
+
+  /**
+   * Conservative fan triangulation that validates each triangle
+   */
+  private static conservativeFanTriangulation(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[][] {
+    if (vertices.length < 3) return [];
+
+    const triangles: THREE.Vector3[][] = [];
+    const center = vertices[0];
+
+    for (let i = 1; i < vertices.length - 1; i++) {
+      const triangle = [center, vertices[i], vertices[i + 1]];
+
+      // Validate triangle
+      if (this.isValidTriangle(triangle, normal)) {
+        triangles.push(triangle);
+      } else {
+        // If any triangle is invalid, abandon fan triangulation
+        return [];
+      }
+    }
+
+    return triangles;
+  }
+
+  /**
+   * Check if a triangle is valid (non-degenerate and properly oriented)
+   */
+  private static isValidTriangle(triangle: THREE.Vector3[], expectedNormal: THREE.Vector3): boolean {
+    const [v0, v1, v2] = triangle;
+
+    // Check for degenerate triangle
+    const edge1 = new THREE.Vector3().subVectors(v1, v0);
+    const edge2 = new THREE.Vector3().subVectors(v2, v0);
+    const triangleNormal = new THREE.Vector3().crossVectors(edge1, edge2);
+
+    // Triangle must have non-zero area
+    if (triangleNormal.length() < 0.0001) {
+      return false;
+    }
+
+    // Triangle normal should roughly align with expected normal
+    triangleNormal.normalize();
+    const dot = triangleNormal.dot(expectedNormal);
+
+    // Allow some tolerance for floating point precision
+    return dot > 0.5; // Normal should be in roughly the same direction
   }
 
   /**
