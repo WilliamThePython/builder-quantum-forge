@@ -1068,30 +1068,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setIsDecimating(true);
 
       try {
-        const manipulator = new STLManipulator(workingMeshTri);
-        const result = await manipulator.decimateEdge(
-          vertexIndex1,
-          vertexIndex2,
-        );
+        // STLManipulator only has static methods and decimateEdge is not implemented
+        // Return a proper error response for now
+        console.error("Edge decimation not yet implemented - STLManipulator.decimateEdge does not exist");
 
-        if (result.success && result.geometry) {
-          // Update working mesh
-          setWorkingMeshTri(result.geometry);
-
-          // Create proper preview mesh with reconstructed faces
-          const newPreview = createPreviewFromWorkingMesh(
-            result.geometry,
-            "edge_decimated",
-          );
-          setPreviewMeshMerged(newPreview);
-
-          // Update display
-          const displayGeometry = prepareGeometryForViewing(
-            newPreview,
-            "edge_decimated",
-          );
-          setGeometry(displayGeometry);
-        }
+        const result: ToolOperationResult = {
+          success: false,
+          message: "Edge decimation feature is not yet implemented. Use quadric decimation instead.",
+          geometry: null,
+        };
 
         return result;
       } finally {
