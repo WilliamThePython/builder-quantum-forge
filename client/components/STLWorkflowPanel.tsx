@@ -401,24 +401,19 @@ export default function STLWorkflowPanel({
               {/* Stage Indicators */}
               <div className="flex justify-between mt-2 text-xs">
                 <div
-                  className={`px-1 ${loadingProgress.percentage >= 10 ? "text-green-400" : "text-white/50"}`}
+                  className={`px-1 ${loadingProgress.percentage >= 5 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Check
+                  Load
                 </div>
                 <div
-                  className={`px-1 ${loadingProgress.percentage >= 35 ? "text-green-400" : "text-white/50"}`}
+                  className={`px-1 ${loadingProgress.percentage >= 25 ? "text-green-400" : "text-white/50"}`}
                 >
                   Parse
                 </div>
                 <div
-                  className={`px-1 ${loadingProgress.percentage >= 60 ? "text-green-400" : "text-white/50"}`}
+                  className={`px-1 ${loadingProgress.percentage >= 50 ? "text-green-400" : "text-white/50"}`}
                 >
                   Build
-                </div>
-                <div
-                  className={`px-1 ${loadingProgress.percentage >= 85 ? "text-green-400" : "text-white/50"}`}
-                >
-                  Tune
                 </div>
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 100 ? "text-green-400" : "text-white/50"}`}
