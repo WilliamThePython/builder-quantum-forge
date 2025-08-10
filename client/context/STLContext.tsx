@@ -500,10 +500,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
       
     } catch (error) {
+      console.error("❌ Error in loadModelFromFile:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("❌ Error details:", errorMessage);
       setError(`Failed to load ${file.name}: ${errorMessage}`);
       addError(errorMessage);
     } finally {
+      console.log("🏁 loadModelFromFile finally block - setting isLoading to false");
       setIsLoading(false);
     }
   }, []);
