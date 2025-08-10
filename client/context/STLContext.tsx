@@ -634,8 +634,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Find which polygon face this triangle belongs to
         const polygonFaces = (previewMeshMerged as any).polygonFaces;
         let faceType = "triangle";
-        let polygonVertices = [v1, v2, v3];
-        let polygonPerimeter = perimeter;
+        let faceVertices = [v1, v2, v3];
+        let facePerimeter = perimeter;
         let parentFaceIndex = triangleIndex;
 
         if (polygonFaces && Array.isArray(polygonFaces)) {
@@ -646,18 +646,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               faceType = face.type || "triangle";
               parentFaceIndex = faceIndex;
 
-              // Extract original polygon vertices if available
-              if (face.originalVertices && face.originalVertices.length > 3) {
-                polygonVertices = face.originalVertices.map((v: any) =>
+              // Use the specific face's vertices based on its type
+              if (face.originalVertices && face.type !== "triangle") {
+                faceVertices = face.originalVertices.map((v: any) =>
                   new THREE.Vector3(v.x, v.y, v.z)
                 );
 
-                // Calculate polygon perimeter
-                polygonPerimeter = 0;
-                for (let i = 0; i < polygonVertices.length; i++) {
-                  const current = polygonVertices[i];
-                  const next = polygonVertices[(i + 1) % polygonVertices.length];
-                  polygonPerimeter += current.distanceTo(next);
+                // Calculate face perimeter
+                facePerimeter = 0;
+                for (let i = 0; i < faceVertices.length; i++) {
+                  const current = faceVertices[i];
+                  const next = faceVertices[(i + 1) % faceVertices.length];
+                  facePerimeter += current.distanceTo(next);
                 }
               }
               break;
