@@ -1297,41 +1297,36 @@ function STLMesh() {
       colors.set(originalColors.current);
       const polygonFaces = (geometry as any).polygonFaces;
 
-      if (
-        polygonFaces &&
-        Array.isArray(polygonFaces) &&
-        highlightedTriangle < polygonFaces.length
-      ) {
-        // Polygon-based highlighting: highlight entire polygon face
-        const currentFace = polygonFaces[highlightedTriangle];
+      if (polygonFaces && Array.isArray(polygonFaces)) {
+        // Find which face contains this triangle
+        let targetFace = null;
 
-        // Use triangleIndices if available (from merged faces)
-        if (
-          currentFace.triangleIndices &&
-          currentFace.triangleIndices.length > 0
-        ) {
-          console.log(
-            `🔴 Highlighting merged face ${highlightedTriangle} with ${currentFace.triangleIndices.length} triangle indices`,
-          );
+        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+          const face = polygonFaces[faceIndex];
+          if (face.triangleIndices && face.triangleIndices.includes(highlightedTriangle)) {
+            targetFace = face;
+            break;
+          }
+        }
 
-          // Highlight specific triangles identified by triangleIndices
-          for (const triangleIndex of currentFace.triangleIndices) {
-            const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
+        if (targetFace) {
+          // Highlight all triangles in the face
+          if (targetFace.triangleIndices && targetFace.triangleIndices.length > 0) {
+            for (const triangleIndex of targetFace.triangleIndices) {
+              const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
 
-            // Apply red color to all 3 vertices of the triangle
-            for (let v = 0; v < 9; v += 3) {
-              if (triangleStart + v + 2 < colors.length) {
-                colors[triangleStart + v] = 1.0; // Red
-                colors[triangleStart + v + 1] = 0.0; // Green
-                colors[triangleStart + v + 2] = 0.0; // Blue
+              // Apply red color to all 3 vertices of the triangle
+              for (let v = 0; v < 9; v += 3) {
+                if (triangleStart + v + 2 < colors.length) {
+                  colors[triangleStart + v] = 1.0; // Red
+                  colors[triangleStart + v + 1] = 0.0; // Green
+                  colors[triangleStart + v + 2] = 0.0; // Blue
+                }
               }
             }
           }
         } else {
-          // Fallback to sequential indexing for faces without triangleIndices
-          console.log(
-            `🔴 Highlighting face ${highlightedTriangle} with sequential indexing`,
-          );
+          // Fallback: highlight just the single triangle
 
           let triangleOffset = 0;
 
