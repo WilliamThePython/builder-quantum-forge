@@ -190,12 +190,16 @@ export default function STLWorkflowPanel({
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log("🔄 File upload triggered:", file?.name, file?.size);
     if (file) {
+      console.log("📁 Calling loadModelFromFile...");
       loadModelFromFile(file).catch((err) => {
         console.error("❌ Upload failed:", err);
         // Make sure the error is visible to the user
         alert(`Upload failed: ${err.message}`);
       });
+    } else {
+      console.log("❌ No file selected");
     }
     event.target.value = "";
   };
