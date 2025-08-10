@@ -1451,7 +1451,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Provide helpful error messages based on file size and error type
       if (file.size > 20 * 1024 * 1024) {
-        errorMessage += `\n\n💡 Large file suggestions (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
+        errorMessage += `\n\n���� Large file suggestions (${(file.size / 1024 / 1024).toFixed(1)}MB):\n`;
         errorMessage += "• Close other browser tabs to free memory\n";
         errorMessage += "• Try refreshing the page and loading again\n";
         errorMessage += "• Use a desktop computer for better performance\n";
@@ -1733,13 +1733,35 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const polygonGeometry = selectedModel.generator();
 
         setLoadingProgress({
-          percentage: 50,
-          stage: "Converting geometry...",
-          details: "Triangulating faces",
+          percentage: 30,
+          stage: "Creating triangulated version...",
+          details: "Building geometry for decimation operations",
         });
 
-        const bufferGeometry =
-          PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        // Create TRIANGULATED version for decimation operations
+        const triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        // Ensure it's properly triangulated and indexed
+        if (!triangulatedGeometry.index) {
+          const indices = [];
+          for (let i = 0; i < triangulatedGeometry.attributes.position.count; i++) {
+            indices.push(i);
+          }
+          triangulatedGeometry.setIndex(indices);
+        }
+        triangulatedGeometry.computeVertexNormals();
+
+        // Store triangulated version for decimation operations
+        (triangulatedGeometry as any).isTriangulatedForDecimation = true;
+        (triangulatedGeometry as any).originalPolygonGeometry = polygonGeometry;
+
+        setLoadingProgress({
+          percentage: 50,
+          stage: "Converting to merged polygons...",
+          details: "Optimizing for 3D display with perfect polygon faces",
+        });
+
+        // Create MERGED POLYGON version for viewing (existing perfect system)
+        const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
 
         setLoadingProgress({
           percentage: 70,
