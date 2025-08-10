@@ -418,7 +418,7 @@ export default function STLWorkflowPanel({
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 85 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Validate
+                  Optimize
                 </div>
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 100 ? "text-green-400" : "text-white/50"}`}
