@@ -2574,24 +2574,71 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // CRITICAL: Validate geometry after decimation to catch degenerate triangles
           const positions = result.geometry.attributes.position.array as Float32Array;
           let degenerateCount = 0;
+          let totalTriangles = 0;
+          let minArea = Infinity;
+          let maxArea = 0;
+          let totalArea = 0;
 
-          for (let i = 0; i < positions.length; i += 9) {
-            // Check each triangle for degeneracy
-            const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-            const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-            const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+          if (result.geometry.index) {
+            // Indexed geometry
+            const indices = result.geometry.index.array;
+            totalTriangles = indices.length / 3;
 
-            const area = new THREE.Vector3()
-              .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
-              .length() / 2;
+            for (let i = 0; i < indices.length; i += 3) {
+              const i1 = indices[i] * 3;
+              const i2 = indices[i + 1] * 3;
+              const i3 = indices[i + 2] * 3;
 
-            if (area < 0.0001) {
-              degenerateCount++;
+              const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
+              const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
+              const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+
+              const area = new THREE.Vector3()
+                .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+                .length() / 2;
+
+              if (area < 0.0001) {
+                degenerateCount++;
+                console.log(`🔺 Degenerate triangle ${i/3}: vertices [${i1/3}, ${i2/3}, ${i3/3}], area: ${area}`);
+              }
+
+              minArea = Math.min(minArea, area);
+              maxArea = Math.max(maxArea, area);
+              totalArea += area;
+            }
+          } else {
+            // Non-indexed geometry
+            totalTriangles = positions.length / 9;
+
+            for (let i = 0; i < positions.length; i += 9) {
+              const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+              const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
+              const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+
+              const area = new THREE.Vector3()
+                .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+                .length() / 2;
+
+              if (area < 0.0001) {
+                degenerateCount++;
+                console.log(`🔺 Degenerate triangle ${i/9}: area: ${area}`);
+              }
+
+              minArea = Math.min(minArea, area);
+              maxArea = Math.max(maxArea, area);
+              totalArea += area;
             }
           }
 
+          console.log(`📊 TRIANGLE ANALYSIS:`);
+          console.log(`   Total triangles: ${totalTriangles}`);
+          console.log(`   Degenerate triangles: ${degenerateCount}`);
+          console.log(`   Min triangle area: ${minArea}`);
+          console.log(`   Max triangle area: ${maxArea}`);
+          console.log(`   Average triangle area: ${totalArea / totalTriangles}`);
+
           if (degenerateCount > 0) {
-            console.warn(`⚠️ Found ${degenerateCount} degenerate triangles after decimation`);
+            console.warn(`⚠️ Found ${degenerateCount} degenerate triangles after decimation - these may appear as black faces`);
           }
 
           // Skip complex post-processing that might corrupt faces during decimation
