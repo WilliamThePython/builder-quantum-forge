@@ -2442,37 +2442,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Create backup before operation
         createBackup();
 
-        // CRITICAL: Ensure geometry is triangulated before decimation
-        // Decimation algorithms require pure triangulated meshes to work correctly
-        console.log("🔺 Ensuring geometry is triangulated before decimation...");
+        // Use the clean triangulated geometry for decimation (no complex preprocessing needed)
+        console.log(`🔺 Using stored triangulated geometry for decimation: ${triangulatedGeometry.attributes.position.count} vertices`);
 
-        let geometryForDecimation = indexedGeometry.clone();
-
-        // Remove any polygon face metadata that might interfere with triangulation
-        delete (geometryForDecimation as any).polygonFaces;
-        delete (geometryForDecimation as any).polygonType;
-
-        // Ensure geometry is properly triangulated
-        if (!geometryForDecimation.index) {
-          // Convert non-indexed to indexed triangulated geometry
-          const tempGeometry = new THREE.BufferGeometry();
-          tempGeometry.setFromPoints(
-            Array.from({ length: geometryForDecimation.attributes.position.count }, (_, i) =>
-              new THREE.Vector3().fromBufferAttribute(geometryForDecimation.attributes.position, i)
-            )
-          );
-          geometryForDecimation = tempGeometry;
-          console.log("✅ Converted to indexed triangulated geometry");
-        }
-
-        // Ensure we have proper normals for triangulated mesh
-        geometryForDecimation.computeVertexNormals();
-
-        console.log(`🔺 Triangulated geometry ready: ${geometryForDecimation.attributes.position.count} vertices, ${geometryForDecimation.index ? geometryForDecimation.index.count / 3 : 'non-indexed'} triangles`);
-
-        // Use STLManipulator for single edge decimation on triangulated geometry
+        // Use STLManipulator for single edge decimation on clean triangulated geometry
         const result = await STLManipulator.decimateSingleEdge(
-          geometryForDecimation,
+          triangulatedGeometry,
           vertexIndex1,
           vertexIndex2,
         );
