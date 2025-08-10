@@ -35,7 +35,7 @@ export default function TriangleStatsDisplay() {
   const edgeCount = vertexCount; // For polygons, edges = vertices (closed shape)
 
   // Format coordinate for display
-  const formatCoord = (coord: number) => coord.toFixed(2);
+  const formatCoord = (coord: number) => (coord || 0).toFixed(2);
 
   // Show first 4 coordinates, then "..." if more than 4
   const maxVisibleCoords = 4;
