@@ -634,7 +634,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Find which polygon face this triangle belongs to
         const polygonFaces = (previewMeshMerged as any).polygonFaces;
         let faceType = "triangle";
-        let vertexCount = 3;
+        let polygonVertices = [v1, v2, v3];
+        let polygonPerimeter = perimeter;
         let parentFaceIndex = triangleIndex;
 
         if (polygonFaces && Array.isArray(polygonFaces)) {
@@ -643,8 +644,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             const face = polygonFaces[faceIndex];
             if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
               faceType = face.type || "triangle";
-              vertexCount = face.originalVertices ? face.originalVertices.length : 3;
               parentFaceIndex = faceIndex;
+
+              // Extract original polygon vertices if available
+              if (face.originalVertices && face.originalVertices.length > 3) {
+                polygonVertices = face.originalVertices.map((v: any) =>
+                  new THREE.Vector3(v.x, v.y, v.z)
+                );
+
+                // Calculate polygon perimeter
+                polygonPerimeter = 0;
+                for (let i = 0; i < polygonVertices.length; i++) {
+                  const current = polygonVertices[i];
+                  const next = polygonVertices[(i + 1) % polygonVertices.length];
+                  polygonPerimeter += current.distanceTo(next);
+                }
+              }
               break;
             }
           }
@@ -652,12 +667,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         setTriangleStats({
           index: triangleIndex,
-          vertices: [v1, v2, v3],
+          vertices: polygonVertices,
           area,
-          perimeter,
+          perimeter: polygonPerimeter,
           normal: normal.normalize(),
           faceType,
-          vertexCount,
+          vertexCount: polygonVertices.length,
           parentFaceIndex,
         });
       }
