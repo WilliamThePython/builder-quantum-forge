@@ -140,12 +140,6 @@ interface STLProviderProps {
   children: React.ReactNode;
 }
 
-const defaultSTLFiles = [
-  "/default-stl/cube.stl",
-  "/default-stl/sphere.stl",
-  "/default-stl/torus.stl",
-  "/default-stl/cylinder.stl",
-];
 
 // Mesh repair and validation helper
 const repairGeometry = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
