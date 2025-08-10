@@ -2522,8 +2522,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Mark geometry as decimated to use simplified processing elsewhere
           (result.geometry as any).isDecimated = true;
 
-          // Update both indexed and non-indexed geometries using dual geometry approach
-          setDualGeometry(result.geometry);
+          // Update triangulated geometry for future decimation operations
+          setTriangulatedGeometry(result.geometry);
+
+          // Create a clean copy for viewing that will get proper polygon reconstruction
+          const viewingGeometry = result.geometry.clone();
+          setDualGeometry(viewingGeometry);
 
           console.log(
             `✅ Edge v${vertexIndex1}↔v${vertexIndex2} decimated successfully`,
