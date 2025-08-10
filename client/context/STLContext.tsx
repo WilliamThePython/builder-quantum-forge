@@ -341,10 +341,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
     }
 
-    // Ensure normals exist for display
-    if (!loadedGeometry.attributes.normal) {
-      loadedGeometry.computeVertexNormals();
-    }
+    // Always recompute normals for large files to fix any malformed faces from STL
+    loadedGeometry.computeVertexNormals();
 
     // Use the same geometry for everything - no dual mesh system
     setOriginalMesh(loadedGeometry);
