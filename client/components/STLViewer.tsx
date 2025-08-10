@@ -960,7 +960,7 @@ function STLMesh() {
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
         console.warn(
-          "���� Face missing original vertices, using fallback for face:",
+          "��️ Face missing original vertices, using fallback for face:",
           faceIndex,
         );
       }
@@ -1168,7 +1168,6 @@ function STLMesh() {
       const polygonFaces = (geometry as any).polygonFaces;
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log(`🎨 Coloring ${polygonFaces.length} polygon faces...`);
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
