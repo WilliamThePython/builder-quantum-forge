@@ -308,6 +308,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setGeometry(displayGeometry);
   };
 
+  // Helper function to create proper preview mesh after operations
+  const createPreviewFromWorkingMesh = (workingGeometry: THREE.BufferGeometry, operationType: string) => {
+    let preview = workingGeometry.clone();
+
+    // Try to reconstruct polygon faces for better preview
+    try {
+      const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(workingGeometry);
+      if (polygonFaces.length > 0) {
+        PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
+        (preview as any).polygonType = `${operationType}_merged`;
+      } else {
+        // Fallback: use triangulated geometry as-is
+        (preview as any).polygonType = `${operationType}_triangulated`;
+      }
+    } catch (error) {
+      // Fallback: use triangulated geometry as-is
+      (preview as any).polygonType = `${operationType}_triangulated`;
+    }
+
+    return preview;
+  };
+
   const loadModelFromFile = useCallback(async (file: File) => {
     setIsLoading(true);
     setError(null);
