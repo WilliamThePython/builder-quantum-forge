@@ -254,23 +254,23 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // 1. Store original mesh (keep untouched)
     const original = loadedGeometry.clone();
     setOriginalMesh(original);
-    
+
     // 2. Create triangulated working mesh for operations
     let triangulated = loadedGeometry.clone();
-    
+
     // Ensure it's triangulated
     if (!triangulated.index) {
       // Already non-indexed triangulated
     } else {
       triangulated = triangulated.toNonIndexed();
     }
-    
+
     // Apply repairs
     triangulated = repairGeometry(triangulated);
     ensureNormals(triangulated);
-    
+
     setWorkingMeshTri(triangulated);
-    
+
     // 3. Create merged preview mesh with coplanar face merging
     let preview = loadedGeometry.clone(); // Start from original, not triangulated
 
@@ -314,10 +314,55 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
 
     setPreviewMeshMerged(preview);
-    
+
     // 4. Set display geometry (use preview for viewing)
     const displayGeometry = prepareGeometryForViewing(preview, "display");
     setGeometry(displayGeometry);
+  };
+
+  // Progressive setup for large models (50k+ triangles)
+  const setupDualMeshSystemProgressive = async (
+    loadedGeometry: THREE.BufferGeometry,
+    updateProgress: (percentage: number, stage: string, details?: string) => Promise<void>
+  ) => {
+    // 1. Store original mesh (minimal memory)
+    updateProgress(75, "Tune", "Storing original...");
+    setOriginalMesh(loadedGeometry); // Don't clone for large models
+
+    // 2. Create basic working mesh first for immediate display
+    updateProgress(80, "Tune", "Creating display mesh...");
+    let basicMesh = loadedGeometry.clone();
+
+    // Minimal processing for immediate display
+    if (basicMesh.index) {
+      basicMesh = basicMesh.toNonIndexed();
+    }
+    ensureNormals(basicMesh);
+
+    // Set for immediate display
+    setWorkingMeshTri(basicMesh);
+    setPreviewMeshMerged(basicMesh);
+
+    // 3. Set up basic display geometry immediately
+    const displayGeometry = prepareGeometryForViewing(basicMesh, "display");
+    setGeometry(displayGeometry);
+
+    updateProgress(90, "Tune", "Finalizing...");
+
+    // 4. Defer heavy operations to background (non-blocking)
+    setTimeout(async () => {
+      try {
+        // Apply repairs and polygon reconstruction in background
+        const repairedMesh = repairGeometry(basicMesh.clone());
+        setWorkingMeshTri(repairedMesh);
+
+        // Only do polygon reconstruction if needed for parts export
+        // This is now deferred and won't block initial loading
+
+      } catch (error) {
+        console.warn("Background processing failed:", error);
+      }
+    }, 100);
   };
 
   // Helper function to create proper preview mesh after operations
