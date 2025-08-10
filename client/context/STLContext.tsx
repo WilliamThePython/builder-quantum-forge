@@ -2545,7 +2545,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         setIsDecimating(false); // Reset decimation flag (fallback for error cases)
       }
     },
-    [indexedGeometry, createBackup],
+    [triangulatedGeometry, createBackup],
   );
 
   const value: STLContextType = useMemo(
