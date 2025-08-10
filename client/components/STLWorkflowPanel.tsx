@@ -592,7 +592,7 @@ export default function STLWorkflowPanel({
         {/* 3. TOOLS SECTION */}
         <div className="mb-6">
           <SectionHeader
-            title="3. SIMPLIFICATION"
+            title="3. SIMPLIFICATION (in beta)"
             isExpanded={expandedSections.tools}
             onToggle={() => toggleSection("tools")}
           />
@@ -1627,7 +1627,7 @@ function MobileWorkflowContent(props: any) {
       {/* 3. TOOLS SECTION */}
       <div>
         <SectionHeader
-          title="3. SIMPLIFICATION"
+          title="3. SIMPLIFICATION (in beta)"
           isExpanded={expandedSections.tools}
           onToggle={() => toggleSection("tools")}
         />
