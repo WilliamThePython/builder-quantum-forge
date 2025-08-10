@@ -1168,8 +1168,9 @@ export default function STLWorkflowPanel({
                           i
                         </div>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-900 border border-blue-400/30 rounded-md text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
-                          Print out nets of your model with appropriate glue tabs so
-                          you can cut, fold, and glue your models into life!
+                          Print out nets of your model with appropriate glue
+                          tabs so you can cut, fold, and glue your models into
+                          life!
                         </div>
                       </div>
                     </div>
@@ -1189,8 +1190,9 @@ export default function STLWorkflowPanel({
                           i
                         </div>
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-900 border border-blue-400/30 rounded-md text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
-                          Intelligent cutting of large models into multiple pieces
-                          that fit 3D printer beds and glue/clip back together!
+                          Intelligent cutting of large models into multiple
+                          pieces that fit 3D printer beds and glue/clip back
+                          together!
                         </div>
                       </div>
                     </div>
@@ -1212,7 +1214,6 @@ export default function STLWorkflowPanel({
               </div>
             </div>
           )}
-
         </div>
 
         {/* Export Format Selection Dialog */}
@@ -1369,7 +1370,6 @@ export default function STLWorkflowPanel({
             </div>
           </div>
         )}
-
 
         {/* Epilepsy Warning Dialog */}
         <AlertDialog
@@ -2175,7 +2175,6 @@ function MobileWorkflowContent(props: any) {
           </div>
         </div>
       )}
-
     </div>
   );
 }

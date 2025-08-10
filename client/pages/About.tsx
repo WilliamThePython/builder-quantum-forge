@@ -21,7 +21,6 @@ export default function About() {
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-6 pb-12">
-        
         {/* Main About Card */}
         <Card className="bg-white/10 border-white/20 backdrop-blur-sm mb-8">
           <CardContent className="p-8">
@@ -31,21 +30,25 @@ export default function About() {
 
             <div className="text-lg leading-relaxed space-y-4 text-gray-300">
               <p>
-                Intellimesh is a next-generation platform for 3D mesh manipulation and fabrication.
-                Built for designers, engineers, and 3D enthusiasts worldwide, we believe advanced mesh
+                Intellimesh is a next-generation platform for 3D mesh
+                manipulation and fabrication. Built for designers, engineers,
+                and 3D enthusiasts worldwide, we believe advanced mesh
                 manipulation should be accessible to all creators.
               </p>
 
               <p>
-                Our platform provides powerful tools for analyzing, optimizing, and fabricating 3D models with
-                precision and professional-grade results. We're bridging the gap between creative
-                modeling and precision fabrication, building the future where advanced mesh processing
-                enables seamless workflows from design concept to physical creation.
+                Our platform provides powerful tools for analyzing, optimizing,
+                and fabricating 3D models with precision and professional-grade
+                results. We're bridging the gap between creative modeling and
+                precision fabrication, building the future where advanced mesh
+                processing enables seamless workflows from design concept to
+                physical creation.
               </p>
 
               <p>
-                Whether you're prototyping, manufacturing, or exploring 3D design, Intellimesh offers
-                advanced geometric processing tools that make complex mesh operations simple and accessible.
+                Whether you're prototyping, manufacturing, or exploring 3D
+                design, Intellimesh offers advanced geometric processing tools
+                that make complex mesh operations simple and accessible.
               </p>
             </div>
           </CardContent>
@@ -86,9 +89,10 @@ export default function About() {
 
             <div className="mb-6 text-gray-300">
               <p className="mb-4">
-                Intellimesh is a passion project built by developers who believe in making 3D technology
-                accessible to everyone. Your support helps us maintain the platform, add new features,
-                and keep it free for the community.
+                Intellimesh is a passion project built by developers who believe
+                in making 3D technology accessible to everyone. Your support
+                helps us maintain the platform, add new features, and keep it
+                free for the community.
               </p>
             </div>
 
@@ -121,11 +125,11 @@ export default function About() {
             </div>
 
             <p className="text-sm opacity-75 mt-4">
-              All donations go directly to platform development and hosting costs. ❤️
+              All donations go directly to platform development and hosting
+              costs. ❤️
             </p>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

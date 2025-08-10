@@ -1099,7 +1099,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         console.error("Edge decimation error:", error);
         return {
           success: false,
-          message: `Edge decimation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: `Edge decimation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
           geometry: null,
         };
       } finally {

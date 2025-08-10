@@ -701,9 +701,13 @@ export class STLManipulator {
       const vertexCount = positions.count;
 
       // Validate vertex indices
-      if (vertexIndex1 < 0 || vertexIndex1 >= vertexCount ||
-          vertexIndex2 < 0 || vertexIndex2 >= vertexCount ||
-          vertexIndex1 === vertexIndex2) {
+      if (
+        vertexIndex1 < 0 ||
+        vertexIndex1 >= vertexCount ||
+        vertexIndex2 < 0 ||
+        vertexIndex2 >= vertexCount ||
+        vertexIndex1 === vertexIndex2
+      ) {
         return {
           success: false,
           message: `Invalid vertex indices: ${vertexIndex1}, ${vertexIndex2}`,
@@ -714,12 +718,12 @@ export class STLManipulator {
       const v1 = new THREE.Vector3(
         positions.getX(vertexIndex1),
         positions.getY(vertexIndex1),
-        positions.getZ(vertexIndex1)
+        positions.getZ(vertexIndex1),
       );
       const v2 = new THREE.Vector3(
         positions.getX(vertexIndex2),
         positions.getY(vertexIndex2),
-        positions.getZ(vertexIndex2)
+        positions.getZ(vertexIndex2),
       );
 
       // Calculate optimal collapse position (midpoint for simplicity)
@@ -728,11 +732,16 @@ export class STLManipulator {
         v1,
         v2,
         vertexIndex1,
-        vertexIndex2
+        vertexIndex2,
       );
 
       // Create new geometry with edge collapsed
-      const newGeometry = this.collapseEdge(geometry, vertexIndex1, vertexIndex2, newPosition);
+      const newGeometry = this.collapseEdge(
+        geometry,
+        vertexIndex1,
+        vertexIndex2,
+        newPosition,
+      );
 
       if (!newGeometry) {
         return {
@@ -752,7 +761,7 @@ export class STLManipulator {
     } catch (error) {
       return {
         success: false,
-        message: `Edge decimation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Edge decimation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -764,14 +773,24 @@ export class STLManipulator {
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number,
-    newPosition: THREE.Vector3
+    newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
     if (geometry.index) {
       // Handle indexed geometry
-      return this.collapseEdgeIndexed(geometry, vertexIndex1, vertexIndex2, newPosition);
+      return this.collapseEdgeIndexed(
+        geometry,
+        vertexIndex1,
+        vertexIndex2,
+        newPosition,
+      );
     } else {
       // Handle non-indexed geometry
-      return this.collapseEdgeNonIndexed(geometry, vertexIndex1, vertexIndex2, newPosition);
+      return this.collapseEdgeNonIndexed(
+        geometry,
+        vertexIndex1,
+        vertexIndex2,
+        newPosition,
+      );
     }
   }
 
@@ -782,7 +801,7 @@ export class STLManipulator {
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number,
-    newPosition: THREE.Vector3
+    newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
     const indices = Array.from(geometry.index!.array);
     const positions = geometry.attributes.position;
@@ -817,9 +836,9 @@ export class STLManipulator {
 
     // Create new geometry
     const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', positions.clone());
+    newGeometry.setAttribute("position", positions.clone());
     if (normals) {
-      newGeometry.setAttribute('normal', normals.clone());
+      newGeometry.setAttribute("normal", normals.clone());
     }
     newGeometry.setIndex(validIndices);
 
@@ -836,7 +855,7 @@ export class STLManipulator {
     geometry: THREE.BufferGeometry,
     vertexIndex1: number,
     vertexIndex2: number,
-    newPosition: THREE.Vector3
+    newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
     const positions = geometry.attributes.position;
     const normals = geometry.attributes.normal;
@@ -877,7 +896,7 @@ export class STLManipulator {
           newPositions.push(
             positions.getX(vertexIdx),
             positions.getY(vertexIdx),
-            positions.getZ(vertexIdx)
+            positions.getZ(vertexIdx),
           );
         }
 
@@ -886,7 +905,7 @@ export class STLManipulator {
           newNormals.push(
             normals.getX(vertexIdx),
             normals.getY(vertexIdx),
-            normals.getZ(vertexIdx)
+            normals.getZ(vertexIdx),
           );
         }
       }
@@ -898,10 +917,16 @@ export class STLManipulator {
 
     // Create new geometry
     const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
 
     if (newNormals.length > 0) {
-      newGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+      newGeometry.setAttribute(
+        "normal",
+        new THREE.Float32BufferAttribute(newNormals, 3),
+      );
     }
 
     // Recompute normals
