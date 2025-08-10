@@ -915,17 +915,23 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
+    console.log(
+      `��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`,
     );
 
     const polygonFaces = (geometry as any).polygonFaces;
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
+      console.log("🔗 Creating standard edge wireframe (no polygon data)");
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
+      console.log(
+        `🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`,
       );
       return edgeGeometry;
     }
 
+    console.log("🔗 Creating polygon-aware wireframe");
 
     const wireframePositions: number[] = [];
 
@@ -966,6 +972,8 @@ function STLMesh() {
       new THREE.Float32BufferAttribute(wireframePositions, 3),
     );
 
+    console.log(
+      `�� Created polygon wireframe with ${wireframePositions.length / 6} edge segments`,
     );
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
@@ -1160,6 +1168,7 @@ function STLMesh() {
       const polygonFaces = (geometry as any).polygonFaces;
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
+        console.log(`🎨 Coloring ${polygonFaces.length} polygon faces...`);
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
@@ -1170,9 +1179,13 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
+            console.log(
+              `🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`,
             );
+            console.log(
               `   Color: RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`,
             );
+            console.log(
               `   Triangle indices: [${face.triangleIndices.slice(0, 5).join(", ")}${face.triangleIndices.length > 5 ? "..." : ""}]`,
             );
 
@@ -1194,10 +1207,13 @@ function STLMesh() {
               }
             }
 
+            console.log(
+              `   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`,
             );
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
             const triangleCount = getTriangleCountForPolygon(face);
+            console.log(
               `  Face ${faceIndex}: Fallback sequential coloring for ${triangleCount} triangles`,
             );
 
@@ -1232,6 +1248,8 @@ function STLMesh() {
             colors[i + j + 2] = color.b;
           }
         }
+        console.log(
+          "🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!",
         );
       }
 
@@ -1251,8 +1269,12 @@ function STLMesh() {
         const laterColors = colors.length >= 12
           ? `[${colors[9]?.toFixed(3) || '?'}, ${colors[10]?.toFixed(3) || '?'}, ${colors[11]?.toFixed(3) || '?'}]`
           : '[insufficient colors]';
+        console.log(`🎨 Color verification: First few colors ${firstColors}, ${laterColors}`);
       } else {
+        console.log(`🎨 Color verification: Colors array too short (${colors.length} elements)`);
       }
+      console.log(
+        `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
       );
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
@@ -1275,42 +1297,69 @@ function STLMesh() {
       colors.set(originalColors.current);
       const polygonFaces = (geometry as any).polygonFaces;
 
-      if (polygonFaces && Array.isArray(polygonFaces)) {
-        // Find which face contains this triangle
-        let targetFace = null;
+      if (
+        polygonFaces &&
+        Array.isArray(polygonFaces) &&
+        highlightedTriangle < polygonFaces.length
+      ) {
+        // Polygon-based highlighting: highlight entire polygon face
+        const currentFace = polygonFaces[highlightedTriangle];
 
-        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
-          const face = polygonFaces[faceIndex];
-          if (face.triangleIndices && face.triangleIndices.includes(highlightedTriangle)) {
-            targetFace = face;
-            break;
-          }
-        }
+        // Use triangleIndices if available (from merged faces)
+        if (
+          currentFace.triangleIndices &&
+          currentFace.triangleIndices.length > 0
+        ) {
+          console.log(
+            `🔴 Highlighting merged face ${highlightedTriangle} with ${currentFace.triangleIndices.length} triangle indices`,
+          );
 
-        if (targetFace) {
-          // Highlight all triangles in the face
-          if (targetFace.triangleIndices && targetFace.triangleIndices.length > 0) {
-            for (const triangleIndex of targetFace.triangleIndices) {
-              const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
+          // Highlight specific triangles identified by triangleIndices
+          for (const triangleIndex of currentFace.triangleIndices) {
+            const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
 
-              // Apply red color to all 3 vertices of the triangle
-              for (let v = 0; v < 9; v += 3) {
-                if (triangleStart + v + 2 < colors.length) {
-                  colors[triangleStart + v] = 1.0; // Red
-                  colors[triangleStart + v + 1] = 0.0; // Green
-                  colors[triangleStart + v + 2] = 0.0; // Blue
-                }
+            // Apply red color to all 3 vertices of the triangle
+            for (let v = 0; v < 9; v += 3) {
+              if (triangleStart + v + 2 < colors.length) {
+                colors[triangleStart + v] = 1.0; // Red
+                colors[triangleStart + v + 1] = 0.0; // Green
+                colors[triangleStart + v + 2] = 0.0; // Blue
               }
             }
           }
         } else {
-          // Fallback: highlight just the single triangle
-          const triangleStart = highlightedTriangle * 9;
-          for (let v = 0; v < 9; v += 3) {
-            if (triangleStart + v + 2 < colors.length) {
-              colors[triangleStart + v] = 1.0; // Red
-              colors[triangleStart + v + 1] = 0.0; // Green
-              colors[triangleStart + v + 2] = 0.0; // Blue
+          // Fallback to sequential indexing for faces without triangleIndices
+          console.log(
+            `🔴 Highlighting face ${highlightedTriangle} with sequential indexing`,
+          );
+
+          let triangleOffset = 0;
+
+          // Calculate which triangles belong to this polygon face
+          for (
+            let faceIndex = 0;
+            faceIndex < highlightedTriangle;
+            faceIndex++
+          ) {
+            const face = polygonFaces[faceIndex];
+            triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
+          }
+
+          const triangleCount =
+            STLManipulator.getTriangleCountForPolygon(currentFace);
+
+          // Highlight all triangles in this polygon face
+          for (let t = 0; t < triangleCount; t++) {
+            const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
+
+            for (let i = 0; i < 9; i += 3) {
+              const idx = triangleStart + i;
+              if (idx < colors.length) {
+                // Set to bright red color
+                colors[idx] = 1.0; // Red
+                colors[idx + 1] = 0.0; // Green
+                colors[idx + 2] = 0.0; // Blue
+              }
             }
           }
         }
@@ -1611,6 +1660,7 @@ function STLMesh() {
     const handleClick = async (event: MouseEvent) => {
       if (highlightedEdge) {
         // Validate edge indices before attempting decimation
+        console.log(`🔍 Attempting to decimate edge:`, {
           vertexIndex1: highlightedEdge.vertexIndex1,
           vertexIndex2: highlightedEdge.vertexIndex2,
           geometryVertexCount: geometry?.attributes?.position?.count || 'unknown'
@@ -1629,6 +1679,7 @@ function STLMesh() {
           console.error("❌ Edge decimation failed:", error);
         }
       } else {
+        console.log("   No edge highlighted for decimation");
       }
     };
 
