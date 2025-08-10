@@ -446,7 +446,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       // Detect file size and triangle count for loading strategy
       const fileSizeKB = file.size / 1024;
       const triangleCount = Math.floor(loadedGeometry.attributes.position.count / 3);
-      const isVeryLargeFile = true; // TEMPORARY: Force minimal processing for all files
+      const isVeryLargeFile = fileSizeKB > 500; // Files >500KB get minimal processing
       const isLargeModel = triangleCount > 50000; // 50k+ triangles = large model
 
       updateProgress(50, "Build", "Preparing display...");
