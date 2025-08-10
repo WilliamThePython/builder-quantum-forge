@@ -1,5 +1,19 @@
 // Google Analytics 4 and Real Analytics Integration
 
+// Prevent FullStory namespace conflicts
+(function preventFullStoryConflicts() {
+  if (typeof window !== 'undefined') {
+    // Ensure our unique namespace is set
+    window["_fs_namespace"] = "FS_INTELLIMESH";
+
+    // Prevent duplicate FullStory loading
+    if (window._fs_intellimesh_loaded) {
+      return;
+    }
+    window._fs_intellimesh_loaded = true;
+  }
+})();
+
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
