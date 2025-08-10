@@ -275,7 +275,31 @@ export default function STLWorkflowPanel({
 
   if (isMobile) {
     return (
-      <div className="fixed left-2 top-2 z-50 w-64 max-w-[80vw]">
+      <>
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
+          className={`fixed top-1/2 -translate-y-1/2 z-50 transition-all duration-300 ease-in-out
+            ${isMenuCollapsed
+              ? 'left-2'
+              : 'left-[17rem]'
+            }
+            bg-slate-900/90 backdrop-blur-lg border border-blue-400/30
+            hover:border-blue-400/50 hover:bg-slate-800/90
+            text-white p-2 rounded-full shadow-lg hover:shadow-blue-500/20
+            w-8 h-8 flex items-center justify-center text-xs font-bold
+          `}
+          title={isMenuCollapsed ? "Show Menu" : "Hide Menu"}
+        >
+          {isMenuCollapsed ? '>' : '<'}
+        </button>
+
+        <div className={`fixed top-2 z-40 w-64 max-w-[80vw] transition-all duration-300 ease-in-out
+          ${isMenuCollapsed
+            ? '-left-64 opacity-0'
+            : 'left-2 opacity-100'
+          }
+        `}>
         <div className="bg-slate-900/95 backdrop-blur-lg rounded-lg border border-blue-400/30 overflow-hidden shadow-2xl shadow-blue-500/20">
           {/* Compact Mobile Header */}
           <div className="bg-gradient-to-r from-blue-900/95 to-purple-900/95 backdrop-blur-lg border-b border-blue-400/30 p-2">
@@ -301,7 +325,8 @@ export default function STLWorkflowPanel({
             />
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
