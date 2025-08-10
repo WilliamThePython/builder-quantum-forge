@@ -1500,18 +1500,18 @@ function MobileWorkflowContent(props: any) {
                 </div>
                 {(() => {
                   const detailedStats = getDetailedGeometryStats();
-                  if (!detailedStats) return null;
+                  if (!detailedStats || typeof detailedStats.vertices !== 'number') return null;
 
                   return (
                     <div className="text-xs text-white/70 space-y-0.5">
-                      <div>V: {detailedStats.vertices.toLocaleString()}</div>
-                      <div>E: {detailedStats.edges.toLocaleString()}</div>
+                      <div>V: {detailedStats.vertices?.toLocaleString() || 0}</div>
+                      <div>E: {detailedStats.edges?.toLocaleString() || 0}</div>
                       {detailedStats.polygonBreakdown
-                        .slice(0, 2)
-                        .map(({ type, count }) => (
+                        ?.slice(0, 2)
+                        ?.map(({ type, count }) => (
                           <div key={type}>
                             {type.charAt(0).toUpperCase()}:{" "}
-                            {count.toLocaleString()}
+                            {count?.toLocaleString() || 0}
                           </div>
                         ))}
                     </div>
