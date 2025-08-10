@@ -960,7 +960,7 @@ function STLMesh() {
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
         console.warn(
-          "��️ Face missing original vertices, using fallback for face:",
+          "���� Face missing original vertices, using fallback for face:",
           faceIndex,
         );
       }
@@ -1328,33 +1328,12 @@ function STLMesh() {
         } else {
           // Fallback: highlight just the single triangle
 
-          let triangleOffset = 0;
-
-          // Calculate which triangles belong to this polygon face
-          for (
-            let faceIndex = 0;
-            faceIndex < highlightedTriangle;
-            faceIndex++
-          ) {
-            const face = polygonFaces[faceIndex];
-            triangleOffset += STLManipulator.getTriangleCountForPolygon(face);
-          }
-
-          const triangleCount =
-            STLManipulator.getTriangleCountForPolygon(currentFace);
-
-          // Highlight all triangles in this polygon face
-          for (let t = 0; t < triangleCount; t++) {
-            const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
-
-            for (let i = 0; i < 9; i += 3) {
-              const idx = triangleStart + i;
-              if (idx < colors.length) {
-                // Set to bright red color
-                colors[idx] = 1.0; // Red
-                colors[idx + 1] = 0.0; // Green
-                colors[idx + 2] = 0.0; // Blue
-              }
+          const triangleStart = highlightedTriangle * 9;
+          for (let v = 0; v < 9; v += 3) {
+            if (triangleStart + v + 2 < colors.length) {
+              colors[triangleStart + v] = 1.0; // Red
+              colors[triangleStart + v + 1] = 0.0; // Green
+              colors[triangleStart + v + 2] = 0.0; // Blue
             }
           }
         }
