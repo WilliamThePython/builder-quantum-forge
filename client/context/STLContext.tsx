@@ -2443,8 +2443,24 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           console.log(`✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`);
 
-          // For decimated geometry, use a simplified update path to avoid corruption
-          // Mark geometry as decimated to skip complex polygon processing
+          // For decimated geometry, rebuild polygon face metadata for correct stats
+          try {
+            console.log("🔄 Rebuilding polygon face metadata for decimated geometry...");
+            const { PolygonFaceReconstructor } = await import(
+              "../lib/polygonFaceReconstructor"
+            );
+            const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+
+            if (reconstructedFaces.length > 0) {
+              (result.geometry as any).polygonFaces = reconstructedFaces;
+              (result.geometry as any).polygonType = "decimated_reconstructed";
+              console.log(`✅ Rebuilt ${reconstructedFaces.length} polygon faces for decimated geometry`);
+            }
+          } catch (error) {
+            console.warn("⚠️ Failed to rebuild polygon metadata for decimated geometry:", error);
+          }
+
+          // Mark geometry as decimated to use simplified processing elsewhere
           (result.geometry as any).isDecimated = true;
 
           // Update both indexed and non-indexed geometries using dual geometry approach
