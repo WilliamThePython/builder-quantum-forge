@@ -317,6 +317,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     // 4. Set display geometry (use preview for viewing)
     const displayGeometry = prepareGeometryForViewing(preview, "display");
+    console.log("✅ Normal processing complete - display geometry prepared", {
+      vertices: displayGeometry.attributes.position.count,
+      hasNormals: !!displayGeometry.attributes.normal,
+      hasGeometry: !!displayGeometry
+    });
     setGeometry(displayGeometry);
   };
 
