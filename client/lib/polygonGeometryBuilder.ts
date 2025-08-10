@@ -1713,6 +1713,80 @@ export class PolygonGeometryBuilder {
 
     return u >= 0 && v >= 0 && u + v <= 1;
   }
+
+  /**
+   * Convert PolygonGeometry to BufferGeometry using center point triangulation
+   * Perfect for gear, star, and cross shapes that benefit from center-based triangulation
+   */
+  static toBufferGeometryWithCenterTriangulation(
+    polygonGeometry: PolygonGeometry,
+  ): THREE.BufferGeometry {
+    console.log(
+      `🌟 Converting ${polygonGeometry.type} to BufferGeometry with CENTER TRIANGULATION`
+    );
+
+    const positions: number[] = [];
+    const normals: number[] = [];
+
+    for (
+      let faceIndex = 0;
+      faceIndex < polygonGeometry.faces.length;
+      faceIndex++
+    ) {
+      const face = polygonGeometry.faces[faceIndex];
+
+      // Use center point triangulation for complex faces (gears, stars, crosses)
+      const triangulatedVertices = this.triangulateFromCenter(face);
+
+      console.log(
+        `  Face ${faceIndex}: ${face.faceType} center-triangulated into ${triangulatedVertices.length / 3} triangles`
+      );
+
+      for (const vertex of triangulatedVertices) {
+        positions.push(vertex.x, vertex.y, vertex.z);
+        normals.push(face.normal.x, face.normal.y, face.normal.z);
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+
+    // Mark as center-triangulated for decimation
+    (geometry as any).isCenterTriangulated = true;
+    (geometry as any).polygonType = polygonGeometry.type + "_center_triangulated";
+
+    console.log(`✅ Center triangulation complete: ${positions.length / 3} vertices`);
+    return geometry;
+  }
+
+  /**
+   * Triangulate a face using center point approach
+   */
+  private static triangulateFromCenter(face: PolygonFace): THREE.Vector3[] {
+    const vertices = face.vertices;
+    if (vertices.length < 3) return [];
+
+    // Calculate face center
+    const center = new THREE.Vector3(0, 0, 0);
+    for (const vertex of vertices) {
+      center.add(vertex);
+    }
+    center.divideScalar(vertices.length);
+
+    const triangulated: THREE.Vector3[] = [];
+
+    // Create triangles from center to each edge
+    for (let i = 0; i < vertices.length; i++) {
+      const v1 = vertices[i];
+      const v2 = vertices[(i + 1) % vertices.length];
+
+      // Add triangle: center -> v1 -> v2
+      triangulated.push(center, v1, v2);
+    }
+
+    return triangulated;
+  }
 }
 
 // Types for polygon geometry
