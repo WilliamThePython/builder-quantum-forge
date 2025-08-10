@@ -136,21 +136,36 @@ export default function About() {
             
             <div className={`mb-6 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
               <p className="mb-4">
-                Intellimesh is a passion project built by developers who believe in making 3D technology 
-                accessible to everyone. Your support helps us maintain the platform, add new features, 
+                Intellimesh is a passion project built by developers who believe in making 3D technology
+                accessible to everyone. Your support helps us maintain the platform, add new features,
                 and keep it free for the community.
               </p>
             </div>
 
+            <div className="text-center mb-4">
+              <span className="text-gray-500 font-medium">Coming Soon</span>
+            </div>
+
             <div className="flex flex-wrap gap-3">
-              <Button className="bg-red-600 hover:bg-red-700 text-white">
+              <Button
+                disabled
+                className="bg-gray-400 text-white cursor-not-allowed opacity-50"
+              >
                 <Heart className="w-4 h-4 mr-2" />
                 Donate via PayPal
               </Button>
-              <Button variant="outline" className="border-orange-500/50 text-orange-600 hover:bg-orange-50">
+              <Button
+                disabled
+                variant="outline"
+                className="border-gray-300 text-gray-400 cursor-not-allowed opacity-50"
+              >
                 Support on Ko-fi
               </Button>
-              <Button variant="outline" className="border-blue-500/50 text-blue-600 hover:bg-blue-50">
+              <Button
+                disabled
+                variant="outline"
+                className="border-gray-300 text-gray-400 cursor-not-allowed opacity-50"
+              >
                 GitHub Sponsors
               </Button>
             </div>
