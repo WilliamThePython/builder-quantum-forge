@@ -426,12 +426,15 @@ export class PolygonGeometryBuilder {
 
     let triangleIndex = 0;
     const properPolygonFaces = faceData.map((face) => {
+      // For center triangulation, each polygon with N vertices creates N triangles
       const triangleCount = face.originalVertices.length;
 
       const triangleIndices = [];
       for (let i = 0; i < triangleCount; i++) {
         triangleIndices.push(triangleIndex++);
       }
+
+      console.log(`Center triangulation face: type=${face.type}, vertices=${face.originalVertices.length}, triangles=${triangleCount}, indices=[${triangleIndices.join(', ')}]`);
 
       return {
         type: face.type,
