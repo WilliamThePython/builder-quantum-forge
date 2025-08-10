@@ -634,17 +634,6 @@ export default function STLWorkflowPanel({
 
                 {/* Additional Options */}
                 <div className="mb-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Eye className="w-3 h-3 text-white/70" />
-                      <span className="text-white text-xs">Show Wireframe</span>
-                    </div>
-                    <Switch
-                      checked={wireframe}
-                      onCheckedChange={onWireframeChange}
-                    />
-                  </div>
-
                   <Button
                     onClick={() => {
                       restoreFromBackup();
