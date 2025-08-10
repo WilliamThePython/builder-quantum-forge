@@ -2419,12 +2419,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     ): Promise<ToolOperationResult> => {
       console.log(`🎯 Decimating edge: v${vertexIndex1} ↔ v${vertexIndex2}`);
 
-      if (!indexedGeometry) {
-        throw new Error("No indexed geometry loaded for edge decimation");
+      if (!triangulatedGeometry) {
+        throw new Error("No triangulated geometry available for edge decimation");
       }
 
       // Validate vertex indices before proceeding
-      const vertexCount = indexedGeometry.attributes.position.count;
+      const vertexCount = triangulatedGeometry.attributes.position.count;
       if (vertexIndex1 < 0 || vertexIndex1 >= vertexCount) {
         throw new Error(`Invalid vertex index 1: ${vertexIndex1} (valid range: 0-${vertexCount - 1})`);
       }
