@@ -636,26 +636,45 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Stats for merged model
     const mergedPositions = previewMeshMerged.attributes.position;
     const mergedVertices = mergedPositions.count;
-    const mergedTriangles = Math.floor(mergedVertices / 3);
-    const mergedEdges = mergedTriangles * 3 / 2;
 
     // Polygon breakdown from merged model
     const polygonFaces = (previewMeshMerged as any).polygonFaces;
     let polygonBreakdown: Array<{ type: string; count: number }> = [];
+    let actualTriangles = 0;
+    let totalEdges = 0;
 
     if (polygonFaces && Array.isArray(polygonFaces)) {
       const typeCount: Record<string, number> = {};
       polygonFaces.forEach((face: any) => {
         const type = face.type || "triangle";
         typeCount[type] = (typeCount[type] || 0) + 1;
+
+        // Count actual triangles only
+        if (type === "triangle") {
+          actualTriangles++;
+          totalEdges += 3;
+        } else if (type === "quad") {
+          totalEdges += 4;
+        } else {
+          // For polygons, use originalVertices count if available
+          const vertexCount = face.originalVertices?.length || 4;
+          totalEdges += vertexCount;
+        }
       });
 
-      polygonBreakdown = Object.entries(typeCount).map(([type, count]) => ({
-        type,
-        count
-      }));
+      polygonBreakdown = Object.entries(typeCount)
+        .filter(([type]) => type !== "triangle") // Don't show triangles in polygon breakdown
+        .map(([type, count]) => ({ type, count }));
+
+      // Only add triangles to breakdown if there are any
+      if (actualTriangles > 0) {
+        polygonBreakdown.unshift({ type: "triangle", count: actualTriangles });
+      }
     } else {
-      polygonBreakdown = [{ type: "triangle", count: mergedTriangles }];
+      // Fallback to triangle calculation if no polygon faces
+      actualTriangles = Math.floor(mergedVertices / 3);
+      totalEdges = actualTriangles * 3;
+      polygonBreakdown = [{ type: "triangle", count: actualTriangles }];
     }
 
     return {
@@ -666,8 +685,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       },
       merged: {
         vertices: mergedVertices,
-        edges: mergedEdges,
-        triangles: mergedTriangles,
+        edges: Math.floor(totalEdges / 2), // Each edge is shared by 2 faces
+        actualTriangles, // Only actual triangle faces, not render triangles
         polygonBreakdown
       }
     };
