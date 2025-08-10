@@ -11,6 +11,15 @@ export default function TriangleStatsDisplay() {
     return null;
   }
 
+  console.log(`TriangleStatsDisplay received data for triangle ${highlightedTriangle}:`);
+  console.log(`- Face type: ${triangleStats.faceType}`);
+  console.log(`- Vertex count: ${triangleStats.vertexCount}`);
+  console.log(`- Parent face index: ${triangleStats.parentFaceIndex}`);
+  console.log(`- Area: ${triangleStats.area}`);
+  console.log(`- Perimeter: ${triangleStats.perimeter}`);
+  console.log(`- Vertices length: ${triangleStats.vertices?.length}`);
+  console.log(`- Full triangleStats object:`, triangleStats);
+
   // Calculate contrast color based on background
   const getContrastColor = (backgroundColor: string) => {
     const hex = backgroundColor.replace("#", "");
