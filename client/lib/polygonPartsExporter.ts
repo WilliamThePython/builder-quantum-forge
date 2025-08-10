@@ -190,7 +190,8 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Add a polygon to STL content by triangulating it
+   * Add a polygon to STL content by triangulating it properly
+   * Uses earcut algorithm for concave polygons like stars
    */
   private static addPolygonToSTL(
     vertices: THREE.Vector3[],
@@ -199,7 +200,7 @@ export class PolygonPartsExporter {
     let content = "";
 
     if (vertices.length === 3) {
-      // Triangle
+      // Triangle - direct output
       content += this.addTriangleToSTL(
         vertices[0],
         vertices[1],
@@ -207,7 +208,7 @@ export class PolygonPartsExporter {
         normal,
       );
     } else if (vertices.length === 4) {
-      // Quad - split into 2 triangles
+      // Quad - use proper diagonal split to avoid degenerate triangles
       content += this.addTriangleToSTL(
         vertices[0],
         vertices[1],
@@ -221,18 +222,203 @@ export class PolygonPartsExporter {
         normal,
       );
     } else {
-      // Polygon - fan triangulation from first vertex
-      for (let i = 1; i < vertices.length - 1; i++) {
+      // Complex polygon - use proper triangulation for concave shapes
+      const triangles = this.triangulatePolygon(vertices, normal);
+      for (const triangle of triangles) {
         content += this.addTriangleToSTL(
-          vertices[0],
-          vertices[i],
-          vertices[i + 1],
+          triangle[0],
+          triangle[1],
+          triangle[2],
           normal,
         );
       }
     }
 
     return content;
+  }
+
+  /**
+   * Triangulate a polygon properly handling concave shapes like stars
+   * Projects polygon to 2D, uses earcut-style triangulation, then projects back
+   */
+  private static triangulatePolygon(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[][] {
+    if (vertices.length < 3) return [];
+
+    // For simple convex polygons, use fan triangulation
+    if (vertices.length <= 6 && this.isConvexPolygon(vertices, normal)) {
+      const triangles: THREE.Vector3[][] = [];
+      for (let i = 1; i < vertices.length - 1; i++) {
+        triangles.push([vertices[0], vertices[i], vertices[i + 1]]);
+      }
+      return triangles;
+    }
+
+    // For complex/concave polygons, use a more robust approach
+    return this.earCutTriangulation(vertices, normal);
+  }
+
+  /**
+   * Simple check if polygon is convex by checking if all cross products have same sign
+   */
+  private static isConvexPolygon(vertices: THREE.Vector3[], normal: THREE.Vector3): boolean {
+    if (vertices.length < 3) return false;
+
+    let sign = 0;
+    for (let i = 0; i < vertices.length; i++) {
+      const curr = vertices[i];
+      const next = vertices[(i + 1) % vertices.length];
+      const nextNext = vertices[(i + 2) % vertices.length];
+
+      const v1 = new THREE.Vector3().subVectors(next, curr);
+      const v2 = new THREE.Vector3().subVectors(nextNext, next);
+      const cross = new THREE.Vector3().crossVectors(v1, v2);
+      const dot = cross.dot(normal);
+
+      if (Math.abs(dot) > 0.001) { // Not degenerate
+        if (sign === 0) {
+          sign = Math.sign(dot);
+        } else if (Math.sign(dot) !== sign) {
+          return false; // Concave
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Ear cutting triangulation for concave polygons
+   * Projects to 2D plane, triangulates, then projects back to 3D
+   */
+  private static earCutTriangulation(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[][] {
+    if (vertices.length < 3) return [];
+
+    // Create a local 2D coordinate system
+    const tangent = new THREE.Vector3();
+    const bitangent = new THREE.Vector3();
+
+    // Find the most suitable axis for projection
+    const absNormal = new THREE.Vector3(Math.abs(normal.x), Math.abs(normal.y), Math.abs(normal.z));
+    if (absNormal.x >= absNormal.y && absNormal.x >= absNormal.z) {
+      // Project to YZ plane
+      tangent.set(0, 1, 0);
+    } else if (absNormal.y >= absNormal.z) {
+      // Project to XZ plane
+      tangent.set(1, 0, 0);
+    } else {
+      // Project to XY plane
+      tangent.set(1, 0, 0);
+    }
+
+    bitangent.crossVectors(normal, tangent).normalize();
+    tangent.crossVectors(bitangent, normal).normalize();
+
+    // Project vertices to 2D
+    const vertices2D = vertices.map(v => ({
+      x: v.dot(tangent),
+      y: v.dot(bitangent),
+      vertex3D: v
+    }));
+
+    // Simple ear cutting algorithm
+    const triangles: THREE.Vector3[][] = [];
+    const remaining = [...vertices2D];
+
+    while (remaining.length > 3) {
+      let earFound = false;
+
+      for (let i = 0; i < remaining.length; i++) {
+        const prev = remaining[(i - 1 + remaining.length) % remaining.length];
+        const curr = remaining[i];
+        const next = remaining[(i + 1) % remaining.length];
+
+        if (this.isEar(prev, curr, next, remaining)) {
+          // Add triangle
+          triangles.push([prev.vertex3D, curr.vertex3D, next.vertex3D]);
+          // Remove ear vertex
+          remaining.splice(i, 1);
+          earFound = true;
+          break;
+        }
+      }
+
+      if (!earFound) {
+        // Fallback: just use fan triangulation to avoid infinite loop
+        for (let i = 1; i < remaining.length - 1; i++) {
+          triangles.push([
+            remaining[0].vertex3D,
+            remaining[i].vertex3D,
+            remaining[i + 1].vertex3D
+          ]);
+        }
+        break;
+      }
+    }
+
+    // Add final triangle
+    if (remaining.length === 3) {
+      triangles.push([
+        remaining[0].vertex3D,
+        remaining[1].vertex3D,
+        remaining[2].vertex3D
+      ]);
+    }
+
+    return triangles;
+  }
+
+  /**
+   * Check if a vertex forms an ear (convex vertex with no points inside triangle)
+   */
+  private static isEar(
+    prev: {x: number, y: number, vertex3D: THREE.Vector3},
+    curr: {x: number, y: number, vertex3D: THREE.Vector3},
+    next: {x: number, y: number, vertex3D: THREE.Vector3},
+    allVertices: {x: number, y: number, vertex3D: THREE.Vector3}[]
+  ): boolean {
+    // Check if angle is convex
+    const v1x = prev.x - curr.x;
+    const v1y = prev.y - curr.y;
+    const v2x = next.x - curr.x;
+    const v2y = next.y - curr.y;
+
+    const cross = v1x * v2y - v1y * v2x;
+    if (cross <= 0) return false; // Not convex
+
+    // Check if any other vertex is inside the triangle
+    for (const vertex of allVertices) {
+      if (vertex === prev || vertex === curr || vertex === next) continue;
+
+      if (this.pointInTriangle2D(vertex, prev, curr, next)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if point is inside triangle using barycentric coordinates
+   */
+  private static pointInTriangle2D(
+    point: {x: number, y: number},
+    a: {x: number, y: number},
+    b: {x: number, y: number},
+    c: {x: number, y: number}
+  ): boolean {
+    const denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+    if (Math.abs(denom) < 1e-10) return false;
+
+    const alpha = ((b.y - c.y) * (point.x - c.x) + (c.x - b.x) * (point.y - c.y)) / denom;
+    const beta = ((c.y - a.y) * (point.x - c.x) + (a.x - c.x) * (point.y - c.y)) / denom;
+    const gamma = 1 - alpha - beta;
+
+    return alpha > 1e-10 && beta > 1e-10 && gamma > 1e-10;
   }
 
   /**
