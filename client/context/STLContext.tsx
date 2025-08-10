@@ -694,7 +694,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         faceNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
       }
 
-      console.log(`Face stats: type=${targetFace.type}, vertices=${faceVertices.length}, area=${faceArea.toFixed(4)}, perimeter=${facePerimeter.toFixed(4)}`);
 
       setTriangleStats({
         index: triangleIndex,
