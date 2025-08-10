@@ -511,9 +511,27 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     partThickness?: number;
     scale?: number;
   }) => {
-    if (!previewMeshMerged) return;
+    if (!previewMeshMerged) {
+      console.error("No preview mesh available for parts export");
+      return;
+    }
 
-    await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
+    const polygonFaces = (previewMeshMerged as any).polygonFaces;
+    console.log("Parts export debug:", {
+      hasGeometry: !!previewMeshMerged,
+      hasPolygonFaces: !!polygonFaces,
+      polygonFacesLength: polygonFaces?.length,
+      polygonType: (previewMeshMerged as any).polygonType,
+      fileName: fileName || "model",
+      options
+    });
+
+    try {
+      await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
+      console.log("Parts export completed successfully");
+    } catch (error) {
+      console.error("Parts export failed:", error);
+    }
   }, [previewMeshMerged, fileName]);
 
   const clearError = useCallback(() => {
