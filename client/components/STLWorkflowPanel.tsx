@@ -1605,8 +1605,7 @@ function MobileWorkflowContent(props: any) {
                         <div className="text-xs font-medium text-purple-300 mb-1">Merged</div>
                         <div className="text-xs text-white/70 space-y-0.5">
                           <div>V: {dualStats.merged.vertices?.toLocaleString() || 0}</div>
-                          <div>T: {dualStats.merged.triangles?.toLocaleString() || 0}</div>
-                          {dualStats.merged.polygonBreakdown?.slice(0, 1)?.map(({ type, count }) => (
+                          {dualStats.merged.polygonBreakdown?.slice(0, 2)?.map(({ type, count }) => (
                             <div key={type}>
                               {type.charAt(0).toUpperCase()}: {count?.toLocaleString() || 0}
                             </div>
