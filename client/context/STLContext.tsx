@@ -2424,6 +2424,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           console.log(`✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`);
 
+          // For decimated geometry, use a simplified update path to avoid corruption
+          // Mark geometry as decimated to skip complex polygon processing
+          (result.geometry as any).isDecimated = true;
+
           // Update both indexed and non-indexed geometries using dual geometry approach
           setDualGeometry(result.geometry);
 
