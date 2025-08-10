@@ -26,7 +26,7 @@ export default function TriangleStatsDisplay() {
   // Get face information
   const isPolygonFace = triangleStats.faceType && triangleStats.vertexCount;
   const faceLabel = isPolygonFace
-    ? `${triangleStats.faceType.charAt(0).toUpperCase() + triangleStats.faceType.slice(1)} Face #${highlightedTriangle + 1}`
+    ? `${triangleStats.faceType.charAt(0).toUpperCase() + triangleStats.faceType.slice(1)} Face #${(triangleStats.parentFaceIndex || 0) + 1}`
     : `Triangle #${highlightedTriangle + 1}`;
 
   // Extract vertex coordinates
