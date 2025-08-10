@@ -2769,7 +2769,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
             // Remove overlapping triangles to fix Z-fighting
             try {
-              result.geometry = this.removeOverlappingTriangles(result.geometry);
+              result.geometry = removeOverlappingTriangles(result.geometry);
               console.log("✅ Successfully removed overlapping triangles");
             } catch (error) {
               console.warn("⚠️ Failed to remove overlapping triangles:", error);
