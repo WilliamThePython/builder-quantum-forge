@@ -1166,7 +1166,6 @@ function STLMesh() {
       const polygonFaces = (geometry as any).polygonFaces;
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-        console.log(`🎨 Coloring ${polygonFaces.length} polygon faces...`);
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
