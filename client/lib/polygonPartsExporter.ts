@@ -140,13 +140,28 @@ export class PolygonPartsExporter {
     zipFileList.push("assembly_instructions.txt");
     console.log("✅ Added assembly_instructions.txt to zip");
 
+    console.log("📦 ZIP FILE CONTENTS:", {
+      totalFiles: zipFileList.length,
+      partFiles: zipFileList.filter(f => f.startsWith('part_')).length,
+      hasDatabase: zipFileList.includes('parts_database.xlsx'),
+      hasInstructions: zipFileList.includes('assembly_instructions.txt'),
+      allFiles: zipFileList.slice(0, 10) // Show first 10 files
+    });
+
     // Generate and download zip
+    console.log("🗜️ Generating zip blob...");
     const zipBlob = await zip.generateAsync({ type: "blob" });
+    console.log("✅ Zip blob generated:", {
+      size: zipBlob.size,
+      type: zipBlob.type
+    });
 
     // Download the zip file
+    console.log(`📥 Initiating download: ${filename}`);
     this.downloadBlob(zipBlob, filename);
 
     const endTime = Date.now();
+    console.log(`🎉 PARTS EXPORT COMPLETE: ${filename} (${polygonFaces.length} parts, ${zipFileList.length} total files, ${endTime - startTime}ms)`);
   }
 
   /**
