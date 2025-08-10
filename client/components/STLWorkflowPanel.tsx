@@ -624,34 +624,62 @@ export default function STLWorkflowPanel({
                 />
               </div>
 
-              {/* Background Settings - Colored Circles */}
+              {/* Background Settings - Color Picker */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4 text-white/70" />
                   <Label className="text-sm text-white/80">Background</Label>
                 </div>
-                <div className="flex items-center gap-2">
-                  {[
-                    { color: "#0a0a0a", name: "Space Black" },
-                    { color: "#1a1a2e", name: "Deep Ocean" },
-                    { color: "#16213e", name: "Midnight Blue" },
-                    { color: "#2a0845", name: "Purple Night" },
-                  ].map((bg) => (
-                    <button
-                      key={bg.color}
-                      className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
-                        viewerSettings.backgroundColor === bg.color
-                          ? "border-white shadow-lg shadow-blue-500/30"
-                          : "border-white/30 hover:border-white/60"
-                      }`}
-                      style={{ background: bg.color }}
-                      onClick={() => {
-                        clearHighlightOnMenuInteraction();
-                        updateViewerSettings({ backgroundColor: bg.color });
-                      }}
-                      title={bg.name}
+                <div className="relative">
+                  {/* Current Color Display & Toggle */}
+                  <button
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                    className="flex items-center gap-3 w-full p-2 bg-slate-800/50 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors"
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full border-2 border-white/30 shadow-sm"
+                      style={{ backgroundColor: viewerSettings.backgroundColor }}
                     />
-                  ))}
+                    <span className="text-sm text-white/80 flex-1 text-left">
+                      {viewerSettings.backgroundColor}
+                    </span>
+                    <Palette className="w-4 h-4 text-white/60" />
+                  </button>
+
+                  {/* Color Picker Popover */}
+                  {showColorPicker && (
+                    <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                      <HexColorPicker
+                        color={viewerSettings.backgroundColor}
+                        onChange={(color) => {
+                          clearHighlightOnMenuInteraction();
+                          updateViewerSettings({ backgroundColor: color });
+                        }}
+                        style={{ width: "200px", height: "200px" }}
+                      />
+                      <div className="mt-3 flex justify-between items-center">
+                        <input
+                          type="text"
+                          value={viewerSettings.backgroundColor}
+                          onChange={(e) => {
+                            const color = e.target.value;
+                            if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
+                              clearHighlightOnMenuInteraction();
+                              updateViewerSettings({ backgroundColor: color });
+                            }
+                          }}
+                          className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white w-20"
+                          placeholder="#000000"
+                        />
+                        <button
+                          onClick={() => setShowColorPicker(false)}
+                          className="text-white/60 hover:text-white/80 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
