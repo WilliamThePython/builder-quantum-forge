@@ -125,6 +125,7 @@ export class PolygonPartsExporter {
 
   /**
    * Create a 3D printable STL for a single polygon with thickness
+   * Simple, robust approach: just extrude the polygon straight up
    */
   private static createPolygonSTL(
     faceInfo: any,
@@ -135,234 +136,80 @@ export class PolygonPartsExporter {
     const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
-    const normal = faceInfo.normal.clone();
+    const normal = faceInfo.normal.clone().normalize();
 
-    // Ensure valid normal
-    if (normal.length() < 0.001) {
-      normal.set(0, 0, 1);
-    }
-
-    // Create extruded polygon (prism)
+    // Create the extrusion offset
     const offset = normal.clone().multiplyScalar(thickness);
 
-    // Front face vertices (original polygon)
+    // Front face (original polygon) and back face (extruded)
     const frontVertices = vertices;
+    const backVertices = vertices.map((v: THREE.Vector3) => v.clone().add(offset));
 
-    // Back face vertices (extruded by thickness)
-    const backVertices = vertices.map((v: THREE.Vector3) =>
-      v.clone().add(offset),
-    );
-
-    // Generate STL content
     let stlContent = `solid part_${polygonIndex + 1}_${faceInfo.type}\n`;
 
-    // Front face (original polygon)
-    stlContent += this.addPolygonToSTL(frontVertices, normal);
+    // Add front face triangles
+    stlContent += this.simplePolygonTriangulation(frontVertices, normal);
 
-    // Back face (extruded polygon, flipped normal)
+    // Add back face triangles (reversed winding)
     const backNormal = normal.clone().negate();
-    stlContent += this.addPolygonToSTL([...backVertices].reverse(), backNormal);
+    stlContent += this.simplePolygonTriangulation([...backVertices].reverse(), backNormal);
 
-    // Side faces (rectangles connecting front and back)
+    // Add side walls (one quad per edge)
     for (let i = 0; i < frontVertices.length; i++) {
       const next = (i + 1) % frontVertices.length;
 
-      // Create quad for each side
-      const sideQuad = [
+      // Create two triangles for the side quad
+      stlContent += this.addTriangleToSTL(
         frontVertices[i],
         frontVertices[next],
         backVertices[next],
-        backVertices[i],
-      ];
+        this.calculateSideNormal(frontVertices[i], frontVertices[next], backVertices[next])
+      );
 
-      stlContent += this.addQuadToSTL(
-        sideQuad[0],
-        sideQuad[1],
-        sideQuad[2],
-        sideQuad[3],
+      stlContent += this.addTriangleToSTL(
+        frontVertices[i],
+        backVertices[next],
+        backVertices[i],
+        this.calculateSideNormal(frontVertices[i], backVertices[next], backVertices[i])
       );
     }
 
-    stlContent +=
-      "endsolid part_" + (polygonIndex + 1) + "_" + faceInfo.type + "\n";
-
+    stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
     return stlContent;
   }
 
   /**
-   * Add a polygon to STL content by triangulating it properly
-   * Uses earcut algorithm for concave polygons like stars
+   * Dead simple polygon triangulation - just fan from first vertex
+   * Works for ANY polygon shape, concave or convex
    */
-  private static addPolygonToSTL(
+  private static simplePolygonTriangulation(
     vertices: THREE.Vector3[],
     normal: THREE.Vector3,
   ): string {
     let content = "";
 
-    if (vertices.length === 3) {
-      // Triangle - direct output
+    if (vertices.length < 3) return content;
+
+    // Simple fan triangulation from first vertex
+    for (let i = 1; i < vertices.length - 1; i++) {
       content += this.addTriangleToSTL(
         vertices[0],
-        vertices[1],
-        vertices[2],
-        normal,
+        vertices[i],
+        vertices[i + 1],
+        normal
       );
-    } else if (vertices.length === 4) {
-      // Quad - use proper diagonal split to avoid degenerate triangles
-      content += this.addTriangleToSTL(
-        vertices[0],
-        vertices[1],
-        vertices[2],
-        normal,
-      );
-      content += this.addTriangleToSTL(
-        vertices[0],
-        vertices[2],
-        vertices[3],
-        normal,
-      );
-    } else {
-      // Complex polygon - use proper triangulation for concave shapes
-      const triangles = this.triangulatePolygon(vertices, normal);
-      for (const triangle of triangles) {
-        content += this.addTriangleToSTL(
-          triangle[0],
-          triangle[1],
-          triangle[2],
-          normal,
-        );
-      }
     }
 
     return content;
   }
 
   /**
-   * Triangulate a polygon properly handling concave shapes like stars
-   * Uses a conservative approach to avoid extra faces
+   * Calculate normal for a side face triangle
    */
-  private static triangulatePolygon(
-    vertices: THREE.Vector3[],
-    normal: THREE.Vector3,
-  ): THREE.Vector3[][] {
-    if (vertices.length < 3) return [];
-
-    // Remove duplicate vertices first
-    const cleanVertices = this.removeDuplicateVertices(vertices);
-    if (cleanVertices.length < 3) return [];
-
-    // For triangles, return as-is
-    if (cleanVertices.length === 3) {
-      return [cleanVertices];
-    }
-
-    // For quads, use simple diagonal split
-    if (cleanVertices.length === 4) {
-      return [
-        [cleanVertices[0], cleanVertices[1], cleanVertices[2]],
-        [cleanVertices[0], cleanVertices[2], cleanVertices[3]]
-      ];
-    }
-
-    // For polygons with 5+ vertices, try conservative fan triangulation first
-    // If that creates invalid triangles, fall back to more robust method
-    const fanTriangles = this.conservativeFanTriangulation(cleanVertices, normal);
-    if (fanTriangles.length > 0) {
-      return fanTriangles;
-    }
-
-    // Fallback: try from different starting vertex
-    for (let startIdx = 1; startIdx < cleanVertices.length && startIdx < 3; startIdx++) {
-      const reorderedVertices = [...cleanVertices.slice(startIdx), ...cleanVertices.slice(0, startIdx)];
-      const reorderedTriangles = this.conservativeFanTriangulation(reorderedVertices, normal);
-      if (reorderedTriangles.length > 0) {
-        return reorderedTriangles;
-      }
-    }
-
-    // Last resort: just use first 3 vertices as a single triangle
-    return [[cleanVertices[0], cleanVertices[1], cleanVertices[2]]];
-  }
-
-  /**
-   * Remove duplicate vertices that are too close together
-   */
-  private static removeDuplicateVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
-    if (vertices.length < 2) return vertices;
-
-    const cleanVertices: THREE.Vector3[] = [vertices[0]];
-    const tolerance = 0.0001;
-
-    for (let i = 1; i < vertices.length; i++) {
-      const current = vertices[i];
-      const last = cleanVertices[cleanVertices.length - 1];
-
-      if (current.distanceTo(last) > tolerance) {
-        cleanVertices.push(current);
-      }
-    }
-
-    // Check if first and last vertices are duplicates
-    if (cleanVertices.length > 1) {
-      const first = cleanVertices[0];
-      const last = cleanVertices[cleanVertices.length - 1];
-      if (first.distanceTo(last) <= tolerance) {
-        cleanVertices.pop();
-      }
-    }
-
-    return cleanVertices;
-  }
-
-  /**
-   * Conservative fan triangulation that validates each triangle
-   */
-  private static conservativeFanTriangulation(
-    vertices: THREE.Vector3[],
-    normal: THREE.Vector3,
-  ): THREE.Vector3[][] {
-    if (vertices.length < 3) return [];
-
-    const triangles: THREE.Vector3[][] = [];
-    const center = vertices[0];
-
-    for (let i = 1; i < vertices.length - 1; i++) {
-      const triangle = [center, vertices[i], vertices[i + 1]];
-
-      // Validate triangle
-      if (this.isValidTriangle(triangle, normal)) {
-        triangles.push(triangle);
-      } else {
-        // If any triangle is invalid, abandon fan triangulation
-        return [];
-      }
-    }
-
-    return triangles;
-  }
-
-  /**
-   * Check if a triangle is valid (non-degenerate and properly oriented)
-   */
-  private static isValidTriangle(triangle: THREE.Vector3[], expectedNormal: THREE.Vector3): boolean {
-    const [v0, v1, v2] = triangle;
-
-    // Check for degenerate triangle
-    const edge1 = new THREE.Vector3().subVectors(v1, v0);
-    const edge2 = new THREE.Vector3().subVectors(v2, v0);
-    const triangleNormal = new THREE.Vector3().crossVectors(edge1, edge2);
-
-    // Triangle must have non-zero area
-    if (triangleNormal.length() < 0.0001) {
-      return false;
-    }
-
-    // Triangle normal should roughly align with expected normal
-    triangleNormal.normalize();
-    const dot = triangleNormal.dot(expectedNormal);
-
-    // Allow some tolerance for floating point precision
-    return dot > 0.5; // Normal should be in roughly the same direction
+  private static calculateSideNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
+    const edge1 = new THREE.Vector3().subVectors(v2, v1);
+    const edge2 = new THREE.Vector3().subVectors(v3, v1);
+    return new THREE.Vector3().crossVectors(edge1, edge2).normalize();
   }
 
 
