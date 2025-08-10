@@ -3,8 +3,19 @@
 // Prevent FullStory namespace conflicts
 (function preventFullStoryConflicts() {
   if (typeof window !== 'undefined') {
-    // Ensure our unique namespace is set
-    window["_fs_namespace"] = "FS_INTELLIMESH";
+    // Check if namespace is already set (it should be from index.html)
+    if (!window["_fs_namespace"]) {
+      try {
+        window["_fs_namespace"] = "FS_INTELLIMESH";
+      } catch (e) {
+        console.log("FullStory namespace already protected from index.html");
+      }
+    }
+
+    // Verify the namespace is correct
+    if (window["_fs_namespace"] !== "FS_INTELLIMESH") {
+      console.warn("FullStory namespace mismatch detected");
+    }
 
     // Prevent duplicate FullStory loading
     if (window._fs_intellimesh_loaded) {
