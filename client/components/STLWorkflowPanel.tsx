@@ -774,21 +774,6 @@ export default function STLWorkflowPanel({
                     </div>
                   </div>
 
-                  <div className="text-xs text-white/60 bg-orange-500/10 border border-orange-500/20 rounded p-2">
-                    <div className="font-medium text-orange-200 mb-1">
-                      🔧 Quadric Edge Collapse Process:
-                    </div>
-                    <div>
-                      • Calculate quadric error matrices for each vertex
-                    </div>
-                    <div>
-                      • Build priority queue of edges sorted by collapse cost
-                    </div>
-                    <div>
-                      • Collapse edges with lowest error to merge vertices
-                    </div>
-                    <div>• Remove degenerate faces and maintain topology</div>
-                  </div>
                 </div>
               </div>
             </div>
