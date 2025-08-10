@@ -667,12 +667,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         setTriangleStats({
           index: triangleIndex,
-          vertices: polygonVertices,
+          vertices: faceVertices,
           area,
-          perimeter: polygonPerimeter,
+          perimeter: facePerimeter,
           normal: normal.normalize(),
           faceType,
-          vertexCount: polygonVertices.length,
+          vertexCount: faceVertices.length,
           parentFaceIndex,
         });
       }
