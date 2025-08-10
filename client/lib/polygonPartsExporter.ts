@@ -156,9 +156,11 @@ export class PolygonPartsExporter {
       type: zipBlob.type
     });
 
-    // Download the zip file
-    console.log(`📥 Initiating download: ${filename}`);
-    this.downloadBlob(zipBlob, filename);
+    // Download the zip file with proper .zip extension
+    const zipFilename = filename.endsWith('.zip') ? filename :
+      filename.replace(/\.[^/.]+$/, '_parts.zip').replace(/^(.+?)(?:_parts)?$/, '$1_parts.zip');
+    console.log(`📥 Initiating download: ${zipFilename} (was: ${filename})`);
+    this.downloadBlob(zipBlob, zipFilename);
 
     const endTime = Date.now();
     console.log(`🎉 PARTS EXPORT COMPLETE: ${filename} (${polygonFaces.length} parts, ${zipFileList.length} total files, ${endTime - startTime}ms)`);
