@@ -52,14 +52,14 @@ export default function About() {
         </Card>
 
         {/* Contact Information */}
-        <Card className={`${cardStyles[selectedBackground as keyof typeof cardStyles]} mb-8`}>
+        <Card className="bg-white/10 border-white/20 backdrop-blur-sm mb-8">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4 flex items-center">
               <Mail className="w-6 h-6 mr-3" />
               Contact Us
             </h2>
-            
-            <div className={`space-y-3 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
+
+            <div className="space-y-3 text-gray-300">
               <div className="flex items-center">
                 <span className="font-medium w-32">General:</span>
                 <span className="text-gray-500">Coming Soon</span>
