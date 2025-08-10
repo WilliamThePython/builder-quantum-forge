@@ -531,12 +531,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (result.success && result.geometry) {
         // Update working mesh
         setWorkingMeshTri(result.geometry);
-        
-        // Update preview mesh
-        const newPreview = result.geometry.clone();
-        (newPreview as any).polygonType = "decimated";
+
+        // Create proper preview mesh with reconstructed faces
+        const newPreview = createPreviewFromWorkingMesh(result.geometry, "decimated");
         setPreviewMeshMerged(newPreview);
-        
+
         // Update display
         const displayGeometry = prepareGeometryForViewing(newPreview, "decimated");
         setGeometry(displayGeometry);
