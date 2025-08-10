@@ -430,12 +430,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   const loadModelFromFile = useCallback(async (file: File) => {
+    console.log("🚀 loadModelFromFile called with:", file.name, file.size);
+
     setIsLoading(true);
     setError(null);
     setErrors([]);
     updateProgress(0, "Starting", "Initializing upload...");
 
     try {
+      console.log("✅ Beginning file load process...");
       const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
 
       setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
