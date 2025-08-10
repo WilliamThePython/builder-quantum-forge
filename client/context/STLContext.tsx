@@ -753,6 +753,58 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setGeometry(nonIndexedGeometry);
   };
 
+  // Helper function to remove overlapping triangles that cause Z-fighting
+  const removeOverlappingTriangles = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+    if (!geometry.index) {
+      console.log("⏭️ Skipping overlap removal for non-indexed geometry");
+      return geometry;
+    }
+
+    const positions = geometry.attributes.position.array as Float32Array;
+    const indices = geometry.index.array;
+    const triangleMap = new Map<string, number>();
+    const validTriangles: number[] = [];
+
+    console.log(`🔧 Processing ${indices.length / 3} triangles for overlap removal...`);
+
+    for (let i = 0; i < indices.length; i += 3) {
+      const i1 = indices[i] * 3;
+      const i2 = indices[i + 1] * 3;
+      const i3 = indices[i + 2] * 3;
+
+      const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
+      const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
+      const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+
+      // Calculate triangle center and normal
+      const center = new THREE.Vector3().addVectors(v1, v2).add(v3).divideScalar(3);
+      const normal = new THREE.Vector3().crossVectors(v2.clone().sub(v1), v3.clone().sub(v1)).normalize();
+
+      // Create unique signature with tolerance for floating point precision
+      const centerKey = `${center.x.toFixed(4)},${center.y.toFixed(4)},${center.z.toFixed(4)}`;
+      const normalKey = `${normal.x.toFixed(4)},${normal.y.toFixed(4)},${normal.z.toFixed(4)}`;
+      const triangleKey = `${centerKey}|${normalKey}`;
+
+      // Only keep the first occurrence of each unique triangle
+      if (!triangleMap.has(triangleKey)) {
+        triangleMap.set(triangleKey, i / 3);
+        validTriangles.push(indices[i], indices[i + 1], indices[i + 2]);
+      }
+    }
+
+    const removedCount = (indices.length / 3) - (validTriangles.length / 3);
+    console.log(`🔧 Removed ${removedCount} overlapping triangles, kept ${validTriangles.length / 3} unique triangles`);
+
+    if (removedCount > 0) {
+      // Create new geometry with only unique triangles
+      const newGeometry = geometry.clone();
+      newGeometry.setIndex(validTriangles);
+      return newGeometry;
+    }
+
+    return geometry;
+  };
+
   // Helper function to convert indexed geometry to non-indexed for viewing
   // CRITICAL: Maintains polygon grouping for proper face coloring
   const convertToNonIndexedForViewing = (
