@@ -403,7 +403,7 @@ export default function STLWorkflowPanel({
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 10 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Validate
+                  Check
                 </div>
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 35 ? "text-green-400" : "text-white/50"}`}
@@ -413,17 +413,17 @@ export default function STLWorkflowPanel({
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 60 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Process
+                  Build
                 </div>
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 85 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Optimize
+                  Tune
                 </div>
                 <div
                   className={`px-1 ${loadingProgress.percentage >= 100 ? "text-green-400" : "text-white/50"}`}
                 >
-                  Complete
+                  Done
                 </div>
               </div>
             </div>
