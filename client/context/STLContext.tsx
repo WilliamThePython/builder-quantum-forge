@@ -2294,7 +2294,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             } else {
               // Fallback: use polygon face reconstructor
               console.log(
-                "���� Coplanar merging found no faces, trying polygon reconstruction...",
+                "����� Coplanar merging found no faces, trying polygon reconstruction...",
               );
               const reconstructedFaces =
                 PolygonFaceReconstructor.reconstructPolygonFaces(
@@ -2660,21 +2660,40 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.log(`   Normals: ${!!triangulatedGeometry.attributes.normal} → ${!!result.geometry.attributes.normal}`);
           console.log(`   Degenerate triangles: ${degenerateCount} (${(degenerateCount / totalTriangles * 100).toFixed(1)}%)`);
 
-          // For decimated geometry, rebuild polygon face metadata for correct stats
+          // For decimated geometry, use aggressive coplanar merging to create proper faces
           try {
-            console.log("🔄 Rebuilding polygon face metadata for decimated geometry...");
-            const { PolygonFaceReconstructor } = await import(
-              "../lib/polygonFaceReconstructor"
+            console.log("🔄 Applying aggressive coplanar merging for decimated geometry...");
+            const { AggressiveCoplanarMerger } = await import(
+              "../lib/aggressiveCoplanarMerger"
             );
-            const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
 
-            if (reconstructedFaces.length > 0) {
-              (result.geometry as any).polygonFaces = reconstructedFaces;
-              (result.geometry as any).polygonType = "decimated_reconstructed";
-              console.log(`✅ Rebuilt ${reconstructedFaces.length} polygon faces for decimated geometry`);
+            // Use aggressive merging with relaxed tolerances for decimated geometry
+            const mergedFaces = AggressiveCoplanarMerger.mergeCoplanarTriangles(result.geometry);
+
+            if (mergedFaces.length > 0) {
+              (result.geometry as any).polygonFaces = mergedFaces;
+              (result.geometry as any).polygonType = "decimated_aggressive_merged";
+              console.log(`✅ Aggressively merged ${mergedFaces.length} polygon faces for decimated geometry`);
+
+              // Log face details to see if we're getting proper merged faces
+              mergedFaces.slice(0, 5).forEach((face: any, index: number) => {
+                console.log(`   Face ${index}: ${face.type}, ${face.originalVertices?.length || 'unknown'} vertices, ${face.triangleCount || 1} triangles`);
+              });
+            } else {
+              console.warn("⚠️ Aggressive merging produced no faces, falling back to standard reconstruction");
+              const { PolygonFaceReconstructor } = await import(
+                "../lib/polygonFaceReconstructor"
+              );
+              const reconstructedFaces = PolygonFaceReconstructor.reconstructPolygonFaces(result.geometry);
+
+              if (reconstructedFaces.length > 0) {
+                (result.geometry as any).polygonFaces = reconstructedFaces;
+                (result.geometry as any).polygonType = "decimated_reconstructed";
+                console.log(`✅ Fallback: Rebuilt ${reconstructedFaces.length} polygon faces for decimated geometry`);
+              }
             }
           } catch (error) {
-            console.warn("⚠️ Failed to rebuild polygon metadata for decimated geometry:", error);
+            console.warn("⚠️ Failed to apply coplanar merging for decimated geometry:", error);
           }
 
           // Mark geometry as decimated to use simplified processing elsewhere
