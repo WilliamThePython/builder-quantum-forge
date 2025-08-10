@@ -517,7 +517,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       return;
     }
 
-    console.log("📦 PARTS Export: Exporting as ZIP with multiple parts");
     try {
       await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
     } catch (error) {
