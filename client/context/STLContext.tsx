@@ -2285,7 +2285,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
             if (mergedFaces.length > 0) {
               (result.geometry as any).polygonFaces = mergedFaces;
-              (result.geometry as any).polygonType = "post_decimation_merged";
+              (result.geometry as any).polygonType = "decimated_aggressive_merged";
               (result.geometry as any).isPolygonPreserved = true;
               console.log(
                 "✅ Reconstructed",
