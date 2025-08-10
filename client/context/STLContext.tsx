@@ -492,8 +492,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     if (!previewMeshMerged) return;
     
     const filename = customFilename || fileName?.replace(/\.[^/.]+$/, ".obj") || "model.obj";
-    const exporter = new TriangleExporter();
-    exporter.exportOBJ(previewMeshMerged, filename);
+    const result = OBJConverter.geometryToOBJ(previewMeshMerged, filename);
+
+    // Download the OBJ file
+    const blob = new Blob([result.objString], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }, [previewMeshMerged, fileName]);
 
   const exportParts = useCallback(async (options?: {
