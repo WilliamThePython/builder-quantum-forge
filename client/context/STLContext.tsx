@@ -2275,10 +2275,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         try {
           // First try hybrid coplanar merging if reasonable poly count
           if (result.geometry.attributes.position.count < 100000) {
-            const { HybridCoplanarMerger } = await import(
-              "../lib/hybridCoplanarMerger"
+            const { AggressiveCoplanarMerger } = await import(
+              "../lib/aggressiveCoplanarMerger"
             );
-            const mergedFaces = HybridCoplanarMerger.mergeCoplanarTriangles(
+            console.log("🔄 Using aggressive coplanar merging for decimated geometry...");
+            const mergedFaces = AggressiveCoplanarMerger.mergeCoplanarTriangles(
               result.geometry,
             );
 
