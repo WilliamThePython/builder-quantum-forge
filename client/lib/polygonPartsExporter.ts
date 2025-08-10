@@ -133,15 +133,19 @@ export class PolygonPartsExporter {
     thickness: number,
     scale: number,
   ): string {
-    const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
+    // Clean and validate vertices first
+    const rawVertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
-    const normal = faceInfo.normal.clone().normalize();
+    const vertices = this.cleanVertices(rawVertices);
 
-    // Create the extrusion offset
+    if (vertices.length < 3) {
+      return `solid part_${polygonIndex + 1}_${faceInfo.type}\nendsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
+    }
+
+    const normal = faceInfo.normal.clone().normalize();
     const offset = normal.clone().multiplyScalar(thickness);
 
-    // Front face (original polygon) and back face (extruded)
     const frontVertices = vertices;
     const backVertices = vertices.map((v: THREE.Vector3) => v.clone().add(offset));
 
@@ -158,20 +162,15 @@ export class PolygonPartsExporter {
     for (let i = 0; i < frontVertices.length; i++) {
       const next = (i + 1) % frontVertices.length;
 
-      // Create two triangles for the side quad
-      stlContent += this.addTriangleToSTL(
-        frontVertices[i],
-        frontVertices[next],
-        backVertices[next],
-        this.calculateSideNormal(frontVertices[i], frontVertices[next], backVertices[next])
-      );
-
-      stlContent += this.addTriangleToSTL(
-        frontVertices[i],
-        backVertices[next],
-        backVertices[i],
-        this.calculateSideNormal(frontVertices[i], backVertices[next], backVertices[i])
-      );
+      // Only add side if edge has meaningful length
+      if (frontVertices[i].distanceTo(frontVertices[next]) > 0.001) {
+        stlContent += this.addSideQuad(
+          frontVertices[i],
+          frontVertices[next],
+          backVertices[next],
+          backVertices[i]
+        );
+      }
     }
 
     stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
