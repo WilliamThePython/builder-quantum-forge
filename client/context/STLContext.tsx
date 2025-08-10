@@ -638,16 +638,24 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         let facePerimeter = perimeter;
         let parentFaceIndex = triangleIndex;
 
+        console.log(`Triangle ${triangleIndex}: Looking for polygon face...`);
+
         if (polygonFaces && Array.isArray(polygonFaces)) {
+          console.log(`Found ${polygonFaces.length} polygon faces`);
+
           // Look for the polygon face that contains this triangle
           for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
             const face = polygonFaces[faceIndex];
+            console.log(`Face ${faceIndex}: type=${face.type}, triangleIndices=${face.triangleIndices}, vertices=${face.originalVertices?.length}`);
+
             if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
+              console.log(`Triangle ${triangleIndex} belongs to face ${faceIndex} (${face.type})`);
               faceType = face.type || "triangle";
               parentFaceIndex = faceIndex;
 
               // Use the specific face's vertices based on its type
               if (face.originalVertices && face.type !== "triangle") {
+                console.log(`Using originalVertices for ${face.type}: ${face.originalVertices.length} vertices`);
                 faceVertices = face.originalVertices.map((v: any) =>
                   new THREE.Vector3(v.x, v.y, v.z)
                 );
@@ -659,10 +667,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
                   const next = faceVertices[(i + 1) % faceVertices.length];
                   facePerimeter += current.distanceTo(next);
                 }
+              } else {
+                console.log(`Using triangle vertices for ${face.type}`);
               }
               break;
             }
           }
+        } else {
+          console.log("No polygon faces found on preview mesh");
         }
 
         setTriangleStats({
