@@ -273,9 +273,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     let preview = loadedGeometry.clone(); // Start from original, not triangulated
 
     // Apply coplanar merging for clean preview if geometry supports it
-    if ((loadedGeometry as any).isProcedurallyGenerated) {
+    if ((loadedGeometry as any).isProcedurallyGenerated && (loadedGeometry as any).polygonFaces) {
       // For procedural geometry, use existing polygon structure
       preview = loadedGeometry.clone();
+      // Ensure polygon metadata is preserved
+      (preview as any).polygonFaces = (loadedGeometry as any).polygonFaces;
+      (preview as any).polygonType = (loadedGeometry as any).polygonType || "procedural_merged";
     } else {
       // For loaded files, apply polygon reconstruction to create merged faces
       const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(triangulated);
