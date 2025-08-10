@@ -484,7 +484,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     if (!previewMeshMerged) return;
     
     const filename = customFilename || fileName || "model.stl";
-    TriangleExporter.exportTrianglesAsZip(previewMeshMerged, filename);
+    STLExporter.exportGeometry(previewMeshMerged, filename);
   }, [previewMeshMerged, fileName]);
 
   const exportOBJ = useCallback((customFilename?: string) => {
