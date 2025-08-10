@@ -356,16 +356,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const loadDefaultSTL = useCallback(async () => {
-    try {
-      const randomModel = availableModels[Math.floor(Math.random() * availableModels.length)];
-      await loadSpecificModel(randomModel.name);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setError(`Failed to load random model: ${errorMessage}`);
-    }
-  }, [loadSpecificModel]);
-
   const loadSpecificModel = useCallback(async (modelName: string) => {
     setIsLoading(true);
     setError(null);
