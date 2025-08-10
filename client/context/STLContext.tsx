@@ -473,7 +473,7 @@ const ensureSolidObjectDisplay = (geometry: THREE.BufferGeometry) => {
 const ensureIndexedGeometry = (
   geometry: THREE.BufferGeometry,
 ): THREE.BufferGeometry => {
-  console.log("���� Ensuring geometry has proper indexing...");
+  console.log("🔧 Ensuring geometry has proper indexing...");
 
   if (geometry.index) {
     console.log("✅ Geometry already has indices");
@@ -2341,7 +2341,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             result.geometry.attributes.position.count / 3,
           );
           console.log(
-            "🔧 Creating fallback triangle structure for",
+            "���� Creating fallback triangle structure for",
             triangleCount,
             "triangles",
           );
@@ -2469,6 +2469,31 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         // Use the clean triangulated geometry for decimation (no complex preprocessing needed)
         console.log(`🔺 Using stored triangulated geometry for decimation: ${triangulatedGeometry.attributes.position.count} vertices`);
+
+        // DETAILED PRE-DECIMATION ANALYSIS
+        console.log("📊 PRE-DECIMATION GEOMETRY ANALYSIS:");
+        console.log(`   Vertices: ${triangulatedGeometry.attributes.position.count}`);
+        console.log(`   Has Index: ${!!triangulatedGeometry.index}`);
+        console.log(`   Index Count: ${triangulatedGeometry.index ? triangulatedGeometry.index.count : 'N/A'}`);
+        console.log(`   Triangles: ${triangulatedGeometry.index ? triangulatedGeometry.index.count / 3 : triangulatedGeometry.attributes.position.count / 3}`);
+        console.log(`   Has Normals: ${!!triangulatedGeometry.attributes.normal}`);
+        console.log(`   Has UVs: ${!!triangulatedGeometry.attributes.uv}`);
+
+        // Check for NaN values in positions
+        const prePositions = triangulatedGeometry.attributes.position.array as Float32Array;
+        let preNaNCount = 0;
+        for (let i = 0; i < prePositions.length; i++) {
+          if (isNaN(prePositions[i]) || !isFinite(prePositions[i])) {
+            preNaNCount++;
+          }
+        }
+        console.log(`   NaN/Infinite positions: ${preNaNCount}`);
+
+        // Check normal directions (sample first few)
+        if (triangulatedGeometry.attributes.normal) {
+          const preNormals = triangulatedGeometry.attributes.normal.array as Float32Array;
+          console.log(`   Sample normals: [${preNormals.slice(0, 9).map(n => n.toFixed(3)).join(', ')}]`);
+        }
 
         // Use STLManipulator for single edge decimation on clean triangulated geometry
         const result = await STLManipulator.decimateSingleEdge(
