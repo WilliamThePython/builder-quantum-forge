@@ -38,7 +38,16 @@ export class PolygonPartsExporter {
     const polygonFaces = (geometry as any).polygonFaces;
     const polygonType = (geometry as any).polygonType;
 
+    console.log("PolygonPartsExporter debug:", {
+      hasPolygonFaces: !!polygonFaces,
+      polygonFacesLength: polygonFaces?.length,
+      polygonType,
+      filename,
+      options
+    });
+
     if (!polygonFaces) {
+      console.log("No polygon faces found, falling back to triangle export");
       // Fallback to triangle-based export for non-polygon geometries
       return this.exportTriangleFallback(geometry, filename, options);
     }
