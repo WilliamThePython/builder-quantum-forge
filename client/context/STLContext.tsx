@@ -1805,9 +1805,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           );
         }
 
-        // Set up dual geometry storage
-        setDualGeometry(bufferGeometry); // Use original indexed geometry from builder
+        // Set up triple geometry storage: merged for viewing, triangulated for decimation
+        setDualGeometry(bufferGeometry); // Use merged polygon version for viewing
+        setTriangulatedGeometry(triangulatedGeometry); // Store triangulated version for decimation
         setFileName(selectedModel.name);
+
+        console.log(`✅ Stored both versions - Merged: ${bufferGeometry.attributes.position.count} vertices, Triangulated: ${triangulatedGeometry.attributes.position.count} vertices`);
         setOriginalFormat("stl");
 
         setLoadingProgress({
