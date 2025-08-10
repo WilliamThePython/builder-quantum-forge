@@ -178,8 +178,54 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Dead simple polygon triangulation - just fan from first vertex
-   * Works for ANY polygon shape, concave or convex
+   * Clean vertices by removing duplicates and collinear points
+   */
+  private static cleanVertices(vertices: THREE.Vector3[]): THREE.Vector3[] {
+    if (vertices.length < 3) return vertices;
+
+    const cleaned: THREE.Vector3[] = [];
+    const tolerance = 0.001; // 1mm tolerance
+
+    for (let i = 0; i < vertices.length; i++) {
+      const current = vertices[i];
+      const next = vertices[(i + 1) % vertices.length];
+
+      // Only keep vertex if it's far enough from the next one
+      if (current.distanceTo(next) > tolerance) {
+        cleaned.push(current);
+      }
+    }
+
+    // Remove collinear vertices to prevent degenerate triangles
+    if (cleaned.length > 3) {
+      const filtered: THREE.Vector3[] = [];
+
+      for (let i = 0; i < cleaned.length; i++) {
+        const prev = cleaned[(i - 1 + cleaned.length) % cleaned.length];
+        const curr = cleaned[i];
+        const next = cleaned[(i + 1) % cleaned.length];
+
+        // Check if three consecutive points are collinear
+        const v1 = new THREE.Vector3().subVectors(curr, prev).normalize();
+        const v2 = new THREE.Vector3().subVectors(next, curr).normalize();
+        const cross = new THREE.Vector3().crossVectors(v1, v2);
+
+        // Keep vertex if it creates a meaningful angle
+        if (cross.length() > 0.01) { // Not collinear
+          filtered.push(curr);
+        }
+      }
+
+      if (filtered.length >= 3) {
+        return filtered;
+      }
+    }
+
+    return cleaned.length >= 3 ? cleaned : vertices.slice(0, 3);
+  }
+
+  /**
+   * Simple polygon triangulation - fan from first vertex, skip degenerate triangles
    */
   private static simplePolygonTriangulation(
     vertices: THREE.Vector3[],
@@ -189,26 +235,57 @@ export class PolygonPartsExporter {
 
     if (vertices.length < 3) return content;
 
-    // Simple fan triangulation from first vertex
+    // Fan triangulation from first vertex, but validate each triangle
     for (let i = 1; i < vertices.length - 1; i++) {
-      content += this.addTriangleToSTL(
-        vertices[0],
-        vertices[i],
-        vertices[i + 1],
-        normal
-      );
+      const triangle = [vertices[0], vertices[i], vertices[i + 1]];
+
+      // Only add triangle if it has meaningful area
+      if (this.triangleHasArea(triangle)) {
+        content += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
+      }
     }
 
     return content;
   }
 
   /**
-   * Calculate normal for a side face triangle
+   * Check if triangle has meaningful area (not degenerate)
    */
-  private static calculateSideNormal(v1: THREE.Vector3, v2: THREE.Vector3, v3: THREE.Vector3): THREE.Vector3 {
+  private static triangleHasArea(triangle: THREE.Vector3[]): boolean {
+    const [a, b, c] = triangle;
+    const edge1 = new THREE.Vector3().subVectors(b, a);
+    const edge2 = new THREE.Vector3().subVectors(c, a);
+    const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+    return cross.length() > 0.0001; // Has meaningful area
+  }
+
+  /**
+   * Add a side quad as two triangles with proper normal calculation
+   */
+  private static addSideQuad(
+    v1: THREE.Vector3,
+    v2: THREE.Vector3,
+    v3: THREE.Vector3,
+    v4: THREE.Vector3
+  ): string {
+    // Calculate consistent normal for the quad
     const edge1 = new THREE.Vector3().subVectors(v2, v1);
-    const edge2 = new THREE.Vector3().subVectors(v3, v1);
-    return new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+    const edge2 = new THREE.Vector3().subVectors(v4, v1);
+    const normal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+
+    let content = "";
+
+    // First triangle: v1, v2, v3
+    if (this.triangleHasArea([v1, v2, v3])) {
+      content += this.addTriangleToSTL(v1, v2, v3, normal);
+    }
+
+    // Second triangle: v1, v3, v4
+    if (this.triangleHasArea([v1, v3, v4])) {
+      content += this.addTriangleToSTL(v1, v3, v4, normal);
+    }
+
+    return content;
   }
 
 
