@@ -59,6 +59,7 @@ export class PolygonPartsExporter {
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
+    const zipFileList: string[] = [];
 
     // Create individual files for each polygon face
     for (let i = 0; i < polygonFaces.length; i++) {
