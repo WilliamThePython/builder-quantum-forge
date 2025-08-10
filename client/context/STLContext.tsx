@@ -432,16 +432,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const availableModels = [
-    { name: "cube", description: "Basic cube with 6 quad faces" },
-    { name: "tetrahedron", description: "4 triangular faces" },
-    { name: "octahedron", description: "8 triangular faces" },
-    { name: "icosahedron", description: "20 triangular faces" },
-    { name: "gear", description: "Gear wheel with teeth" },
-    { name: "star", description: "5-pointed star shape" },
-    { name: "cross", description: "Plus/cross shape" },
-  ];
-
   const updateViewerSettings = useCallback((settings: Partial<ViewerSettings>) => {
     setViewerSettings(prev => ({ ...prev, ...settings }));
   }, []);
