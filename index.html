@@ -17,13 +17,23 @@
 
     <!-- Fix FullStory namespace conflict - Set before any scripts -->
     <script>
-      // Set FullStory namespace before any scripts load
-      window["_fs_namespace"] = "FS";
+      // Prevent FullStory namespace conflicts
+      (function() {
+        // Set unique namespace to avoid conflicts
+        window["_fs_namespace"] = "FS_INTELLIMESH";
 
-      // Also define FS object to prevent conflicts
-      if (typeof window.FS === "undefined") {
-        window.FS = window.FS || {};
-      }
+        // Initialize the namespace object
+        if (typeof window.FS_INTELLIMESH === "undefined") {
+          window.FS_INTELLIMESH = {};
+        }
+
+        // Block duplicate FullStory loading
+        if (window._fs_loaded) {
+          console.warn("FullStory already loaded, preventing duplicate");
+          return;
+        }
+        window._fs_loaded = true;
+      })();
     </script>
 
     <!-- Google Analytics 4 -->
