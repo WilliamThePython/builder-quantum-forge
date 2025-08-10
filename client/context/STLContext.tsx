@@ -2647,6 +2647,19 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           console.log(`✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`);
 
+          // COMPARISON SUMMARY
+          console.log("🔍 DECIMATION COMPARISON SUMMARY:");
+          const preVertices = triangulatedGeometry.attributes.position.count;
+          const postVertices = result.geometry.attributes.position.count;
+          const preTriangles = triangulatedGeometry.index ? triangulatedGeometry.index.count / 3 : preVertices / 3;
+          const postTriangles = result.geometry.index ? result.geometry.index.count / 3 : postVertices / 3;
+
+          console.log(`   Vertices: ${preVertices} → ${postVertices} (${((postVertices - preVertices) / preVertices * 100).toFixed(1)}%)`);
+          console.log(`   Triangles: ${preTriangles} → ${postTriangles} (${((postTriangles - preTriangles) / preTriangles * 100).toFixed(1)}%)`);
+          console.log(`   Index status: ${!!triangulatedGeometry.index} → ${!!result.geometry.index}`);
+          console.log(`   Normals: ${!!triangulatedGeometry.attributes.normal} → ${!!result.geometry.attributes.normal}`);
+          console.log(`   Degenerate triangles: ${degenerateCount} (${(degenerateCount / totalTriangles * 100).toFixed(1)}%)`);
+
           // For decimated geometry, rebuild polygon face metadata for correct stats
           try {
             console.log("🔄 Rebuilding polygon face metadata for decimated geometry...");
