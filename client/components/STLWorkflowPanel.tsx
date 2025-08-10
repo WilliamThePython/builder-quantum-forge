@@ -1325,7 +1325,7 @@ function MobileWorkflowContent(props: any) {
     const file = event.target.files?.[0];
     if (file) {
       loadModelFromFile(file).catch((err) => {
-        console.error("❌ Upload failed:", err);
+        console.error("�� Upload failed:", err);
         alert(`Upload failed: ${err.message}`);
       });
     }
@@ -1617,11 +1617,6 @@ function MobileWorkflowContent(props: any) {
             <div className="p-4 bg-white/10 rounded-lg border border-white/20">
               <div className="text-white text-base font-medium mb-3">
                 Quadric Edge Collapse
-              </div>
-              <div className="text-sm text-white/60 mb-4 bg-white/5 rounded p-2">
-                🔧 <span className="font-medium">Quadric Decimation:</span> Uses
-                quadric error metrics to intelligently collapse edges while
-                preserving mesh topology and important features.
               </div>
 
               {/* Reduction Amount - larger slider for mobile */}
