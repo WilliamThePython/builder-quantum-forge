@@ -350,40 +350,48 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     try {
       const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
-      
+
       setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
-      
+
       updateProgress(25, "Loading", "Reading file...");
       let loadedGeometry = await loadModelFile(file, updateProgress);
-      
-      updateProgress(70, "Processing", "Setting up mesh system...");
-      
+
+      // Detect if this is a large model requiring progressive loading
+      const triangleCount = Math.floor(loadedGeometry.attributes.position.count / 3);
+      const isLargeModel = triangleCount > 50000; // 50k+ triangles = large model
+
+      updateProgress(50, "Processing", "Analyzing mesh...");
+
       // Scale to reasonable size
       loadedGeometry.computeBoundingBox();
       if (!loadedGeometry.boundingBox) {
         throw new Error("Invalid geometry: no bounding box");
       }
-      
+
       const box = loadedGeometry.boundingBox;
       const maxDimension = Math.max(
         box.max.x - box.min.x,
         box.max.y - box.min.y,
         box.max.z - box.min.z
       );
-      
+
       if (maxDimension > 0) {
         const scale = 50 / maxDimension;
         loadedGeometry.scale(scale, scale, scale);
       }
-      
-      updateProgress(85, "Optimizing", "Setting up dual mesh system...");
-      
-      // Set up dual mesh system
-      setupDualMeshSystem(loadedGeometry);
-      
+
+      updateProgress(70, "Build", "Setting up mesh system...");
+
+      // Set up dual mesh system with progressive loading for large models
+      if (isLargeModel) {
+        await setupDualMeshSystemProgressive(loadedGeometry, updateProgress);
+      } else {
+        setupDualMeshSystem(loadedGeometry);
+      }
+
       setFileName(file.name);
-      
-      updateProgress(100, "Complete", "Model loaded successfully!");
+
+      updateProgress(100, "Done", "Model loaded successfully!");
       
       analytics.trackSTLUpload({
         file_name: file.name,
