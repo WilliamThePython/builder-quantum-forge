@@ -1,6 +1,37 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- CRITICAL: Fix FullStory namespace conflict FIRST - Must be before any other scripts -->
+    <script>
+      // Aggressive FullStory namespace fix - runs immediately
+      (function() {
+        // Set namespace immediately to prevent conflicts
+        window["_fs_namespace"] = "FS_INTELLIMESH";
+
+        // Also try to prevent the default namespace from being used
+        Object.defineProperty(window, '_fs_namespace', {
+          value: 'FS_INTELLIMESH',
+          writable: false,
+          configurable: false
+        });
+
+        // Initialize the namespace object
+        window.FS_INTELLIMESH = window.FS_INTELLIMESH || {};
+
+        // Block FullStory from loading without namespace
+        const originalDefineProperty = Object.defineProperty;
+        Object.defineProperty = function(obj, prop, descriptor) {
+          if (prop === '_fs_namespace' && descriptor.value !== 'FS_INTELLIMESH') {
+            console.warn('Blocking FullStory namespace conflict');
+            descriptor.value = 'FS_INTELLIMESH';
+          }
+          return originalDefineProperty.call(this, obj, prop, descriptor);
+        };
+
+        console.log('FullStory namespace set to:', window["_fs_namespace"]);
+      })();
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
@@ -14,27 +45,6 @@
       name="keywords"
       content="Intellimesh, 3D mesh processing, quadric decimation, STL viewer, OBJ editor, mesh simplification, 3D fabrication, parts export, Open3D"
     />
-
-    <!-- Fix FullStory namespace conflict - Set before any scripts -->
-    <script>
-      // Prevent FullStory namespace conflicts
-      (function() {
-        // Set unique namespace to avoid conflicts
-        window["_fs_namespace"] = "FS_INTELLIMESH";
-
-        // Initialize the namespace object
-        if (typeof window.FS_INTELLIMESH === "undefined") {
-          window.FS_INTELLIMESH = {};
-        }
-
-        // Block duplicate FullStory loading
-        if (window._fs_loaded) {
-          console.warn("FullStory already loaded, preventing duplicate");
-          return;
-        }
-        window._fs_loaded = true;
-      })();
-    </script>
 
     <!-- Google Analytics 4 -->
     <script
