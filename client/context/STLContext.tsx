@@ -2341,7 +2341,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             result.geometry.attributes.position.count / 3,
           );
           console.log(
-            "���� Creating fallback triangle structure for",
+            "🔧 Creating fallback triangle structure for",
             triangleCount,
             "triangles",
           );
@@ -2508,12 +2508,60 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           console.log("🔧 Processing decimated geometry...");
 
+          // DETAILED POST-DECIMATION ANALYSIS
+          console.log("📊 POST-DECIMATION GEOMETRY ANALYSIS:");
+          console.log(`   Vertices: ${result.geometry.attributes.position.count}`);
+          console.log(`   Has Index: ${!!result.geometry.index}`);
+          console.log(`   Index Count: ${result.geometry.index ? result.geometry.index.count : 'N/A'}`);
+          console.log(`   Triangles: ${result.geometry.index ? result.geometry.index.count / 3 : result.geometry.attributes.position.count / 3}`);
+          console.log(`   Has Normals: ${!!result.geometry.attributes.normal}`);
+          console.log(`   Has UVs: ${!!result.geometry.attributes.uv}`);
+
+          // Check for NaN values in positions
+          const postPositions = result.geometry.attributes.position.array as Float32Array;
+          let postNaNCount = 0;
+          for (let i = 0; i < postPositions.length; i++) {
+            if (isNaN(postPositions[i]) || !isFinite(postPositions[i])) {
+              postNaNCount++;
+            }
+          }
+          console.log(`   NaN/Infinite positions: ${postNaNCount}`);
+
+          // Check if any vertices are at (0,0,0) which might indicate corruption
+          let zeroVertexCount = 0;
+          for (let i = 0; i < postPositions.length; i += 3) {
+            if (postPositions[i] === 0 && postPositions[i + 1] === 0 && postPositions[i + 2] === 0) {
+              zeroVertexCount++;
+            }
+          }
+          console.log(`   Zero vertices (0,0,0): ${zeroVertexCount}`);
+
           // CRITICAL: Fix potential face orientation issues after decimation
           // Compute flat normals to ensure faces are properly oriented
           try {
             const { computeFlatNormals } = await import("../lib/flatNormals");
             computeFlatNormals(result.geometry);
             console.log("✅ Computed flat normals for decimated geometry");
+
+            // Check normals after computation
+            if (result.geometry.attributes.normal) {
+              const postNormals = result.geometry.attributes.normal.array as Float32Array;
+              console.log(`   Sample normals after flat computation: [${postNormals.slice(0, 9).map(n => n.toFixed(3)).join(', ')}]`);
+
+              // Check for zero-length normals which cause black faces
+              let zeroNormalCount = 0;
+              for (let i = 0; i < postNormals.length; i += 3) {
+                const length = Math.sqrt(
+                  postNormals[i] * postNormals[i] +
+                  postNormals[i + 1] * postNormals[i + 1] +
+                  postNormals[i + 2] * postNormals[i + 2]
+                );
+                if (length < 0.001) {
+                  zeroNormalCount++;
+                }
+              }
+              console.log(`   Zero-length normals: ${zeroNormalCount}`);
+            }
           } catch (error) {
             console.warn("⚠️ Failed to compute flat normals, using vertex normals");
             result.geometry.computeVertexNormals();
