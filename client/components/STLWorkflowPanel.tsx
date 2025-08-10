@@ -1718,33 +1718,60 @@ function MobileWorkflowContent(props: any) {
               />
             </div>
 
-            {/* Background Settings - Colored Circles Mobile */}
+            {/* Background Settings - Color Picker Mobile */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
                 <Settings className="w-3 h-3 text-white/70" />
                 <Label className="text-xs text-white/80">Background</Label>
               </div>
-              <div className="flex items-center gap-1.5">
-                {[
-                  { color: "#0a0a0a", name: "Space Black" },
-                  { color: "#1a1a2e", name: "Deep Ocean" },
-                  { color: "#16213e", name: "Midnight Blue" },
-                  { color: "#2a0845", name: "Purple Night" },
-                ].map((bg) => (
-                  <button
-                    key={bg.color}
-                    className={`w-5 h-5 rounded-full border-2 transition-all hover:scale-110 ${
-                      viewerSettings.backgroundColor === bg.color
-                        ? "border-white shadow-lg shadow-blue-500/30"
-                        : "border-white/30 hover:border-white/60"
-                    }`}
-                    style={{ background: bg.color }}
-                    onClick={() =>
-                      updateViewerSettings({ backgroundColor: bg.color })
-                    }
-                    title={bg.name}
+              <div className="relative">
+                {/* Current Color Display & Toggle */}
+                <button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="flex items-center gap-2 w-full p-2 bg-slate-800/50 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors"
+                >
+                  <div
+                    className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm"
+                    style={{ backgroundColor: viewerSettings.backgroundColor }}
                   />
-                ))}
+                  <span className="text-xs text-white/80 flex-1 text-left">
+                    {viewerSettings.backgroundColor}
+                  </span>
+                  <Palette className="w-3 h-3 text-white/60" />
+                </button>
+
+                {/* Color Picker Popover */}
+                {showColorPicker && (
+                  <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                    <HexColorPicker
+                      color={viewerSettings.backgroundColor}
+                      onChange={(color) => {
+                        updateViewerSettings({ backgroundColor: color });
+                      }}
+                      style={{ width: "180px", height: "180px" }}
+                    />
+                    <div className="mt-3 flex justify-between items-center">
+                      <input
+                        type="text"
+                        value={viewerSettings.backgroundColor}
+                        onChange={(e) => {
+                          const color = e.target.value;
+                          if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
+                            updateViewerSettings({ backgroundColor: color });
+                          }
+                        }}
+                        className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white w-20"
+                        placeholder="#000000"
+                      />
+                      <button
+                        onClick={() => setShowColorPicker(false)}
+                        className="text-white/60 hover:text-white/80 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
