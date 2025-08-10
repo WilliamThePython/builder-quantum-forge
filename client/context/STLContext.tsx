@@ -631,14 +631,34 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const edge3Length = v3.distanceTo(v1);
         const perimeter = edge1Length + edge2Length + edge3Length;
 
+        // Find which polygon face this triangle belongs to
+        const polygonFaces = (previewMeshMerged as any).polygonFaces;
+        let faceType = "triangle";
+        let vertexCount = 3;
+        let parentFaceIndex = triangleIndex;
+
+        if (polygonFaces && Array.isArray(polygonFaces)) {
+          // Look for the polygon face that contains this triangle
+          for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+            const face = polygonFaces[faceIndex];
+            if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
+              faceType = face.type || "triangle";
+              vertexCount = face.originalVertices ? face.originalVertices.length : 3;
+              parentFaceIndex = faceIndex;
+              break;
+            }
+          }
+        }
+
         setTriangleStats({
           index: triangleIndex,
           vertices: [v1, v2, v3],
           area,
           perimeter,
           normal: normal.normalize(),
-          faceType: "triangle",
-          vertexCount: 3,
+          faceType,
+          vertexCount,
+          parentFaceIndex,
         });
       }
     } else {
