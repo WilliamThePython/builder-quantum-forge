@@ -2455,15 +2455,43 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           console.log("🔧 Processing decimated geometry...");
 
-          // Ensure basic geometry attributes are valid
-          if (!result.geometry.attributes.normal) {
+          // CRITICAL: Fix potential face orientation issues after decimation
+          // Compute flat normals to ensure faces are properly oriented
+          try {
+            const { computeFlatNormals } = await import("../lib/flatNormals");
+            computeFlatNormals(result.geometry);
+            console.log("✅ Computed flat normals for decimated geometry");
+          } catch (error) {
+            console.warn("⚠️ Failed to compute flat normals, using vertex normals");
             result.geometry.computeVertexNormals();
-            console.log("✅ Computed vertex normals for decimated geometry");
           }
 
           // Ensure bounding box is computed
           result.geometry.computeBoundingBox();
           result.geometry.computeBoundingSphere();
+
+          // CRITICAL: Validate geometry after decimation to catch degenerate triangles
+          const positions = result.geometry.attributes.position.array as Float32Array;
+          let degenerateCount = 0;
+
+          for (let i = 0; i < positions.length; i += 9) {
+            // Check each triangle for degeneracy
+            const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
+            const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
+            const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+
+            const area = new THREE.Vector3()
+              .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+              .length() / 2;
+
+            if (area < 0.0001) {
+              degenerateCount++;
+            }
+          }
+
+          if (degenerateCount > 0) {
+            console.warn(`⚠️ Found ${degenerateCount} degenerate triangles after decimation`);
+          }
 
           // Skip complex post-processing that might corrupt faces during decimation
           // Simple UUID update and geometry replacement
