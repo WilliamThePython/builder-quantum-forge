@@ -1767,7 +1767,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         });
 
         // Create TRIANGULATED version for decimation operations
-        const triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        let triangulatedGeometry: THREE.BufferGeometry;
+
+        // Use center point triangulation for gear, star, and cross models
+        const isGearStarCross = selectedModel.name.includes('gear') ||
+                               selectedModel.name.includes('star') ||
+                               selectedModel.name.includes('cross');
+
+        if (isGearStarCross) {
+          console.log(`🌟 Using center point triangulation for ${selectedModel.name}`);
+          // Create center-triangulated version for better decimation behavior
+          triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(polygonGeometry);
+        } else {
+          triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        }
+
         // Ensure it's properly triangulated and indexed
         if (!triangulatedGeometry.index) {
           const indices = [];
@@ -1781,6 +1795,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         // Store triangulated version for decimation operations
         (triangulatedGeometry as any).isTriangulatedForDecimation = true;
         (triangulatedGeometry as any).originalPolygonGeometry = polygonGeometry;
+        (triangulatedGeometry as any).usesCenterTriangulation = isGearStarCross;
 
         setLoadingProgress({
           percentage: 50,
