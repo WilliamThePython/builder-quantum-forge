@@ -152,8 +152,6 @@ export class PolygonPartsExporter {
 
     // Use ORIGINAL triangulation from the mesh - NO re-triangulation!
     if (faceInfo.triangleIndices && faceInfo.triangleIndices.length > 0) {
-      console.log(`Using original triangulation for polygon ${polygonIndex + 1}: ${faceInfo.triangleIndices.length} triangles`);
-
       // Extract the original triangles from the geometry
       const originalTriangles = this.extractOriginalTriangles(faceInfo.triangleIndices, originalGeometry, scale);
 
@@ -167,9 +165,6 @@ export class PolygonPartsExporter {
         const backTriangle = triangle.map(v => v.clone().add(offset)).reverse();
         stlContent += this.addTriangleToSTL(backTriangle[0], backTriangle[1], backTriangle[2], normal.clone().negate());
       }
-    } else {
-      // Fallback for faces without triangleIndices
-      console.log(`No triangleIndices found for polygon ${polygonIndex + 1}, using perimeter only`);
     }
 
     // Add side walls connecting the perimeter
