@@ -159,6 +159,7 @@ export default function STLWorkflowPanel({
     "random_vertex_removal" | "python_vertex_removal" | null
   >(null);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     upload: true,
     visualization: true,
