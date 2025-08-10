@@ -1642,6 +1642,13 @@ function STLMesh() {
 
     const handleClick = async (event: MouseEvent) => {
       if (highlightedEdge) {
+        // Validate edge indices before attempting decimation
+        console.log(`🔍 Attempting to decimate edge:`, {
+          vertexIndex1: highlightedEdge.vertexIndex1,
+          vertexIndex2: highlightedEdge.vertexIndex2,
+          geometryVertexCount: geometry?.attributes?.position?.count || 'unknown'
+        });
+
         try {
           // Perform single edge decimation
           await decimateEdge(
