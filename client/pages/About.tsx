@@ -77,14 +77,14 @@ export default function About() {
         </Card>
 
         {/* Donate Information */}
-        <Card className={`${cardStyles[selectedBackground as keyof typeof cardStyles]}`}>
+        <Card className="bg-white/10 border-white/20 backdrop-blur-sm">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4 flex items-center">
               <Heart className="w-6 h-6 mr-3 text-red-500" />
               Support Our Work
             </h2>
-            
-            <div className={`mb-6 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
+
+            <div className="mb-6 text-gray-300">
               <p className="mb-4">
                 Intellimesh is a passion project built by developers who believe in making 3D technology
                 accessible to everyone. Your support helps us maintain the platform, add new features,
