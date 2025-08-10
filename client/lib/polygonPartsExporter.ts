@@ -29,37 +29,21 @@ export class PolygonPartsExporter {
       scale = 1,
     } = options;
 
-    console.log("📦 PARTS Export: Starting polygon parts export process...");
     const startTime = Date.now();
 
     // Create zip file
     const zip = new JSZip();
-    console.log("📁 Created new JSZip instance");
 
     // Get polygon face data from geometry
     const polygonFaces = (geometry as any).polygonFaces;
     const polygonType = (geometry as any).polygonType;
 
-    console.log("🔍 Polygon Analysis:", {
-      hasPolygonFaces: !!polygonFaces,
-      polygonFacesCount: polygonFaces?.length || 0,
-      polygonType,
-      format,
-      partThickness,
-      scale,
-      filename
-    });
-
     if (!polygonFaces) {
-      console.log("❌ No polygon faces found - falling back to triangle export");
       return this.exportTriangleFallback(geometry, filename, options);
     }
 
-    console.log(`🔧 Processing ${polygonFaces.length} polygon faces...`);
-
     // Track part information for Excel database
     const partDatabase: any[] = [];
-    const zipFileList: string[] = [];
 
     // Create individual files for each polygon face
     for (let i = 0; i < polygonFaces.length; i++) {
@@ -111,59 +95,32 @@ export class PolygonPartsExporter {
 
       // Add to zip
       zip.file(partFilename, partContent);
-      zipFileList.push(partFilename);
-
-      // Progress logging
-      if (i < 5 || i === polygonFaces.length - 1) {
-        console.log(`✅ Added part ${i + 1}/${polygonFaces.length}: ${partFilename} (${faceInfo.type}, ${faceInfo.originalVertices.length} vertices)`);
-      }
     }
 
     // Generate Excel file with part database
-    console.log("📊 Generating Excel database...");
     const excelBuffer = this.generatePartsDatabase(partDatabase, {
       ...options,
       partThickness,
       polygonType,
     });
     zip.file("parts_database.xlsx", excelBuffer);
-    zipFileList.push("parts_database.xlsx");
-    console.log("✅ Added parts_database.xlsx to zip");
 
     // Add assembly instructions
-    console.log("📋 Generating assembly instructions...");
     const instructions = this.generateAssemblyInstructions(
       polygonFaces.length,
       { ...options, partThickness, polygonType },
     );
     zip.file("assembly_instructions.txt", instructions);
-    zipFileList.push("assembly_instructions.txt");
-    console.log("✅ Added assembly_instructions.txt to zip");
-
-    console.log("📦 ZIP FILE CONTENTS:", {
-      totalFiles: zipFileList.length,
-      partFiles: zipFileList.filter(f => f.startsWith('part_')).length,
-      hasDatabase: zipFileList.includes('parts_database.xlsx'),
-      hasInstructions: zipFileList.includes('assembly_instructions.txt'),
-      allFiles: zipFileList.slice(0, 10) // Show first 10 files
-    });
 
     // Generate and download zip
-    console.log("🗜️ Generating zip blob...");
     const zipBlob = await zip.generateAsync({ type: "blob" });
-    console.log("✅ Zip blob generated:", {
-      size: zipBlob.size,
-      type: zipBlob.type
-    });
 
     // Download the zip file with proper .zip extension
     const zipFilename = filename.endsWith('.zip') ? filename :
       filename.replace(/\.[^/.]+$/, '_parts.zip').replace(/^(.+?)(?:_parts)?$/, '$1_parts.zip');
-    console.log(`📥 Initiating download: ${zipFilename} (was: ${filename})`);
     this.downloadBlob(zipBlob, zipFilename);
 
     const endTime = Date.now();
-    console.log(`🎉 PARTS EXPORT COMPLETE: ${filename} (${polygonFaces.length} parts, ${zipFileList.length} total files, ${endTime - startTime}ms)`);
   }
 
   /**
