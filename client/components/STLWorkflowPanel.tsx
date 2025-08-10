@@ -604,12 +604,6 @@ export default function STLWorkflowPanel({
                 <div className="text-white text-sm font-medium mb-2">
                   Quadric Edge Collapse
                 </div>
-                <div className="text-xs text-white/60 mb-4 bg-white/5 rounded p-2">
-                  �� <span className="font-medium">Quadric Decimation:</span>{" "}
-                  Uses quadric error metrics to intelligently collapse edges
-                  while preserving mesh topology and important features. Same
-                  algorithm as Open3D's quadric decimation.
-                </div>
 
                 {/* Reduction Amount */}
                 <div className="mb-3">
