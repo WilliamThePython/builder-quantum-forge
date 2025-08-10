@@ -1170,7 +1170,6 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
-              `🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`,
             );
               `   Color: RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`,
             );
@@ -1195,7 +1194,6 @@ function STLMesh() {
               }
             }
 
-              `   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`,
             );
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
@@ -1234,7 +1232,6 @@ function STLMesh() {
             colors[i + j + 2] = color.b;
           }
         }
-          "🎨 ❌ Applied TRIANGLE-BASED coloring - this is the problem!",
         );
       }
 
@@ -1256,7 +1253,6 @@ function STLMesh() {
           : '[insufficient colors]';
       } else {
       }
-        `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
       );
     } else if (geometry && geometry.attributes.color) {
       // Remove color attribute if not using random colors
