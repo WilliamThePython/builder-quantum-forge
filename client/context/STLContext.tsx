@@ -133,8 +133,12 @@ const STLContext = createContext<STLContextType | undefined>(undefined);
 export const useSTL = () => {
   const context = useContext(STLContext);
   if (!context) {
-    console.error("STL Context Error: Component tried to use STL context outside provider");
-    console.error("This usually happens during hot reload or component tree changes");
+    console.error(
+      "STL Context Error: Component tried to use STL context outside provider",
+    );
+    console.error(
+      "This usually happens during hot reload or component tree changes",
+    );
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;

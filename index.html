@@ -4,15 +4,15 @@
     <!-- CRITICAL: Fix FullStory namespace conflict FIRST - Must be before any other scripts -->
     <script>
       // Aggressive FullStory namespace fix - runs immediately
-      (function() {
+      (function () {
         // Set namespace immediately to prevent conflicts
         window["_fs_namespace"] = "FS_INTELLIMESH";
 
         // Also try to prevent the default namespace from being used
-        Object.defineProperty(window, '_fs_namespace', {
-          value: 'FS_INTELLIMESH',
+        Object.defineProperty(window, "_fs_namespace", {
+          value: "FS_INTELLIMESH",
           writable: false,
-          configurable: false
+          configurable: false,
         });
 
         // Initialize the namespace object
@@ -20,15 +20,18 @@
 
         // Block FullStory from loading without namespace
         const originalDefineProperty = Object.defineProperty;
-        Object.defineProperty = function(obj, prop, descriptor) {
-          if (prop === '_fs_namespace' && descriptor.value !== 'FS_INTELLIMESH') {
-            console.warn('Blocking FullStory namespace conflict');
-            descriptor.value = 'FS_INTELLIMESH';
+        Object.defineProperty = function (obj, prop, descriptor) {
+          if (
+            prop === "_fs_namespace" &&
+            descriptor.value !== "FS_INTELLIMESH"
+          ) {
+            console.warn("Blocking FullStory namespace conflict");
+            descriptor.value = "FS_INTELLIMESH";
           }
           return originalDefineProperty.call(this, obj, prop, descriptor);
         };
 
-        console.log('FullStory namespace set to:', window["_fs_namespace"]);
+        console.log("FullStory namespace set to:", window["_fs_namespace"]);
       })();
     </script>
 
@@ -49,7 +52,7 @@
     <!-- Additional FullStory conflict prevention -->
     <script>
       // Double-check namespace is still set and prevent any overrides
-      (function() {
+      (function () {
         if (window["_fs_namespace"] !== "FS_INTELLIMESH") {
           console.warn("FullStory namespace was overridden, resetting...");
           window["_fs_namespace"] = "FS_INTELLIMESH";
@@ -57,10 +60,14 @@
 
         // Intercept any attempts to load FullStory without proper namespace
         const originalAppendChild = document.head.appendChild;
-        document.head.appendChild = function(child) {
-          if (child.tagName === 'SCRIPT' &&
-              (child.src?.includes('fullstory') || child.src?.includes('fs.js'))) {
-            console.warn('Intercepted FullStory script load, ensuring namespace is set');
+        document.head.appendChild = function (child) {
+          if (
+            child.tagName === "SCRIPT" &&
+            (child.src?.includes("fullstory") || child.src?.includes("fs.js"))
+          ) {
+            console.warn(
+              "Intercepted FullStory script load, ensuring namespace is set",
+            );
             window["_fs_namespace"] = "FS_INTELLIMESH";
           }
           return originalAppendChild.call(this, child);
