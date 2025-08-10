@@ -1293,7 +1293,7 @@ function STLMesh() {
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
-          if (face.triangleIndices && face.triangleIndices.includes(highlightedTriangle)) {
+          if (face && face.triangleIndices && face.triangleIndices.includes(highlightedTriangle)) {
             targetFace = face;
             break;
           }
