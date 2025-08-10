@@ -754,7 +754,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   // Helper function to remove overlapping triangles that cause Z-fighting
-  const removeOverlappingTriangles = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+  const removeOverlappingTriangles = (
+    geometry: THREE.BufferGeometry,
+  ): THREE.BufferGeometry => {
     if (!geometry.index) {
       console.log("⏭️ Skipping overlap removal for non-indexed geometry");
       return geometry;
@@ -765,20 +767,39 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const triangleMap = new Map<string, number>();
     const validTriangles: number[] = [];
 
-    console.log(`🔧 Processing ${indices.length / 3} triangles for overlap removal...`);
+    console.log(
+      `🔧 Processing ${indices.length / 3} triangles for overlap removal...`,
+    );
 
     for (let i = 0; i < indices.length; i += 3) {
       const i1 = indices[i] * 3;
       const i2 = indices[i + 1] * 3;
       const i3 = indices[i + 2] * 3;
 
-      const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
-      const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
-      const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      const v1 = new THREE.Vector3(
+        positions[i1],
+        positions[i1 + 1],
+        positions[i1 + 2],
+      );
+      const v2 = new THREE.Vector3(
+        positions[i2],
+        positions[i2 + 1],
+        positions[i2 + 2],
+      );
+      const v3 = new THREE.Vector3(
+        positions[i3],
+        positions[i3 + 1],
+        positions[i3 + 2],
+      );
 
       // Calculate triangle center and normal
-      const center = new THREE.Vector3().addVectors(v1, v2).add(v3).divideScalar(3);
-      const normal = new THREE.Vector3().crossVectors(v2.clone().sub(v1), v3.clone().sub(v1)).normalize();
+      const center = new THREE.Vector3()
+        .addVectors(v1, v2)
+        .add(v3)
+        .divideScalar(3);
+      const normal = new THREE.Vector3()
+        .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+        .normalize();
 
       // Create unique signature with tolerance for floating point precision
       const centerKey = `${center.x.toFixed(4)},${center.y.toFixed(4)},${center.z.toFixed(4)}`;
@@ -792,8 +813,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
     }
 
-    const removedCount = (indices.length / 3) - (validTriangles.length / 3);
-    console.log(`🔧 Removed ${removedCount} overlapping triangles, kept ${validTriangles.length / 3} unique triangles`);
+    const removedCount = indices.length / 3 - validTriangles.length / 3;
+    console.log(
+      `🔧 Removed ${removedCount} overlapping triangles, kept ${validTriangles.length / 3} unique triangles`,
+    );
 
     if (removedCount > 0) {
       // Create new geometry with only unique triangles
@@ -1594,22 +1617,33 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       let triangulatedGeometry: THREE.BufferGeometry;
 
       // Use center point triangulation for gear, star, and cross models
-      const isGearStarCross = selectedModel.name.includes('gear') ||
-                             selectedModel.name.includes('star') ||
-                             selectedModel.name.includes('cross');
+      const isGearStarCross =
+        selectedModel.name.includes("gear") ||
+        selectedModel.name.includes("star") ||
+        selectedModel.name.includes("cross");
 
       if (isGearStarCross) {
-        console.log(`🌟 Using center point triangulation for ${selectedModel.name}`);
+        console.log(
+          `🌟 Using center point triangulation for ${selectedModel.name}`,
+        );
         // Create center-triangulated version for better decimation behavior
-        triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(polygonGeometry);
+        triangulatedGeometry =
+          PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(
+            polygonGeometry,
+          );
       } else {
-        triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        triangulatedGeometry =
+          PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
       }
 
       // Ensure it's properly triangulated and indexed
       if (!triangulatedGeometry.index) {
         const indices = [];
-        for (let i = 0; i < triangulatedGeometry.attributes.position.count; i++) {
+        for (
+          let i = 0;
+          i < triangulatedGeometry.attributes.position.count;
+          i++
+        ) {
           indices.push(i);
         }
         triangulatedGeometry.setIndex(indices);
@@ -1628,7 +1662,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       });
 
       // Create MERGED POLYGON version for viewing (existing perfect system)
-      const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+      const bufferGeometry =
+        PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
 
       setLoadingProgress({
         percentage: 70,
@@ -1674,7 +1709,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setTriangulatedGeometry(triangulatedGeometry); // Store triangulated version for decimation
       setFileName(selectedModel.name);
 
-      console.log(`✅ Stored both versions - Merged: ${bufferGeometry.attributes.position.count} vertices, Triangulated: ${triangulatedGeometry.attributes.position.count} vertices`);
+      console.log(
+        `✅ Stored both versions - Merged: ${bufferGeometry.attributes.position.count} vertices, Triangulated: ${triangulatedGeometry.attributes.position.count} vertices`,
+      );
       setOriginalFormat("stl");
 
       // Log file size estimation test data for calibration
@@ -1837,22 +1874,33 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         let triangulatedGeometry: THREE.BufferGeometry;
 
         // Use center point triangulation for gear, star, and cross models
-        const isGearStarCross = selectedModel.name.includes('gear') ||
-                               selectedModel.name.includes('star') ||
-                               selectedModel.name.includes('cross');
+        const isGearStarCross =
+          selectedModel.name.includes("gear") ||
+          selectedModel.name.includes("star") ||
+          selectedModel.name.includes("cross");
 
         if (isGearStarCross) {
-          console.log(`🌟 Using center point triangulation for ${selectedModel.name}`);
+          console.log(
+            `🌟 Using center point triangulation for ${selectedModel.name}`,
+          );
           // Create center-triangulated version for better decimation behavior
-          triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(polygonGeometry);
+          triangulatedGeometry =
+            PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(
+              polygonGeometry,
+            );
         } else {
-          triangulatedGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+          triangulatedGeometry =
+            PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
         }
 
         // Ensure it's properly triangulated and indexed
         if (!triangulatedGeometry.index) {
           const indices = [];
-          for (let i = 0; i < triangulatedGeometry.attributes.position.count; i++) {
+          for (
+            let i = 0;
+            i < triangulatedGeometry.attributes.position.count;
+            i++
+          ) {
             indices.push(i);
           }
           triangulatedGeometry.setIndex(indices);
@@ -1871,7 +1919,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         });
 
         // Create MERGED POLYGON version for viewing (existing perfect system)
-        const bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        const bufferGeometry =
+          PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
 
         setLoadingProgress({
           percentage: 70,
@@ -1917,7 +1966,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         setTriangulatedGeometry(triangulatedGeometry); // Store triangulated version for decimation
         setFileName(selectedModel.name);
 
-        console.log(`✅ Stored both versions - Merged: ${bufferGeometry.attributes.position.count} vertices, Triangulated: ${triangulatedGeometry.attributes.position.count} vertices`);
+        console.log(
+          `✅ Stored both versions - Merged: ${bufferGeometry.attributes.position.count} vertices, Triangulated: ${triangulatedGeometry.attributes.position.count} vertices`,
+        );
         setOriginalFormat("stl");
 
         setLoadingProgress({
@@ -2360,14 +2411,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             const { AggressiveCoplanarMerger } = await import(
               "../lib/aggressiveCoplanarMerger"
             );
-            console.log("🔄 Using aggressive coplanar merging for decimated geometry...");
+            console.log(
+              "🔄 Using aggressive coplanar merging for decimated geometry...",
+            );
             const mergedFaces = AggressiveCoplanarMerger.mergeCoplanarTriangles(
               result.geometry,
             );
 
             if (mergedFaces.length > 0) {
               (result.geometry as any).polygonFaces = mergedFaces;
-              (result.geometry as any).polygonType = "decimated_aggressive_merged";
+              (result.geometry as any).polygonType =
+                "decimated_aggressive_merged";
               (result.geometry as any).isPolygonPreserved = true;
               console.log(
                 "✅ Reconstructed",
@@ -2528,19 +2582,27 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       console.log(`🎯 Decimating edge: v${vertexIndex1} ↔ v${vertexIndex2}`);
 
       if (!triangulatedGeometry) {
-        throw new Error("No triangulated geometry available for edge decimation");
+        throw new Error(
+          "No triangulated geometry available for edge decimation",
+        );
       }
 
       // Validate vertex indices before proceeding
       const vertexCount = triangulatedGeometry.attributes.position.count;
       if (vertexIndex1 < 0 || vertexIndex1 >= vertexCount) {
-        throw new Error(`Invalid vertex index 1: ${vertexIndex1} (valid range: 0-${vertexCount - 1})`);
+        throw new Error(
+          `Invalid vertex index 1: ${vertexIndex1} (valid range: 0-${vertexCount - 1})`,
+        );
       }
       if (vertexIndex2 < 0 || vertexIndex2 >= vertexCount) {
-        throw new Error(`Invalid vertex index 2: ${vertexIndex2} (valid range: 0-${vertexCount - 1})`);
+        throw new Error(
+          `Invalid vertex index 2: ${vertexIndex2} (valid range: 0-${vertexCount - 1})`,
+        );
       }
       if (vertexIndex1 === vertexIndex2) {
-        throw new Error("Cannot decimate edge: both vertex indices are the same");
+        throw new Error(
+          "Cannot decimate edge: both vertex indices are the same",
+        );
       }
 
       try {
@@ -2551,19 +2613,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         createBackup();
 
         // Use the clean triangulated geometry for decimation (no complex preprocessing needed)
-        console.log(`🔺 Using stored triangulated geometry for decimation: ${triangulatedGeometry.attributes.position.count} vertices`);
+        console.log(
+          `🔺 Using stored triangulated geometry for decimation: ${triangulatedGeometry.attributes.position.count} vertices`,
+        );
 
         // DETAILED PRE-DECIMATION ANALYSIS
         console.log("📊 PRE-DECIMATION GEOMETRY ANALYSIS:");
-        console.log(`   Vertices: ${triangulatedGeometry.attributes.position.count}`);
+        console.log(
+          `   Vertices: ${triangulatedGeometry.attributes.position.count}`,
+        );
         console.log(`   Has Index: ${!!triangulatedGeometry.index}`);
-        console.log(`   Index Count: ${triangulatedGeometry.index ? triangulatedGeometry.index.count : 'N/A'}`);
-        console.log(`   Triangles: ${triangulatedGeometry.index ? triangulatedGeometry.index.count / 3 : triangulatedGeometry.attributes.position.count / 3}`);
-        console.log(`   Has Normals: ${!!triangulatedGeometry.attributes.normal}`);
+        console.log(
+          `   Index Count: ${triangulatedGeometry.index ? triangulatedGeometry.index.count : "N/A"}`,
+        );
+        console.log(
+          `   Triangles: ${triangulatedGeometry.index ? triangulatedGeometry.index.count / 3 : triangulatedGeometry.attributes.position.count / 3}`,
+        );
+        console.log(
+          `   Has Normals: ${!!triangulatedGeometry.attributes.normal}`,
+        );
         console.log(`   Has UVs: ${!!triangulatedGeometry.attributes.uv}`);
 
         // Check for NaN values in positions
-        const prePositions = triangulatedGeometry.attributes.position.array as Float32Array;
+        const prePositions = triangulatedGeometry.attributes.position
+          .array as Float32Array;
         let preNaNCount = 0;
         for (let i = 0; i < prePositions.length; i++) {
           if (isNaN(prePositions[i]) || !isFinite(prePositions[i])) {
@@ -2574,8 +2647,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         // Check normal directions (sample first few)
         if (triangulatedGeometry.attributes.normal) {
-          const preNormals = triangulatedGeometry.attributes.normal.array as Float32Array;
-          console.log(`   Sample normals: [${preNormals.slice(0, 9).map(n => n.toFixed(3)).join(', ')}]`);
+          const preNormals = triangulatedGeometry.attributes.normal
+            .array as Float32Array;
+          console.log(
+            `   Sample normals: [${preNormals
+              .slice(0, 9)
+              .map((n) => n.toFixed(3))
+              .join(", ")}]`,
+          );
         }
 
         // Use STLManipulator for single edge decimation on clean triangulated geometry
@@ -2593,15 +2672,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           // DETAILED POST-DECIMATION ANALYSIS
           console.log("📊 POST-DECIMATION GEOMETRY ANALYSIS:");
-          console.log(`   Vertices: ${result.geometry.attributes.position.count}`);
+          console.log(
+            `   Vertices: ${result.geometry.attributes.position.count}`,
+          );
           console.log(`   Has Index: ${!!result.geometry.index}`);
-          console.log(`   Index Count: ${result.geometry.index ? result.geometry.index.count : 'N/A'}`);
-          console.log(`   Triangles: ${result.geometry.index ? result.geometry.index.count / 3 : result.geometry.attributes.position.count / 3}`);
+          console.log(
+            `   Index Count: ${result.geometry.index ? result.geometry.index.count : "N/A"}`,
+          );
+          console.log(
+            `   Triangles: ${result.geometry.index ? result.geometry.index.count / 3 : result.geometry.attributes.position.count / 3}`,
+          );
           console.log(`   Has Normals: ${!!result.geometry.attributes.normal}`);
           console.log(`   Has UVs: ${!!result.geometry.attributes.uv}`);
 
           // Check for NaN values in positions
-          const postPositions = result.geometry.attributes.position.array as Float32Array;
+          const postPositions = result.geometry.attributes.position
+            .array as Float32Array;
           let postNaNCount = 0;
           for (let i = 0; i < postPositions.length; i++) {
             if (isNaN(postPositions[i]) || !isFinite(postPositions[i])) {
@@ -2613,7 +2699,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Check if any vertices are at (0,0,0) which might indicate corruption
           let zeroVertexCount = 0;
           for (let i = 0; i < postPositions.length; i += 3) {
-            if (postPositions[i] === 0 && postPositions[i + 1] === 0 && postPositions[i + 2] === 0) {
+            if (
+              postPositions[i] === 0 &&
+              postPositions[i + 1] === 0 &&
+              postPositions[i + 2] === 0
+            ) {
               zeroVertexCount++;
             }
           }
@@ -2628,16 +2718,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
             // Check normals after computation
             if (result.geometry.attributes.normal) {
-              const postNormals = result.geometry.attributes.normal.array as Float32Array;
-              console.log(`   Sample normals after flat computation: [${postNormals.slice(0, 9).map(n => n.toFixed(3)).join(', ')}]`);
+              const postNormals = result.geometry.attributes.normal
+                .array as Float32Array;
+              console.log(
+                `   Sample normals after flat computation: [${postNormals
+                  .slice(0, 9)
+                  .map((n) => n.toFixed(3))
+                  .join(", ")}]`,
+              );
 
               // Check for zero-length normals which cause black faces
               let zeroNormalCount = 0;
               for (let i = 0; i < postNormals.length; i += 3) {
                 const length = Math.sqrt(
                   postNormals[i] * postNormals[i] +
-                  postNormals[i + 1] * postNormals[i + 1] +
-                  postNormals[i + 2] * postNormals[i + 2]
+                    postNormals[i + 1] * postNormals[i + 1] +
+                    postNormals[i + 2] * postNormals[i + 2],
                 );
                 if (length < 0.001) {
                   zeroNormalCount++;
@@ -2646,7 +2742,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               console.log(`   Zero-length normals: ${zeroNormalCount}`);
             }
           } catch (error) {
-            console.warn("⚠️ Failed to compute flat normals, using vertex normals");
+            console.warn(
+              "⚠️ Failed to compute flat normals, using vertex normals",
+            );
             result.geometry.computeVertexNormals();
           }
 
@@ -2655,7 +2753,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           result.geometry.computeBoundingSphere();
 
           // CRITICAL: Validate geometry after decimation to catch degenerate triangles
-          const positions = result.geometry.attributes.position.array as Float32Array;
+          const positions = result.geometry.attributes.position
+            .array as Float32Array;
           let degenerateCount = 0;
           let totalTriangles = 0;
           let minArea = Infinity;
@@ -2672,17 +2771,32 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               const i2 = indices[i + 1] * 3;
               const i3 = indices[i + 2] * 3;
 
-              const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
-              const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
-              const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+              const v1 = new THREE.Vector3(
+                positions[i1],
+                positions[i1 + 1],
+                positions[i1 + 2],
+              );
+              const v2 = new THREE.Vector3(
+                positions[i2],
+                positions[i2 + 1],
+                positions[i2 + 2],
+              );
+              const v3 = new THREE.Vector3(
+                positions[i3],
+                positions[i3 + 1],
+                positions[i3 + 2],
+              );
 
-              const area = new THREE.Vector3()
-                .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
-                .length() / 2;
+              const area =
+                new THREE.Vector3()
+                  .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+                  .length() / 2;
 
               if (area < 0.0001) {
                 degenerateCount++;
-                console.log(`🔺 Degenerate triangle ${i/3}: vertices [${i1/3}, ${i2/3}, ${i3/3}], area: ${area}`);
+                console.log(
+                  `🔺 Degenerate triangle ${i / 3}: vertices [${i1 / 3}, ${i2 / 3}, ${i3 / 3}], area: ${area}`,
+                );
               }
 
               minArea = Math.min(minArea, area);
@@ -2694,17 +2808,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             totalTriangles = positions.length / 9;
 
             for (let i = 0; i < positions.length; i += 9) {
-              const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-              const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-              const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+              const v1 = new THREE.Vector3(
+                positions[i],
+                positions[i + 1],
+                positions[i + 2],
+              );
+              const v2 = new THREE.Vector3(
+                positions[i + 3],
+                positions[i + 4],
+                positions[i + 5],
+              );
+              const v3 = new THREE.Vector3(
+                positions[i + 6],
+                positions[i + 7],
+                positions[i + 8],
+              );
 
-              const area = new THREE.Vector3()
-                .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
-                .length() / 2;
+              const area =
+                new THREE.Vector3()
+                  .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+                  .length() / 2;
 
               if (area < 0.0001) {
                 degenerateCount++;
-                console.log(`🔺 Degenerate triangle ${i/9}: area: ${area}`);
+                console.log(`🔺 Degenerate triangle ${i / 9}: area: ${area}`);
               }
 
               minArea = Math.min(minArea, area);
@@ -2718,10 +2845,14 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.log(`   Degenerate triangles: ${degenerateCount}`);
           console.log(`   Min triangle area: ${minArea}`);
           console.log(`   Max triangle area: ${maxArea}`);
-          console.log(`   Average triangle area: ${totalArea / totalTriangles}`);
+          console.log(
+            `   Average triangle area: ${totalArea / totalTriangles}`,
+          );
 
           if (degenerateCount > 0) {
-            console.warn(`⚠️ Found ${degenerateCount} degenerate triangles after decimation - these may appear as black faces`);
+            console.warn(
+              `⚠️ Found ${degenerateCount} degenerate triangles after decimation - these may appear as black faces`,
+            );
           }
 
           // Check for overlapping/coincident triangles that cause Z-fighting
@@ -2737,13 +2868,30 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               const i2 = indices[i + 1] * 3;
               const i3 = indices[i + 2] * 3;
 
-              const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
-              const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
-              const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+              const v1 = new THREE.Vector3(
+                positions[i1],
+                positions[i1 + 1],
+                positions[i1 + 2],
+              );
+              const v2 = new THREE.Vector3(
+                positions[i2],
+                positions[i2 + 1],
+                positions[i2 + 2],
+              );
+              const v3 = new THREE.Vector3(
+                positions[i3],
+                positions[i3 + 1],
+                positions[i3 + 2],
+              );
 
               // Create a normalized triangle signature for overlap detection
-              const center = new THREE.Vector3().addVectors(v1, v2).add(v3).divideScalar(3);
-              const normal = new THREE.Vector3().crossVectors(v2.clone().sub(v1), v3.clone().sub(v1)).normalize();
+              const center = new THREE.Vector3()
+                .addVectors(v1, v2)
+                .add(v3)
+                .divideScalar(3);
+              const normal = new THREE.Vector3()
+                .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
+                .normalize();
 
               // Create a key based on center position and normal (with tolerance)
               const centerKey = `${center.x.toFixed(3)},${center.y.toFixed(3)},${center.z.toFixed(3)}`;
@@ -2752,9 +2900,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
               if (triangleMap.has(triangleKey)) {
                 overlappingCount++;
-                console.log(`🔺 Overlapping triangle ${i/3}: matches triangle ${triangleMap.get(triangleKey)}`);
+                console.log(
+                  `🔺 Overlapping triangle ${i / 3}: matches triangle ${triangleMap.get(triangleKey)}`,
+                );
               } else {
-                triangleMap.set(triangleKey, i/3);
+                triangleMap.set(triangleKey, i / 3);
               }
             }
           }
@@ -2764,7 +2914,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.log(`   Unique triangle signatures: ${triangleMap.size}`);
 
           if (overlappingCount > 0) {
-            console.warn(`⚠️ Found ${overlappingCount} overlapping triangles - these cause Z-fighting and visual artifacts`);
+            console.warn(
+              `⚠️ Found ${overlappingCount} overlapping triangles - these cause Z-fighting and visual artifacts`,
+            );
             console.log("🔧 Attempting to remove overlapping triangles...");
 
             // Remove overlapping triangles to fix Z-fighting
@@ -2780,20 +2932,36 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Simple UUID update and geometry replacement
           result.geometry.uuid = THREE.MathUtils.generateUUID();
 
-          console.log(`✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`);
+          console.log(
+            `✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`,
+          );
 
           // COMPARISON SUMMARY
           console.log("🔍 DECIMATION COMPARISON SUMMARY:");
           const preVertices = triangulatedGeometry.attributes.position.count;
           const postVertices = result.geometry.attributes.position.count;
-          const preTriangles = triangulatedGeometry.index ? triangulatedGeometry.index.count / 3 : preVertices / 3;
-          const postTriangles = result.geometry.index ? result.geometry.index.count / 3 : postVertices / 3;
+          const preTriangles = triangulatedGeometry.index
+            ? triangulatedGeometry.index.count / 3
+            : preVertices / 3;
+          const postTriangles = result.geometry.index
+            ? result.geometry.index.count / 3
+            : postVertices / 3;
 
-          console.log(`   Vertices: ${preVertices} → ${postVertices} (${((postVertices - preVertices) / preVertices * 100).toFixed(1)}%)`);
-          console.log(`   Triangles: ${preTriangles} → ${postTriangles} (${((postTriangles - preTriangles) / preTriangles * 100).toFixed(1)}%)`);
-          console.log(`   Index status: ${!!triangulatedGeometry.index} → ${!!result.geometry.index}`);
-          console.log(`   Normals: ${!!triangulatedGeometry.attributes.normal} → ${!!result.geometry.attributes.normal}`);
-          console.log(`   Degenerate triangles: ${degenerateCount} (${(degenerateCount / totalTriangles * 100).toFixed(1)}%)`);
+          console.log(
+            `   Vertices: ${preVertices} → ${postVertices} (${(((postVertices - preVertices) / preVertices) * 100).toFixed(1)}%)`,
+          );
+          console.log(
+            `   Triangles: ${preTriangles} → ${postTriangles} (${(((postTriangles - preTriangles) / preTriangles) * 100).toFixed(1)}%)`,
+          );
+          console.log(
+            `   Index status: ${!!triangulatedGeometry.index} → ${!!result.geometry.index}`,
+          );
+          console.log(
+            `   Normals: ${!!triangulatedGeometry.attributes.normal} → ${!!result.geometry.attributes.normal}`,
+          );
+          console.log(
+            `   Degenerate triangles: ${degenerateCount} (${((degenerateCount / totalTriangles) * 100).toFixed(1)}%)`,
+          );
 
           // Polygon reconstruction now happens earlier in the pipeline with aggressive merging
 
