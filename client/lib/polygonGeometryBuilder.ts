@@ -434,7 +434,6 @@ export class PolygonGeometryBuilder {
         triangleIndices.push(triangleIndex++);
       }
 
-      console.log(`Center triangulation face: type=${face.type}, vertices=${face.originalVertices.length}, triangles=${triangleCount}, indices=[${triangleIndices.join(', ')}]`);
 
       return {
         type: face.type,
