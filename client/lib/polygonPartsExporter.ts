@@ -125,7 +125,7 @@ export class PolygonPartsExporter {
 
   /**
    * Create a 3D printable STL for a single polygon with thickness
-   * Simple, robust approach: just extrude the polygon straight up
+   * Uses the original polygon triangulation - no re-triangulation needed!
    */
   private static createPolygonSTL(
     faceInfo: any,
@@ -133,11 +133,9 @@ export class PolygonPartsExporter {
     thickness: number,
     scale: number,
   ): string {
-    // Clean and validate vertices first
-    const rawVertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
+    const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
-    const vertices = this.cleanVertices(rawVertices);
 
     if (vertices.length < 3) {
       return `solid part_${polygonIndex + 1}_${faceInfo.type}\nendsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
@@ -151,27 +149,15 @@ export class PolygonPartsExporter {
 
     let stlContent = `solid part_${polygonIndex + 1}_${faceInfo.type}\n`;
 
-    // Add front face triangles
-    stlContent += this.simplePolygonTriangulation(frontVertices, normal);
+    // Use the original triangulation from the polygon face
+    stlContent += this.useOriginalTriangulation(frontVertices, normal);
 
-    // Add back face triangles (reversed winding)
+    // Add back face with reversed winding
     const backNormal = normal.clone().negate();
-    stlContent += this.simplePolygonTriangulation([...backVertices].reverse(), backNormal);
+    stlContent += this.useOriginalTriangulation([...backVertices].reverse(), backNormal);
 
-    // Add side walls (one quad per edge)
-    for (let i = 0; i < frontVertices.length; i++) {
-      const next = (i + 1) % frontVertices.length;
-
-      // Only add side if edge has meaningful length
-      if (frontVertices[i].distanceTo(frontVertices[next]) > 0.001) {
-        stlContent += this.addSideQuad(
-          frontVertices[i],
-          frontVertices[next],
-          backVertices[next],
-          backVertices[i]
-        );
-      }
-    }
+    // Add simple side walls connecting the perimeter
+    stlContent += this.addPerimeterWalls(frontVertices, backVertices);
 
     stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
     return stlContent;
