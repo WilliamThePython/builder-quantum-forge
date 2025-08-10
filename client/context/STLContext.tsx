@@ -483,7 +483,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const exportSTL = useCallback((customFilename?: string) => {
     if (!previewMeshMerged) return;
-    
+
+    console.log("🔧 STL Export: Exporting single complete model");
     const filename = customFilename || fileName || "model.stl";
     STLExporter.exportGeometry(previewMeshMerged, filename);
   }, [previewMeshMerged, fileName]);
