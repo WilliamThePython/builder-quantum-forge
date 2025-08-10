@@ -2,14 +2,7 @@ import * as THREE from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 
-/**
- * Fast STL/OBJ loader that prioritizes speed over optimization
- * Focus: Import, Convert, Basic Process, View - no heavy optimization during load
- */
 export class FastSTLLoader {
-  /**
-   * Load a file with minimal processing - just get it viewable quickly
-   */
   static async loadFile(
     file: File,
     progressCallback?: (
@@ -22,10 +15,6 @@ export class FastSTLLoader {
     const isSTL = fileName.endsWith(".stl");
     const isOBJ = fileName.endsWith(".obj");
 
-    console.log(
-      `🔍 Loading file: ${fileName}, detected as: ${isSTL ? "STL" : isOBJ ? "OBJ" : "Unknown"}`,
-    );
-
     if (!isSTL && !isOBJ) {
       throw new Error(
         `Unsupported file format: ${fileName}. Only STL and OBJ files are supported.`,
@@ -36,23 +25,17 @@ export class FastSTLLoader {
 
     try {
       if (isSTL) {
-        console.log("📄 Processing as STL file");
         return await this.loadSTLFast(file, progressCallback);
       } else {
-        console.log("📄 Processing as OBJ file");
         return await this.loadOBJFast(file, progressCallback);
       }
     } catch (error) {
-      console.error("FastSTLLoader error:", error);
       throw new Error(
         `Failed to load ${fileName}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
 
-  /**
-   * Fast STL loading - minimal processing
-   */
   private static async loadSTLFast(
     file: File,
     progressCallback?: (
@@ -63,26 +46,21 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading STL data...");
 
-    // Use chunked loading for files larger than 1MB to prevent memory issues
-    const arrayBuffer =
-      file.size > 1024 * 1024
-        ? await this.loadFileInChunks(file, progressCallback)
-        : await file.arrayBuffer();
+    const arrayBuffer = file.size > 1024 * 1024
+      ? await this.loadFileInChunks(file, progressCallback)
+      : await file.arrayBuffer();
 
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
-    // Basic STL parsing
     const loader = new STLLoader();
     const geometry = loader.parse(arrayBuffer);
 
     progressCallback?.(80, "Preparing", "Finalizing geometry...");
 
-    // Only essential processing
     if (!geometry.attributes.normal) {
       geometry.computeVertexNormals();
     }
 
-    // Ensure we have a bounding box for the viewer
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
@@ -91,9 +69,6 @@ export class FastSTLLoader {
     return geometry;
   }
 
-  /**
-   * Fast OBJ loading - minimal processing
-   */
   private static async loadOBJFast(
     file: File,
     progressCallback?: (
@@ -104,46 +79,28 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading OBJ data...");
 
-    // Use chunked loading for files larger than 1MB to prevent memory issues
-    const text =
-      file.size > 1024 * 1024
-        ? await this.loadOBJFileInChunks(file, progressCallback)
-        : await file.text();
+    const text = file.size > 1024 * 1024
+      ? await this.loadOBJFileInChunks(file, progressCallback)
+      : await file.text();
 
     progressCallback?.(50, "Parsing", "Processing OBJ geometry...");
 
-    // Basic OBJ parsing
     const loader = new OBJLoader();
     const object = loader.parse(text);
 
-    // Extract geometry from the first mesh found
     let geometry: THREE.BufferGeometry | null = null;
     const geometries: THREE.BufferGeometry[] = [];
 
-    console.log("🔍 Searching for geometry in OBJ object...");
-
     object.traverse((child) => {
-      console.log("🔍 Found child:", child.type, child.constructor.name);
-
       if (child instanceof THREE.Mesh && child.geometry) {
-        console.log("✅ Found mesh with geometry:", {
-          vertices: child.geometry.attributes.position?.count || 0,
-          hasNormals: !!child.geometry.attributes.normal,
-          geometryType: child.geometry.constructor.name,
-        });
-
         geometries.push(child.geometry.clone());
       }
     });
 
-    console.log(`🔍 Found ${geometries.length} geometries in OBJ file`);
-
     if (geometries.length === 0) {
-      // Try to get geometry directly from the object
       if (object.children && object.children.length > 0) {
         for (const child of object.children) {
           if ((child as any).geometry) {
-            console.log("✅ Found geometry in child object");
             geometries.push((child as any).geometry.clone());
           }
         }
@@ -151,36 +108,23 @@ export class FastSTLLoader {
     }
 
     if (geometries.length === 0) {
-      // Final fallback - check if object itself has geometry
       if ((object as any).geometry) {
-        console.log("✅ Found geometry directly on object");
         geometries.push((object as any).geometry.clone());
       } else {
-        // Log the object structure for debugging
-        console.log("🔍 OBJ object structure:", {
-          type: object.type,
-          children: object.children.length,
-          childTypes: object.children.map((c) => c.type),
-          hasGeometry: !!(object as any).geometry,
-        });
-
         throw new Error(
-          `No geometry found in OBJ file. Found ${object.children.length} children but no mesh data. The file may be empty, corrupted, or contain only material/texture definitions.`,
+          `No geometry found in OBJ file. Found ${object.children.length} children but no mesh data.`,
         );
       }
     }
 
-    // Use first geometry or merge multiple
     if (geometries.length === 1) {
       geometry = geometries[0];
     } else {
-      console.log(`🔧 Merging ${geometries.length} geometries...`);
       geometry = this.mergeGeometries(geometries);
     }
 
     progressCallback?.(80, "Preparing", "Finalizing geometry...");
 
-    // Only essential processing
     if (!geometry.attributes.normal) {
       geometry.computeVertexNormals();
     }
@@ -193,9 +137,6 @@ export class FastSTLLoader {
     return geometry;
   }
 
-  /**
-   * Simple geometry merger - no optimization
-   */
   private static mergeGeometries(
     geometries: THREE.BufferGeometry[],
   ): THREE.BufferGeometry {
@@ -238,20 +179,11 @@ export class FastSTLLoader {
     return merged;
   }
 
-  /**
-   * Check if a file is likely to load quickly
-   */
   static canLoadQuickly(file: File): boolean {
     const sizeInMB = file.size / (1024 * 1024);
-
-    // Files under 5MB should load very quickly
-    // Files under 15MB should load reasonably fast
     return sizeInMB < 15;
   }
 
-  /**
-   * Get estimated load time for user feedback
-   */
   static getEstimatedLoadTime(file: File): string {
     const sizeInMB = file.size / (1024 * 1024);
 
@@ -262,9 +194,6 @@ export class FastSTLLoader {
     return "20+ seconds";
   }
 
-  /**
-   * Load file in chunks to prevent memory issues with large files
-   */
   private static async loadFileInChunks(
     file: File,
     progressCallback?: (
@@ -273,7 +202,7 @@ export class FastSTLLoader {
       details: string,
     ) => void,
   ): Promise<ArrayBuffer> {
-    const chunkSize = 1024 * 1024; // 1MB chunks
+    const chunkSize = 1024 * 1024;
     const chunks: Uint8Array[] = [];
 
     for (let offset = 0; offset < file.size; offset += chunkSize) {
@@ -281,18 +210,16 @@ export class FastSTLLoader {
       const arrayBuffer = await chunk.arrayBuffer();
       chunks.push(new Uint8Array(arrayBuffer));
 
-      const progress = 20 + (offset / file.size) * 30; // 20-50% for file loading
+      const progress = 20 + (offset / file.size) * 30;
       progressCallback?.(
         progress,
         "Reading",
         `Loading... ${Math.round(progress)}%`,
       );
 
-      // Yield to browser to prevent blocking
       await new Promise((resolve) => setTimeout(resolve, 1));
     }
 
-    // Combine chunks
     const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
     const result = new Uint8Array(totalLength);
     let offset = 0;
@@ -305,9 +232,6 @@ export class FastSTLLoader {
     return result.buffer;
   }
 
-  /**
-   * Load OBJ file in chunks and convert to text
-   */
   private static async loadOBJFileInChunks(
     file: File,
     progressCallback?: (
@@ -318,7 +242,6 @@ export class FastSTLLoader {
   ): Promise<string> {
     const arrayBuffer = await this.loadFileInChunks(file, progressCallback);
 
-    // Convert ArrayBuffer to string
     const decoder = new TextDecoder("utf-8");
     return decoder.decode(arrayBuffer);
   }
