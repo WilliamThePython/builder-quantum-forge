@@ -269,26 +269,38 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     
     setWorkingMeshTri(triangulated);
     
-    // 3. Create merged preview mesh
-    let preview = triangulated.clone();
-    
-    // Apply coplanar merging for clean preview
-    const positions = preview.attributes.position.array as Float32Array;
-    const polygonFaces: any[] = [];
-    
-    // Create simple face structure for preview
-    for (let i = 0; i < positions.length; i += 9) {
-      polygonFaces.push({
-        type: "triangle",
-        startVertex: i / 3,
-        endVertex: i / 3 + 2,
-        triangleCount: 1,
-      });
+    // 3. Create merged preview mesh with coplanar face merging
+    let preview = loadedGeometry.clone(); // Start from original, not triangulated
+
+    // Apply coplanar merging for clean preview if geometry supports it
+    if ((loadedGeometry as any).isProcedurallyGenerated) {
+      // For procedural geometry, use existing polygon structure
+      preview = loadedGeometry.clone();
+    } else {
+      // For loaded files, apply polygon reconstruction to create merged faces
+      const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(triangulated);
+      if (polygonFaces.length > 0) {
+        PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
+        (preview as any).polygonType = "reconstructed_merged";
+      } else {
+        // Fallback: create basic triangle structure
+        const positions = preview.attributes.position.array as Float32Array;
+        const fallbackFaces: any[] = [];
+
+        for (let i = 0; i < positions.length; i += 9) {
+          fallbackFaces.push({
+            type: "triangle",
+            startVertex: i / 3,
+            endVertex: i / 3 + 2,
+            triangleCount: 1,
+          });
+        }
+
+        (preview as any).polygonFaces = fallbackFaces;
+        (preview as any).polygonType = "fallback_triangles";
+      }
     }
-    
-    (preview as any).polygonFaces = polygonFaces;
-    (preview as any).polygonType = "preview_mesh";
-    
+
     setPreviewMeshMerged(preview);
     
     // 4. Set display geometry (use preview for viewing)
