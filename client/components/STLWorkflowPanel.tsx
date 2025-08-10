@@ -47,6 +47,7 @@ import {
   estimatePartsFileSize,
   getTestFileSizeData,
 } from "../lib/fileSizeEstimator";
+import { HexColorPicker } from "react-colorful";
 
 interface STLWorkflowPanelProps {
   activeToolMode: STLToolMode;
