@@ -55,7 +55,7 @@ export class PolygonPartsExporter {
       const partContent =
         format === "obj"
           ? this.createPolygonOBJ(faceInfo, i, partThickness, scale)
-          : this.createPolygonSTL(faceInfo, i, partThickness, scale);
+          : this.createPolygonSTL(faceInfo, i, partThickness, scale, originalGeometry);
       const partFilename = `part_${String(i + 1).padStart(4, "0")}_${faceInfo.type}.${fileExtension}`;
 
       // Calculate part geometry and metrics
