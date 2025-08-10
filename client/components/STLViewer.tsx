@@ -1335,21 +1335,6 @@ function STLMesh() {
               colors[triangleStart + v + 2] = 0.0; // Blue
             }
           }
-
-          // Highlight all triangles in this polygon face
-          for (let t = 0; t < triangleCount; t++) {
-            const triangleStart = (triangleOffset + t) * 9; // 3 vertices * 3 color components
-
-            for (let i = 0; i < 9; i += 3) {
-              const idx = triangleStart + i;
-              if (idx < colors.length) {
-                // Set to bright red color
-                colors[idx] = 1.0; // Red
-                colors[idx + 1] = 0.0; // Green
-                colors[idx + 2] = 0.0; // Blue
-              }
-            }
-          }
         }
       } else {
         // Fallback: single triangle highlighting for non-polygon geometries
