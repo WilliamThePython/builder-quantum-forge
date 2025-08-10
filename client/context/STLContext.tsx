@@ -502,9 +502,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     scale?: number;
   }) => {
     if (!previewMeshMerged) return;
-    
-    const exporter = new PolygonPartsExporter();
-    await exporter.exportParts(previewMeshMerged, fileName || "model", options);
+
+    await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
   }, [previewMeshMerged, fileName]);
 
   const clearError = useCallback(() => {
