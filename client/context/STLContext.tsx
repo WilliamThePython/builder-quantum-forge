@@ -613,7 +613,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     } else {
       setTriangleStats(null);
     }
-  }, [workingMeshTri]);
+  }, [previewMeshMerged]);
 
   const decimateEdge = useCallback(async (
     vertexIndex1: number,
