@@ -307,7 +307,32 @@ export default function STLWorkflowPanel({
 
   // Desktop Layout
   return (
-    <div className="fixed left-4 top-4 bottom-4 z-50 w-80 max-h-[calc(100vh-2rem)]">
+    <>
+      {/* Toggle Button - Always visible and vertically centered */}
+      <button
+        onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
+        className={`fixed top-1/2 -translate-y-1/2 z-50 transition-all duration-300 ease-in-out
+          ${isMenuCollapsed
+            ? 'left-2'
+            : 'left-[22rem]'
+          }
+          bg-slate-900/90 backdrop-blur-lg border border-blue-400/30
+          hover:border-blue-400/50 hover:bg-slate-800/90
+          text-white p-2 rounded-full shadow-lg hover:shadow-blue-500/20
+          w-8 h-8 flex items-center justify-center text-xs font-bold
+        `}
+        title={isMenuCollapsed ? "Show Menu" : "Hide Menu"}
+      >
+        {isMenuCollapsed ? '>' : '<'}
+      </button>
+
+      {/* Main Menu Panel */}
+      <div className={`fixed top-4 bottom-4 z-40 w-80 max-h-[calc(100vh-2rem)] transition-all duration-300 ease-in-out
+        ${isMenuCollapsed
+          ? '-left-80 opacity-0'
+          : 'left-4 opacity-100'
+        }
+      `}>
       <div className="bg-slate-900/90 backdrop-blur-lg rounded-2xl border border-blue-400/30 p-5 h-full overflow-y-auto shadow-2xl shadow-blue-500/20">
         {/* Header */}
         <div className="text-center mb-6 mesh-pattern-dense p-4 rounded-xl border border-blue-400/20">
@@ -1240,7 +1265,8 @@ export default function STLWorkflowPanel({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </>
   );
 }
 
