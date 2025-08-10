@@ -120,19 +120,25 @@ export class PolygonPartsExporter {
     }
 
     // Generate Excel file with part database
+    console.log("📊 Generating Excel database...");
     const excelBuffer = this.generatePartsDatabase(partDatabase, {
       ...options,
       partThickness,
       polygonType,
     });
     zip.file("parts_database.xlsx", excelBuffer);
+    zipFileList.push("parts_database.xlsx");
+    console.log("✅ Added parts_database.xlsx to zip");
 
     // Add assembly instructions
+    console.log("📋 Generating assembly instructions...");
     const instructions = this.generateAssemblyInstructions(
       polygonFaces.length,
       { ...options, partThickness, polygonType },
     );
     zip.file("assembly_instructions.txt", instructions);
+    zipFileList.push("assembly_instructions.txt");
+    console.log("✅ Added assembly_instructions.txt to zip");
 
     // Generate and download zip
     const zipBlob = await zip.generateAsync({ type: "blob" });
