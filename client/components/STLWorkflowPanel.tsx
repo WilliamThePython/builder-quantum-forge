@@ -522,23 +522,41 @@ export default function STLWorkflowPanel({
                     </div>
                   </div>
                   {(() => {
-                    const detailedStats = getDetailedGeometryStats();
-                    if (!detailedStats || typeof detailedStats.vertices !== 'number') return null;
+                    const dualStats = getDualMeshStats();
+                    if (!dualStats) return null;
 
                     return (
-                      <div className="text-xs text-white/70 space-y-1">
-                        <div>
-                          Vertices: {detailedStats.vertices?.toLocaleString() || 0}
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Triangulated Model (Left) */}
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-blue-300 mb-2">
+                            Triangulated
+                          </div>
+                          <div className="text-xs text-white/70 space-y-1">
+                            <div>V: {dualStats.triangulated.vertices?.toLocaleString() || 0}</div>
+                            <div>E: {dualStats.triangulated.edges?.toLocaleString() || 0}</div>
+                            <div>T: {dualStats.triangulated.triangles?.toLocaleString() || 0}</div>
+                          </div>
                         </div>
-                        <div>Edges: {detailedStats.edges?.toLocaleString() || 0}</div>
-                        {detailedStats.polygonBreakdown?.map(
-                          ({ type, count }) => (
-                            <div key={type}>
-                              {type.charAt(0).toUpperCase() + type.slice(1)}s:{" "}
-                              {count?.toLocaleString() || 0}
-                            </div>
-                          ),
-                        )}
+
+                        {/* Merged Model (Right) */}
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-purple-300 mb-2">
+                            Merged
+                          </div>
+                          <div className="text-xs text-white/70 space-y-1">
+                            <div>V: {dualStats.merged.vertices?.toLocaleString() || 0}</div>
+                            <div>E: {dualStats.merged.edges?.toLocaleString() || 0}</div>
+                            <div>T: {dualStats.merged.triangles?.toLocaleString() || 0}</div>
+                            {dualStats.merged.polygonBreakdown?.map(
+                              ({ type, count }) => (
+                                <div key={type} className="text-xs">
+                                  {type.charAt(0).toUpperCase() + type.slice(1)}s: {count?.toLocaleString() || 0}
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
                       </div>
                     );
                   })()}
