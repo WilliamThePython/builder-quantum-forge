@@ -135,16 +135,8 @@ export class PolygonPartsExporter {
     polygonIndex: number,
     thickness: number,
     scale: number,
+    originalGeometry: THREE.BufferGeometry,
   ): string {
-    // Debug: log what data we have available
-    console.log(`Creating STL for polygon ${polygonIndex + 1}:`, {
-      type: faceInfo.type,
-      vertexCount: faceInfo.originalVertices?.length,
-      hasTriangleIndices: !!faceInfo.triangleIndices,
-      triangleIndicesCount: faceInfo.triangleIndices?.length,
-      availableProperties: Object.keys(faceInfo)
-    });
-
     const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
@@ -156,17 +148,33 @@ export class PolygonPartsExporter {
     const normal = faceInfo.normal.clone().normalize();
     const offset = normal.clone().multiplyScalar(thickness);
 
-    const frontVertices = vertices;
-    const backVertices = vertices.map((v: THREE.Vector3) => v.clone().add(offset));
-
     let stlContent = `solid part_${polygonIndex + 1}_${faceInfo.type}\n`;
 
-    // ONLY create top and bottom faces using the EXACT polygon outline
-    // No interior triangulation that creates waterwheel effects
-    stlContent += this.createFlatPolygonFace(frontVertices, normal);
-    stlContent += this.createFlatPolygonFace([...backVertices].reverse(), normal.clone().negate());
+    // Use ORIGINAL triangulation from the mesh - NO re-triangulation!
+    if (faceInfo.triangleIndices && faceInfo.triangleIndices.length > 0) {
+      console.log(`Using original triangulation for polygon ${polygonIndex + 1}: ${faceInfo.triangleIndices.length} triangles`);
+
+      // Extract the original triangles from the geometry
+      const originalTriangles = this.extractOriginalTriangles(faceInfo.triangleIndices, originalGeometry, scale);
+
+      // Front face: use exact original triangulation
+      for (const triangle of originalTriangles) {
+        stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
+      }
+
+      // Back face: same triangles offset by thickness, reversed winding
+      for (const triangle of originalTriangles) {
+        const backTriangle = triangle.map(v => v.clone().add(offset)).reverse();
+        stlContent += this.addTriangleToSTL(backTriangle[0], backTriangle[1], backTriangle[2], normal.clone().negate());
+      }
+    } else {
+      // Fallback for faces without triangleIndices
+      console.log(`No triangleIndices found for polygon ${polygonIndex + 1}, using perimeter only`);
+    }
 
     // Add side walls connecting the perimeter
+    const frontVertices = vertices;
+    const backVertices = vertices.map((v: THREE.Vector3) => v.clone().add(offset));
     stlContent += this.addPerimeterWalls(frontVertices, backVertices);
 
     stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
