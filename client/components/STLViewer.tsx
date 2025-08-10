@@ -1197,9 +1197,6 @@ function STLMesh() {
               }
             }
 
-            console.log(
-              `   ✅ Applied color to ${face.triangleIndices.length} triangles for face ${faceIndex}`,
-            );
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
             const triangleCount = getTriangleCountForPolygon(face);
