@@ -111,9 +111,11 @@ export class PolygonPartsExporter {
 
       // Add to zip
       zip.file(partFilename, partContent);
+      zipFileList.push(partFilename);
 
       // Progress logging
-      if (i % 10 === 0 || i === polygonFaces.length - 1) {
+      if (i < 5 || i === polygonFaces.length - 1) {
+        console.log(`✅ Added part ${i + 1}/${polygonFaces.length}: ${partFilename} (${faceInfo.type}, ${faceInfo.originalVertices.length} vertices)`);
       }
     }
 
