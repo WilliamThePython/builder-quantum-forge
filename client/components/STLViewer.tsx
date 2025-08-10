@@ -923,7 +923,6 @@ function STLMesh() {
 
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
-      console.log("🔗 Creating standard edge wireframe (no polygon data)");
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
       console.log(
         `🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`,
