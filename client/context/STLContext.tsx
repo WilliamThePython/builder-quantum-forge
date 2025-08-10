@@ -350,8 +350,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setPreviewMeshMerged(loadedGeometry);
     setGeometry(loadedGeometry);
 
-    // Note: Features like parts export may not work optimally with minimal processing
-    console.log("Large file loaded with minimal processing. Some features may be limited.");
+    console.log("✅ Minimal processing complete - geometry set directly", {
+      vertices: loadedGeometry.attributes.position.count,
+      hasNormals: !!loadedGeometry.attributes.normal,
+      hasGeometry: !!loadedGeometry
+    });
   };
 
   // Progressive setup for large models (50k+ triangles)
