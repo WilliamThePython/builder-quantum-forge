@@ -680,6 +680,237 @@ export class STLManipulator {
   }
 
   /**
+   * Edge decimation - collapse an edge by merging two vertices
+   */
+  static async decimateEdge(
+    geometry: THREE.BufferGeometry,
+    vertexIndex1: number,
+    vertexIndex2: number,
+  ): Promise<ToolOperationResult> {
+    try {
+      const startTime = performance.now();
+
+      if (!geometry.attributes.position) {
+        return {
+          success: false,
+          message: "Invalid geometry: no position attribute",
+        };
+      }
+
+      const positions = geometry.attributes.position;
+      const vertexCount = positions.count;
+
+      // Validate vertex indices
+      if (vertexIndex1 < 0 || vertexIndex1 >= vertexCount ||
+          vertexIndex2 < 0 || vertexIndex2 >= vertexCount ||
+          vertexIndex1 === vertexIndex2) {
+        return {
+          success: false,
+          message: `Invalid vertex indices: ${vertexIndex1}, ${vertexIndex2}`,
+        };
+      }
+
+      // Get vertex positions
+      const v1 = new THREE.Vector3(
+        positions.getX(vertexIndex1),
+        positions.getY(vertexIndex1),
+        positions.getZ(vertexIndex1)
+      );
+      const v2 = new THREE.Vector3(
+        positions.getX(vertexIndex2),
+        positions.getY(vertexIndex2),
+        positions.getZ(vertexIndex2)
+      );
+
+      // Calculate optimal collapse position (midpoint for simplicity)
+      const newPosition = this.calculateOptimalCollapsePosition(
+        geometry,
+        v1,
+        v2,
+        vertexIndex1,
+        vertexIndex2
+      );
+
+      // Create new geometry with edge collapsed
+      const newGeometry = this.collapseEdge(geometry, vertexIndex1, vertexIndex2, newPosition);
+
+      if (!newGeometry) {
+        return {
+          success: false,
+          message: "Failed to collapse edge - no valid triangles found",
+        };
+      }
+
+      const processingTime = performance.now() - startTime;
+
+      return {
+        success: true,
+        message: `Edge decimated successfully in ${processingTime.toFixed(1)}ms`,
+        geometry: newGeometry,
+        processingTime,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Edge decimation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+    }
+  }
+
+  /**
+   * Collapse an edge by merging two vertices into one
+   */
+  private static collapseEdge(
+    geometry: THREE.BufferGeometry,
+    vertexIndex1: number,
+    vertexIndex2: number,
+    newPosition: THREE.Vector3
+  ): THREE.BufferGeometry | null {
+    if (geometry.index) {
+      // Handle indexed geometry
+      return this.collapseEdgeIndexed(geometry, vertexIndex1, vertexIndex2, newPosition);
+    } else {
+      // Handle non-indexed geometry
+      return this.collapseEdgeNonIndexed(geometry, vertexIndex1, vertexIndex2, newPosition);
+    }
+  }
+
+  /**
+   * Collapse edge for indexed geometry
+   */
+  private static collapseEdgeIndexed(
+    geometry: THREE.BufferGeometry,
+    vertexIndex1: number,
+    vertexIndex2: number,
+    newPosition: THREE.Vector3
+  ): THREE.BufferGeometry | null {
+    const indices = Array.from(geometry.index!.array);
+    const positions = geometry.attributes.position;
+    const normals = geometry.attributes.normal;
+
+    // Replace all references to vertexIndex2 with vertexIndex1
+    for (let i = 0; i < indices.length; i++) {
+      if (indices[i] === vertexIndex2) {
+        indices[i] = vertexIndex1;
+      }
+    }
+
+    // Update the position of vertexIndex1 to the new collapsed position
+    positions.setXYZ(vertexIndex1, newPosition.x, newPosition.y, newPosition.z);
+
+    // Remove degenerate triangles (triangles where all vertices are the same)
+    const validIndices: number[] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = indices[i];
+      const b = indices[i + 1];
+      const c = indices[i + 2];
+
+      // Keep triangle if all vertices are different
+      if (a !== b && b !== c && a !== c) {
+        validIndices.push(a, b, c);
+      }
+    }
+
+    if (validIndices.length === 0) {
+      return null;
+    }
+
+    // Create new geometry
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', positions.clone());
+    if (normals) {
+      newGeometry.setAttribute('normal', normals.clone());
+    }
+    newGeometry.setIndex(validIndices);
+
+    // Recompute normals
+    newGeometry.computeVertexNormals();
+
+    return newGeometry;
+  }
+
+  /**
+   * Collapse edge for non-indexed geometry
+   */
+  private static collapseEdgeNonIndexed(
+    geometry: THREE.BufferGeometry,
+    vertexIndex1: number,
+    vertexIndex2: number,
+    newPosition: THREE.Vector3
+  ): THREE.BufferGeometry | null {
+    const positions = geometry.attributes.position;
+    const normals = geometry.attributes.normal;
+
+    // For non-indexed geometry, we need to find all triangles that use these vertices
+    const newPositions: number[] = [];
+    const newNormals: number[] = [];
+
+    // Process triangles
+    for (let i = 0; i < positions.count; i += 3) {
+      const triVertices = [i, i + 1, i + 2];
+      let hasVertex1 = false;
+      let hasVertex2 = false;
+
+      // Check if this triangle contains either vertex
+      for (let j = 0; j < 3; j++) {
+        if (triVertices[j] === vertexIndex1) hasVertex1 = true;
+        if (triVertices[j] === vertexIndex2) hasVertex2 = true;
+      }
+
+      // Skip degenerate triangles (those that would have both vertices)
+      if (hasVertex1 && hasVertex2) {
+        continue;
+      }
+
+      // Add triangle vertices, replacing vertexIndex2 with collapsed position
+      for (let j = 0; j < 3; j++) {
+        const vertexIdx = triVertices[j];
+
+        if (vertexIdx === vertexIndex2) {
+          // Replace with new position
+          newPositions.push(newPosition.x, newPosition.y, newPosition.z);
+        } else if (vertexIdx === vertexIndex1) {
+          // Use new position
+          newPositions.push(newPosition.x, newPosition.y, newPosition.z);
+        } else {
+          // Use original position
+          newPositions.push(
+            positions.getX(vertexIdx),
+            positions.getY(vertexIdx),
+            positions.getZ(vertexIdx)
+          );
+        }
+
+        // Handle normals if they exist
+        if (normals) {
+          newNormals.push(
+            normals.getX(vertexIdx),
+            normals.getY(vertexIdx),
+            normals.getZ(vertexIdx)
+          );
+        }
+      }
+    }
+
+    if (newPositions.length === 0) {
+      return null;
+    }
+
+    // Create new geometry
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+
+    if (newNormals.length > 0) {
+      newGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+    }
+
+    // Recompute normals
+    newGeometry.computeVertexNormals();
+
+    return newGeometry;
+  }
+
+  /**
    * Calculate collapse position - simplified to always use midpoint
    * Coplanar faces are handled separately during merging (not decimation)
    */
