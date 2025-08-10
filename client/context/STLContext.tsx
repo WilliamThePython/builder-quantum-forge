@@ -112,6 +112,7 @@ interface STLContextType {
   ) => Promise<ToolOperationResult>;
   getGeometryStats: () => any;
   getDetailedGeometryStats: () => any;
+  getDualMeshStats: () => any;
   setHighlightedTriangle: (triangleIndex: number | null) => void;
 
   // Backup and restore functionality
