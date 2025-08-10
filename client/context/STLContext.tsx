@@ -237,6 +237,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     return new Promise((resolve) => setTimeout(resolve, 10));
   };
 
+  const availableModels = [
+    { name: "cube", description: "Basic cube with 6 quad faces" },
+    { name: "tetrahedron", description: "4 triangular faces" },
+    { name: "octahedron", description: "8 triangular faces" },
+    { name: "icosahedron", description: "20 triangular faces" },
+    { name: "gear", description: "Gear wheel with teeth" },
+    { name: "star", description: "5-pointed star shape" },
+    { name: "cross", description: "Plus/cross shape" },
+  ];
+
   // Set up dual mesh system
   const setupDualMeshSystem = (loadedGeometry: THREE.BufferGeometry) => {
     // 1. Store original mesh (keep untouched)
