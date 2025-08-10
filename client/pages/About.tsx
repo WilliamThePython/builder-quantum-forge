@@ -112,15 +112,15 @@ export default function About() {
             <div className={`space-y-3 ${textStyles[selectedBackground as keyof typeof textStyles]}`}>
               <div className="flex items-center">
                 <span className="font-medium w-32">General:</span>
-                <span>hello@intellimesh.pro</span>
+                <span className="text-gray-500">Coming Soon</span>
               </div>
               <div className="flex items-center">
                 <span className="font-medium w-32">Support:</span>
-                <span>support@intellimesh.pro</span>
+                <span className="text-gray-500">Coming Soon</span>
               </div>
               <div className="flex items-center">
                 <span className="font-medium w-32">Features:</span>
-                <span>features@intellimesh.pro</span>
+                <span className="text-gray-500">Coming Soon</span>
               </div>
             </div>
           </CardContent>
