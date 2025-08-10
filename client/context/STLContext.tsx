@@ -678,6 +678,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   // Helper function to set both indexed and non-indexed geometries
   const setDualGeometry = (newIndexedGeometry: THREE.BufferGeometry) => {
+    // Special handling for decimated geometry to prevent face corruption
+    if ((newIndexedGeometry as any).isDecimated) {
+      console.log("🎯 Processing decimated geometry with simplified pipeline");
+
+      // For decimated geometry, create a simple non-indexed version without complex processing
+      const nonIndexedGeometry = newIndexedGeometry.index
+        ? newIndexedGeometry.toNonIndexed()
+        : newIndexedGeometry.clone();
+
+      // Ensure normals are computed
+      if (!nonIndexedGeometry.attributes.normal) {
+        nonIndexedGeometry.computeVertexNormals();
+      }
+
+      setIndexedGeometry(newIndexedGeometry);
+      setGeometry(nonIndexedGeometry);
+      return;
+    }
+
     // Apply coplanar merging to procedurally generated geometries for clean faces
     if ((newIndexedGeometry as any).isProcedurallyGenerated) {
       console.log(
