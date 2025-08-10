@@ -125,7 +125,7 @@ export class PolygonPartsExporter {
 
   /**
    * Create a 3D printable STL for a single polygon with thickness
-   * Uses the original polygon triangulation - no re-triangulation needed!
+   * ONLY extrude the polygon outline - no interior triangulation!
    */
   private static createPolygonSTL(
     faceInfo: any,
@@ -149,14 +149,12 @@ export class PolygonPartsExporter {
 
     let stlContent = `solid part_${polygonIndex + 1}_${faceInfo.type}\n`;
 
-    // Use the original triangulation from the polygon face
-    stlContent += this.useOriginalTriangulation(frontVertices, normal);
+    // ONLY create top and bottom faces using the EXACT polygon outline
+    // No interior triangulation that creates waterwheel effects
+    stlContent += this.createFlatPolygonFace(frontVertices, normal);
+    stlContent += this.createFlatPolygonFace([...backVertices].reverse(), normal.clone().negate());
 
-    // Add back face with reversed winding
-    const backNormal = normal.clone().negate();
-    stlContent += this.useOriginalTriangulation([...backVertices].reverse(), backNormal);
-
-    // Add simple side walls connecting the perimeter
+    // Add side walls connecting the perimeter
     stlContent += this.addPerimeterWalls(frontVertices, backVertices);
 
     stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
