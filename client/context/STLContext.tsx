@@ -511,10 +511,19 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     partThickness?: number;
     scale?: number;
   }) => {
-    if (!previewMeshMerged) return;
+    if (!previewMeshMerged) {
+      addError("No 3D model loaded for parts export", "EXPORT_NO_MODEL");
+      return;
+    }
 
-    await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
-  }, [previewMeshMerged, fileName]);
+    try {
+      await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
+    } catch (error) {
+      console.error("Parts export failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown export error";
+      addError(`Parts export failed: ${errorMessage}`, "EXPORT_PARTS_FAILED");
+    }
+  }, [previewMeshMerged, fileName, addError]);
 
   const clearError = useCallback(() => {
     setError(null);
