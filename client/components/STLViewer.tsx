@@ -1263,10 +1263,16 @@ function STLMesh() {
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
       computePolygonAwareFlatNormals(geometry, polygonFaces);
 
-      // Debug: Sample some colors to verify they're applied
-      console.log(
-        `🎨 Color verification: First few colors [${colors[0].toFixed(3)}, ${colors[1].toFixed(3)}, ${colors[2].toFixed(3)}], [${colors[9].toFixed(3)}, ${colors[10].toFixed(3)}, ${colors[11].toFixed(3)}]`,
-      );
+      // Debug: Sample some colors to verify they're applied (with bounds checking)
+      if (colors.length >= 3) {
+        const firstColors = `[${colors[0]?.toFixed(3) || '?'}, ${colors[1]?.toFixed(3) || '?'}, ${colors[2]?.toFixed(3) || '?'}]`;
+        const laterColors = colors.length >= 12
+          ? `[${colors[9]?.toFixed(3) || '?'}, ${colors[10]?.toFixed(3) || '?'}, ${colors[11]?.toFixed(3) || '?'}]`
+          : '[insufficient colors]';
+        console.log(`🎨 Color verification: First few colors ${firstColors}, ${laterColors}`);
+      } else {
+        console.log(`🎨 Color verification: Colors array too short (${colors.length} elements)`);
+      }
       console.log(
         `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
       );
