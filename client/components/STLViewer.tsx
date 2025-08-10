@@ -1178,15 +1178,6 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
-            console.log(
-              `🎨 Face ${faceIndex} (${face.type}): Using ${face.triangleIndices.length} triangle indices`,
-            );
-            console.log(
-              `   Color: RGB(${color.r.toFixed(3)}, ${color.g.toFixed(3)}, ${color.b.toFixed(3)})`,
-            );
-            console.log(
-              `   Triangle indices: [${face.triangleIndices.slice(0, 5).join(", ")}${face.triangleIndices.length > 5 ? "..." : ""}]`,
-            );
 
             // Color specific triangles identified by triangleIndices
             for (const triangleIndex of face.triangleIndices) {
