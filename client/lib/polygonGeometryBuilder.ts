@@ -60,7 +60,11 @@ export class PolygonGeometryBuilder {
     return face;
   }
 
-  static createBoxWithQuads(width: number, height: number, depth: number): PolygonGeometry {
+  static createBoxWithQuads(
+    width: number,
+    height: number,
+    depth: number,
+  ): PolygonGeometry {
     const w = width / 2;
     const h = height / 2;
     const d = depth / 2;
@@ -77,12 +81,30 @@ export class PolygonGeometryBuilder {
     ];
 
     const faces = [
-      this.createFace([vertices[0], vertices[1], vertices[2], vertices[3]], "quad"), // front
-      this.createFace([vertices[5], vertices[4], vertices[7], vertices[6]], "quad"), // back
-      this.createFace([vertices[4], vertices[0], vertices[3], vertices[7]], "quad"), // left
-      this.createFace([vertices[1], vertices[5], vertices[6], vertices[2]], "quad"), // right
-      this.createFace([vertices[3], vertices[2], vertices[6], vertices[7]], "quad"), // top
-      this.createFace([vertices[0], vertices[4], vertices[5], vertices[1]], "quad"), // bottom
+      this.createFace(
+        [vertices[0], vertices[1], vertices[2], vertices[3]],
+        "quad",
+      ), // front
+      this.createFace(
+        [vertices[5], vertices[4], vertices[7], vertices[6]],
+        "quad",
+      ), // back
+      this.createFace(
+        [vertices[4], vertices[0], vertices[3], vertices[7]],
+        "quad",
+      ), // left
+      this.createFace(
+        [vertices[1], vertices[5], vertices[6], vertices[2]],
+        "quad",
+      ), // right
+      this.createFace(
+        [vertices[3], vertices[2], vertices[6], vertices[7]],
+        "quad",
+      ), // top
+      this.createFace(
+        [vertices[0], vertices[4], vertices[5], vertices[1]],
+        "quad",
+      ), // bottom
     ];
 
     return { vertices, faces, type: "box" };
@@ -232,12 +254,15 @@ export class PolygonGeometryBuilder {
 
       for (const [i, next] of toothEdges) {
         faces.push(
-          this.createFace([
-            bottomVertices[i],
-            bottomVertices[next],
-            topVertices[next],
-            topVertices[i],
-          ], "quad"),
+          this.createFace(
+            [
+              bottomVertices[i],
+              bottomVertices[next],
+              topVertices[next],
+              topVertices[i],
+            ],
+            "quad",
+          ),
         );
       }
     }
@@ -276,12 +301,15 @@ export class PolygonGeometryBuilder {
     for (let i = 0; i < topVertices.length; i++) {
       const next = (i + 1) % topVertices.length;
       faces.push(
-        this.createFace([
-          bottomVertices[i],
-          bottomVertices[next],
-          topVertices[next],
-          topVertices[i],
-        ], "quad"),
+        this.createFace(
+          [
+            bottomVertices[i],
+            bottomVertices[next],
+            topVertices[next],
+            topVertices[i],
+          ],
+          "quad",
+        ),
       );
     }
 
@@ -318,7 +346,9 @@ export class PolygonGeometryBuilder {
     ];
 
     const topVertices = crossProfile.map((v) => new THREE.Vector3(v.x, h, v.y));
-    const bottomVertices = crossProfile.map((v) => new THREE.Vector3(v.x, -h, v.y));
+    const bottomVertices = crossProfile.map(
+      (v) => new THREE.Vector3(v.x, -h, v.y),
+    );
 
     vertices.push(...topVertices, ...bottomVertices);
 
@@ -328,24 +358,33 @@ export class PolygonGeometryBuilder {
     for (let i = 0; i < topVertices.length; i++) {
       const next = (i + 1) % topVertices.length;
       faces.push(
-        this.createFace([
-          bottomVertices[i],
-          bottomVertices[next],
-          topVertices[next],
-          topVertices[i],
-        ], "quad"),
+        this.createFace(
+          [
+            bottomVertices[i],
+            bottomVertices[next],
+            topVertices[next],
+            topVertices[i],
+          ],
+          "quad",
+        ),
       );
     }
 
     return { vertices, faces, type: "cross_shape" };
   }
 
-  static toBufferGeometry(polygonGeometry: PolygonGeometry): THREE.BufferGeometry {
+  static toBufferGeometry(
+    polygonGeometry: PolygonGeometry,
+  ): THREE.BufferGeometry {
     const positions: number[] = [];
     const normals: number[] = [];
     const faceData: FaceInfo[] = [];
 
-    for (let faceIndex = 0; faceIndex < polygonGeometry.faces.length; faceIndex++) {
+    for (
+      let faceIndex = 0;
+      faceIndex < polygonGeometry.faces.length;
+      faceIndex++
+    ) {
       const face = polygonGeometry.faces[faceIndex];
       const triangulatedVertices = this.triangulateFace(face);
       const startIndex = positions.length / 3;
@@ -366,14 +405,23 @@ export class PolygonGeometryBuilder {
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3),
+    );
 
     let triangleIndex = 0;
     const properPolygonFaces = faceData.map((face) => {
-      const triangleCount = face.type === "triangle" ? 1 
-        : face.type === "quad" ? 2 
-        : face.originalVertices.length - 2;
+      const triangleCount =
+        face.type === "triangle"
+          ? 1
+          : face.type === "quad"
+            ? 2
+            : face.originalVertices.length - 2;
 
       const triangleIndices = [];
       for (let i = 0; i < triangleCount; i++) {
@@ -395,12 +443,18 @@ export class PolygonGeometryBuilder {
     return geometry;
   }
 
-  static toBufferGeometryWithCenterTriangulation(polygonGeometry: PolygonGeometry): THREE.BufferGeometry {
+  static toBufferGeometryWithCenterTriangulation(
+    polygonGeometry: PolygonGeometry,
+  ): THREE.BufferGeometry {
     const positions: number[] = [];
     const normals: number[] = [];
     const faceData: FaceInfo[] = [];
 
-    for (let faceIndex = 0; faceIndex < polygonGeometry.faces.length; faceIndex++) {
+    for (
+      let faceIndex = 0;
+      faceIndex < polygonGeometry.faces.length;
+      faceIndex++
+    ) {
       const face = polygonGeometry.faces[faceIndex];
       const triangulatedVertices = this.triangulateFromCenter(face);
       const startIndex = positions.length / 3;
@@ -421,8 +475,14 @@ export class PolygonGeometryBuilder {
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3),
+    );
 
     let triangleIndex = 0;
     const properPolygonFaces = faceData.map((face) => {
@@ -433,7 +493,6 @@ export class PolygonGeometryBuilder {
       for (let i = 0; i < triangleCount; i++) {
         triangleIndices.push(triangleIndex++);
       }
-
 
       return {
         type: face.type,
@@ -458,7 +517,7 @@ export class PolygonGeometryBuilder {
 
     // Calculate center point
     const center = new THREE.Vector3();
-    vertices.forEach(v => center.add(v));
+    vertices.forEach((v) => center.add(v));
     center.divideScalar(vertices.length);
 
     // Create triangles from center to each edge

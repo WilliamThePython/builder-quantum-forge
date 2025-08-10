@@ -46,9 +46,10 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading STL data...");
 
-    const arrayBuffer = file.size > 1024 * 1024
-      ? await this.loadFileInChunks(file, progressCallback)
-      : await file.arrayBuffer();
+    const arrayBuffer =
+      file.size > 1024 * 1024
+        ? await this.loadFileInChunks(file, progressCallback)
+        : await file.arrayBuffer();
 
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
@@ -56,8 +57,8 @@ export class FastSTLLoader {
     const originalConsoleError = console.error;
     const stlErrors: string[] = [];
     console.error = (...args: any[]) => {
-      const message = args.join(' ');
-      if (message.includes('THREE.STLLoader: Something isn\'t right')) {
+      const message = args.join(" ");
+      if (message.includes("THREE.STLLoader: Something isn't right")) {
         stlErrors.push(message);
         // Don't spam console with STL validation errors
         return;
@@ -76,7 +77,9 @@ export class FastSTLLoader {
 
       // Log summary of STL issues if any
       if (stlErrors.length > 0) {
-        console.warn(`STL file has ${stlErrors.length} malformed faces - normals will be recomputed`);
+        console.warn(
+          `STL file has ${stlErrors.length} malformed faces - normals will be recomputed`,
+        );
       }
 
       progressCallback?.(80, "Preparing", "Finalizing geometry...");
@@ -107,9 +110,10 @@ export class FastSTLLoader {
   ): Promise<THREE.BufferGeometry> {
     progressCallback?.(20, "Reading", "Loading OBJ data...");
 
-    const text = file.size > 1024 * 1024
-      ? await this.loadOBJFileInChunks(file, progressCallback)
-      : await file.text();
+    const text =
+      file.size > 1024 * 1024
+        ? await this.loadOBJFileInChunks(file, progressCallback)
+        : await file.text();
 
     progressCallback?.(50, "Parsing", "Processing OBJ geometry...");
 

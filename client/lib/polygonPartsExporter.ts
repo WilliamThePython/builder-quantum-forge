@@ -55,7 +55,13 @@ export class PolygonPartsExporter {
       const partContent =
         format === "obj"
           ? this.createPolygonOBJ(faceInfo, i, partThickness, scale)
-          : this.createPolygonSTL(faceInfo, i, partThickness, scale, originalGeometry);
+          : this.createPolygonSTL(
+              faceInfo,
+              i,
+              partThickness,
+              scale,
+              originalGeometry,
+            );
       const partFilename = `part_${String(i + 1).padStart(4, "0")}_${faceInfo.type}.${fileExtension}`;
 
       // Calculate part geometry and metrics
@@ -119,8 +125,11 @@ export class PolygonPartsExporter {
     const zipBlob = await zip.generateAsync({ type: "blob" });
 
     // Download the zip file with proper .zip extension
-    const zipFilename = filename.endsWith('.zip') ? filename :
-      filename.replace(/\.[^/.]+$/, '_parts.zip').replace(/^(.+?)(?:_parts)?$/, '$1_parts.zip');
+    const zipFilename = filename.endsWith(".zip")
+      ? filename
+      : filename
+          .replace(/\.[^/.]+$/, "_parts.zip")
+          .replace(/^(.+?)(?:_parts)?$/, "$1_parts.zip");
     this.downloadBlob(zipBlob, zipFilename);
 
     const endTime = Date.now();
@@ -153,23 +162,41 @@ export class PolygonPartsExporter {
     // Use ORIGINAL triangulation from the mesh - NO re-triangulation!
     if (faceInfo.triangleIndices && faceInfo.triangleIndices.length > 0) {
       // Extract the original triangles from the geometry
-      const originalTriangles = this.extractOriginalTriangles(faceInfo.triangleIndices, originalGeometry, scale);
+      const originalTriangles = this.extractOriginalTriangles(
+        faceInfo.triangleIndices,
+        originalGeometry,
+        scale,
+      );
 
       // Front face: use exact original triangulation
       for (const triangle of originalTriangles) {
-        stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
+        stlContent += this.addTriangleToSTL(
+          triangle[0],
+          triangle[1],
+          triangle[2],
+          normal,
+        );
       }
 
       // Back face: same triangles offset by thickness, reversed winding
       for (const triangle of originalTriangles) {
-        const backTriangle = triangle.map(v => v.clone().add(offset)).reverse();
-        stlContent += this.addTriangleToSTL(backTriangle[0], backTriangle[1], backTriangle[2], normal.clone().negate());
+        const backTriangle = triangle
+          .map((v) => v.clone().add(offset))
+          .reverse();
+        stlContent += this.addTriangleToSTL(
+          backTriangle[0],
+          backTriangle[1],
+          backTriangle[2],
+          normal.clone().negate(),
+        );
       }
     }
 
     // Add side walls connecting the perimeter
     const frontVertices = vertices;
-    const backVertices = vertices.map((v: THREE.Vector3) => v.clone().add(offset));
+    const backVertices = vertices.map((v: THREE.Vector3) =>
+      v.clone().add(offset),
+    );
     stlContent += this.addPerimeterWalls(frontVertices, backVertices);
 
     stlContent += `endsolid part_${polygonIndex + 1}_${faceInfo.type}\n`;
@@ -201,19 +228,19 @@ export class PolygonPartsExporter {
         const v1 = new THREE.Vector3(
           positions.getX(vertexStart / 3),
           positions.getY(vertexStart / 3),
-          positions.getZ(vertexStart / 3)
+          positions.getZ(vertexStart / 3),
         ).multiplyScalar(scale);
 
         const v2 = new THREE.Vector3(
           positions.getX((vertexStart + 3) / 3),
           positions.getY((vertexStart + 3) / 3),
-          positions.getZ((vertexStart + 3) / 3)
+          positions.getZ((vertexStart + 3) / 3),
         ).multiplyScalar(scale);
 
         const v3 = new THREE.Vector3(
           positions.getX((vertexStart + 6) / 3),
           positions.getY((vertexStart + 6) / 3),
-          positions.getZ((vertexStart + 6) / 3)
+          positions.getZ((vertexStart + 6) / 3),
         ).multiplyScalar(scale);
 
         triangles.push([v1, v2, v3]);
@@ -229,22 +256,24 @@ export class PolygonPartsExporter {
    */
   private static addPerimeterWalls(
     frontVertices: THREE.Vector3[],
-    backVertices: THREE.Vector3[]
+    backVertices: THREE.Vector3[],
   ): string {
     let content = "";
 
     for (let i = 0; i < frontVertices.length; i++) {
       const next = (i + 1) % frontVertices.length;
 
-      const v1 = frontVertices[i];      // Front current
-      const v2 = frontVertices[next];   // Front next
-      const v3 = backVertices[next];    // Back next
-      const v4 = backVertices[i];       // Back current
+      const v1 = frontVertices[i]; // Front current
+      const v2 = frontVertices[next]; // Front next
+      const v3 = backVertices[next]; // Back next
+      const v4 = backVertices[i]; // Back current
 
       // Calculate normal for this side face
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
       const edge2 = new THREE.Vector3().subVectors(v4, v1);
-      const sideNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+      const sideNormal = new THREE.Vector3()
+        .crossVectors(edge1, edge2)
+        .normalize();
 
       // Add two triangles to form the side quad
       content += this.addTriangleToSTL(v1, v2, v3, sideNormal);
@@ -253,7 +282,6 @@ export class PolygonPartsExporter {
 
     return content;
   }
-
 
   /**
    * Add a single triangle to STL content

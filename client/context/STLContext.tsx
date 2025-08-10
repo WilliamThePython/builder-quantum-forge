@@ -142,44 +142,64 @@ interface STLProviderProps {
   children: React.ReactNode;
 }
 
-
 // Mesh repair and validation helper
-const repairGeometry = (geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
+const repairGeometry = (
+  geometry: THREE.BufferGeometry,
+): THREE.BufferGeometry => {
   const positions = geometry.attributes.position.array as Float32Array;
   const validPositions: number[] = [];
-  
+
   // Remove degenerate triangles and NaN values
   for (let i = 0; i < positions.length; i += 9) {
-    const v1 = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-    const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-    const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
-    
+    const v1 = new THREE.Vector3(
+      positions[i],
+      positions[i + 1],
+      positions[i + 2],
+    );
+    const v2 = new THREE.Vector3(
+      positions[i + 3],
+      positions[i + 4],
+      positions[i + 5],
+    );
+    const v3 = new THREE.Vector3(
+      positions[i + 6],
+      positions[i + 7],
+      positions[i + 8],
+    );
+
     // Check for NaN or infinite values
-    if (isFinite(v1.x) && isFinite(v1.y) && isFinite(v1.z) &&
-        isFinite(v2.x) && isFinite(v2.y) && isFinite(v2.z) &&
-        isFinite(v3.x) && isFinite(v3.y) && isFinite(v3.z)) {
-      
+    if (
+      isFinite(v1.x) &&
+      isFinite(v1.y) &&
+      isFinite(v1.z) &&
+      isFinite(v2.x) &&
+      isFinite(v2.y) &&
+      isFinite(v2.z) &&
+      isFinite(v3.x) &&
+      isFinite(v3.y) &&
+      isFinite(v3.z)
+    ) {
       // Check triangle area
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
       const edge2 = new THREE.Vector3().subVectors(v3, v1);
       const area = new THREE.Vector3().crossVectors(edge1, edge2).length() / 2;
-      
+
       if (area > 1e-10) {
         validPositions.push(...positions.slice(i, i + 9));
       }
     }
   }
-  
+
   const repairedGeometry = new THREE.BufferGeometry();
   repairedGeometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(validPositions, 3),
   );
-  
+
   if (geometry.attributes.normal) {
     repairedGeometry.setAttribute("normal", geometry.attributes.normal);
   }
-  
+
   return repairedGeometry;
 };
 
@@ -192,18 +212,24 @@ const ensureNormals = (geometry: THREE.BufferGeometry): void => {
 
 export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Dual mesh system state
-  const [originalMesh, setOriginalMesh] = useState<THREE.BufferGeometry | null>(null);
-  const [workingMeshTri, setWorkingMeshTri] = useState<THREE.BufferGeometry | null>(null);
-  const [previewMeshMerged, setPreviewMeshMerged] = useState<THREE.BufferGeometry | null>(null);
-  
+  const [originalMesh, setOriginalMesh] = useState<THREE.BufferGeometry | null>(
+    null,
+  );
+  const [workingMeshTri, setWorkingMeshTri] =
+    useState<THREE.BufferGeometry | null>(null);
+  const [previewMeshMerged, setPreviewMeshMerged] =
+    useState<THREE.BufferGeometry | null>(null);
+
   // Display geometry (for viewer)
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
-  
+
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
-  const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(defaultViewerSettings);
+  const [viewerSettings, setViewerSettings] = useState<ViewerSettings>(
+    defaultViewerSettings,
+  );
 
   const [loadingProgress, setLoadingProgress] = useState({
     percentage: 0,
@@ -211,15 +237,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     details: "",
   });
 
-  const [processedModel, setProcessedModel] = useState<ProcessedModel | null>(null);
-  const [originalFormat, setOriginalFormat] = useState<"stl" | "obj" | null>(null);
+  const [processedModel, setProcessedModel] = useState<ProcessedModel | null>(
+    null,
+  );
+  const [originalFormat, setOriginalFormat] = useState<"stl" | "obj" | null>(
+    null,
+  );
   const [objString, setObjString] = useState<string | null>(null);
   const [cleanupResults, setCleanupResults] = useState<any | null>(null);
 
   // Backup state
-  const [backupOriginalMesh, setBackupOriginalMesh] = useState<THREE.BufferGeometry | null>(null);
-  const [backupWorkingMeshTri, setBackupWorkingMeshTri] = useState<THREE.BufferGeometry | null>(null);
-  const [backupPreviewMeshMerged, setBackupPreviewMeshMerged] = useState<THREE.BufferGeometry | null>(null);
+  const [backupOriginalMesh, setBackupOriginalMesh] =
+    useState<THREE.BufferGeometry | null>(null);
+  const [backupWorkingMeshTri, setBackupWorkingMeshTri] =
+    useState<THREE.BufferGeometry | null>(null);
+  const [backupPreviewMeshMerged, setBackupPreviewMeshMerged] =
+    useState<THREE.BufferGeometry | null>(null);
   const [hasBackup, setHasBackup] = useState(false);
 
   // STL Tools state
@@ -227,14 +260,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [isProcessingTool, setIsProcessingTool] = useState(false);
 
   // Highlighting state
-  const [highlightedTriangle, setHighlightedTriangleState] = useState<number | null>(null);
+  const [highlightedTriangle, setHighlightedTriangleState] = useState<
+    number | null
+  >(null);
   const [triangleStats, setTriangleStats] = useState<any>(null);
 
   // Decimation state
-  const [decimationPainterMode, setDecimationPainterMode] = useState<boolean>(false);
+  const [decimationPainterMode, setDecimationPainterMode] =
+    useState<boolean>(false);
   const [isDecimating, setIsDecimating] = useState<boolean>(false);
 
-  const updateProgress = (percentage: number, stage: string, details: string = "") => {
+  const updateProgress = (
+    percentage: number,
+    stage: string,
+    details: string = "",
+  ) => {
     setLoadingProgress({ percentage, stage, details });
     return new Promise((resolve) => setTimeout(resolve, 10));
   };
@@ -282,15 +322,21 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       (preview as any).polygonType = (loadedGeometry as any).polygonType;
     }
     if ((loadedGeometry as any).isProcedurallyGenerated) {
-      (preview as any).isProcedurallyGenerated = (loadedGeometry as any).isProcedurallyGenerated;
+      (preview as any).isProcedurallyGenerated = (
+        loadedGeometry as any
+      ).isProcedurallyGenerated;
     }
 
     // Apply coplanar merging for clean preview if geometry supports it
-    if ((loadedGeometry as any).isProcedurallyGenerated && (loadedGeometry as any).polygonFaces) {
+    if (
+      (loadedGeometry as any).isProcedurallyGenerated &&
+      (loadedGeometry as any).polygonFaces
+    ) {
       // For procedural geometry, polygon structure is already perfect
     } else {
       // For loaded files, apply polygon reconstruction to create merged faces
-      const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(triangulated);
+      const polygonFaces =
+        PolygonFaceReconstructor.reconstructPolygonFaces(triangulated);
       if (polygonFaces.length > 0) {
         PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
         (preview as any).polygonType = "reconstructed_merged";
@@ -320,7 +366,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     console.log("✅ Normal processing complete - display geometry prepared", {
       vertices: displayGeometry.attributes.position.count,
       hasNormals: !!displayGeometry.attributes.normal,
-      hasGeometry: !!displayGeometry
+      hasGeometry: !!displayGeometry,
     });
     setGeometry(displayGeometry);
   };
@@ -337,7 +383,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const maxDimension = Math.max(
         box.max.x - box.min.x,
         box.max.y - box.min.y,
-        box.max.z - box.min.z
+        box.max.z - box.min.z,
       );
 
       if (maxDimension > 0) {
@@ -358,14 +404,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     console.log("✅ Minimal processing complete - geometry set directly", {
       vertices: loadedGeometry.attributes.position.count,
       hasNormals: !!loadedGeometry.attributes.normal,
-      hasGeometry: !!loadedGeometry
+      hasGeometry: !!loadedGeometry,
     });
   };
 
   // Progressive setup for large models (50k+ triangles)
   const setupDualMeshSystemProgressive = async (
     loadedGeometry: THREE.BufferGeometry,
-    updateProgress: (percentage: number, stage: string, details?: string) => Promise<void>
+    updateProgress: (
+      percentage: number,
+      stage: string,
+      details?: string,
+    ) => Promise<void>,
   ) => {
     // 1. Store original mesh (minimal memory)
     updateProgress(75, "Tune", "Storing original...");
@@ -400,7 +450,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
         // Only do polygon reconstruction if needed for parts export
         // This is now deferred and won't block initial loading
-
       } catch (error) {
         console.warn("Background processing failed:", error);
       }
@@ -408,12 +457,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   // Helper function to create proper preview mesh after operations
-  const createPreviewFromWorkingMesh = (workingGeometry: THREE.BufferGeometry, operationType: string) => {
+  const createPreviewFromWorkingMesh = (
+    workingGeometry: THREE.BufferGeometry,
+    operationType: string,
+  ) => {
     let preview = workingGeometry.clone();
 
     // Try to reconstruct polygon faces for better preview
     try {
-      const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(workingGeometry);
+      const polygonFaces =
+        PolygonFaceReconstructor.reconstructPolygonFaces(workingGeometry);
       if (polygonFaces.length > 0) {
         PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
         (preview as any).polygonType = `${operationType}_merged`;
@@ -441,20 +494,26 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       console.log("✅ Beginning file load process...");
       const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
 
-      setOriginalFormat(file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj");
+      setOriginalFormat(
+        file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj",
+      );
 
       updateProgress(25, "Loading", "Reading file...");
       let loadedGeometry = await loadModelFile(file, updateProgress);
 
       // Detect file size and triangle count for loading strategy
       const fileSizeKB = file.size / 1024;
-      const triangleCount = Math.floor(loadedGeometry.attributes.position.count / 3);
+      const triangleCount = Math.floor(
+        loadedGeometry.attributes.position.count / 3,
+      );
       const isVeryLargeFile = fileSizeKB > 500; // Files >500KB get minimal processing
       const isLargeModel = triangleCount > 50000; // 50k+ triangles = large model
 
       updateProgress(50, "Build", "Preparing display...");
 
-      console.log(`File: ${file.name}, Size: ${fileSizeKB.toFixed(1)}KB, Triangles: ${triangleCount}, Using: ${isVeryLargeFile ? 'MINIMAL' : 'NORMAL'} processing`);
+      console.log(
+        `File: ${file.name}, Size: ${fileSizeKB.toFixed(1)}KB, Triangles: ${triangleCount}, Using: ${isVeryLargeFile ? "MINIMAL" : "NORMAL"} processing`,
+      );
 
       if (isVeryLargeFile) {
         // MINIMAL PROCESSING for large files to prevent timeouts
@@ -471,7 +530,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const maxDimension = Math.max(
           box.max.x - box.min.x,
           box.max.y - box.min.y,
-          box.max.z - box.min.z
+          box.max.z - box.min.z,
         );
 
         if (maxDimension > 0) {
@@ -490,7 +549,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setFileName(file.name);
 
       updateProgress(100, "Done", "Model loaded successfully!");
-      
+
       analytics.trackSTLUpload({
         file_name: file.name,
         file_size: file.size,
@@ -498,15 +557,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         triangles: Math.floor(loadedGeometry.attributes.position.count / 3),
         upload_time: Date.now(),
       });
-      
     } catch (error) {
       console.error("❌ Error in loadModelFromFile:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("❌ Error details:", errorMessage);
       setError(`Failed to load ${file.name}: ${errorMessage}`);
       addError(errorMessage);
     } finally {
-      console.log("🏁 loadModelFromFile finally block - setting isLoading to false");
+      console.log(
+        "🏁 loadModelFromFile finally block - setting isLoading to false",
+      );
       setIsLoading(false);
     }
   }, []);
@@ -514,16 +575,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const loadSpecificModel = useCallback(async (modelName: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       updateProgress(0, "Loading", `Generating ${modelName}...`);
-      
+
       // Generate preset models using PolygonGeometryBuilder
       let polygonGeometry: any;
-      
+
       switch (modelName) {
         case "cube":
-          polygonGeometry = PolygonGeometryBuilder.createBoxWithQuads(10, 10, 10);
+          polygonGeometry = PolygonGeometryBuilder.createBoxWithQuads(
+            10,
+            10,
+            10,
+          );
           break;
         case "tetrahedron":
           polygonGeometry = PolygonGeometryBuilder.createTetrahedron(10);
@@ -546,31 +611,35 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         default:
           throw new Error(`Unknown model: ${modelName}`);
       }
-      
+
       updateProgress(50, "Converting", "Converting to BufferGeometry...");
-      
+
       // Convert to BufferGeometry
       const isGearStarCross = ["gear", "star", "cross"].includes(modelName);
       let bufferGeometry: THREE.BufferGeometry;
-      
+
       if (isGearStarCross) {
-        bufferGeometry = PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(polygonGeometry);
+        bufferGeometry =
+          PolygonGeometryBuilder.toBufferGeometryWithCenterTriangulation(
+            polygonGeometry,
+          );
       } else {
-        bufferGeometry = PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
+        bufferGeometry =
+          PolygonGeometryBuilder.toBufferGeometry(polygonGeometry);
       }
-      
+
       updateProgress(80, "Processing", "Setting up mesh system...");
-      
+
       // Set up dual mesh system
       setupDualMeshSystem(bufferGeometry);
-      
+
       setFileName(`${modelName}.stl`);
       setOriginalFormat("stl");
-      
+
       updateProgress(100, "Complete", "Model generated successfully!");
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setError(`Failed to generate ${modelName}: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -579,66 +648,85 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const loadDefaultSTL = useCallback(async () => {
     try {
-      const randomModel = availableModels[Math.floor(Math.random() * availableModels.length)];
+      const randomModel =
+        availableModels[Math.floor(Math.random() * availableModels.length)];
       await loadSpecificModel(randomModel.name);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setError(`Failed to load random model: ${errorMessage}`);
     }
   }, [loadSpecificModel]);
 
-  const updateViewerSettings = useCallback((settings: Partial<ViewerSettings>) => {
-    setViewerSettings(prev => ({ ...prev, ...settings }));
-  }, []);
+  const updateViewerSettings = useCallback(
+    (settings: Partial<ViewerSettings>) => {
+      setViewerSettings((prev) => ({ ...prev, ...settings }));
+    },
+    [],
+  );
 
-  const exportSTL = useCallback((customFilename?: string) => {
-    if (!previewMeshMerged) return;
+  const exportSTL = useCallback(
+    (customFilename?: string) => {
+      if (!previewMeshMerged) return;
 
-    const filename = customFilename || fileName || "model.stl";
-    STLExporter.exportGeometry(previewMeshMerged, filename);
-  }, [previewMeshMerged, fileName]);
+      const filename = customFilename || fileName || "model.stl";
+      STLExporter.exportGeometry(previewMeshMerged, filename);
+    },
+    [previewMeshMerged, fileName],
+  );
 
-  const exportOBJ = useCallback((customFilename?: string) => {
-    if (!previewMeshMerged) return;
-    
-    const filename = customFilename || fileName?.replace(/\.[^/.]+$/, ".obj") || "model.obj";
-    const result = OBJConverter.geometryToOBJ(previewMeshMerged, filename);
+  const exportOBJ = useCallback(
+    (customFilename?: string) => {
+      if (!previewMeshMerged) return;
 
-    // Download the OBJ file
-    const blob = new Blob([result.objString], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
-  }, [previewMeshMerged, fileName]);
+      const filename =
+        customFilename || fileName?.replace(/\.[^/.]+$/, ".obj") || "model.obj";
+      const result = OBJConverter.geometryToOBJ(previewMeshMerged, filename);
 
-  const exportParts = useCallback(async (options?: {
-    format?: "stl" | "obj";
-    partThickness?: number;
-    scale?: number;
-  }) => {
-    if (!previewMeshMerged) {
-      console.error("No 3D model loaded for parts export");
-      return;
-    }
+      // Download the OBJ file
+      const blob = new Blob([result.objString], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    },
+    [previewMeshMerged, fileName],
+  );
 
-    try {
-      await PolygonPartsExporter.exportPartsAsZip(previewMeshMerged, fileName || "model", options);
-    } catch (error) {
-      console.error("Parts export failed:", error);
-    }
-  }, [previewMeshMerged, fileName]);
+  const exportParts = useCallback(
+    async (options?: {
+      format?: "stl" | "obj";
+      partThickness?: number;
+      scale?: number;
+    }) => {
+      if (!previewMeshMerged) {
+        console.error("No 3D model loaded for parts export");
+        return;
+      }
+
+      try {
+        await PolygonPartsExporter.exportPartsAsZip(
+          previewMeshMerged,
+          fileName || "model",
+          options,
+        );
+      } catch (error) {
+        console.error("Parts export failed:", error);
+      }
+    },
+    [previewMeshMerged, fileName],
+  );
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
   const clearErrorById = useCallback((id: string) => {
-    setErrors(prev => prev.filter(err => err.id !== id));
+    setErrors((prev) => prev.filter((err) => err.id !== id));
   }, []);
 
   const addError = useCallback((message: string) => {
@@ -647,53 +735,66 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       message,
       timestamp: Date.now(),
     };
-    setErrors(prev => [...prev, error]);
+    setErrors((prev) => [...prev, error]);
   }, []);
 
-  const reducePoints = useCallback(async (
-    reductionAmount: number,
-    method: "quadric_edge_collapse" | "vertex_clustering" | "adaptive" | "random"
-  ): Promise<ToolOperationResult> => {
-    if (!workingMeshTri) {
-      throw new Error("No triangulated mesh available for reduction");
-    }
-    
-    setIsProcessingTool(true);
-    
-    try {
-      const manipulator = new STLManipulator(workingMeshTri);
-      const result = await manipulator.reducePoints(reductionAmount, method);
-      
-      if (result.success && result.geometry) {
-        // Update working mesh
-        setWorkingMeshTri(result.geometry);
-
-        // Create proper preview mesh with reconstructed faces
-        const newPreview = createPreviewFromWorkingMesh(result.geometry, "decimated");
-        setPreviewMeshMerged(newPreview);
-
-        // Update display
-        const displayGeometry = prepareGeometryForViewing(newPreview, "decimated");
-        setGeometry(displayGeometry);
+  const reducePoints = useCallback(
+    async (
+      reductionAmount: number,
+      method:
+        | "quadric_edge_collapse"
+        | "vertex_clustering"
+        | "adaptive"
+        | "random",
+    ): Promise<ToolOperationResult> => {
+      if (!workingMeshTri) {
+        throw new Error("No triangulated mesh available for reduction");
       }
-      
-      return result;
-    } finally {
-      setIsProcessingTool(false);
-    }
-  }, [workingMeshTri]);
+
+      setIsProcessingTool(true);
+
+      try {
+        const manipulator = new STLManipulator(workingMeshTri);
+        const result = await manipulator.reducePoints(reductionAmount, method);
+
+        if (result.success && result.geometry) {
+          // Update working mesh
+          setWorkingMeshTri(result.geometry);
+
+          // Create proper preview mesh with reconstructed faces
+          const newPreview = createPreviewFromWorkingMesh(
+            result.geometry,
+            "decimated",
+          );
+          setPreviewMeshMerged(newPreview);
+
+          // Update display
+          const displayGeometry = prepareGeometryForViewing(
+            newPreview,
+            "decimated",
+          );
+          setGeometry(displayGeometry);
+        }
+
+        return result;
+      } finally {
+        setIsProcessingTool(false);
+      }
+    },
+    [workingMeshTri],
+  );
 
   const getGeometryStats = useCallback(() => {
     if (!workingMeshTri) return null;
-    
+
     const positions = workingMeshTri.attributes.position;
     const vertices = positions.count;
     const triangles = Math.floor(vertices / 3);
-    
+
     return {
       vertices,
       triangles,
-      edges: triangles * 3 / 2, // Approximate for manifold mesh
+      edges: (triangles * 3) / 2, // Approximate for manifold mesh
     };
   }, [workingMeshTri]);
 
@@ -703,7 +804,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const positions = workingMeshTri.attributes.position;
     const vertices = positions.count;
     const triangles = Math.floor(vertices / 3);
-    const edges = triangles * 3 / 2; // Approximate for manifold mesh
+    const edges = (triangles * 3) / 2; // Approximate for manifold mesh
 
     // Create polygon breakdown from geometry metadata
     const polygonFaces = (workingMeshTri as any).polygonFaces;
@@ -718,7 +819,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       polygonBreakdown = Object.entries(typeCount).map(([type, count]) => ({
         type,
-        count
+        count,
       }));
     } else {
       // Fallback to triangles
@@ -729,7 +830,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       vertices,
       edges,
       triangles,
-      polygonBreakdown
+      polygonBreakdown,
     };
   }, [workingMeshTri]);
 
@@ -740,7 +841,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     const triPositions = workingMeshTri.attributes.position;
     const triVertices = triPositions.count;
     const triTriangles = Math.floor(triVertices / 3);
-    const triEdges = triTriangles * 3 / 2;
+    const triEdges = (triTriangles * 3) / 2;
 
     // Stats for merged model
     const mergedPositions = previewMeshMerged.attributes.position;
@@ -790,152 +891,208 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       triangulated: {
         vertices: triVertices,
         edges: triEdges,
-        triangles: triTriangles
+        triangles: triTriangles,
       },
       merged: {
         vertices: mergedVertices,
         edges: Math.floor(totalEdges / 2), // Each edge is shared by 2 faces
         actualTriangles, // Only actual triangle faces, not render triangles
-        polygonBreakdown
-      }
+        polygonBreakdown,
+      },
     };
   }, [workingMeshTri, previewMeshMerged]);
 
-  const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
-    setHighlightedTriangleState(triangleIndex);
+  const setHighlightedTriangle = useCallback(
+    (triangleIndex: number | null) => {
+      setHighlightedTriangleState(triangleIndex);
 
-    if (triangleIndex !== null && previewMeshMerged) {
-      const polygonFaces = (previewMeshMerged as any).polygonFaces;
+      if (triangleIndex !== null && previewMeshMerged) {
+        const polygonFaces = (previewMeshMerged as any).polygonFaces;
 
-      if (!polygonFaces || !Array.isArray(polygonFaces)) {
-        setTriangleStats(null);
-        return;
-      }
-
-      // Find the face that contains this triangle
-      let targetFace = null;
-      let targetFaceIndex = -1;
-
-      for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
-        const face = polygonFaces[faceIndex];
-        if (face.triangleIndices && face.triangleIndices.includes(triangleIndex)) {
-          targetFace = face;
-          targetFaceIndex = faceIndex;
-          break;
+        if (!polygonFaces || !Array.isArray(polygonFaces)) {
+          setTriangleStats(null);
+          return;
         }
-      }
 
-      if (!targetFace) {
-        setTriangleStats(null);
-        return;
-      }
+        // Find the face that contains this triangle
+        let targetFace = null;
+        let targetFaceIndex = -1;
 
-      // Get the face vertices
-      let faceVertices: THREE.Vector3[] = [];
-      if (targetFace.originalVertices && Array.isArray(targetFace.originalVertices)) {
-        faceVertices = targetFace.originalVertices.map((v: any) =>
-          new THREE.Vector3(v.x, v.y, v.z)
-        );
-      } else {
-        setTriangleStats(null);
-        return;
-      }
+        for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
+          const face = polygonFaces[faceIndex];
+          if (
+            face.triangleIndices &&
+            face.triangleIndices.includes(triangleIndex)
+          ) {
+            targetFace = face;
+            targetFaceIndex = faceIndex;
+            break;
+          }
+        }
 
-      // Calculate perimeter
-      let facePerimeter = 0;
-      for (let i = 0; i < faceVertices.length; i++) {
-        const current = faceVertices[i];
-        const next = faceVertices[(i + 1) % faceVertices.length];
-        facePerimeter += current.distanceTo(next);
-      }
+        if (!targetFace) {
+          setTriangleStats(null);
+          return;
+        }
 
-      // Calculate area using shoelace formula for planar polygons
-      let faceArea = 0;
-      if (faceVertices.length === 3) {
-        // Triangle area
-        const edge1 = new THREE.Vector3().subVectors(faceVertices[1], faceVertices[0]);
-        const edge2 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
-        const cross = new THREE.Vector3().crossVectors(edge1, edge2);
-        faceArea = cross.length() / 2;
-      } else if (faceVertices.length === 4) {
-        // Quad area using two triangles
-        const edge1 = new THREE.Vector3().subVectors(faceVertices[1], faceVertices[0]);
-        const edge2 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
-        const cross1 = new THREE.Vector3().crossVectors(edge1, edge2);
+        // Get the face vertices
+        let faceVertices: THREE.Vector3[] = [];
+        if (
+          targetFace.originalVertices &&
+          Array.isArray(targetFace.originalVertices)
+        ) {
+          faceVertices = targetFace.originalVertices.map(
+            (v: any) => new THREE.Vector3(v.x, v.y, v.z),
+          );
+        } else {
+          setTriangleStats(null);
+          return;
+        }
 
-        const edge3 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
-        const edge4 = new THREE.Vector3().subVectors(faceVertices[3], faceVertices[0]);
-        const cross2 = new THREE.Vector3().crossVectors(edge3, edge4);
+        // Calculate perimeter
+        let facePerimeter = 0;
+        for (let i = 0; i < faceVertices.length; i++) {
+          const current = faceVertices[i];
+          const next = faceVertices[(i + 1) % faceVertices.length];
+          facePerimeter += current.distanceTo(next);
+        }
 
-        faceArea = (cross1.length() + cross2.length()) / 2;
-      } else {
-        // Polygon area using fan triangulation from first vertex
-        for (let i = 1; i < faceVertices.length - 1; i++) {
-          const edge1 = new THREE.Vector3().subVectors(faceVertices[i], faceVertices[0]);
-          const edge2 = new THREE.Vector3().subVectors(faceVertices[i + 1], faceVertices[0]);
+        // Calculate area using shoelace formula for planar polygons
+        let faceArea = 0;
+        if (faceVertices.length === 3) {
+          // Triangle area
+          const edge1 = new THREE.Vector3().subVectors(
+            faceVertices[1],
+            faceVertices[0],
+          );
+          const edge2 = new THREE.Vector3().subVectors(
+            faceVertices[2],
+            faceVertices[0],
+          );
           const cross = new THREE.Vector3().crossVectors(edge1, edge2);
-          faceArea += cross.length() / 2;
+          faceArea = cross.length() / 2;
+        } else if (faceVertices.length === 4) {
+          // Quad area using two triangles
+          const edge1 = new THREE.Vector3().subVectors(
+            faceVertices[1],
+            faceVertices[0],
+          );
+          const edge2 = new THREE.Vector3().subVectors(
+            faceVertices[2],
+            faceVertices[0],
+          );
+          const cross1 = new THREE.Vector3().crossVectors(edge1, edge2);
+
+          const edge3 = new THREE.Vector3().subVectors(
+            faceVertices[2],
+            faceVertices[0],
+          );
+          const edge4 = new THREE.Vector3().subVectors(
+            faceVertices[3],
+            faceVertices[0],
+          );
+          const cross2 = new THREE.Vector3().crossVectors(edge3, edge4);
+
+          faceArea = (cross1.length() + cross2.length()) / 2;
+        } else {
+          // Polygon area using fan triangulation from first vertex
+          for (let i = 1; i < faceVertices.length - 1; i++) {
+            const edge1 = new THREE.Vector3().subVectors(
+              faceVertices[i],
+              faceVertices[0],
+            );
+            const edge2 = new THREE.Vector3().subVectors(
+              faceVertices[i + 1],
+              faceVertices[0],
+            );
+            const cross = new THREE.Vector3().crossVectors(edge1, edge2);
+            faceArea += cross.length() / 2;
+          }
         }
-      }
 
-      // Calculate normal
-      let faceNormal = new THREE.Vector3();
-      if (targetFace.normal) {
-        faceNormal = new THREE.Vector3(targetFace.normal.x, targetFace.normal.y, targetFace.normal.z);
+        // Calculate normal
+        let faceNormal = new THREE.Vector3();
+        if (targetFace.normal) {
+          faceNormal = new THREE.Vector3(
+            targetFace.normal.x,
+            targetFace.normal.y,
+            targetFace.normal.z,
+          );
+        } else {
+          const edge1 = new THREE.Vector3().subVectors(
+            faceVertices[1],
+            faceVertices[0],
+          );
+          const edge2 = new THREE.Vector3().subVectors(
+            faceVertices[2],
+            faceVertices[0],
+          );
+          faceNormal = new THREE.Vector3()
+            .crossVectors(edge1, edge2)
+            .normalize();
+        }
+
+        setTriangleStats({
+          index: triangleIndex,
+          vertices: faceVertices,
+          area: faceArea,
+          perimeter: facePerimeter,
+          normal: faceNormal,
+          faceType: targetFace.type,
+          vertexCount: faceVertices.length,
+          parentFaceIndex: targetFaceIndex,
+        });
       } else {
-        const edge1 = new THREE.Vector3().subVectors(faceVertices[1], faceVertices[0]);
-        const edge2 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
-        faceNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+        setTriangleStats(null);
+      }
+    },
+    [previewMeshMerged],
+  );
+
+  const decimateEdge = useCallback(
+    async (
+      vertexIndex1: number,
+      vertexIndex2: number,
+    ): Promise<ToolOperationResult> => {
+      if (!workingMeshTri) {
+        throw new Error("No triangulated mesh available for edge decimation");
       }
 
+      setIsDecimating(true);
 
-      setTriangleStats({
-        index: triangleIndex,
-        vertices: faceVertices,
-        area: faceArea,
-        perimeter: facePerimeter,
-        normal: faceNormal,
-        faceType: targetFace.type,
-        vertexCount: faceVertices.length,
-        parentFaceIndex: targetFaceIndex,
-      });
-    } else {
-      setTriangleStats(null);
-    }
-  }, [previewMeshMerged]);
+      try {
+        const manipulator = new STLManipulator(workingMeshTri);
+        const result = await manipulator.decimateEdge(
+          vertexIndex1,
+          vertexIndex2,
+        );
 
-  const decimateEdge = useCallback(async (
-    vertexIndex1: number,
-    vertexIndex2: number,
-  ): Promise<ToolOperationResult> => {
-    if (!workingMeshTri) {
-      throw new Error("No triangulated mesh available for edge decimation");
-    }
-    
-    setIsDecimating(true);
-    
-    try {
-      const manipulator = new STLManipulator(workingMeshTri);
-      const result = await manipulator.decimateEdge(vertexIndex1, vertexIndex2);
-      
-      if (result.success && result.geometry) {
-        // Update working mesh
-        setWorkingMeshTri(result.geometry);
+        if (result.success && result.geometry) {
+          // Update working mesh
+          setWorkingMeshTri(result.geometry);
 
-        // Create proper preview mesh with reconstructed faces
-        const newPreview = createPreviewFromWorkingMesh(result.geometry, "edge_decimated");
-        setPreviewMeshMerged(newPreview);
+          // Create proper preview mesh with reconstructed faces
+          const newPreview = createPreviewFromWorkingMesh(
+            result.geometry,
+            "edge_decimated",
+          );
+          setPreviewMeshMerged(newPreview);
 
-        // Update display
-        const displayGeometry = prepareGeometryForViewing(newPreview, "edge_decimated");
-        setGeometry(displayGeometry);
+          // Update display
+          const displayGeometry = prepareGeometryForViewing(
+            newPreview,
+            "edge_decimated",
+          );
+          setGeometry(displayGeometry);
+        }
+
+        return result;
+      } finally {
+        setIsDecimating(false);
       }
-      
-      return result;
-    } finally {
-      setIsDecimating(false);
-    }
-  }, [workingMeshTri]);
+    },
+    [workingMeshTri],
+  );
 
   const createBackup = useCallback(() => {
     if (originalMesh && workingMeshTri && previewMeshMerged) {
@@ -947,15 +1104,28 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   }, [originalMesh, workingMeshTri, previewMeshMerged]);
 
   const restoreFromBackup = useCallback(() => {
-    if (hasBackup && backupOriginalMesh && backupWorkingMeshTri && backupPreviewMeshMerged) {
+    if (
+      hasBackup &&
+      backupOriginalMesh &&
+      backupWorkingMeshTri &&
+      backupPreviewMeshMerged
+    ) {
       setOriginalMesh(backupOriginalMesh.clone());
       setWorkingMeshTri(backupWorkingMeshTri.clone());
       setPreviewMeshMerged(backupPreviewMeshMerged.clone());
-      
-      const displayGeometry = prepareGeometryForViewing(backupPreviewMeshMerged, "restored");
+
+      const displayGeometry = prepareGeometryForViewing(
+        backupPreviewMeshMerged,
+        "restored",
+      );
       setGeometry(displayGeometry);
     }
-  }, [hasBackup, backupOriginalMesh, backupWorkingMeshTri, backupPreviewMeshMerged]);
+  }, [
+    hasBackup,
+    backupOriginalMesh,
+    backupWorkingMeshTri,
+    backupPreviewMeshMerged,
+  ]);
 
   const contextValue: STLContextType = {
     geometry,
@@ -1000,8 +1170,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   };
 
   return (
-    <STLContext.Provider value={contextValue}>
-      {children}
-    </STLContext.Provider>
+    <STLContext.Provider value={contextValue}>{children}</STLContext.Provider>
   );
 };

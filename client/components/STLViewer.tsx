@@ -1168,7 +1168,6 @@ function STLMesh() {
       const polygonFaces = (geometry as any).polygonFaces;
 
       if (polygonFaces && Array.isArray(polygonFaces)) {
-
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
 
@@ -1181,7 +1180,6 @@ function STLMesh() {
 
           // Use triangleIndices if available (from merged faces)
           if (face.triangleIndices && face.triangleIndices.length > 0) {
-
             // Color specific triangles identified by triangleIndices
             for (const triangleIndex of face.triangleIndices) {
               const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
@@ -1199,7 +1197,6 @@ function STLMesh() {
                 }
               }
             }
-
           } else {
             // Fallback to sequential indexing for faces without triangleIndices
             const triangleCount = getTriangleCountForPolygon(face);
@@ -1255,13 +1252,18 @@ function STLMesh() {
 
       // Debug: Sample some colors to verify they're applied (with bounds checking)
       if (colors.length >= 3) {
-        const firstColors = `[${colors[0]?.toFixed(3) || '?'}, ${colors[1]?.toFixed(3) || '?'}, ${colors[2]?.toFixed(3) || '?'}]`;
-        const laterColors = colors.length >= 12
-          ? `[${colors[9]?.toFixed(3) || '?'}, ${colors[10]?.toFixed(3) || '?'}, ${colors[11]?.toFixed(3) || '?'}]`
-          : '[insufficient colors]';
-        console.log(`🎨 Color verification: First few colors ${firstColors}, ${laterColors}`);
+        const firstColors = `[${colors[0]?.toFixed(3) || "?"}, ${colors[1]?.toFixed(3) || "?"}, ${colors[2]?.toFixed(3) || "?"}]`;
+        const laterColors =
+          colors.length >= 12
+            ? `[${colors[9]?.toFixed(3) || "?"}, ${colors[10]?.toFixed(3) || "?"}, ${colors[11]?.toFixed(3) || "?"}]`
+            : "[insufficient colors]";
+        console.log(
+          `🎨 Color verification: First few colors ${firstColors}, ${laterColors}`,
+        );
       } else {
-        console.log(`🎨 Color verification: Colors array too short (${colors.length} elements)`);
+        console.log(
+          `🎨 Color verification: Colors array too short (${colors.length} elements)`,
+        );
       }
       console.log(
         `✅ Applied ${polygonFaces ? "polygon-aware" : "triangle-based"} coloring to ${geometry.attributes.position.count / 3} triangles`,
@@ -1293,7 +1295,11 @@ function STLMesh() {
 
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
-          if (face && face.triangleIndices && face.triangleIndices.includes(highlightedTriangle)) {
+          if (
+            face &&
+            face.triangleIndices &&
+            face.triangleIndices.includes(highlightedTriangle)
+          ) {
             targetFace = face;
             break;
           }
@@ -1301,7 +1307,10 @@ function STLMesh() {
 
         if (targetFace) {
           // Highlight all triangles in the face
-          if (targetFace.triangleIndices && targetFace.triangleIndices.length > 0) {
+          if (
+            targetFace.triangleIndices &&
+            targetFace.triangleIndices.length > 0
+          ) {
             for (const triangleIndex of targetFace.triangleIndices) {
               const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
 
@@ -1369,7 +1378,11 @@ function STLMesh() {
 
         // Get the first triangle index from the face for stats calculation
         const polygonFaces = (geometry as any)?.polygonFaces;
-        if (polygonFaces && Array.isArray(polygonFaces) && faceIndex < polygonFaces.length) {
+        if (
+          polygonFaces &&
+          Array.isArray(polygonFaces) &&
+          faceIndex < polygonFaces.length
+        ) {
           const face = polygonFaces[faceIndex];
           if (face && face.triangleIndices && face.triangleIndices.length > 0) {
             const triangleIndex = face.triangleIndices[0];
@@ -1629,7 +1642,8 @@ function STLMesh() {
         console.log(`🔍 Attempting to decimate edge:`, {
           vertexIndex1: highlightedEdge.vertexIndex1,
           vertexIndex2: highlightedEdge.vertexIndex2,
-          geometryVertexCount: geometry?.attributes?.position?.count || 'unknown'
+          geometryVertexCount:
+            geometry?.attributes?.position?.count || "unknown",
         });
 
         try {
