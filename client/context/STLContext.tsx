@@ -623,6 +623,55 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     };
   }, [workingMeshTri]);
 
+  const getDualMeshStats = useCallback(() => {
+    if (!workingMeshTri || !previewMeshMerged) return null;
+
+    // Stats for triangulated model
+    const triPositions = workingMeshTri.attributes.position;
+    const triVertices = triPositions.count;
+    const triTriangles = Math.floor(triVertices / 3);
+    const triEdges = triTriangles * 3 / 2;
+
+    // Stats for merged model
+    const mergedPositions = previewMeshMerged.attributes.position;
+    const mergedVertices = mergedPositions.count;
+    const mergedTriangles = Math.floor(mergedVertices / 3);
+    const mergedEdges = mergedTriangles * 3 / 2;
+
+    // Polygon breakdown from merged model
+    const polygonFaces = (previewMeshMerged as any).polygonFaces;
+    let polygonBreakdown: Array<{ type: string; count: number }> = [];
+
+    if (polygonFaces && Array.isArray(polygonFaces)) {
+      const typeCount: Record<string, number> = {};
+      polygonFaces.forEach((face: any) => {
+        const type = face.type || "triangle";
+        typeCount[type] = (typeCount[type] || 0) + 1;
+      });
+
+      polygonBreakdown = Object.entries(typeCount).map(([type, count]) => ({
+        type,
+        count
+      }));
+    } else {
+      polygonBreakdown = [{ type: "triangle", count: mergedTriangles }];
+    }
+
+    return {
+      triangulated: {
+        vertices: triVertices,
+        edges: triEdges,
+        triangles: triTriangles
+      },
+      merged: {
+        vertices: mergedVertices,
+        edges: mergedEdges,
+        triangles: mergedTriangles,
+        polygonBreakdown
+      }
+    };
+  }, [workingMeshTri, previewMeshMerged]);
+
   const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
     setHighlightedTriangleState(triangleIndex);
 
