@@ -2672,6 +2672,50 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             console.warn(`⚠️ Found ${degenerateCount} degenerate triangles after decimation - these may appear as black faces`);
           }
 
+          // Check for overlapping/coincident triangles that cause Z-fighting
+          console.log("🔍 Checking for overlapping triangles...");
+          let overlappingCount = 0;
+          const triangleMap = new Map<string, number>();
+
+          if (result.geometry.index) {
+            // Indexed geometry - check for coincident triangles
+            const indices = result.geometry.index.array;
+            for (let i = 0; i < indices.length; i += 3) {
+              const i1 = indices[i] * 3;
+              const i2 = indices[i + 1] * 3;
+              const i3 = indices[i + 2] * 3;
+
+              const v1 = new THREE.Vector3(positions[i1], positions[i1 + 1], positions[i1 + 2]);
+              const v2 = new THREE.Vector3(positions[i2], positions[i2 + 1], positions[i2 + 2]);
+              const v3 = new THREE.Vector3(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+
+              // Create a normalized triangle signature for overlap detection
+              const center = new THREE.Vector3().addVectors(v1, v2).add(v3).divideScalar(3);
+              const normal = new THREE.Vector3().crossVectors(v2.clone().sub(v1), v3.clone().sub(v1)).normalize();
+
+              // Create a key based on center position and normal (with tolerance)
+              const centerKey = `${center.x.toFixed(3)},${center.y.toFixed(3)},${center.z.toFixed(3)}`;
+              const normalKey = `${normal.x.toFixed(3)},${normal.y.toFixed(3)},${normal.z.toFixed(3)}`;
+              const triangleKey = `${centerKey}|${normalKey}`;
+
+              if (triangleMap.has(triangleKey)) {
+                overlappingCount++;
+                console.log(`🔺 Overlapping triangle ${i/3}: matches triangle ${triangleMap.get(triangleKey)}`);
+              } else {
+                triangleMap.set(triangleKey, i/3);
+              }
+            }
+          }
+
+          console.log(`📊 OVERLAP ANALYSIS:`);
+          console.log(`   Overlapping triangles: ${overlappingCount}`);
+          console.log(`   Unique triangle signatures: ${triangleMap.size}`);
+
+          if (overlappingCount > 0) {
+            console.warn(`⚠️ Found ${overlappingCount} overlapping triangles - these cause Z-fighting and visual artifacts`);
+            console.log("💡 Consider using a different decimation approach or post-processing to remove overlapping faces");
+          }
+
           // Skip complex post-processing that might corrupt faces during decimation
           // Simple UUID update and geometry replacement
           result.geometry.uuid = THREE.MathUtils.generateUUID();
