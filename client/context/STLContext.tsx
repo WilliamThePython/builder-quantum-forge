@@ -610,12 +610,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   // Provider is always initialized - removed conditional rendering that was causing context issues
   const [isInitialized] = useState(true);
 
-  // Dual geometry storage approach:
-  // - indexedGeometry: Used for operations like decimation (efficient)
+  // Triple geometry storage approach:
+  // - indexedGeometry: Merged polygon version for viewing operations
   // - geometry: Non-indexed version used for viewing (flat colors)
+  // - triangulatedGeometry: Pure triangulated version for decimation operations
   const [indexedGeometry, setIndexedGeometry] =
     useState<THREE.BufferGeometry | null>(null);
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [triangulatedGeometry, setTriangulatedGeometry] =
+    useState<THREE.BufferGeometry | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
