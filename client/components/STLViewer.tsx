@@ -930,7 +930,6 @@ function STLMesh() {
       return edgeGeometry;
     }
 
-    console.log("🔗 Creating polygon-aware wireframe");
 
     const wireframePositions: number[] = [];
 
