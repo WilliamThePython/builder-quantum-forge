@@ -443,6 +443,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       updateProgress(50, "Build", "Preparing display...");
 
+      console.log(`File: ${file.name}, Size: ${fileSizeKB.toFixed(1)}KB, Triangles: ${triangleCount}, Using: ${isVeryLargeFile ? 'MINIMAL' : 'NORMAL'} processing`);
+
       if (isVeryLargeFile) {
         // MINIMAL PROCESSING for large files to prevent timeouts
         setupMinimalMeshSystem(loadedGeometry);
