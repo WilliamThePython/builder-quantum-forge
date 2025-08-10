@@ -973,7 +973,7 @@ function STLMesh() {
     );
 
     console.log(
-      `✅ Created polygon wireframe with ${wireframePositions.length / 6} edge segments`,
+      `�� Created polygon wireframe with ${wireframePositions.length / 6} edge segments`,
     );
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
@@ -1402,7 +1402,18 @@ function STLMesh() {
           geometry!,
           intersection,
         );
-        setHighlightedTriangle(faceIndex);
+
+        // Get the first triangle index from the face for stats calculation
+        const polygonFaces = (geometry as any)?.polygonFaces;
+        if (polygonFaces && Array.isArray(polygonFaces) && faceIndex < polygonFaces.length) {
+          const face = polygonFaces[faceIndex];
+          const triangleIndex = face.triangleIndices && face.triangleIndices.length > 0
+            ? face.triangleIndices[0]
+            : faceIndex;
+          setHighlightedTriangle(triangleIndex);
+        } else {
+          setHighlightedTriangle(faceIndex);
+        }
       } else {
         // Don't clear highlighted triangle immediately - let it persist
         // This allows users to interact with the info bar (hover for coordinate expansion)
