@@ -2376,6 +2376,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         throw new Error("No indexed geometry loaded for edge decimation");
       }
 
+      // Validate vertex indices before proceeding
+      const vertexCount = indexedGeometry.attributes.position.count;
+      if (vertexIndex1 < 0 || vertexIndex1 >= vertexCount) {
+        throw new Error(`Invalid vertex index 1: ${vertexIndex1} (valid range: 0-${vertexCount - 1})`);
+      }
+      if (vertexIndex2 < 0 || vertexIndex2 >= vertexCount) {
+        throw new Error(`Invalid vertex index 2: ${vertexIndex2} (valid range: 0-${vertexCount - 1})`);
+      }
+      if (vertexIndex1 === vertexIndex2) {
+        throw new Error("Cannot decimate edge: both vertex indices are the same");
+      }
+
       try {
         setIsProcessingTool(true);
         setIsDecimating(true); // Mark decimation in progress
