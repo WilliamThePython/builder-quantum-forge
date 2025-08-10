@@ -863,6 +863,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     reducePoints,
     getGeometryStats,
     getDetailedGeometryStats,
+    getDualMeshStats,
     setHighlightedTriangle,
     hasBackup,
     createBackup,
