@@ -620,22 +620,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const v2 = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
         const v3 = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
         
-        const edge1 = new THREE.Vector3().subVectors(v2, v1);
-        const edge2 = new THREE.Vector3().subVectors(v3, v1);
-        const normal = new THREE.Vector3().crossVectors(edge1, edge2);
-        const area = normal.length() / 2;
-        
-        // Calculate perimeter
-        const edge1Length = v1.distanceTo(v2);
-        const edge2Length = v2.distanceTo(v3);
-        const edge3Length = v3.distanceTo(v1);
-        const perimeter = edge1Length + edge2Length + edge3Length;
-
         // Find which polygon face this triangle belongs to
         const polygonFaces = (previewMeshMerged as any).polygonFaces;
         let faceType = "triangle";
         let faceVertices = [v1, v2, v3];
-        let facePerimeter = perimeter;
+        let faceArea = 0;
+        let facePerimeter = 0;
+        let faceNormal = new THREE.Vector3();
         let parentFaceIndex = triangleIndex;
 
         if (polygonFaces && Array.isArray(polygonFaces)) {
@@ -646,31 +637,74 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
               faceType = face.type || "triangle";
               parentFaceIndex = faceIndex;
 
-              // Use the specific face's vertices based on its type
               if (face.originalVertices && face.type !== "triangle") {
+                // Use the original face vertices for quads and polygons
                 faceVertices = face.originalVertices.map((v: any) =>
                   new THREE.Vector3(v.x, v.y, v.z)
                 );
 
-                // Calculate face perimeter
+                // Calculate polygon perimeter
                 facePerimeter = 0;
                 for (let i = 0; i < faceVertices.length; i++) {
                   const current = faceVertices[i];
                   const next = faceVertices[(i + 1) % faceVertices.length];
                   facePerimeter += current.distanceTo(next);
                 }
+
+                // Calculate polygon area using triangulation from center
+                faceArea = 0;
+                const center = new THREE.Vector3();
+                faceVertices.forEach(v => center.add(v));
+                center.divideScalar(faceVertices.length);
+
+                for (let i = 0; i < faceVertices.length; i++) {
+                  const current = faceVertices[i];
+                  const next = faceVertices[(i + 1) % faceVertices.length];
+
+                  const edge1 = new THREE.Vector3().subVectors(current, center);
+                  const edge2 = new THREE.Vector3().subVectors(next, center);
+                  const triangleNormal = new THREE.Vector3().crossVectors(edge1, edge2);
+                  faceArea += triangleNormal.length() / 2;
+                }
+
+                // Calculate face normal (use stored normal if available)
+                if (face.normal) {
+                  faceNormal = new THREE.Vector3(face.normal.x, face.normal.y, face.normal.z);
+                } else {
+                  // Calculate normal from first two edges
+                  const edge1 = new THREE.Vector3().subVectors(faceVertices[1], faceVertices[0]);
+                  const edge2 = new THREE.Vector3().subVectors(faceVertices[2], faceVertices[0]);
+                  faceNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+                }
+              } else {
+                // For triangles, use the original triangle calculation
+                const edge1 = new THREE.Vector3().subVectors(v2, v1);
+                const edge2 = new THREE.Vector3().subVectors(v3, v1);
+                faceNormal = new THREE.Vector3().crossVectors(edge1, edge2);
+                faceArea = faceNormal.length() / 2;
+                faceNormal.normalize();
+
+                facePerimeter = v1.distanceTo(v2) + v2.distanceTo(v3) + v3.distanceTo(v1);
               }
               break;
             }
           }
+        } else {
+          // Fallback: treat as triangle
+          const edge1 = new THREE.Vector3().subVectors(v2, v1);
+          const edge2 = new THREE.Vector3().subVectors(v3, v1);
+          faceNormal = new THREE.Vector3().crossVectors(edge1, edge2);
+          faceArea = faceNormal.length() / 2;
+          faceNormal.normalize();
+          facePerimeter = v1.distanceTo(v2) + v2.distanceTo(v3) + v3.distanceTo(v1);
         }
 
         setTriangleStats({
           index: triangleIndex,
           vertices: faceVertices,
-          area,
+          area: faceArea,
           perimeter: facePerimeter,
-          normal: normal.normalize(),
+          normal: faceNormal,
           faceType,
           vertexCount: faceVertices.length,
           parentFaceIndex,
