@@ -162,8 +162,8 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Create a flat polygon face that fills the polygon area properly
-   * Uses minimal triangulation to avoid waterwheel effects
+   * Create a flat polygon face - ONLY for simple shapes
+   * For complex shapes, we might skip the face entirely
    */
   private static createFlatPolygonFace(
     vertices: THREE.Vector3[],
@@ -181,17 +181,14 @@ export class PolygonPartsExporter {
       content += this.addTriangleToSTL(vertices[0], vertices[1], vertices[2], normal);
       content += this.addTriangleToSTL(vertices[0], vertices[2], vertices[3], normal);
     } else {
-      // For complex polygons: use center point method to avoid interior crossing
-      // Calculate centroid
-      const center = new THREE.Vector3();
-      vertices.forEach(v => center.add(v));
-      center.divideScalar(vertices.length);
+      // For complex polygons (5+ vertices): DON'T create interior faces
+      // This prevents the waterwheel effect
+      // Just create a simple outer boundary if needed
+      console.log(`Skipping face triangulation for ${vertices.length}-vertex polygon to avoid waterwheel effect`);
 
-      // Create triangles from center to each edge
-      for (let i = 0; i < vertices.length; i++) {
-        const next = (i + 1) % vertices.length;
-        content += this.addTriangleToSTL(center, vertices[i], vertices[next], normal);
-      }
+      // Option: create a simple fan but with fewer triangles
+      // For now, let's try skipping the face entirely
+      return "";
     }
 
     return content;
