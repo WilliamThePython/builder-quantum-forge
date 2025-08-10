@@ -239,7 +239,7 @@ export class PolygonPartsExporter {
 
   /**
    * Triangulate a polygon properly handling concave shapes like stars
-   * Projects polygon to 2D, uses earcut-style triangulation, then projects back
+   * Uses a conservative approach to avoid extra faces
    */
   private static triangulatePolygon(
     vertices: THREE.Vector3[],
@@ -247,17 +247,41 @@ export class PolygonPartsExporter {
   ): THREE.Vector3[][] {
     if (vertices.length < 3) return [];
 
-    // For simple convex polygons, use fan triangulation
-    if (vertices.length <= 6 && this.isConvexPolygon(vertices, normal)) {
-      const triangles: THREE.Vector3[][] = [];
-      for (let i = 1; i < vertices.length - 1; i++) {
-        triangles.push([vertices[0], vertices[i], vertices[i + 1]]);
-      }
-      return triangles;
+    // Remove duplicate vertices first
+    const cleanVertices = this.removeDuplicateVertices(vertices);
+    if (cleanVertices.length < 3) return [];
+
+    // For triangles, return as-is
+    if (cleanVertices.length === 3) {
+      return [cleanVertices];
     }
 
-    // For complex/concave polygons, use a more robust approach
-    return this.earCutTriangulation(vertices, normal);
+    // For quads, use simple diagonal split
+    if (cleanVertices.length === 4) {
+      return [
+        [cleanVertices[0], cleanVertices[1], cleanVertices[2]],
+        [cleanVertices[0], cleanVertices[2], cleanVertices[3]]
+      ];
+    }
+
+    // For polygons with 5+ vertices, try conservative fan triangulation first
+    // If that creates invalid triangles, fall back to more robust method
+    const fanTriangles = this.conservativeFanTriangulation(cleanVertices, normal);
+    if (fanTriangles.length > 0) {
+      return fanTriangles;
+    }
+
+    // Fallback: try from different starting vertex
+    for (let startIdx = 1; startIdx < cleanVertices.length && startIdx < 3; startIdx++) {
+      const reorderedVertices = [...cleanVertices.slice(startIdx), ...cleanVertices.slice(0, startIdx)];
+      const reorderedTriangles = this.conservativeFanTriangulation(reorderedVertices, normal);
+      if (reorderedTriangles.length > 0) {
+        return reorderedTriangles;
+      }
+    }
+
+    // Last resort: just use first 3 vertices as a single triangle
+    return [[cleanVertices[0], cleanVertices[1], cleanVertices[2]]];
   }
 
   /**
