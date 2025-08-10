@@ -613,10 +613,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     if (triangleIndex !== null && previewMeshMerged) {
       const polygonFaces = (previewMeshMerged as any).polygonFaces;
 
-      console.log(`Triangle ${triangleIndex}: Finding face data...`);
-
       if (!polygonFaces || !Array.isArray(polygonFaces)) {
-        console.log("No polygon faces found, using triangle fallback");
         setTriangleStats(null);
         return;
       }
@@ -635,12 +632,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
       if (!targetFace) {
-        console.log(`Triangle ${triangleIndex} not found in any polygon face`);
         setTriangleStats(null);
         return;
       }
-
-      console.log(`Triangle ${triangleIndex} belongs to face ${targetFaceIndex} (${targetFace.type}) with ${targetFace.originalVertices?.length} vertices`);
 
       // Get the face vertices
       let faceVertices: THREE.Vector3[] = [];
