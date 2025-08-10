@@ -915,7 +915,6 @@ function STLMesh() {
   const wireframeGeometry = useMemo(() => {
     if (!viewerSettings.wireframe || !geometry) return null;
 
-      `��� Creating wireframe for geometry: ${geometry.attributes.position.count} vertices, ${geometry.index ? geometry.index.count / 3 : 0} faces`,
     );
 
     const polygonFaces = (geometry as any).polygonFaces;
@@ -923,7 +922,6 @@ function STLMesh() {
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       // Fallback to standard edge wireframe for non-polygon geometries
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
-        `🔗 Standard wireframe created with ${edgeGeometry.attributes.position.count / 2} edges`,
       );
       return edgeGeometry;
     }
@@ -968,7 +966,6 @@ function STLMesh() {
       new THREE.Float32BufferAttribute(wireframePositions, 3),
     );
 
-      `�� Created polygon wireframe with ${wireframePositions.length / 6} edge segments`,
     );
     return wireGeometry;
   }, [geometry, viewerSettings.wireframe]);
