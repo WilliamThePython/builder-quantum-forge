@@ -401,37 +401,43 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       updateProgress(25, "Loading", "Reading file...");
       let loadedGeometry = await loadModelFile(file, updateProgress);
 
-      // Detect if this is a large model requiring progressive loading
+      // Detect file size and triangle count for loading strategy
+      const fileSizeKB = file.size / 1024;
       const triangleCount = Math.floor(loadedGeometry.attributes.position.count / 3);
+      const isVeryLargeFile = fileSizeKB > 500; // Files >500KB get minimal processing
       const isLargeModel = triangleCount > 50000; // 50k+ triangles = large model
 
-      updateProgress(50, "Processing", "Analyzing mesh...");
+      updateProgress(50, "Build", "Preparing display...");
 
-      // Scale to reasonable size
-      loadedGeometry.computeBoundingBox();
-      if (!loadedGeometry.boundingBox) {
-        throw new Error("Invalid geometry: no bounding box");
-      }
-
-      const box = loadedGeometry.boundingBox;
-      const maxDimension = Math.max(
-        box.max.x - box.min.x,
-        box.max.y - box.min.y,
-        box.max.z - box.min.z
-      );
-
-      if (maxDimension > 0) {
-        const scale = 50 / maxDimension;
-        loadedGeometry.scale(scale, scale, scale);
-      }
-
-      updateProgress(70, "Build", "Setting up mesh system...");
-
-      // Set up dual mesh system with progressive loading for large models
-      if (isLargeModel) {
-        await setupDualMeshSystemProgressive(loadedGeometry, updateProgress);
+      if (isVeryLargeFile) {
+        // MINIMAL PROCESSING for large files to prevent timeouts
+        setupMinimalMeshSystem(loadedGeometry);
       } else {
-        setupDualMeshSystem(loadedGeometry);
+        // Normal processing for smaller files
+        // Scale to reasonable size
+        loadedGeometry.computeBoundingBox();
+        if (!loadedGeometry.boundingBox) {
+          throw new Error("Invalid geometry: no bounding box");
+        }
+
+        const box = loadedGeometry.boundingBox;
+        const maxDimension = Math.max(
+          box.max.x - box.min.x,
+          box.max.y - box.min.y,
+          box.max.z - box.min.z
+        );
+
+        if (maxDimension > 0) {
+          const scale = 50 / maxDimension;
+          loadedGeometry.scale(scale, scale, scale);
+        }
+
+        // Set up dual mesh system with progressive loading for large models
+        if (isLargeModel) {
+          await setupDualMeshSystemProgressive(loadedGeometry, updateProgress);
+        } else {
+          setupDualMeshSystem(loadedGeometry);
+        }
       }
 
       setFileName(file.name);
