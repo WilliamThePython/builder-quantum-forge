@@ -76,11 +76,11 @@ export default function TriangleStatsDisplay() {
           <div className="flex gap-3 text-xs justify-center">
             <span>
               <span className="text-white/60">A:</span>{" "}
-              {triangleStats.area.toFixed(1)} mm²
+              {(triangleStats.area || 0).toFixed(1)} mm²
             </span>
             <span>
               <span className="text-white/60">P:</span>{" "}
-              {triangleStats.perimeter.toFixed(1)} mm
+              {(triangleStats.perimeter || 0).toFixed(1)} mm
             </span>
           </div>
 
