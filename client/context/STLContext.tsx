@@ -320,6 +320,42 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setGeometry(displayGeometry);
   };
 
+  // Minimal setup for very large files (>500KB) - NO heavy processing to prevent timeouts
+  const setupMinimalMeshSystem = (loadedGeometry: THREE.BufferGeometry) => {
+    // Just set the geometry directly with minimal processing
+    // NO cloning, NO repairs, NO polygon reconstruction, NO dual mesh system
+
+    // Basic scaling only
+    loadedGeometry.computeBoundingBox();
+    if (loadedGeometry.boundingBox) {
+      const box = loadedGeometry.boundingBox;
+      const maxDimension = Math.max(
+        box.max.x - box.min.x,
+        box.max.y - box.min.y,
+        box.max.z - box.min.z
+      );
+
+      if (maxDimension > 0) {
+        const scale = 50 / maxDimension;
+        loadedGeometry.scale(scale, scale, scale);
+      }
+    }
+
+    // Ensure normals exist for display
+    if (!loadedGeometry.attributes.normal) {
+      loadedGeometry.computeVertexNormals();
+    }
+
+    // Use the same geometry for everything - no dual mesh system
+    setOriginalMesh(loadedGeometry);
+    setWorkingMeshTri(loadedGeometry);
+    setPreviewMeshMerged(loadedGeometry);
+    setGeometry(loadedGeometry);
+
+    // Note: Features like parts export may not work optimally with minimal processing
+    console.log("Large file loaded with minimal processing. Some features may be limited.");
+  };
+
   // Progressive setup for large models (50k+ triangles)
   const setupDualMeshSystemProgressive = async (
     loadedGeometry: THREE.BufferGeometry,
