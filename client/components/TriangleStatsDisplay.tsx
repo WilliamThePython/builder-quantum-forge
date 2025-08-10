@@ -147,13 +147,13 @@ export default function TriangleStatsDisplay() {
             <span>
               <span className="text-white/60">Area:</span>{" "}
               <span className="text-white/90">
-                {triangleStats.area.toFixed(2)} mm²
+                {(triangleStats.area || 0).toFixed(2)} mm²
               </span>
             </span>
             <span>
               <span className="text-white/60">Perimeter:</span>{" "}
               <span className="text-white/90">
-                {triangleStats.perimeter.toFixed(1)} mm
+                {(triangleStats.perimeter || 0).toFixed(1)} mm
               </span>
             </span>
           </div>
