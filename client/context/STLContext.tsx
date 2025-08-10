@@ -275,7 +275,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // CRITICAL: Manually preserve polygon metadata since clone() doesn't copy custom properties
     if ((loadedGeometry as any).polygonFaces) {
       (preview as any).polygonFaces = (loadedGeometry as any).polygonFaces;
-      console.log(`DEBUG: Preserving ${(loadedGeometry as any).polygonFaces.length} polygon faces from loaded geometry:`, (loadedGeometry as any).polygonFaces);
     }
     if ((loadedGeometry as any).polygonType) {
       (preview as any).polygonType = (loadedGeometry as any).polygonType;
