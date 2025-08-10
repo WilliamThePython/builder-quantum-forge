@@ -2406,33 +2406,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Reset decimation flag BEFORE geometry update to prevent spinning
           setIsDecimating(false);
 
-          // CRITICAL: Fix face orientation after edge decimation to prevent transparency
-          ensureSolidObjectDisplay(result.geometry);
+          console.log("🔧 Processing decimated geometry...");
 
-          // CRITICAL: Perform hybrid coplanar merging after edge decimation
-          try {
-            const { HybridCoplanarMerger } = await import(
-              "../lib/hybridCoplanarMerger"
-            );
-            const mergedFaces = HybridCoplanarMerger.mergeCoplanarTriangles(
-              result.geometry,
-            );
-
-            if (mergedFaces.length > 0) {
-              (result.geometry as any).polygonFaces = mergedFaces;
-              (result.geometry as any).polygonType =
-                "post_edge_decimation_merged";
-              (result.geometry as any).isPolygonPreserved = true;
-            }
-          } catch (mergeError) {
-            console.warn(
-              "⚠️ Post-edge-decimation coplanar merging failed:",
-              mergeError,
-            );
+          // Ensure basic geometry attributes are valid
+          if (!result.geometry.attributes.normal) {
+            result.geometry.computeVertexNormals();
+            console.log("✅ Computed vertex normals for decimated geometry");
           }
 
-          // Update both indexed and non-indexed geometries using dual geometry approach
+          // Ensure bounding box is computed
+          result.geometry.computeBoundingBox();
+          result.geometry.computeBoundingSphere();
+
+          // Skip complex post-processing that might corrupt faces during decimation
+          // Simple UUID update and geometry replacement
           result.geometry.uuid = THREE.MathUtils.generateUUID();
+
+          console.log(`✅ Decimated geometry ready: ${result.geometry.attributes.position.count} vertices`);
+
+          // Update both indexed and non-indexed geometries using dual geometry approach
           setDualGeometry(result.geometry);
 
           console.log(
