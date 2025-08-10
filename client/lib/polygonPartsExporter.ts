@@ -498,8 +498,15 @@ export class PolygonPartsExporter {
     filename: string,
     options: any,
   ): Promise<void> {
-    const { TriangleExporter } = await import("./triangleExporter");
-    return TriangleExporter.exportTrianglesAsZip(geometry, filename, options);
+    console.log("Attempting triangle fallback export...");
+    try {
+      const { TriangleExporter } = await import("./triangleExporter");
+      console.log("TriangleExporter imported successfully");
+      return TriangleExporter.exportTrianglesAsZip(geometry, filename, options);
+    } catch (error) {
+      console.error("Triangle fallback export failed:", error);
+      throw error;
+    }
   }
 
   /**
