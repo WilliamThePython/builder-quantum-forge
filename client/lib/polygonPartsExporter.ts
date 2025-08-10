@@ -29,19 +29,33 @@ export class PolygonPartsExporter {
       scale = 1,
     } = options;
 
+    console.log("📦 PARTS Export: Starting polygon parts export process...");
     const startTime = Date.now();
 
     // Create zip file
     const zip = new JSZip();
+    console.log("📁 Created new JSZip instance");
 
     // Get polygon face data from geometry
     const polygonFaces = (geometry as any).polygonFaces;
     const polygonType = (geometry as any).polygonType;
 
+    console.log("🔍 Polygon Analysis:", {
+      hasPolygonFaces: !!polygonFaces,
+      polygonFacesCount: polygonFaces?.length || 0,
+      polygonType,
+      format,
+      partThickness,
+      scale,
+      filename
+    });
+
     if (!polygonFaces) {
-      // Fallback to triangle-based export for non-polygon geometries
+      console.log("❌ No polygon faces found - falling back to triangle export");
       return this.exportTriangleFallback(geometry, filename, options);
     }
+
+    console.log(`🔧 Processing ${polygonFaces.length} polygon faces...`);
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
