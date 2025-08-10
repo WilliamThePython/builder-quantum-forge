@@ -42,6 +42,9 @@ export class PolygonPartsExporter {
       return this.exportTriangleFallback(geometry, filename, options);
     }
 
+    // Store original geometry data for triangle extraction
+    const originalGeometry = geometry;
+
     // Track part information for Excel database
     const partDatabase: any[] = [];
 
