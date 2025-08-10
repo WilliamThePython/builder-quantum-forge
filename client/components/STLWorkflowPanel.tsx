@@ -471,19 +471,19 @@ export default function STLWorkflowPanel({
                   </div>
                   {(() => {
                     const detailedStats = getDetailedGeometryStats();
-                    if (!detailedStats) return null;
+                    if (!detailedStats || typeof detailedStats.vertices !== 'number') return null;
 
                     return (
                       <div className="text-xs text-white/70 space-y-1">
                         <div>
-                          Vertices: {detailedStats.vertices.toLocaleString()}
+                          Vertices: {detailedStats.vertices?.toLocaleString() || 0}
                         </div>
-                        <div>Edges: {detailedStats.edges.toLocaleString()}</div>
-                        {detailedStats.polygonBreakdown.map(
+                        <div>Edges: {detailedStats.edges?.toLocaleString() || 0}</div>
+                        {detailedStats.polygonBreakdown?.map(
                           ({ type, count }) => (
                             <div key={type}>
                               {type.charAt(0).toUpperCase() + type.slice(1)}s:{" "}
-                              {count.toLocaleString()}
+                              {count?.toLocaleString() || 0}
                             </div>
                           ),
                         )}
