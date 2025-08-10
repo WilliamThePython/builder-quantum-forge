@@ -2010,6 +2010,57 @@ function MobileWorkflowContent(props: any) {
                 Upload or load a model first to enable exports
               </p>
             )}
+
+            <Separator className="bg-white/20 my-4" />
+
+            {/* Coming Soon Features - Mobile */}
+            <div className="space-y-3">
+              <div className="text-white text-base font-medium mb-3 text-center opacity-60">
+                Coming Soon
+              </div>
+
+              {/* Papercraft Export */}
+              <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
+                <div className="flex items-center gap-3">
+                  <div className="text-white text-base">
+                    Papercraft export (as pdf)
+                  </div>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-sm font-bold cursor-help">
+                      i
+                    </div>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 border border-blue-400/30 rounded-md text-sm text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
+                      Print out nets of your model with appropriate glue tabs so
+                      you can cut, fold, and glue your models into life!
+                    </div>
+                  </div>
+                </div>
+                <span className="text-blue-300/60 text-sm font-medium bg-blue-500/10 px-3 py-1.5 rounded">
+                  COMING SOON
+                </span>
+              </div>
+
+              {/* 3D Print 'n'Glue */}
+              <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
+                <div className="flex items-center gap-3">
+                  <div className="text-white text-base">
+                    3D Print 'n'Glue (as stl/obj)
+                  </div>
+                  <div className="relative group">
+                    <div className="w-5 h-5 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-sm font-bold cursor-help">
+                      i
+                    </div>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 border border-blue-400/30 rounded-md text-sm text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
+                      Intelligent cutting of large models into multiple pieces
+                      that fit 3D printer beds and glue/clip back together!
+                    </div>
+                  </div>
+                </div>
+                <span className="text-blue-300/60 text-sm font-medium bg-blue-500/10 px-3 py-1.5 rounded">
+                  COMING SOON
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </div>
