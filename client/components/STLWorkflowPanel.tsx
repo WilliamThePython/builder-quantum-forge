@@ -685,17 +685,17 @@ export default function STLWorkflowPanel({
                         <div className="flex justify-between">
                           <span>Vertices:</span>
                           <span>
-                            {simplificationStats.originalStats.vertices.toLocaleString()}{" "}
+                            {simplificationStats.originalStats?.vertices?.toLocaleString() || 0}{" "}
                             →{" "}
-                            {simplificationStats.newStats.vertices.toLocaleString()}
+                            {simplificationStats.newStats?.vertices?.toLocaleString() || 0}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span>Triangles:</span>
                           <span>
-                            {simplificationStats.originalStats.faces.toLocaleString()}{" "}
+                            {simplificationStats.originalStats?.faces?.toLocaleString() || 0}{" "}
                             →{" "}
-                            {simplificationStats.newStats.faces.toLocaleString()}
+                            {simplificationStats.newStats?.faces?.toLocaleString() || 0}
                           </span>
                         </div>
                         <div className="flex justify-between">
