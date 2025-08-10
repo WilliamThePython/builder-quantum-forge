@@ -139,6 +139,7 @@ export default function STLWorkflowPanel({
     viewerSettings,
     updateViewerSettings,
     getDetailedGeometryStats,
+    getDualMeshStats,
     hasBackup,
     restoreFromBackup,
     decimationPainterMode,
