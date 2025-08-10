@@ -232,10 +232,14 @@ export default function STLWorkflowPanel({
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    try {
+      setExpandedSections((prev) => ({
+        ...prev,
+        [section]: !prev[section],
+      }));
+    } catch (error) {
+      console.error("Error toggling section:", section, error);
+    }
   };
 
   const SectionHeader = ({
@@ -1541,10 +1545,14 @@ function MobileWorkflowContent(props: any) {
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    try {
+      setExpandedSections((prev) => ({
+        ...prev,
+        [section]: !prev[section],
+      }));
+    } catch (error) {
+      console.error("Error toggling section:", section, error);
+    }
   };
 
   const SectionHeader = ({
