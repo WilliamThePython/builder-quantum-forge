@@ -695,7 +695,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       }
 
 
-      const statsData = {
+      setTriangleStats({
         index: triangleIndex,
         vertices: faceVertices,
         area: faceArea,
@@ -704,17 +704,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         faceType: targetFace.type,
         vertexCount: faceVertices.length,
         parentFaceIndex: targetFaceIndex,
-      };
-
-      console.log(`Setting triangle stats for triangle ${triangleIndex}:`);
-      console.log(`- Face type: ${statsData.faceType}`);
-      console.log(`- Vertex count: ${statsData.vertexCount}`);
-      console.log(`- Parent face index: ${statsData.parentFaceIndex}`);
-      console.log(`- Area: ${statsData.area.toFixed(4)}`);
-      console.log(`- Perimeter: ${statsData.perimeter.toFixed(4)}`);
-      console.log(`- Vertices:`, statsData.vertices.map(v => `(${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)})`));
-
-      setTriangleStats(statsData);
+      });
     } else {
       setTriangleStats(null);
     }
