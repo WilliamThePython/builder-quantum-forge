@@ -52,13 +52,39 @@ export class FastSTLLoader {
 
     progressCallback?.(50, "Parsing", "Processing STL geometry...");
 
-    const loader = new STLLoader();
-    const geometry = loader.parse(arrayBuffer);
+    // Suppress STL loader console errors for malformed faces
+    const originalConsoleError = console.error;
+    const stlErrors: string[] = [];
+    console.error = (...args: any[]) => {
+      const message = args.join(' ');
+      if (message.includes('THREE.STLLoader: Something isn\'t right')) {
+        stlErrors.push(message);
+        // Don't spam console with STL validation errors
+        return;
+      }
+      originalConsoleError.apply(console, args);
+    };
 
-    progressCallback?.(80, "Preparing", "Finalizing geometry...");
+    try {
+      const loader = new STLLoader();
+      const geometry = loader.parse(arrayBuffer);
 
-    if (!geometry.attributes.normal) {
+      // Restore console.error
+      console.error = originalConsoleError;
+
+      // Log summary of STL issues if any
+      if (stlErrors.length > 0) {
+        console.warn(`STL file has ${stlErrors.length} malformed faces - normals will be recomputed`);
+      }
+
+      progressCallback?.(80, "Preparing", "Finalizing geometry...");
+
+      // Always recompute normals for STL files to fix any malformed faces
       geometry.computeVertexNormals();
+    } catch (error) {
+      // Restore console.error in case of exception
+      console.error = originalConsoleError;
+      throw error;
     }
 
     geometry.computeBoundingBox();
