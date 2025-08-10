@@ -1172,6 +1172,9 @@ function STLMesh() {
         for (let faceIndex = 0; faceIndex < polygonFaces.length; faceIndex++) {
           const face = polygonFaces[faceIndex];
 
+          // Skip if face is undefined or null
+          if (!face) continue;
+
           // Generate one color per polygon face
           const color = new THREE.Color();
           color.setHSL(Math.random(), 0.8, 0.6);
