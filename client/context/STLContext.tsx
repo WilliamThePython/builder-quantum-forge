@@ -578,10 +578,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const setHighlightedTriangle = useCallback((triangleIndex: number | null) => {
     setHighlightedTriangleState(triangleIndex);
-    
-    if (triangleIndex !== null && workingMeshTri) {
-      // Calculate triangle stats
-      const positions = workingMeshTri.attributes.position.array as Float32Array;
+
+    if (triangleIndex !== null && previewMeshMerged) {
+      // Calculate face stats from preview mesh (merged faces)
+      const positions = previewMeshMerged.attributes.position.array as Float32Array;
       const i = triangleIndex * 9;
       
       if (i + 8 < positions.length) {
