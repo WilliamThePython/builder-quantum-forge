@@ -2,40 +2,10 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, Heart } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import { useState } from "react";
 
 export default function About() {
-  const [selectedBackground, setSelectedBackground] = useState("minimal");
-
-  const backgroundOptions = {
-    minimal: "min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 text-gray-900",
-    darkMinimal: "min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 text-white",
-    warmMinimal: "min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 text-gray-900",
-    coolMinimal: "min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 text-gray-900",
-    darkBlue: "min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white",
-    charcoal: "min-h-screen bg-gradient-to-br from-gray-800 via-slate-800 to-zinc-900 text-white"
-  };
-
-  const cardStyles = {
-    minimal: "bg-white/80 border-gray-200 backdrop-blur-sm shadow-lg",
-    darkMinimal: "bg-white/10 border-white/20 backdrop-blur-sm",
-    warmMinimal: "bg-white/80 border-orange-200 backdrop-blur-sm shadow-lg",
-    coolMinimal: "bg-white/80 border-blue-200 backdrop-blur-sm shadow-lg",
-    darkBlue: "bg-white/10 border-white/20 backdrop-blur-sm",
-    charcoal: "bg-white/10 border-white/20 backdrop-blur-sm"
-  };
-
-  const textStyles = {
-    minimal: "text-gray-700",
-    darkMinimal: "text-gray-300",
-    warmMinimal: "text-amber-800",
-    coolMinimal: "text-blue-800", 
-    darkBlue: "text-gray-300",
-    charcoal: "text-gray-300"
-  };
-
   return (
-    <div className={backgroundOptions[selectedBackground as keyof typeof backgroundOptions]}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white">
       {/* Header with Back Button */}
       <header className="relative z-10 p-6">
         <div className="flex justify-between items-center">
