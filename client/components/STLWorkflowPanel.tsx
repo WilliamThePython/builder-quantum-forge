@@ -648,37 +648,44 @@ export default function STLWorkflowPanel({
 
                   {/* Color Picker Popover */}
                   {showColorPicker && (
-                    <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
-                      <HexColorPicker
-                        color={viewerSettings.backgroundColor}
-                        onChange={(color) => {
-                          clearHighlightOnMenuInteraction();
-                          updateViewerSettings({ backgroundColor: color });
-                        }}
-                        style={{ width: "200px", height: "200px" }}
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowColorPicker(false)}
                       />
-                      <div className="mt-3 flex justify-between items-center">
-                        <input
-                          type="text"
-                          value={viewerSettings.backgroundColor}
-                          onChange={(e) => {
-                            const color = e.target.value;
-                            if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
-                              clearHighlightOnMenuInteraction();
-                              updateViewerSettings({ backgroundColor: color });
-                            }
+                      <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                        <HexColorPicker
+                          color={viewerSettings.backgroundColor}
+                          onChange={(color) => {
+                            clearHighlightOnMenuInteraction();
+                            updateViewerSettings({ backgroundColor: color });
                           }}
-                          className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white w-20"
-                          placeholder="#000000"
+                          style={{ width: "200px", height: "200px" }}
                         />
-                        <button
-                          onClick={() => setShowColorPicker(false)}
-                          className="text-white/60 hover:text-white/80 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        <div className="mt-3 flex justify-between items-center">
+                          <input
+                            type="text"
+                            value={viewerSettings.backgroundColor}
+                            onChange={(e) => {
+                              const color = e.target.value;
+                              if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
+                                clearHighlightOnMenuInteraction();
+                                updateViewerSettings({ backgroundColor: color });
+                              }
+                            }}
+                            className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white w-20"
+                            placeholder="#000000"
+                          />
+                          <button
+                            onClick={() => setShowColorPicker(false)}
+                            className="text-white/60 hover:text-white/80 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
