@@ -1374,7 +1374,7 @@ export default function STLWorkflowPanel({
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                Just a friendly heads up! 🌈
+                Just a friendly heads up! ����
               </AlertDialogTitle>
               <AlertDialogDescription className="text-slate-300">
                 The colors feature uses vibrant, changing colors that might
@@ -1478,6 +1478,31 @@ function MobileWorkflowContent(props: any) {
     reductionAchieved?: number;
     processingTime?: number;
   }>({});
+
+  // Mobile-specific epilepsy warning state
+  const [showEpilepsyWarning, setShowEpilepsyWarning] = useState(false);
+  const [hasShownEpilepsyWarning, setHasShownEpilepsyWarning] = useState(false);
+
+  // Check if epilepsy warning has been shown this session (mobile)
+  useEffect(() => {
+    const warningShown = sessionStorage.getItem("epilepsy_warning_shown");
+    if (warningShown === "true") {
+      setHasShownEpilepsyWarning(true);
+    }
+  }, []);
+
+  // Handle colors change with epilepsy warning (mobile)
+  const handleColorsChange = (checked: boolean) => {
+    try {
+      if (checked && !hasShownEpilepsyWarning) {
+        setShowEpilepsyWarning(true);
+      } else {
+        onRandomColorsChange(checked);
+      }
+    } catch (error) {
+      console.error("Error handling colors change:", error);
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
