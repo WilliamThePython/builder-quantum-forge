@@ -133,6 +133,15 @@ export class PolygonPartsExporter {
     thickness: number,
     scale: number,
   ): string {
+    // Debug: log what data we have available
+    console.log(`Creating STL for polygon ${polygonIndex + 1}:`, {
+      type: faceInfo.type,
+      vertexCount: faceInfo.originalVertices?.length,
+      hasTriangleIndices: !!faceInfo.triangleIndices,
+      triangleIndicesCount: faceInfo.triangleIndices?.length,
+      availableProperties: Object.keys(faceInfo)
+    });
+
     const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
