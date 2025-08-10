@@ -272,13 +272,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // 3. Create merged preview mesh with coplanar face merging
     let preview = loadedGeometry.clone(); // Start from original, not triangulated
 
+    // CRITICAL: Manually preserve polygon metadata since clone() doesn't copy custom properties
+    if ((loadedGeometry as any).polygonFaces) {
+      (preview as any).polygonFaces = (loadedGeometry as any).polygonFaces;
+    }
+    if ((loadedGeometry as any).polygonType) {
+      (preview as any).polygonType = (loadedGeometry as any).polygonType;
+    }
+    if ((loadedGeometry as any).isProcedurallyGenerated) {
+      (preview as any).isProcedurallyGenerated = (loadedGeometry as any).isProcedurallyGenerated;
+    }
+
     // Apply coplanar merging for clean preview if geometry supports it
     if ((loadedGeometry as any).isProcedurallyGenerated && (loadedGeometry as any).polygonFaces) {
-      // For procedural geometry, use existing polygon structure
-      preview = loadedGeometry.clone();
-      // Ensure polygon metadata is preserved
-      (preview as any).polygonFaces = (loadedGeometry as any).polygonFaces;
-      (preview as any).polygonType = (loadedGeometry as any).polygonType || "procedural_merged";
+      // For procedural geometry, polygon structure is already perfect
     } else {
       // For loaded files, apply polygon reconstruction to create merged faces
       const polygonFaces = PolygonFaceReconstructor.reconstructPolygonFaces(triangulated);
