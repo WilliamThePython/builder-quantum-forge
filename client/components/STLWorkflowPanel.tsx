@@ -1259,6 +1259,7 @@ function MobileWorkflowContent(props: any) {
     viewerSettings,
     updateViewerSettings,
     getDetailedGeometryStats,
+    getDualMeshStats,
     hasBackup,
     restoreFromBackup,
     decimationPainterMode,
