@@ -643,12 +643,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           new THREE.Vector3(v.x, v.y, v.z)
         );
       } else {
-        console.log("No originalVertices found, using triangle fallback");
         setTriangleStats(null);
         return;
       }
-
-      console.log(`Face has ${faceVertices.length} vertices:`, faceVertices.map(v => `(${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)})`));
 
       // Calculate perimeter
       let facePerimeter = 0;
