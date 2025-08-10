@@ -182,36 +182,50 @@ export class PolygonPartsExporter {
   }
 
   /**
-   * Create a flat polygon face - ONLY for simple shapes
-   * For complex shapes, we might skip the face entirely
+   * Extract the original triangles from geometry using triangleIndices
+   * This gives us the EXACT triangulation without re-triangulating
    */
-  private static createFlatPolygonFace(
-    vertices: THREE.Vector3[],
-    normal: THREE.Vector3,
-  ): string {
-    let content = "";
+  private static extractOriginalTriangles(
+    triangleIndices: number[],
+    geometry: THREE.BufferGeometry,
+    scale: number,
+  ): THREE.Vector3[][] {
+    const triangles: THREE.Vector3[][] = [];
+    const positions = geometry.attributes.position;
 
-    if (vertices.length < 3) return content;
-
-    if (vertices.length === 3) {
-      // Triangle - add directly
-      content += this.addTriangleToSTL(vertices[0], vertices[1], vertices[2], normal);
-    } else if (vertices.length === 4) {
-      // Quad - split into 2 triangles
-      content += this.addTriangleToSTL(vertices[0], vertices[1], vertices[2], normal);
-      content += this.addTriangleToSTL(vertices[0], vertices[2], vertices[3], normal);
-    } else {
-      // For complex polygons (5+ vertices): DON'T create interior faces
-      // This prevents the waterwheel effect
-      // Just create a simple outer boundary if needed
-      console.log(`Skipping face triangulation for ${vertices.length}-vertex polygon to avoid waterwheel effect`);
-
-      // Option: create a simple fan but with fewer triangles
-      // For now, let's try skipping the face entirely
-      return "";
+    if (!positions) {
+      console.error("No position attribute in geometry");
+      return triangles;
     }
 
-    return content;
+    // Each triangle is 3 vertices, each vertex is 3 coordinates
+    for (const triangleIndex of triangleIndices) {
+      const vertexStart = triangleIndex * 9; // 9 values per triangle (3 vertices * 3 coords)
+
+      if (vertexStart + 8 < positions.count * 3) {
+        const v1 = new THREE.Vector3(
+          positions.getX(vertexStart / 3),
+          positions.getY(vertexStart / 3),
+          positions.getZ(vertexStart / 3)
+        ).multiplyScalar(scale);
+
+        const v2 = new THREE.Vector3(
+          positions.getX((vertexStart + 3) / 3),
+          positions.getY((vertexStart + 3) / 3),
+          positions.getZ((vertexStart + 3) / 3)
+        ).multiplyScalar(scale);
+
+        const v3 = new THREE.Vector3(
+          positions.getX((vertexStart + 6) / 3),
+          positions.getY((vertexStart + 6) / 3),
+          positions.getZ((vertexStart + 6) / 3)
+        ).multiplyScalar(scale);
+
+        triangles.push([v1, v2, v3]);
+      }
+    }
+
+    return triangles;
   }
 
   /**
