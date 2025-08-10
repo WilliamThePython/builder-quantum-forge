@@ -8,35 +8,15 @@ export default function About() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 text-white">
       {/* Header with Back Button */}
       <header className="relative z-10 p-6">
-        <div className="flex justify-between items-center">
-          <Link to="/">
-            <Button
-              variant="outline"
-              className={selectedBackground.includes('dark') || selectedBackground === 'charcoal' 
-                ? "bg-white/10 border-white/20 text-white hover:bg-white/20" 
-                : "bg-white/80 border-gray-300 text-gray-700 hover:bg-white"}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Intellimesh
-            </Button>
-          </Link>
-          
-          {/* Background Selector */}
-          <div className="flex gap-2">
-            <select 
-              value={selectedBackground}
-              onChange={(e) => setSelectedBackground(e.target.value)}
-              className="px-3 py-2 text-sm rounded-md bg-white/10 border border-white/20 text-current"
-            >
-              <option value="minimal">Light Minimal</option>
-              <option value="darkMinimal">Dark Minimal</option>
-              <option value="warmMinimal">Warm Minimal</option>
-              <option value="coolMinimal">Cool Minimal</option>
-              <option value="darkBlue">Dark Blue</option>
-              <option value="charcoal">Charcoal</option>
-            </select>
-          </div>
-        </div>
+        <Link to="/">
+          <Button
+            variant="outline"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Intellimesh
+          </Button>
+        </Link>
       </header>
 
       {/* Main Content */}
