@@ -582,11 +582,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         const normal = new THREE.Vector3().crossVectors(edge1, edge2);
         const area = normal.length() / 2;
         
+        // Calculate perimeter
+        const edge1Length = v1.distanceTo(v2);
+        const edge2Length = v2.distanceTo(v3);
+        const edge3Length = v3.distanceTo(v1);
+        const perimeter = edge1Length + edge2Length + edge3Length;
+
         setTriangleStats({
           index: triangleIndex,
           vertices: [v1, v2, v3],
           area,
+          perimeter,
           normal: normal.normalize(),
+          faceType: "triangle",
+          vertexCount: 3,
         });
       }
     } else {
