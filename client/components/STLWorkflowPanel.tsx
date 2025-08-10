@@ -547,7 +547,6 @@ export default function STLWorkflowPanel({
                           <div className="text-xs text-white/70 space-y-1">
                             <div>V: {dualStats.merged.vertices?.toLocaleString() || 0}</div>
                             <div>E: {dualStats.merged.edges?.toLocaleString() || 0}</div>
-                            <div>T: {dualStats.merged.triangles?.toLocaleString() || 0}</div>
                             {dualStats.merged.polygonBreakdown?.map(
                               ({ type, count }) => (
                                 <div key={type} className="text-xs">
