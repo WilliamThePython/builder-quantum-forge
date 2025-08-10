@@ -1368,10 +1368,12 @@ function STLMesh() {
         const polygonFaces = (geometry as any)?.polygonFaces;
         if (polygonFaces && Array.isArray(polygonFaces) && faceIndex < polygonFaces.length) {
           const face = polygonFaces[faceIndex];
-          const triangleIndex = face.triangleIndices && face.triangleIndices.length > 0
-            ? face.triangleIndices[0]
-            : faceIndex;
-          setHighlightedTriangle(triangleIndex);
+          if (face && face.triangleIndices && face.triangleIndices.length > 0) {
+            const triangleIndex = face.triangleIndices[0];
+            setHighlightedTriangle(triangleIndex);
+          } else {
+            setHighlightedTriangle(faceIndex);
+          }
         } else {
           setHighlightedTriangle(faceIndex);
         }
