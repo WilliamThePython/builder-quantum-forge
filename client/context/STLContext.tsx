@@ -354,23 +354,13 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
   const loadDefaultSTL = useCallback(async () => {
     try {
-      const randomFile = defaultSTLFiles[Math.floor(Math.random() * defaultSTLFiles.length)];
-      const response = await fetch(randomFile);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load default model: ${response.statusText}`);
-      }
-      
-      const arrayBuffer = await response.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
-      const file = new File([blob], randomFile.split("/").pop() || "default.stl");
-      
-      await loadModelFromFile(file);
+      const randomModel = availableModels[Math.floor(Math.random() * availableModels.length)];
+      await loadSpecificModel(randomModel.name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      setError(`Failed to load default model: ${errorMessage}`);
+      setError(`Failed to load random model: ${errorMessage}`);
     }
-  }, [loadModelFromFile]);
+  }, [loadSpecificModel]);
 
   const loadSpecificModel = useCallback(async (modelName: string) => {
     setIsLoading(true);
