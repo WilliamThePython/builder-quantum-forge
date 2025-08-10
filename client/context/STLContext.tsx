@@ -2713,7 +2713,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
           if (overlappingCount > 0) {
             console.warn(`⚠️ Found ${overlappingCount} overlapping triangles - these cause Z-fighting and visual artifacts`);
-            console.log("💡 Consider using a different decimation approach or post-processing to remove overlapping faces");
+            console.log("🔧 Attempting to remove overlapping triangles...");
+
+            // Remove overlapping triangles to fix Z-fighting
+            try {
+              result.geometry = this.removeOverlappingTriangles(result.geometry);
+              console.log("✅ Successfully removed overlapping triangles");
+            } catch (error) {
+              console.warn("⚠️ Failed to remove overlapping triangles:", error);
+            }
           }
 
           // Skip complex post-processing that might corrupt faces during decimation
