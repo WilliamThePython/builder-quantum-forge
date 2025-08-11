@@ -112,7 +112,7 @@ export class ChamferedPartsExporter {
 
       // Calculate part geometry and metrics including chamfer info
       const partInfo = this.calculateChamferedPartInfo(
-        chamferedFace,
+        polygonFace,
         partThickness,
         partThickness,
         scale,
@@ -122,9 +122,9 @@ export class ChamferedPartsExporter {
         "Part Number": `part_${String(i + 1).padStart(4, "0")}`,
         "File Name": partFilename,
         "Polygon Index": i + 1,
-        "Face Type": chamferedFace.faceInfo.type,
-        "Vertex Count": chamferedFace.faceInfo.originalVertices.length,
-        "Edge Count": chamferedFace.edges.length,
+        "Face Type": polygonFace.type || 'polygon',
+        "Vertex Count": polygonFace.vertices.length,
+        "Edge Count": polygonFace.vertices.length,
         "Thickness (mm)": partThickness,
         "Chamfer Depth (mm)": chamferDepth,
         "Scale Factor": scale,
