@@ -438,8 +438,8 @@ export class PythonMeshProcessor {
       new THREE.Float32BufferAttribute(positions, 3),
     );
 
-    // Compute normals
-    geometry.computeVertexNormals();
+    // Use flat normals to maintain crisp face shading (avoid color blending)
+    computeFlatNormals(geometry);
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
@@ -482,7 +482,7 @@ export class PythonMeshProcessor {
 
     // Log original positions for comparison
     console.log(
-      `   ��� BEFORE: First vertex [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`,
+      `   🔍 BEFORE: First vertex [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`,
     );
 
     // Create modified positions array
