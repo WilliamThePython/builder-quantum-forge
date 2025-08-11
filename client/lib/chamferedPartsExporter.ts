@@ -50,6 +50,7 @@ export class ChamferedPartsExporter {
       partThickness = 2,
       chamferDepth = 0.5, // 0.5mm chamfer depth
       scale = 1,
+      useTriangulated = false, // backup mode
     } = options;
 
     const startTime = Date.now();
@@ -57,16 +58,32 @@ export class ChamferedPartsExporter {
     // Create zip file
     const zip = new JSZip();
 
-    // Get polygon face data from geometry
-    const polygonFaces = (geometry as any).polygonFaces;
-    const polygonType = (geometry as any).polygonType;
+    // Determine which geometry to use based on backup mode
+    let polygonFaces: PolygonFace[];
+    let polygonType: string;
 
-    if (!polygonFaces) {
-      throw new Error("Geometry must have polygon faces for chamfered export");
+    if (useTriangulated) {
+      // Backup mode: use triangulated geometry (simpler chamfering)
+      polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+      polygonType = "triangulated_backup";
+      console.log(`🔄 Using backup triangulated mode for chamfering: ${polygonFaces.length} triangles`);
+    } else {
+      // Normal mode: use merged polygon faces
+      const mergedFaces = PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
+      if (mergedFaces.length === 0) {
+        console.log("⚠️ No merged faces found for chamfering, falling back to triangulated mode");
+        polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+        polygonType = "triangulated_fallback";
+      } else {
+        polygonFaces = mergedFaces;
+        polygonType = (geometry as any).polygonType || "merged";
+        console.log(`✅ Using merged polygon mode for chamfering: ${polygonFaces.length} polygons`);
+      }
     }
 
-    // Calculate edge angles between adjacent faces
-    const chamferedFaces = this.calculateEdgeAngles(polygonFaces, geometry);
+    if (polygonFaces.length === 0) {
+      throw new Error("No polygon faces found for chamfered export");
+    }
 
     // Track part information for Excel database
     const partDatabase: any[] = [];
