@@ -917,10 +917,7 @@ export default function STLWorkflowPanel({
                   </div>
 
                   <Button
-                    onClick={() => {
-                      // TODO: Implement vertex clustering
-                      console.log("Vertex clustering with tolerance:", vertexClusteringTolerance);
-                    }}
+                    onClick={handleVertexClustering}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
                     disabled={isProcessing}
                   >
