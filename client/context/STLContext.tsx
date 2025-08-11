@@ -787,15 +787,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setErrors((prev) => prev.filter((err) => err.id !== id));
   }, []);
 
-  const addError = useCallback((message: string) => {
-    const error: ErrorMessage = {
-      id: Date.now().toString(),
-      message,
-      timestamp: Date.now(),
-    };
-    setErrors((prev) => [...prev, error]);
-  }, []);
-
   const reducePoints = useCallback(
     async (
       reductionAmount: number,
