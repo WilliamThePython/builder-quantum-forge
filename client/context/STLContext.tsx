@@ -452,12 +452,16 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
     ensureNormals(basicMesh);
 
-    // Set for immediate display
+    // Set triangulated mesh for immediate display
     setWorkingMeshTri(basicMesh);
-    setPreviewMeshMerged(basicMesh);
+
+    // Create initial merged version for preview
+    updateProgress(85, "Tune", "Creating merged preview...");
+    const initialMerged = createPreviewFromWorkingMesh(basicMesh, "progressive");
+    setPreviewMeshMerged(initialMerged);
 
     // 3. Set up basic display geometry immediately
-    const displayGeometry = prepareGeometryForViewing(basicMesh, "display");
+    const displayGeometry = prepareGeometryForViewing(initialMerged, "display");
     setGeometry(displayGeometry);
 
     updateProgress(90, "Tune", "Finalizing...");
@@ -465,12 +469,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // 4. Defer heavy operations to background (non-blocking)
     setTimeout(async () => {
       try {
-        // Apply repairs and polygon reconstruction in background
+        // Apply repairs to triangulated mesh
         const repairedMesh = repairGeometry(basicMesh.clone());
         setWorkingMeshTri(repairedMesh);
 
-        // Only do polygon reconstruction if needed for parts export
-        // This is now deferred and won't block initial loading
+        // Create improved merged version in background
+        updateProgress(95, "Tune", "Creating final merged version...");
+        const finalMerged = createPreviewFromWorkingMesh(repairedMesh, "final");
+        setPreviewMeshMerged(finalMerged);
+
+        // Update display with final version
+        const finalDisplay = prepareGeometryForViewing(finalMerged, "final");
+        setGeometry(finalDisplay);
+
+        console.log("✅ Background triangulate-first processing complete");
       } catch (error) {
         console.warn("Background processing failed:", error);
       }
