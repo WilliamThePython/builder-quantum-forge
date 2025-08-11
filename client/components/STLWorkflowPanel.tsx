@@ -203,6 +203,112 @@ export default function STLWorkflowPanel({
   const [vertexClusteringTolerance, setVertexClusteringTolerance] = useState(0.1);
   const [quadricReduction, setQuadricReduction] = useState(0.5);
 
+  // Vertex clustering implementation
+  const handleVertexClustering = async () => {
+    if (!geometry) {
+      toast({
+        title: "❌ No Model Loaded",
+        description: "Please load a model before applying vertex clustering.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // Create backup before processing
+      createBackup();
+
+      // Simple vertex clustering implementation
+      const cloned = geometry.clone();
+      const positions = cloned.attributes.position.array as Float32Array;
+      const originalVertexCount = positions.length / 3;
+
+      // Build vertex map based on tolerance
+      const vertexMap = new Map<string, number>();
+      const newPositions: number[] = [];
+      const indexRemapping = new Array(originalVertexCount);
+
+      let mergedVertexCount = 0;
+
+      for (let i = 0; i < originalVertexCount; i++) {
+        const x = positions[i * 3];
+        const y = positions[i * 3 + 1];
+        const z = positions[i * 3 + 2];
+
+        // Create grid key based on tolerance
+        const gridX = Math.floor(x / vertexClusteringTolerance);
+        const gridY = Math.floor(y / vertexClusteringTolerance);
+        const gridZ = Math.floor(z / vertexClusteringTolerance);
+        const key = `${gridX},${gridY},${gridZ}`;
+
+        let newIndex = vertexMap.get(key);
+        if (newIndex === undefined) {
+          newIndex = mergedVertexCount;
+          vertexMap.set(key, newIndex);
+          newPositions.push(x, y, z);
+          mergedVertexCount++;
+        }
+
+        indexRemapping[i] = newIndex;
+      }
+
+      // Update geometry with clustered vertices
+      cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+
+      // Update indices if geometry is indexed
+      if (cloned.index) {
+        const oldIndices = cloned.index.array;
+        const newIndices = new Array(oldIndices.length);
+
+        for (let i = 0; i < oldIndices.length; i++) {
+          newIndices[i] = indexRemapping[oldIndices[i]];
+        }
+
+        cloned.setIndex(newIndices);
+      }
+
+      // Remove color attributes to force fresh colors
+      if (cloned.attributes.color) {
+        cloned.deleteAttribute("color");
+      }
+
+      // Update normals
+      cloned.computeVertexNormals();
+      cloned.uuid = THREE.MathUtils.generateUUID();
+
+      const processingTime = Date.now() - startTime;
+      const verticesReduced = originalVertexCount - mergedVertexCount;
+      const reductionPercent = ((verticesReduced / originalVertexCount) * 100).toFixed(1);
+
+      // Update geometry
+      setGeometry(cloned);
+
+      // Update stats
+      setSimplificationStats({
+        originalStats: { vertices: originalVertexCount },
+        newStats: { vertices: mergedVertexCount },
+        reductionAchieved: verticesReduced / originalVertexCount,
+        processingTime,
+      });
+
+      // Show success toast that auto-fades
+      toast({
+        title: "✅ Vertex Clustering Complete",
+        description: `Merged ${verticesReduced} vertices (${reductionPercent}% reduction) in ${processingTime}ms`,
+        duration: 2500, // Auto-dismiss after 2.5 seconds
+      });
+
+    } catch (error) {
+      toast({
+        title: "❌ Vertex Clustering Failed",
+        description: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        duration: 4000,
+      });
+    }
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     console.log("🔄 File upload triggered:", file?.name, file?.size);
