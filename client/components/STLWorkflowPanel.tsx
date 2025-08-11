@@ -1474,6 +1474,12 @@ function MobileWorkflowContent(props: any) {
     partThickness: 2,
     scale: 1,
   });
+  const [showChamferedSettings, setShowChamferedSettings] = useState(false);
+  const [chamferedOptions, setChamferedOptions] = useState({
+    partThickness: 2,
+    chamferDepth: 0.5,
+    scale: 1,
+  });
 
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
   const [exportType, setExportType] = useState<"complete" | "parts">(
