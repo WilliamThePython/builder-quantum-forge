@@ -1178,25 +1178,69 @@ export default function STLWorkflowPanel({
                                       mm, Scale: {triangleOptions.scale}x
                                     </div>
                                     <div>
-                                      • Est. print time: ~
-                                      {Math.floor(
-                                        (triangleCount *
-                                          0.67 *
-                                          (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 1.5)) /
-                                          60,
-                                      )}
-                                      h
+                                      • Est. material: ~
+                                      {(() => {
+                                        // Calculate total surface area from triangles
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          // Get triangle vertices
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          // Calculate triangle area using cross product
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        // Material = surface area * thickness * scale * calibration factor
+                                        const calibrationFactor = 0.1; // Adjust this to calibrate estimates
+                                        const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
+                                        return Math.round(material);
+                                      })()}
+                                      g filament
                                     </div>
                                     <div>
-                                      • Est. material: ~
-                                      {Math.round(
-                                        triangleCount *
-                                          0.17 *
-                                          (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 2.2),
-                                      )}
-                                      g filament
+                                      • Est. print time: ~
+                                      {(() => {
+                                        // Calculate material first (same as above)
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        const calibrationFactor = 0.1;
+                                        const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
+
+                                        // Time = adjustment factor * material * (1 + log(triangle count))
+                                        const timeAdjustmentFactor = 0.01; // Adjust this to calibrate time estimates
+                                        const time = timeAdjustmentFactor * material * (1 + Math.log(triangleCount));
+                                        return Math.floor(time);
+                                      })()}
+                                      h
                                     </div>
                                   </>
                                 );
