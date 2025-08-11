@@ -2251,7 +2251,7 @@ function MobileWorkflowContent(props: any) {
           </div>
 
           <Button
-            onClick={() => exportChamferedParts(chamferedOptions)}
+            onClick={() => exportChamferedParts({ ...chamferedOptions, useTriangulated: chamferedOptions.modelType === "triangle" })}
             disabled={!geometry}
             className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12"
           >
