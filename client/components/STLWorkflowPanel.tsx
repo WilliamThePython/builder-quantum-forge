@@ -91,6 +91,7 @@ export default function STLWorkflowPanel({
 }: STLWorkflowPanelProps) {
   const isMobile = useIsMobile();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { toast } = useToast();
 
   // Epilepsy warning state
   const [showEpilepsyWarning, setShowEpilepsyWarning] = useState(false);
