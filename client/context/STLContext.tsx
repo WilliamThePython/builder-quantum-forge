@@ -496,6 +496,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       if (polygonFaces.length > 0) {
         PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
         (preview as any).polygonType = `${operationType}_merged`;
+
+        // Ensure colors are still preserved after polygon reconstruction
+        if (workingGeometry.attributes.color && !preview.attributes.color) {
+          console.log(`🎨 Re-applying colors after polygon reconstruction`);
+          preview.setAttribute("color", workingGeometry.attributes.color.clone());
+        }
       } else {
         // Fallback: use triangulated geometry as-is
         (preview as any).polygonType = `${operationType}_triangulated`;
