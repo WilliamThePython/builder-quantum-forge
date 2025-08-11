@@ -729,6 +729,41 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     [previewMeshMerged, fileName],
   );
 
+  const exportChamferedParts = useCallback(
+    async (options?: {
+      format?: "stl" | "obj";
+      partThickness?: number;
+      chamferDepth?: number;
+      scale?: number;
+    }) => {
+      if (!previewMeshMerged) {
+        console.error("No 3D model loaded for chamfered parts export");
+        addError("No 3D model loaded for chamfered parts export");
+        return;
+      }
+
+      // Check if geometry has polygon faces (required for chamfering)
+      const polygonFaces = (previewMeshMerged as any).polygonFaces;
+      if (!polygonFaces || !Array.isArray(polygonFaces) || polygonFaces.length === 0) {
+        console.error("Chamfered export requires polygon faces. Please ensure model is properly processed.");
+        addError("Chamfered export requires polygon faces. Please ensure model is properly processed with merging enabled.");
+        return;
+      }
+
+      try {
+        await ChamferedPartsExporter.exportChamferedPartsAsZip(
+          previewMeshMerged,
+          fileName || "model",
+          options,
+        );
+      } catch (error) {
+        console.error("Chamfered parts export failed:", error);
+        addError(`Chamfered parts export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    },
+    [previewMeshMerged, fileName, addError],
+  );
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
