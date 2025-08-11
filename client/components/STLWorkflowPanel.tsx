@@ -1249,27 +1249,6 @@ export default function STLWorkflowPanel({
                           />
                         </div>
 
-                        {/* Chamfer Depth Setting */}
-                        <div className="mb-3">
-                          <div className="text-white text-xs mb-2">
-                            Chamfer Depth: {chamferedOptions.chamferDepth}mm
-                          </div>
-                          <input
-                            type="range"
-                            min="0.1"
-                            max="2.0"
-                            step="0.1"
-                            value={chamferedOptions.chamferDepth}
-                            onChange={(e) =>
-                              setChamferedOptions((prev) => ({
-                                ...prev,
-                                chamferDepth: parseFloat(e.target.value),
-                              }))
-                            }
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                        </div>
-
                         {/* Scale Setting */}
                         <div className="mb-3">
                           <div className="text-white text-xs mb-2">
@@ -1278,7 +1257,7 @@ export default function STLWorkflowPanel({
                           <input
                             type="range"
                             min="0.1"
-                            max="3"
+                            max="10"
                             step="0.1"
                             value={chamferedOptions.scale}
                             onChange={(e) =>
@@ -1289,6 +1268,10 @@ export default function STLWorkflowPanel({
                             }
                             className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
                           />
+                          <div className="flex justify-between text-xs text-white/70 mt-1">
+                            <span>0.1x</span>
+                            <span>10x</span>
+                          </div>
                         </div>
 
                         <div className="text-xs text-white/70 mb-3">
