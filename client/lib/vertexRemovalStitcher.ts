@@ -671,13 +671,6 @@ export class VertexRemovalStitcher {
     cloned.setIndex(remappedTriangles);
     cloned.attributes.position.needsUpdate = true;
 
-    // Update color attribute if it existed
-    if (newColors.length > 0) {
-      console.log(`   🎨 Preserving ${newColors.length / 3} vertex colors after decimation`);
-      cloned.setAttribute("color", new THREE.Float32BufferAttribute(newColors, 3));
-      cloned.attributes.color.needsUpdate = true;
-    }
-
     const newUUID = THREE.MathUtils.generateUUID();
     cloned.uuid = newUUID;
 
