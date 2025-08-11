@@ -626,7 +626,10 @@ export class VertexRemovalStitcher {
     const newPositions: number[] = [];
     let newVertexIndex = 0;
 
-    // Build vertex remapping and collect used vertex positions
+    // Build vertex remapping and collect used vertex positions and colors
+    const originalColors = cloned.attributes.color?.array as Float32Array;
+    const newColors: number[] = [];
+
     for (const vertexIndex of Array.from(usedVertices).sort((a, b) => a - b)) {
       vertexRemap.set(vertexIndex, newVertexIndex);
 
@@ -637,6 +640,16 @@ export class VertexRemovalStitcher {
         positions[baseIndex + 1],
         positions[baseIndex + 2]
       );
+
+      // Copy vertex color if it exists
+      if (originalColors && originalColors.length > baseIndex + 2) {
+        newColors.push(
+          originalColors[baseIndex],
+          originalColors[baseIndex + 1],
+          originalColors[baseIndex + 2]
+        );
+      }
+
       newVertexIndex++;
     }
 
