@@ -2216,25 +2216,24 @@ function MobileWorkflowContent(props: any) {
         </div>
 
         {/* 3D Print 'n' Glue */}
-        <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
-          <div className="flex items-center gap-3">
-            <div className="text-white text-base">
-              3D Print 'n' Glue (as stl/obj)
-            </div>
-            <div className="relative group">
-              <div className="w-5 h-5 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-sm font-bold cursor-help">
-                i
-              </div>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 border border-blue-400/30 rounded-md text-sm text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
-                3D print your models and glue them together! This export type
-                ensures that each piece is chamfered to the appropriate angle so
-                you can glue them all together properly!
-              </div>
-            </div>
+        <div className="space-y-3">
+          <div className="text-white text-base font-medium mb-2 flex items-center gap-2">
+            <Hammer className="w-4 h-4" />
+            3D Print 'n' Glue Export
           </div>
-          <span className="text-blue-300/60 text-sm font-medium bg-blue-500/10 px-3 py-1.5 rounded">
-            COMING SOON
-          </span>
+
+          <Button
+            onClick={() => exportChamferedParts(chamferedOptions)}
+            disabled={!geometry}
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-12"
+          >
+            <Hammer className="w-5 h-5 mr-2" />
+            Export Chamfered Parts
+          </Button>
+
+          <p className="text-sm text-white/60">
+            Generate chamfered parts with angled edges for perfect assembly
+          </p>
         </div>
       </div>
 
