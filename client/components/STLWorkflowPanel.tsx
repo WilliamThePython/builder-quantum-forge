@@ -175,6 +175,12 @@ export default function STLWorkflowPanel({
     partThickness: 2,
     scale: 1,
   });
+  const [showChamferedSettings, setShowChamferedSettings] = useState(false);
+  const [chamferedOptions, setChamferedOptions] = useState({
+    partThickness: 2,
+    chamferDepth: 0.5,
+    scale: 1,
+  });
 
   // Export format selection
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
