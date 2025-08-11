@@ -1169,6 +1169,16 @@ function STLMesh() {
       if (existingColors && existingColors.length > 0) {
         console.log("   🎨 Using existing preserved colors instead of generating new ones");
         originalColors.current = new Float32Array(existingColors);
+
+        // Ensure flat normals for crisp face rendering with preserved colors
+        const polygonFaces = (geometry as any).polygonFaces;
+        if (polygonFaces) {
+          computePolygonAwareFlatNormals(geometry, polygonFaces);
+        } else {
+          computeFlatNormals(geometry);
+        }
+
+        console.log(`✅ Preserved colors applied to ${geometry.attributes.position.count / 3} triangles`);
         return; // Skip color generation, use existing colors
       }
 
