@@ -202,7 +202,7 @@ export default function STLWorkflowPanel({
   }>({});
 
   // New simplification state variables
-  const [vertexClusteringTolerance, setVertexClusteringTolerance] = useState(0.1);
+  const [vertexClusteringTolerance, setVertexClusteringTolerance] = useState(0.001);
   const [quadricReduction, setQuadricReduction] = useState(0.5);
 
   // Vertex clustering implementation
