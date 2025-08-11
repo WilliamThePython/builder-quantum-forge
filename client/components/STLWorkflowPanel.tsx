@@ -1295,6 +1295,109 @@ export default function STLWorkflowPanel({
                     )}
                   </div>
 
+                  {/* 3D Print 'n' Glue */}
+                  <div>
+                    <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
+                      <Hammer className="w-3 h-3" />
+                      3D Print 'n' Glue Export
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          exportChamferedParts(chamferedOptions);
+                          setShowChamferedSettings(false);
+                        }}
+                        disabled={!geometry}
+                        className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
+                      >
+                        <Hammer className="w-4 h-4 mr-2" />
+                        Export Chamfered Parts
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          setShowChamferedSettings(!showChamferedSettings)
+                        }
+                        disabled={!geometry}
+                        className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
+                        title="Configure chamfer settings"
+                      >
+                        <Wrench className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-white/60 mt-1">
+                      Generate chamfered parts with angled sides that fit together perfectly for easy assembly
+                    </p>
+
+                    {/* Chamfered Export Settings */}
+                    {showChamferedSettings && (
+                      <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                        <div className="text-white text-sm font-medium mb-3">
+                          Chamfered Parts Settings
+                        </div>
+
+                        {/* Thickness Setting */}
+                        <div className="mb-3">
+                          <div className="text-white text-xs mb-2">
+                            Part Thickness: {chamferedOptions.partThickness}mm
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            step="0.5"
+                            value={chamferedOptions.partThickness}
+                            onChange={(e) =>
+                              setChamferedOptions((prev) => ({
+                                ...prev,
+                                partThickness: parseFloat(e.target.value),
+                              }))
+                            }
+                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                        </div>
+
+                        {/* Scale Setting */}
+                        <div className="mb-3">
+                          <div className="text-white text-xs mb-2">
+                            Scale Factor: {chamferedOptions.scale}x
+                          </div>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="10"
+                            step="0.1"
+                            value={chamferedOptions.scale}
+                            onChange={(e) =>
+                              setChamferedOptions((prev) => ({
+                                ...prev,
+                                scale: parseFloat(e.target.value),
+                              }))
+                            }
+                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                          />
+                          <div className="flex justify-between text-xs text-white/70 mt-1">
+                            <span>0.1x</span>
+                            <span>10x</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              exportChamferedParts(chamferedOptions);
+                              setShowChamferedSettings(false);
+                            }}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-2 h-8"
+                            disabled={isProcessing || !geometry}
+                          >
+                            Generate Chamfered Parts
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Papercraft Export */}
                   <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
                     <div className="flex items-center gap-3">
