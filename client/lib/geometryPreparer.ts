@@ -73,8 +73,13 @@ export function prepareGeometryForViewing(
  * (Moved from STLContext for reusability)
  */
 function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
-  // Use flat normals to maintain crisp face shading
-  computeFlatNormals(geometry);
+  // For geometries that already have proper normals (like decimated ones), check if they need recalculation
+  const hasExistingNormals = geometry.attributes.normal && geometry.attributes.normal.count > 0;
+
+  if (!hasExistingNormals) {
+    // Use flat normals to maintain crisp face shading
+    computeFlatNormals(geometry);
+  }
 
   // Check if we need to flip faces by examining face normals
   const positions = geometry.attributes.position.array;
