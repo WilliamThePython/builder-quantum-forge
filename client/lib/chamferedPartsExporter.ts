@@ -167,7 +167,7 @@ export class ChamferedPartsExporter {
     zip.file("chamfered_assembly_instructions.txt", instructions);
 
     // Generate chamfer angle reference
-    const chamferReference = this.generateChamferAngleReference(chamferedFaces);
+    const chamferReference = this.generateChamferAngleReference(polygonFaces, useTriangulated);
     zip.file("chamfer_angle_reference.txt", chamferReference);
 
     // Generate and download zip
