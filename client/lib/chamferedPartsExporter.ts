@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
+import { PolygonExtruder, PolygonFace, ExtrusionOptions, ChamferOptions } from "./polygonExtruder";
 
 /**
  * Interface for edge information with angles
