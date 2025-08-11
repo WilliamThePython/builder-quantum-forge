@@ -526,12 +526,12 @@ export class ChamferedPartsExporter {
    * Calculate detailed information for a chamfered polygon part
    */
   private static calculateChamferedPartInfo(
-    chamferedFace: ChamferedFaceInfo,
+    polygonFace: PolygonFace,
     thickness: number,
     chamferDepth: number,
     scale: number,
   ) {
-    const vertices = chamferedFace.faceInfo.originalVertices.map((v: THREE.Vector3) =>
+    const vertices = polygonFace.vertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale)
     );
 
