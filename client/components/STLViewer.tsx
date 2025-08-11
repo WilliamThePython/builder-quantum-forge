@@ -1164,6 +1164,14 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
+      // Check if geometry already has preserved colors (e.g., from decimation)
+      const existingColors = geometry.attributes.color?.array as Float32Array;
+      if (existingColors && existingColors.length > 0) {
+        console.log("   🎨 Using existing preserved colors instead of generating new ones");
+        originalColors.current = new Float32Array(existingColors);
+        return; // Skip color generation, use existing colors
+      }
+
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
 
