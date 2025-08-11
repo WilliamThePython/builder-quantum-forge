@@ -51,9 +51,12 @@ export class STLManipulator {
           processingTime: pythonResult.processingTime,
         };
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(`🔧 Python service failed or unavailable, using JavaScript: ${error}`);
+    }
 
     // Fallback to JavaScript implementation
+    console.log(`🔧 Using JavaScript VertexRemovalStitcher for decimation`);
     const result = await VertexRemovalStitcher.removeVertices(
       geometry,
       targetReduction,
