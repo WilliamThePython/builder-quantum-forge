@@ -94,12 +94,13 @@ async def decimate_mesh(
         target_triangles = max(4, int(original_triangles * (1 - target_reduction)))
 
         
-        # Apply quadric decimation using Open3D
+        # Apply conservative quadric decimation for user-uploaded models
+        # Use more conservative settings to avoid artifacts like crimped legs or holes
 
         decimated_mesh = mesh.simplify_quadric_decimation(
             target_number_of_triangles=target_triangles,
-            maximum_error=1e30,  # Allow any error to reach target count
-            boundary_weight=1.0 if preserve_boundary else 0.1
+            maximum_error=0.01,  # Conservative error threshold to preserve shape quality
+            boundary_weight=0.3  # Moderate boundary preservation - not too aggressive
         )
 
         # For polygon-preserving mode, try to merge coplanar triangles back into polygons
