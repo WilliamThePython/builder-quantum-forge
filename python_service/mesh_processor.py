@@ -111,9 +111,8 @@ async def decimate_mesh(
         actual_reduction = 1 - (final_vertices / original_vertices)
         
         
-        # Ensure mesh has vertex normals for proper rendering
-        if not decimated_mesh.has_vertex_normals():
-            decimated_mesh.compute_vertex_normals()
+        # Don't compute vertex normals - preserve flat shading for crisp face appearance
+        # Vertex normals create smooth shading which causes color blending artifacts
         
         # Export in same format as input to preserve structure
         output_extension = file_extension
