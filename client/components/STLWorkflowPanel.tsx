@@ -1438,7 +1438,7 @@ export default function STLWorkflowPanel({
                                         }
 
                                         // Material = surface area * thickness * scale * calibration factor (adjusted by 0.75)
-                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const calibrationFactor = 0.0036; // 0.004 * 0.75 * 1.2
                                         const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
                                         return Math.round(material);
                                       })()}
@@ -1467,7 +1467,7 @@ export default function STLWorkflowPanel({
                                           totalArea += area;
                                         }
 
-                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const calibrationFactor = 0.0036; // 0.004 * 0.75 * 1.2
                                         const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
 
                                         // Time = adjustment factor * material * (1 + log(polygon count))
@@ -1520,7 +1520,7 @@ export default function STLWorkflowPanel({
                                         }
 
                                         // Material = surface area * thickness * scale * calibration factor (adjusted by 0.75)
-                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const calibrationFactor = 0.0036; // 0.004 * 0.75 * 1.2
                                         const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
                                         return Math.round(material);
                                       })()}
@@ -1549,7 +1549,7 @@ export default function STLWorkflowPanel({
                                           totalArea += area;
                                         }
 
-                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const calibrationFactor = 0.0036; // 0.004 * 0.75 * 1.2
                                         const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
 
                                         // Time = adjustment factor * material * (1 + log(triangle count))
