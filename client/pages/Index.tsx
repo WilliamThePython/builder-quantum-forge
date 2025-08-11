@@ -62,6 +62,9 @@ export default function Index() {
       case "python_vertex":
         backendMethod = "quadric_edge_collapse"; // Map to quadric for now
         break;
+      case "vertex_clustering":
+        backendMethod = "vertex_clustering"; // Direct vertex clustering
+        break;
       default:
         backendMethod = "quadric_edge_collapse"; // Default to proper QEM
     }
