@@ -837,6 +837,11 @@ export class VertexRemovalStitcher {
     if (geometry.attributes.uv) {
       indexedGeometry.setAttribute("uv", geometry.attributes.uv.clone());
     }
+    // CRITICAL: Copy color attributes during indexing conversion
+    if (geometry.attributes.color) {
+      console.log("🎨 convertToIndexed: Preserving color attributes");
+      indexedGeometry.setAttribute("color", geometry.attributes.color.clone());
+    }
 
     // Copy polygon metadata if it exists
     if ((geometry as any).polygonFaces) {
