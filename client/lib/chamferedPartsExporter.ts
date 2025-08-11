@@ -89,15 +89,26 @@ export class ChamferedPartsExporter {
     const partDatabase: any[] = [];
 
     // Create individual chamfered files for each polygon face
-    for (let i = 0; i < chamferedFaces.length; i++) {
-      const chamferedFace = chamferedFaces[i];
+    for (let i = 0; i < polygonFaces.length; i++) {
+      const polygonFace = polygonFaces[i];
       const fileExtension = format === "obj" ? "obj" : "stl";
-      
+
+      // Use generalized polygon extruder for consistent chamfered geometry
+      const extrusionOptions: ExtrusionOptions = {
+        thickness: partThickness,
+        scale: scale,
+      };
+
+      const chamferOptions: ChamferOptions = {
+        chamferDepth: partThickness, // chamfer goes through the part
+        defaultChamferAngle: 45, // default 45-degree chamfer for triangulated mode
+      };
+
       const partContent = format === "obj"
-        ? this.createChamferedPolygonOBJ(chamferedFace, partThickness, partThickness, scale)
-        : this.createChamferedPolygonSTL(chamferedFace, partThickness, partThickness, scale, geometry);
-      
-      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${chamferedFace.faceInfo.type}_chamfered.${fileExtension}`;
+        ? this.createChamferedPolygonOBJ(polygonFace, partThickness, partThickness, scale)
+        : PolygonExtruder.createChamferedPolygon(polygonFace, extrusionOptions, chamferOptions);
+
+      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || 'polygon'}_chamfered.${fileExtension}`;
 
       // Calculate part geometry and metrics including chamfer info
       const partInfo = this.calculateChamferedPartInfo(
