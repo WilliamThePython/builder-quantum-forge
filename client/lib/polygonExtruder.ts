@@ -30,25 +30,24 @@ export interface ChamferOptions {
 
 /**
  * PolygonExtruder - Generalized polygon extrusion and chamfering utilities
- * 
+ *
  * This class provides robust methods for creating 3D parts from polygon faces
  * with consistent geometry generation across different export types.
  */
 export class PolygonExtruder {
-  
   /**
    * Create a simple extruded polygon (prism) from vertices
    * This is the basic building block for all polygon parts
    */
   static createExtrudedPolygon(
     polygon: PolygonFace,
-    options: ExtrusionOptions
+    options: ExtrusionOptions,
   ): string {
     const { thickness, scale, centerZ = 0 } = options;
-    
+
     // Scale and position vertices
-    const scaledVertices = polygon.vertices.map(v => 
-      new THREE.Vector3(v.x * scale, v.y * scale, (v.z * scale) + centerZ)
+    const scaledVertices = polygon.vertices.map(
+      (v) => new THREE.Vector3(v.x * scale, v.y * scale, v.z * scale + centerZ),
     );
 
     // Calculate or use provided normal
@@ -60,7 +59,7 @@ export class PolygonExtruder {
     // Create front and back face vertices
     const frontVertices = scaledVertices;
     const offset = normal.clone().multiplyScalar(thickness);
-    const backVertices = scaledVertices.map(v => v.clone().add(offset));
+    const backVertices = scaledVertices.map((v) => v.clone().add(offset));
 
     let stlContent = `solid extruded_polygon_${polygon.index || 0}\n`;
 
@@ -69,15 +68,25 @@ export class PolygonExtruder {
 
     // Front face
     for (const triangle of frontTriangles) {
-      stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
+      stlContent += this.addTriangleToSTL(
+        triangle[0],
+        triangle[1],
+        triangle[2],
+        normal,
+      );
     }
 
     // Back face - same triangulation but reversed winding and offset
-    const backTriangles = frontTriangles.map(triangle =>
-      triangle.map(v => v.clone().add(offset)).reverse()
+    const backTriangles = frontTriangles.map((triangle) =>
+      triangle.map((v) => v.clone().add(offset)).reverse(),
     );
     for (const triangle of backTriangles) {
-      stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal.clone().negate());
+      stlContent += this.addTriangleToSTL(
+        triangle[0],
+        triangle[1],
+        triangle[2],
+        normal.clone().negate(),
+      );
     }
 
     // Side walls
@@ -94,14 +103,18 @@ export class PolygonExtruder {
   static createChamferedPolygon(
     polygon: PolygonFace,
     extrusionOptions: ExtrusionOptions,
-    chamferOptions: ChamferOptions
+    chamferOptions: ChamferOptions,
   ): string {
     const { thickness, scale, centerZ = 0 } = extrusionOptions;
-    const { chamferDepth, edgeAngles, defaultChamferAngle = 45 } = chamferOptions;
-    
+    const {
+      chamferDepth,
+      edgeAngles,
+      defaultChamferAngle = 45,
+    } = chamferOptions;
+
     // Scale and position vertices
-    const originalVertices = polygon.vertices.map(v => 
-      new THREE.Vector3(v.x * scale, v.y * scale, (v.z * scale) + centerZ)
+    const originalVertices = polygon.vertices.map(
+      (v) => new THREE.Vector3(v.x * scale, v.y * scale, v.z * scale + centerZ),
     );
 
     // Calculate or use provided normal
@@ -114,37 +127,47 @@ export class PolygonExtruder {
     const chamferedVertices = this.generateChamferedVertices(
       originalVertices,
       chamferDepth,
-      edgeAngles || Array(originalVertices.length).fill(defaultChamferAngle)
+      edgeAngles || Array(originalVertices.length).fill(defaultChamferAngle),
     );
 
     // Create front and back face vertices
     const frontVertices = chamferedVertices;
     const offset = normal.clone().multiplyScalar(thickness);
-    const backVertices = chamferedVertices.map(v => v.clone().add(offset));
+    const backVertices = chamferedVertices.map((v) => v.clone().add(offset));
 
     let stlContent = `solid chamfered_polygon_${polygon.index || 0}\n`;
 
     // Front face - triangulate the chamfered polygon
     const frontTriangles = this.triangulatePolygon(frontVertices, normal);
     for (const triangle of frontTriangles) {
-      stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
+      stlContent += this.addTriangleToSTL(
+        triangle[0],
+        triangle[1],
+        triangle[2],
+        normal,
+      );
     }
 
     // Back face - same triangulation but reversed winding and offset
-    const backTriangles = frontTriangles.map(triangle => 
-      triangle.map(v => v.clone().add(offset)).reverse()
+    const backTriangles = frontTriangles.map((triangle) =>
+      triangle.map((v) => v.clone().add(offset)).reverse(),
     );
     for (const triangle of backTriangles) {
-      stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal.clone().negate());
+      stlContent += this.addTriangleToSTL(
+        triangle[0],
+        triangle[1],
+        triangle[2],
+        normal.clone().negate(),
+      );
     }
 
     // Chamfered side walls
     stlContent += this.createChamferedSideWalls(
-      frontVertices, 
-      backVertices, 
+      frontVertices,
+      backVertices,
       originalVertices,
       chamferDepth,
-      edgeAngles || Array(originalVertices.length).fill(defaultChamferAngle)
+      edgeAngles || Array(originalVertices.length).fill(defaultChamferAngle),
     );
 
     stlContent += `endsolid chamfered_polygon_${polygon.index || 0}\n`;
@@ -157,30 +180,42 @@ export class PolygonExtruder {
   private static generateChamferedVertices(
     originalVertices: THREE.Vector3[],
     chamferDepth: number,
-    chamferAngles: number[]
+    chamferAngles: number[],
   ): THREE.Vector3[] {
     const chamferedVertices: THREE.Vector3[] = [];
 
     for (let i = 0; i < originalVertices.length; i++) {
       const vertex = originalVertices[i];
-      const prevVertex = originalVertices[(i - 1 + originalVertices.length) % originalVertices.length];
+      const prevVertex =
+        originalVertices[
+          (i - 1 + originalVertices.length) % originalVertices.length
+        ];
       const nextVertex = originalVertices[(i + 1) % originalVertices.length];
 
       // Calculate inset direction
-      const prevDir = new THREE.Vector3().subVectors(vertex, prevVertex).normalize();
-      const nextDir = new THREE.Vector3().subVectors(nextVertex, vertex).normalize();
-      
+      const prevDir = new THREE.Vector3()
+        .subVectors(vertex, prevVertex)
+        .normalize();
+      const nextDir = new THREE.Vector3()
+        .subVectors(nextVertex, vertex)
+        .normalize();
+
       // Calculate angle bisector for inset direction
-      const bisector = new THREE.Vector3().addVectors(prevDir, nextDir).normalize();
-      
+      const bisector = new THREE.Vector3()
+        .addVectors(prevDir, nextDir)
+        .normalize();
+
       // Use the chamfer angle for this vertex
       const chamferAngle = chamferAngles[i] || 45;
-      const insetDistance = chamferDepth / Math.sin((chamferAngle * Math.PI) / 180);
-      
+      const insetDistance =
+        chamferDepth / Math.sin((chamferAngle * Math.PI) / 180);
+
       // Inset the vertex
-      const chamferedVertex = vertex.clone().sub(
-        bisector.multiplyScalar(Math.min(insetDistance, chamferDepth * 2))
-      );
+      const chamferedVertex = vertex
+        .clone()
+        .sub(
+          bisector.multiplyScalar(Math.min(insetDistance, chamferDepth * 2)),
+        );
 
       chamferedVertices.push(chamferedVertex);
     }
@@ -191,18 +226,20 @@ export class PolygonExtruder {
   /**
    * Calculate polygon normal from vertices using Newell's method
    */
-  private static calculatePolygonNormal(vertices: THREE.Vector3[]): THREE.Vector3 {
+  private static calculatePolygonNormal(
+    vertices: THREE.Vector3[],
+  ): THREE.Vector3 {
     const normal = new THREE.Vector3();
-    
+
     for (let i = 0; i < vertices.length; i++) {
       const current = vertices[i];
       const next = vertices[(i + 1) % vertices.length];
-      
+
       normal.x += (current.y - next.y) * (current.z + next.z);
       normal.y += (current.z - next.z) * (current.x + next.x);
       normal.z += (current.x - next.x) * (current.y + next.y);
     }
-    
+
     return normal.normalize();
   }
 
@@ -210,7 +247,10 @@ export class PolygonExtruder {
    * Robust polygon triangulation that avoids water wheel effect
    * Uses ear clipping algorithm for better polygon decomposition
    */
-  private static triangulatePolygon(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[][] {
+  private static triangulatePolygon(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[][] {
     const triangles: THREE.Vector3[][] = [];
 
     if (vertices.length < 3) return triangles;
@@ -234,7 +274,10 @@ export class PolygonExtruder {
    * Ear clipping triangulation algorithm
    * Creates a more natural triangulation without water wheel artifacts
    */
-  private static earClippingTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[][] {
+  private static earClippingTriangulation(
+    vertices: THREE.Vector3[],
+    normal: THREE.Vector3,
+  ): THREE.Vector3[][] {
     const triangles: THREE.Vector3[][] = [];
 
     // Create a working copy of vertex indices
@@ -254,11 +297,7 @@ export class PolygonExtruder {
 
         if (this.isEar(vertices, indices, prev, curr, next, normal)) {
           // Found an ear - create triangle and remove the ear tip
-          triangles.push([
-            vertices[prev],
-            vertices[curr],
-            vertices[next]
-          ]);
+          triangles.push([vertices[prev], vertices[curr], vertices[next]]);
 
           // Remove the ear tip from the polygon
           indices.splice(i, 1);
@@ -275,7 +314,7 @@ export class PolygonExtruder {
           triangles.push([
             vertices[indices[0]],
             vertices[indices[i]],
-            vertices[indices[i + 1]]
+            vertices[indices[i + 1]],
           ]);
         }
         break;
@@ -287,7 +326,7 @@ export class PolygonExtruder {
       triangles.push([
         vertices[indices[0]],
         vertices[indices[1]],
-        vertices[indices[2]]
+        vertices[indices[2]],
       ]);
     }
 
@@ -303,7 +342,7 @@ export class PolygonExtruder {
     prevIdx: number,
     currIdx: number,
     nextIdx: number,
-    normal: THREE.Vector3
+    normal: THREE.Vector3,
   ): boolean {
     const prev = vertices[prevIdx];
     const curr = vertices[currIdx];
@@ -339,7 +378,7 @@ export class PolygonExtruder {
     point: THREE.Vector3,
     a: THREE.Vector3,
     b: THREE.Vector3,
-    c: THREE.Vector3
+    c: THREE.Vector3,
   ): boolean {
     // Convert to 2D by projecting onto the triangle plane
     const v0 = new THREE.Vector3().subVectors(c, a);
@@ -356,7 +395,7 @@ export class PolygonExtruder {
     const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
     const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-    return (u >= 0) && (v >= 0) && (u + v <= 1);
+    return u >= 0 && v >= 0 && u + v <= 1;
   }
 
   /**
@@ -364,7 +403,7 @@ export class PolygonExtruder {
    */
   private static createSideWalls(
     frontVertices: THREE.Vector3[],
-    backVertices: THREE.Vector3[]
+    backVertices: THREE.Vector3[],
   ): string {
     let content = "";
 
@@ -379,7 +418,9 @@ export class PolygonExtruder {
       // Calculate normal for this side face
       const edge1 = new THREE.Vector3().subVectors(v2, v1);
       const edge2 = new THREE.Vector3().subVectors(v4, v1);
-      const sideNormal = new THREE.Vector3().crossVectors(edge1, edge2).normalize();
+      const sideNormal = new THREE.Vector3()
+        .crossVectors(edge1, edge2)
+        .normalize();
 
       // Add two triangles to form the side quad
       content += this.addTriangleToSTL(v1, v2, v3, sideNormal);
@@ -397,7 +438,7 @@ export class PolygonExtruder {
     backVertices: THREE.Vector3[],
     originalVertices: THREE.Vector3[],
     chamferDepth: number,
-    chamferAngles: number[]
+    chamferAngles: number[],
   ): string {
     let content = "";
 
@@ -416,7 +457,9 @@ export class PolygonExtruder {
       // Create chamfered edge geometry
       const edgeDirection = new THREE.Vector3().subVectors(v2, v1).normalize();
       const sideDirection = new THREE.Vector3().subVectors(v4, v1).normalize();
-      const chamferNormal = new THREE.Vector3().crossVectors(edgeDirection, sideDirection).normalize();
+      const chamferNormal = new THREE.Vector3()
+        .crossVectors(edgeDirection, sideDirection)
+        .normalize();
 
       // Apply chamfer by creating angled side face
       const chamferOffset = new THREE.Vector3()
@@ -432,7 +475,7 @@ export class PolygonExtruder {
       const sideNormal = new THREE.Vector3()
         .crossVectors(
           new THREE.Vector3().subVectors(cv2, cv1),
-          new THREE.Vector3().subVectors(cv4, cv1)
+          new THREE.Vector3().subVectors(cv4, cv1),
         )
         .normalize();
 
@@ -451,7 +494,7 @@ export class PolygonExtruder {
     v1: THREE.Vector3,
     v2: THREE.Vector3,
     v3: THREE.Vector3,
-    normal: THREE.Vector3
+    normal: THREE.Vector3,
   ): string {
     return (
       `  facet normal ${normal.x.toFixed(6)} ${normal.y.toFixed(6)} ${normal.z.toFixed(6)}\n` +
@@ -469,7 +512,7 @@ export class PolygonExtruder {
    * This is the backup option when merged polygon faces aren't available
    */
   static extractPolygonsFromTriangulatedGeometry(
-    geometry: THREE.BufferGeometry
+    geometry: THREE.BufferGeometry,
   ): PolygonFace[] {
     const faces: PolygonFace[] = [];
     const positions = geometry.attributes.position;
@@ -482,17 +525,17 @@ export class PolygonExtruder {
         new THREE.Vector3(
           positions.getX(i),
           positions.getY(i),
-          positions.getZ(i)
+          positions.getZ(i),
         ),
         new THREE.Vector3(
           positions.getX(i + 1),
           positions.getY(i + 1),
-          positions.getZ(i + 1)
+          positions.getZ(i + 1),
         ),
         new THREE.Vector3(
           positions.getX(i + 2),
           positions.getY(i + 2),
-          positions.getZ(i + 2)
+          positions.getZ(i + 2),
         ),
       ];
 
@@ -517,10 +560,10 @@ export class PolygonExtruder {
    * This uses the polygonFaces data structure when available
    */
   static extractPolygonsFromMergedGeometry(
-    geometry: THREE.BufferGeometry
+    geometry: THREE.BufferGeometry,
   ): PolygonFace[] {
     const polygonFaces = (geometry as any).polygonFaces;
-    
+
     if (!polygonFaces || !Array.isArray(polygonFaces)) {
       return [];
     }

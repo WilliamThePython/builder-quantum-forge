@@ -1,7 +1,12 @@
 import * as THREE from "three";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
-import { PolygonExtruder, PolygonFace, ExtrusionOptions, ChamferOptions } from "./polygonExtruder";
+import {
+  PolygonExtruder,
+  PolygonFace,
+  ExtrusionOptions,
+  ChamferOptions,
+} from "./polygonExtruder";
 
 /**
  * Interface for edge information with angles
@@ -64,20 +69,29 @@ export class ChamferedPartsExporter {
 
     if (useTriangulated) {
       // Backup mode: use triangulated geometry (simpler chamfering)
-      polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+      polygonFaces =
+        PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
       polygonType = "triangulated_backup";
-      console.log(`🔄 Using backup triangulated mode for chamfering: ${polygonFaces.length} triangles`);
+      console.log(
+        `🔄 Using backup triangulated mode for chamfering: ${polygonFaces.length} triangles`,
+      );
     } else {
       // Normal mode: use merged polygon faces
-      const mergedFaces = PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
+      const mergedFaces =
+        PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
       if (mergedFaces.length === 0) {
-        console.log("⚠️ No merged faces found for chamfering, falling back to triangulated mode");
-        polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+        console.log(
+          "⚠️ No merged faces found for chamfering, falling back to triangulated mode",
+        );
+        polygonFaces =
+          PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
         polygonType = "triangulated_fallback";
       } else {
         polygonFaces = mergedFaces;
         polygonType = (geometry as any).polygonType || "merged";
-        console.log(`✅ Using merged polygon mode for chamfering: ${polygonFaces.length} polygons`);
+        console.log(
+          `✅ Using merged polygon mode for chamfering: ${polygonFaces.length} polygons`,
+        );
       }
     }
 
@@ -104,11 +118,21 @@ export class ChamferedPartsExporter {
         defaultChamferAngle: 45, // default 45-degree chamfer for triangulated mode
       };
 
-      const partContent = format === "obj"
-        ? this.createChamferedPolygonOBJ(polygonFace, partThickness, partThickness, scale)
-        : PolygonExtruder.createChamferedPolygon(polygonFace, extrusionOptions, chamferOptions);
+      const partContent =
+        format === "obj"
+          ? this.createChamferedPolygonOBJ(
+              polygonFace,
+              partThickness,
+              partThickness,
+              scale,
+            )
+          : PolygonExtruder.createChamferedPolygon(
+              polygonFace,
+              extrusionOptions,
+              chamferOptions,
+            );
 
-      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || 'polygon'}_chamfered.${fileExtension}`;
+      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || "polygon"}_chamfered.${fileExtension}`;
 
       // Calculate part geometry and metrics including chamfer info
       const partInfo = this.calculateChamferedPartInfo(
@@ -122,7 +146,7 @@ export class ChamferedPartsExporter {
         "Part Number": `part_${String(i + 1).padStart(4, "0")}`,
         "File Name": partFilename,
         "Polygon Index": i + 1,
-        "Face Type": polygonFace.type || 'polygon',
+        "Face Type": polygonFace.type || "polygon",
         "Vertex Count": polygonFace.vertices.length,
         "Edge Count": polygonFace.vertices.length,
         "Thickness (mm)": partThickness,
@@ -134,9 +158,15 @@ export class ChamferedPartsExporter {
         "Centroid X (mm)": partInfo.centroid.x.toFixed(3),
         "Centroid Y (mm)": partInfo.centroid.y.toFixed(3),
         "Centroid Z (mm)": partInfo.centroid.z.toFixed(3),
-        "Normal Vector X": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).x.toFixed(6),
-        "Normal Vector Y": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).y.toFixed(6),
-        "Normal Vector Z": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).z.toFixed(6),
+        "Normal Vector X": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).x.toFixed(6),
+        "Normal Vector Y": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).y.toFixed(6),
+        "Normal Vector Z": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).z.toFixed(6),
         "Min Edge Angle (°)": useTriangulated ? "N/A" : "45.0",
         "Max Edge Angle (°)": useTriangulated ? "N/A" : "45.0",
         "Avg Chamfer Angle (°)": "45.0",
@@ -167,7 +197,10 @@ export class ChamferedPartsExporter {
     zip.file("chamfered_assembly_instructions.txt", instructions);
 
     // Generate chamfer angle reference
-    const chamferReference = this.generateChamferAngleReference(polygonFaces, useTriangulated);
+    const chamferReference = this.generateChamferAngleReference(
+      polygonFaces,
+      useTriangulated,
+    );
     zip.file("chamfer_angle_reference.txt", chamferReference);
 
     // Generate and download zip
@@ -187,7 +220,10 @@ export class ChamferedPartsExporter {
   /**
    * Calculate edge angles between adjacent faces and prepare chamfer data
    */
-  private static calculateEdgeAngles(polygonFaces: any[], geometry: THREE.BufferGeometry): ChamferedFaceInfo[] {
+  private static calculateEdgeAngles(
+    polygonFaces: any[],
+    geometry: THREE.BufferGeometry,
+  ): ChamferedFaceInfo[] {
     const chamferedFaces: ChamferedFaceInfo[] = [];
 
     // Build edge-to-face mapping for finding adjacent faces
@@ -238,20 +274,20 @@ export class ChamferedPartsExporter {
 
         if (adjacentFaces.length === 2) {
           // Find the other face that shares this edge
-          const otherFaceIndex = adjacentFaces.find(idx => idx !== faceIndex);
+          const otherFaceIndex = adjacentFaces.find((idx) => idx !== faceIndex);
           if (otherFaceIndex !== undefined) {
             const otherFace = polygonFaces[otherFaceIndex];
             if (otherFace && otherFace.normal) {
               const otherNormal = otherFace.normal.clone().normalize();
-              
+
               // Calculate angle between face normals
               const dot = faceNormal.dot(otherNormal);
               const clampedDot = Math.max(-1, Math.min(1, dot));
               edgeAngle = (Math.acos(Math.abs(clampedDot)) * 180) / Math.PI;
-              
+
               // Apply chamfer formula: chamfer angle = 90° - (edge angle)/2
-              chamferAngle = 90 - (edgeAngle / 2);
-              
+              chamferAngle = 90 - edgeAngle / 2;
+
               // Ensure reasonable chamfer angles
               chamferAngle = Math.max(15, Math.min(75, chamferAngle));
             }
@@ -288,7 +324,7 @@ export class ChamferedPartsExporter {
   ): string {
     const faceInfo = chamferedFace.faceInfo;
     const originalVertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
-      v.clone().multiplyScalar(scale)
+      v.clone().multiplyScalar(scale),
     );
 
     if (originalVertices.length < 3) {
@@ -370,7 +406,12 @@ export class ChamferedPartsExporter {
 
       // Calculate inset direction based on adjacent edges
       const prevDir = new THREE.Vector3()
-        .subVectors(vertex, originalVertices[(i - 1 + originalVertices.length) % originalVertices.length])
+        .subVectors(
+          vertex,
+          originalVertices[
+            (i - 1 + originalVertices.length) % originalVertices.length
+          ],
+        )
         .normalize();
       const nextDir = new THREE.Vector3()
         .subVectors(originalVertices[(i + 1) % originalVertices.length], vertex)
@@ -382,13 +423,17 @@ export class ChamferedPartsExporter {
         .normalize();
 
       // Use average chamfer angle of adjacent edges
-      const avgChamferAngle = (prevEdge.chamferAngle + nextEdge.chamferAngle) / 2;
-      const insetDistance = chamferDepth / Math.sin((avgChamferAngle * Math.PI) / 180);
+      const avgChamferAngle =
+        (prevEdge.chamferAngle + nextEdge.chamferAngle) / 2;
+      const insetDistance =
+        chamferDepth / Math.sin((avgChamferAngle * Math.PI) / 180);
 
       // Inset the vertex
-      const chamferedVertex = vertex.clone().sub(
-        bisector.multiplyScalar(Math.min(insetDistance, chamferDepth * 2))
-      );
+      const chamferedVertex = vertex
+        .clone()
+        .sub(
+          bisector.multiplyScalar(Math.min(insetDistance, chamferDepth * 2)),
+        );
 
       chamferedVertices.push(chamferedVertex);
     }
@@ -410,10 +455,22 @@ export class ChamferedPartsExporter {
 
     // For now, use simple fan triangulation from center
     if (chamferedVertices.length === 3) {
-      triangles.push([chamferedVertices[0], chamferedVertices[1], chamferedVertices[2]]);
+      triangles.push([
+        chamferedVertices[0],
+        chamferedVertices[1],
+        chamferedVertices[2],
+      ]);
     } else if (chamferedVertices.length === 4) {
-      triangles.push([chamferedVertices[0], chamferedVertices[1], chamferedVertices[2]]);
-      triangles.push([chamferedVertices[0], chamferedVertices[2], chamferedVertices[3]]);
+      triangles.push([
+        chamferedVertices[0],
+        chamferedVertices[1],
+        chamferedVertices[2],
+      ]);
+      triangles.push([
+        chamferedVertices[0],
+        chamferedVertices[2],
+        chamferedVertices[3],
+      ]);
     } else {
       // Fan triangulation from first vertex
       for (let i = 1; i < chamferedVertices.length - 1; i++) {
@@ -472,7 +529,7 @@ export class ChamferedPartsExporter {
       const sideNormal = new THREE.Vector3()
         .crossVectors(
           new THREE.Vector3().subVectors(cv2, cv1),
-          new THREE.Vector3().subVectors(cv4, cv1)
+          new THREE.Vector3().subVectors(cv4, cv1),
         )
         .normalize();
 
@@ -532,7 +589,7 @@ export class ChamferedPartsExporter {
     scale: number,
   ) {
     const vertices = polygonFace.vertices.map((v: THREE.Vector3) =>
-      v.clone().multiplyScalar(scale)
+      v.clone().multiplyScalar(scale),
     );
 
     // Calculate base polygon properties
@@ -546,7 +603,8 @@ export class ChamferedPartsExporter {
     let area = 0;
     for (let i = 0; i < vertices.length; i++) {
       const next = (i + 1) % vertices.length;
-      area += vertices[i].x * vertices[next].y - vertices[next].x * vertices[i].y;
+      area +=
+        vertices[i].x * vertices[next].y - vertices[next].x * vertices[i].y;
     }
     area = Math.abs(area) / 2;
 
@@ -587,21 +645,24 @@ export class ChamferedPartsExporter {
     // Surface area (including chamfers)
     const topBottomArea = area * 2;
     const sideArea = perimeter * thickness;
-    const chamferArea = chamferedFace.edges.length * chamferDepth * scale * thickness;
+    const chamferArea =
+      chamferedFace.edges.length * chamferDepth * scale * thickness;
     const surfaceArea = topBottomArea + sideArea + chamferArea;
 
     // Print time estimation (increased for chamfer complexity)
     const baseTimePerMm2 = 0.7; // Longer due to chamfers
     const thicknessFactor = Math.max(1, thickness / 2);
     const chamferComplexity = 1 + (chamferDepth / thickness) * 0.5;
-    const printTime = area * baseTimePerMm2 * thicknessFactor * chamferComplexity;
+    const printTime =
+      area * baseTimePerMm2 * thicknessFactor * chamferComplexity;
 
     // Material estimation
     const materialDensity = 0.00124; // g/mm³ for PLA
     const material = volume * materialDensity;
 
     // Complexity score (higher due to chamfers)
-    const complexity = vertices.length + area / 100 + chamferedFace.edges.length * 0.5;
+    const complexity =
+      vertices.length + area / 100 + chamferedFace.edges.length * 0.5;
 
     return {
       area,
@@ -628,11 +689,31 @@ export class ChamferedPartsExporter {
 
     const partsSheet = XLSX.utils.json_to_sheet(partData);
     partsSheet["!cols"] = [
-      { wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 12 }, { wch: 10 },
-      { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 12 },
-      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 },
-      { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+      { wch: 12 },
+      { wch: 25 },
+      { wch: 8 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 15 },
     ];
     XLSX.utils.book_append_sheet(workbook, partsSheet, "Chamfered Parts");
 
@@ -647,14 +728,21 @@ export class ChamferedPartsExporter {
   private static generateChamferedSummaryData(partData: any[], options: any) {
     const date = new Date().toLocaleDateString();
     const totalParts = partData.length;
-    const avgChamferAngle = partData.reduce((sum, p) => sum + parseFloat(p["Avg Chamfer Angle (°)"]), 0) / totalParts;
+    const avgChamferAngle =
+      partData.reduce(
+        (sum, p) => sum + parseFloat(p["Avg Chamfer Angle (°)"]),
+        0,
+      ) / totalParts;
 
     return [
       { Property: "Generation Date", Value: date },
       { Property: "Total Chamfered Parts", Value: totalParts },
       { Property: "Part Thickness (mm)", Value: options.partThickness || 2 },
       { Property: "Chamfer Depth (mm)", Value: options.chamferDepth || 0.5 },
-      { Property: "Average Chamfer Angle (°)", Value: avgChamferAngle.toFixed(1) },
+      {
+        Property: "Average Chamfer Angle (°)",
+        Value: avgChamferAngle.toFixed(1),
+      },
       { Property: "Scale Factor", Value: options.scale || 1 },
       { Property: "Generated By", Value: "3D Print Cut 'n' Glue Exporter" },
     ];
@@ -712,7 +800,10 @@ Generated by STL Viewer Platform - 3D Print Cut 'n' Glue Exporter
   /**
    * Generate chamfer angle reference document
    */
-  private static generateChamferAngleReference(polygonFaces: PolygonFace[], useTriangulated: boolean): string {
+  private static generateChamferAngleReference(
+    polygonFaces: PolygonFace[],
+    useTriangulated: boolean,
+  ): string {
     let content = `CHAMFER ANGLE REFERENCE
 ======================
 
@@ -726,15 +817,17 @@ Part Index | Face Type | Vertex Count | Chamfer Angle (°) | Notes
     for (let i = 0; i < polygonFaces.length; i++) {
       const face = polygonFaces[i];
       const chamferAngle = 45; // Default chamfer angle
-      const notes = useTriangulated ? "Triangulated backup mode" : "Merged polygon mode";
+      const notes = useTriangulated
+        ? "Triangulated backup mode"
+        : "Merged polygon mode";
 
-      content += `${String(i + 1).padStart(10)} | ${(face.type || 'polygon').padStart(9)} | ${String(face.vertices.length).padStart(12)} | ${chamferAngle.toFixed(1).padStart(17)} | ${notes}\n`;
+      content += `${String(i + 1).padStart(10)} | ${(face.type || "polygon").padStart(9)} | ${String(face.vertices.length).padStart(12)} | ${chamferAngle.toFixed(1).padStart(17)} | ${notes}\n`;
     }
 
     content += `\nSUMMARY STATISTICS:
 ==================
 Total Parts: ${polygonFaces.length}
-Mode: ${useTriangulated ? 'Triangulated Backup' : 'Merged Polygon'}
+Mode: ${useTriangulated ? "Triangulated Backup" : "Merged Polygon"}
 Default Chamfer Angle: 45.0°
 `;
 
@@ -785,12 +878,18 @@ Default Chamfer Angle: 45.0°
 
     // Longer print time due to chamfer complexity
     const printTimePerPart = 20; // minutes per chamfered part
-    const totalPrintMinutes = partCount * printTimePerPart * (partThickness / 2) * (1 + chamferDepth / 2);
+    const totalPrintMinutes =
+      partCount *
+      printTimePerPart *
+      (partThickness / 2) *
+      (1 + chamferDepth / 2);
     const printHours = Math.floor(totalPrintMinutes / 60);
     const printMinutes = Math.round(totalPrintMinutes % 60);
 
     const materialPerPart = 3.0; // slightly more material due to chamfers
-    const totalMaterial = Math.round(partCount * materialPerPart * (partThickness / 2));
+    const totalMaterial = Math.round(
+      partCount * materialPerPart * (partThickness / 2),
+    );
 
     const assemblyTimeMinutes = partCount * 8; // longer assembly time for precision fitting
     const assemblyHours = Math.floor(assemblyTimeMinutes / 60);

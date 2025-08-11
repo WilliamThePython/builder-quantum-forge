@@ -761,9 +761,17 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
       // Check if geometry has polygon faces (required for chamfering)
       const polygonFaces = (previewMeshMerged as any).polygonFaces;
-      if (!polygonFaces || !Array.isArray(polygonFaces) || polygonFaces.length === 0) {
-        console.error("Chamfered export requires polygon faces. Please ensure model is properly processed.");
-        addError("Chamfered export requires polygon faces. Please ensure model is properly processed with merging enabled.");
+      if (
+        !polygonFaces ||
+        !Array.isArray(polygonFaces) ||
+        polygonFaces.length === 0
+      ) {
+        console.error(
+          "Chamfered export requires polygon faces. Please ensure model is properly processed.",
+        );
+        addError(
+          "Chamfered export requires polygon faces. Please ensure model is properly processed with merging enabled.",
+        );
         return;
       }
 
@@ -775,7 +783,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         );
       } catch (error) {
         console.error("Chamfered parts export failed:", error);
-        addError(`Chamfered parts export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        addError(
+          `Chamfered parts export failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     },
     [previewMeshMerged, fileName, addError],
@@ -812,7 +822,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
         });
 
         // Call static method directly
-        const result = await STLManipulator.reducePoints(workingMeshTri, reductionAmount, method);
+        const result = await STLManipulator.reducePoints(
+          workingMeshTri,
+          reductionAmount,
+          method,
+        );
 
         console.log("🔧 Decimation result:", {
           hasGeometry: !!result.geometry,

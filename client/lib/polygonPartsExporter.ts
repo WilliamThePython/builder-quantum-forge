@@ -1,7 +1,11 @@
 import * as THREE from "three";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
-import { PolygonExtruder, PolygonFace, ExtrusionOptions } from "./polygonExtruder";
+import {
+  PolygonExtruder,
+  PolygonFace,
+  ExtrusionOptions,
+} from "./polygonExtruder";
 
 /**
  * PolygonPartsExporter exports each polygon face as a separate STL or OBJ file
@@ -43,21 +47,30 @@ export class PolygonPartsExporter {
 
     if (useTriangulated) {
       // Backup mode: use triangulated geometry
-      polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+      polygonFaces =
+        PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
       polygonType = "triangulated_backup";
-      console.log(`🔄 Using backup triangulated mode: ${polygonFaces.length} triangles`);
+      console.log(
+        `🔄 Using backup triangulated mode: ${polygonFaces.length} triangles`,
+      );
     } else {
       // Normal mode: use merged polygon faces
-      const mergedFaces = PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
+      const mergedFaces =
+        PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
       if (mergedFaces.length === 0) {
         // Fallback to triangulated if no merged faces available
-        console.log("⚠️ No merged faces found, falling back to triangulated mode");
-        polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+        console.log(
+          "⚠️ No merged faces found, falling back to triangulated mode",
+        );
+        polygonFaces =
+          PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
         polygonType = "triangulated_fallback";
       } else {
         polygonFaces = mergedFaces;
         polygonType = (geometry as any).polygonType || "merged";
-        console.log(`✅ Using merged polygon mode: ${polygonFaces.length} polygons`);
+        console.log(
+          `✅ Using merged polygon mode: ${polygonFaces.length} polygons`,
+        );
       }
     }
 
@@ -82,11 +95,15 @@ export class PolygonPartsExporter {
         scale: scale,
       };
 
-      const partContent = format === "obj"
-        ? this.createPolygonOBJ(polygonFace, i, partThickness, scale) // Keep OBJ for now
-        : PolygonExtruder.createExtrudedPolygon(polygonFace, extrusionOptions);
+      const partContent =
+        format === "obj"
+          ? this.createPolygonOBJ(polygonFace, i, partThickness, scale) // Keep OBJ for now
+          : PolygonExtruder.createExtrudedPolygon(
+              polygonFace,
+              extrusionOptions,
+            );
 
-      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || 'polygon'}.${fileExtension}`;
+      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || "polygon"}.${fileExtension}`;
 
       // Calculate part geometry and metrics
       const partInfo = this.calculatePolygonPartInfo(
@@ -98,7 +115,7 @@ export class PolygonPartsExporter {
         "Part Number": `part_${String(i + 1).padStart(4, "0")}`,
         "File Name": partFilename,
         "Polygon Index": i + 1,
-        "Face Type": polygonFace.type || 'polygon',
+        "Face Type": polygonFace.type || "polygon",
         "Vertex Count": polygonFace.vertices.length,
         "Thickness (mm)": partThickness,
         "Scale Factor": scale,
@@ -108,9 +125,15 @@ export class PolygonPartsExporter {
         "Centroid X (mm)": partInfo.centroid.x.toFixed(3),
         "Centroid Y (mm)": partInfo.centroid.y.toFixed(3),
         "Centroid Z (mm)": partInfo.centroid.z.toFixed(3),
-        "Normal Vector X": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).x.toFixed(6),
-        "Normal Vector Y": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).y.toFixed(6),
-        "Normal Vector Z": (polygonFace.normal || new THREE.Vector3(0, 0, 1)).z.toFixed(6),
+        "Normal Vector X": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).x.toFixed(6),
+        "Normal Vector Y": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).y.toFixed(6),
+        "Normal Vector Z": (
+          polygonFace.normal || new THREE.Vector3(0, 0, 1)
+        ).z.toFixed(6),
         "Min X (mm)": partInfo.bounds.min.x.toFixed(3),
         "Min Y (mm)": partInfo.bounds.min.y.toFixed(3),
         "Min Z (mm)": partInfo.bounds.min.z.toFixed(3),
