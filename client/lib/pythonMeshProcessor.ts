@@ -100,7 +100,6 @@ export class PythonMeshProcessor {
     const stlBlob = new Blob([stlData], { type: "application/octet-stream" });
     formData.append("file", stlBlob, "mesh.stl");
     formData.append("target_reduction", targetReduction.toString());
-    formData.append("preserve_boundary", preserveBoundary.toString());
 
     console.log("📤 Sending mesh to Python service...");
 
