@@ -470,23 +470,36 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }, 100);
   };
 
-  // Helper function to create proper preview mesh after operations
+  // Helper function to create proper preview mesh using triangulate-first workflow
   const createPreviewFromWorkingMesh = (
     workingGeometry: THREE.BufferGeometry,
     operationType: string,
   ) => {
-    let preview = workingGeometry.clone();
-
-    // Try to reconstruct polygon faces for better preview
     try {
-      const polygonFaces =
-        PolygonFaceReconstructor.reconstructPolygonFaces(workingGeometry);
+      // Step 1: Ensure we have fully triangulated geometry (all faces are perfectly flat)
+      let triangulatedGeometry = workingGeometry.clone();
+
+      // Make sure it's non-indexed and triangulated
+      if (triangulatedGeometry.index) {
+        triangulatedGeometry = triangulatedGeometry.toNonIndexed();
+      }
+      ensureNormals(triangulatedGeometry);
+
+      // Step 2: Apply coplanar merging to the triangulated geometry
+      console.log("🔧 Starting triangulate-first coplanar merging...");
+      const polygonFaces = EdgeAdjacentMerger.mergeCoplanarTriangles(triangulatedGeometry);
+
+      let preview = triangulatedGeometry.clone();
+
       if (polygonFaces.length > 0) {
+        // Apply the coplanar-merged faces
         PolygonFaceReconstructor.applyReconstructedFaces(preview, polygonFaces);
-        (preview as any).polygonType = `${operationType}_merged`;
+        (preview as any).polygonType = `${operationType}_coplanar_merged`;
+        console.log(`✅ Coplanar merging created ${polygonFaces.length} merged faces`);
       } else {
-        // Fallback: use triangulated geometry as-is
+        // Keep as triangulated if no merging occurred
         (preview as any).polygonType = `${operationType}_triangulated`;
+        console.log("ℹ️ No coplanar faces found, keeping triangulated");
       }
     } catch (error) {
       // Fallback: use triangulated geometry as-is
