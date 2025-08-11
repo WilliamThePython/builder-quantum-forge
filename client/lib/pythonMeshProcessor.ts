@@ -171,6 +171,16 @@ export class PythonMeshProcessor {
   }
 
   /**
+   * Alias for decimateMesh for backward compatibility
+   */
+  static async decimate(
+    geometry: THREE.BufferGeometry,
+    targetReduction: number,
+  ): Promise<PythonDecimationResult> {
+    return this.decimateMesh(geometry, targetReduction);
+  }
+
+  /**
    * Convert Three.js BufferGeometry to OBJ format preserving polygon faces
    */
   private static async geometryToOBJ(
@@ -461,7 +471,7 @@ export class PythonMeshProcessor {
     const verticesToReduce = vertexCount - targetVertexCount;
 
     console.log(
-      `   Target: ${vertexCount} → ${targetVertexCount} vertices (reduce ${verticesToReduce})`,
+      `   Target: ${vertexCount} �� ${targetVertexCount} vertices (reduce ${verticesToReduce})`,
     );
 
     if (verticesToReduce <= 0) {
