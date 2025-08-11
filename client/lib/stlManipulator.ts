@@ -30,8 +30,10 @@ export class STLManipulator {
 
       // Check if Python service is available
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
+      console.log(`🔧 Python service health check: ${isAvailable}`);
 
       if (isAvailable) {
+        console.log(`🔧 Using Python service for decimation`);
         const pythonResult = await PythonMeshProcessor.decimateMesh(
           geometry,
           targetReduction,
