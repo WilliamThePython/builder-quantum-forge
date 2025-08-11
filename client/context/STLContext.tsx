@@ -811,17 +811,18 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           inputVertices: workingMeshTri.attributes.position.count,
         });
 
-        const manipulator = new STLManipulator(workingMeshTri);
-        const result = await manipulator.reducePoints(reductionAmount, method);
+        // Call static method directly
+        const result = await STLManipulator.reducePoints(workingMeshTri, reductionAmount, method);
 
         console.log("🔧 Decimation result:", {
-          success: result.success,
-          message: result.message,
           hasGeometry: !!result.geometry,
-          outputVertices: result.geometry?.attributes.position.count,
+          originalVertices: result.originalStats.vertices,
+          newVertices: result.newStats.vertices,
+          reductionAchieved: result.reductionAchieved,
+          processingTime: result.processingTime,
         });
 
-        if (result.success && result.geometry) {
+        if (result.geometry) {
           console.log("✅ Updating meshes after decimation...");
 
           // Update working mesh
@@ -844,11 +845,20 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           console.log("✅ All meshes updated successfully!", {
             displayVertices: displayGeometry.attributes.position.count,
           });
-        } else {
-          console.error("❌ Decimation failed:", result.message);
-        }
 
-        return result;
+          return {
+            success: true,
+            message: `Decimation complete: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices (${(result.reductionAchieved * 100).toFixed(1)}% reduction)`,
+            geometry: result.geometry,
+          };
+        } else {
+          console.error("❌ Decimation failed: No geometry returned");
+          return {
+            success: false,
+            message: "Decimation failed: No geometry returned",
+            geometry: null,
+          };
+        }
       } finally {
         setIsProcessingTool(false);
       }
