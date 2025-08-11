@@ -1031,7 +1031,7 @@ export class STLManipulator {
   }> {
     const startTime = Date.now();
     const originalStats = this.calculateMeshStats(geometry);
-    const positions = cloned.attributes.position.array as Float32Array;
+    const positions = geometry.attributes.position.array as Float32Array;
     const originalVertexCount = positions.length / 3;
 
     console.log(`🔍 Analyzing model for vertex clustering needs...`);
