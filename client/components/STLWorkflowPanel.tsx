@@ -814,9 +814,9 @@ export default function STLWorkflowPanel({
                     <div className="space-y-2">
                       <input
                         type="range"
-                        min="0.01"
-                        max="2.0"
-                        step="0.01"
+                        min="0.001"
+                        max="0.1"
+                        step="0.001"
                         value={vertexClusteringTolerance}
                         onChange={(e) =>
                           setVertexClusteringTolerance(parseFloat(e.target.value))
@@ -824,11 +824,11 @@ export default function STLWorkflowPanel({
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <div className="flex justify-between text-xs text-white/70">
-                        <span>0.01</span>
+                        <span>0.001</span>
                         <span className="font-medium text-white">
-                          {vertexClusteringTolerance.toFixed(2)}
+                          {vertexClusteringTolerance.toFixed(3)}
                         </span>
-                        <span>2.0</span>
+                        <span>0.1</span>
                       </div>
                     </div>
                   </div>
