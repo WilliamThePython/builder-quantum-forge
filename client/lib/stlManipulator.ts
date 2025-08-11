@@ -903,6 +903,8 @@ export class STLManipulator {
     vertexIndex2: number,
     newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
+    console.log(`🔧 Non-indexed edge collapse: vertex ${vertexIndex2} → vertex ${vertexIndex1}`);
+
     const positions = geometry.attributes.position;
     const normals = geometry.attributes.normal;
 
