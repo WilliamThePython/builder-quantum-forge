@@ -794,7 +794,7 @@ export default function STLWorkflowPanel({
                       <RefreshCw className="w-3 h-3 mr-2" />
                       {hasBackup
                         ? "🔄 Undo Simplification"
-                        : "�� No Backup Available"}
+                        : "⚪ No Backup Available"}
                     </Button>
                   </div>
 
@@ -1038,6 +1038,30 @@ export default function STLWorkflowPanel({
                         <div className="flex justify-between text-xs text-white/70 mt-1">
                           <span>0.5x</span>
                           <span>10x</span>
+                        </div>
+                      </div>
+
+                      {/* Backup Option Toggle */}
+                      <div className="mb-3 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-white text-xs font-medium">Backup Mode</div>
+                            <div className="text-yellow-300 text-xs">Use triangulated model (more robust)</div>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={triangleOptions.useTriangulated}
+                              onChange={(e) =>
+                                setTriangleOptions((prev) => ({
+                                  ...prev,
+                                  useTriangulated: e.target.checked,
+                                }))
+                              }
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 dark:peer-focus:ring-yellow-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-600"></div>
+                          </label>
                         </div>
                       </div>
 
