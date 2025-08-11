@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { computeFlatNormals } from "./flatNormals";
 
 /**
  * Compute polygon-aware flat normals to maintain crisp polygon face boundaries.
