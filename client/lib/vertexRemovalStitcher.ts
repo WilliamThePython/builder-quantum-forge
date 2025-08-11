@@ -421,7 +421,6 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
-
     // Use our own pure edge collapse implementation
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(
       geometry,
@@ -461,7 +460,6 @@ export class VertexRemovalStitcher {
 
     const cloned = geometry.clone();
 
-
     const positions = cloned.attributes.position.array as Float32Array;
     const indices = cloned.index?.array;
 
@@ -492,7 +490,9 @@ export class VertexRemovalStitcher {
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
 
-      console.log(`   Iteration ${iterationCount + 1}: trying to merge ${verticesToRemove - mergedCount} more vertices`);
+      console.log(
+        `   Iteration ${iterationCount + 1}: trying to merge ${verticesToRemove - mergedCount} more vertices`,
+      );
 
       // For aggressive reductions, rebuild edge list every iteration to find new collapse opportunities
       if (isAggressiveReduction && iterationCount > 0) {
@@ -507,11 +507,13 @@ export class VertexRemovalStitcher {
         return lengthA - lengthB;
       });
 
-      console.log(`   Processing ${edges.length} edges, shortest: ${this.calculateEdgeLength(positions, edges[0]?.[0], edges[0]?.[1])?.toFixed(3) || 'N/A'}`);
+      console.log(
+        `   Processing ${edges.length} edges, shortest: ${this.calculateEdgeLength(positions, edges[0]?.[0], edges[0]?.[1])?.toFixed(3) || "N/A"}`,
+      );
 
       // Calculate dynamic threshold based on model scale
       const modelBounds = new THREE.Box3().setFromBufferAttribute(
-        new THREE.BufferAttribute(positions, 3)
+        new THREE.BufferAttribute(positions, 3),
       );
       const modelSize = modelBounds.getSize(new THREE.Vector3()).length();
       const maxAllowableEdgeLength = modelSize * 0.2; // 20% of model diagonal
@@ -557,14 +559,23 @@ export class VertexRemovalStitcher {
         }
       }
 
-      console.log(`   Processed ${edgesProcessed} edges, skipped ${edgesSkipped} long edges (threshold: ${maxAllowableEdgeLength.toFixed(3)})`);
+      console.log(
+        `   Processed ${edgesProcessed} edges, skipped ${edgesSkipped} long edges (threshold: ${maxAllowableEdgeLength.toFixed(3)})`,
+      );
 
       // If we skipped all edges due to length, try a more permissive approach
-      if (edgesProcessed === 0 && edgesSkipped > 0 && mergedCount < verticesToRemove) {
-        console.log(`   ⚠️ All edges were too long - trying with relaxed threshold`);
+      if (
+        edgesProcessed === 0 &&
+        edgesSkipped > 0 &&
+        mergedCount < verticesToRemove
+      ) {
+        console.log(
+          `   ⚠️ All edges were too long - trying with relaxed threshold`,
+        );
         const relaxedThreshold = modelSize * 0.5; // 50% of model diagonal
 
-        for (const [v1, v2] of edges.slice(0, Math.min(10, edges.length))) { // Try first 10 edges
+        for (const [v1, v2] of edges.slice(0, Math.min(10, edges.length))) {
+          // Try first 10 edges
           if (mergedCount >= verticesToRemove) break;
           if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
 
@@ -620,8 +631,12 @@ export class VertexRemovalStitcher {
       }
     }
 
-    console.log(`   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`);
-    console.log(`   Final geometry: ${validTriangles.length / 3} valid triangles`);
+    console.log(
+      `   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`,
+    );
+    console.log(
+      `   Final geometry: ${validTriangles.length / 3} valid triangles`,
+    );
 
     // Remap vertex indices to remove gaps (important for proper rendering)
     const usedVertices = new Set(validTriangles);
@@ -638,15 +653,14 @@ export class VertexRemovalStitcher {
       newPositions.push(
         positions[baseIndex],
         positions[baseIndex + 1],
-        positions[baseIndex + 2]
+        positions[baseIndex + 2],
       );
 
       newVertexIndex++;
     }
 
-
     // Apply vertex remapping to triangle indices
-    const remappedTriangles = validTriangles.map(idx => {
+    const remappedTriangles = validTriangles.map((idx) => {
       const remapped = vertexRemap.get(idx);
       if (remapped === undefined) {
         console.error(`❌ Failed to remap vertex index ${idx}`);
@@ -659,15 +673,24 @@ export class VertexRemovalStitcher {
     const maxIndex = newPositions.length / 3 - 1;
     for (let i = 0; i < remappedTriangles.length; i++) {
       if (remappedTriangles[i] > maxIndex) {
-        console.error(`❌ Index ${remappedTriangles[i]} out of bounds (max: ${maxIndex})`);
-        throw new Error(`Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
+        console.error(
+          `❌ Index ${remappedTriangles[i]} out of bounds (max: ${maxIndex})`,
+        );
+        throw new Error(
+          `Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`,
+        );
       }
     }
 
-    console.log(`   Vertex remapping: ${usedVertices.size} unique vertices → ${newPositions.length / 3} vertices`);
+    console.log(
+      `   Vertex remapping: ${usedVertices.size} unique vertices → ${newPositions.length / 3} vertices`,
+    );
 
     // Update geometry with cleaned vertices and indices
-    cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+    cloned.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
     cloned.setIndex(remappedTriangles);
     cloned.attributes.position.needsUpdate = true;
 
@@ -683,7 +706,9 @@ export class VertexRemovalStitcher {
     // Recompute normals with flat shading to maintain crisp faces
     computeFlatNormals(cloned);
 
-    console.log(`✅ Decimation complete: ${cloned.attributes.position.count} vertices, ${validTriangles.length / 3} triangles`);
+    console.log(
+      `✅ Decimation complete: ${cloned.attributes.position.count} vertices, ${validTriangles.length / 3} triangles`,
+    );
 
     return cloned;
   }

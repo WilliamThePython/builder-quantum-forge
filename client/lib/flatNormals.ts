@@ -13,11 +13,24 @@ export function computeFlatNormals(geometry: THREE.BufferGeometry): void {
     const normals = new Float32Array(positions.length);
 
     // Each group of 3 vertices forms a triangle - compute face normal for each
-    for (let i = 0; i < positions.length; i += 9) { // 9 = 3 vertices * 3 components
+    for (let i = 0; i < positions.length; i += 9) {
+      // 9 = 3 vertices * 3 components
       // Get triangle vertices
-      const vA = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-      const vB = new THREE.Vector3(positions[i + 3], positions[i + 4], positions[i + 5]);
-      const vC = new THREE.Vector3(positions[i + 6], positions[i + 7], positions[i + 8]);
+      const vA = new THREE.Vector3(
+        positions[i],
+        positions[i + 1],
+        positions[i + 2],
+      );
+      const vB = new THREE.Vector3(
+        positions[i + 3],
+        positions[i + 4],
+        positions[i + 5],
+      );
+      const vC = new THREE.Vector3(
+        positions[i + 6],
+        positions[i + 7],
+        positions[i + 8],
+      );
 
       // Calculate face normal
       const cb = new THREE.Vector3().subVectors(vC, vB);
@@ -32,7 +45,10 @@ export function computeFlatNormals(geometry: THREE.BufferGeometry): void {
       }
     }
 
-    geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute(
+      "normal",
+      new THREE.Float32BufferAttribute(normals, 3),
+    );
     return;
   }
 

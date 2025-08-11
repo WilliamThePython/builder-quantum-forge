@@ -14,7 +14,9 @@ export class STLManipulator {
   static async reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
-    method: "quadric_edge_collapse" | "vertex_clustering" = "quadric_edge_collapse",
+    method:
+      | "quadric_edge_collapse"
+      | "vertex_clustering" = "quadric_edge_collapse",
   ): Promise<{
     geometry: THREE.BufferGeometry;
     originalStats: MeshStats;
@@ -52,12 +54,16 @@ export class STLManipulator {
         };
       }
     } catch (error) {
-      console.log(`🔧 Python service failed or unavailable, using JavaScript: ${error}`);
+      console.log(
+        `🔧 Python service failed or unavailable, using JavaScript: ${error}`,
+      );
     }
 
     // Choose implementation based on method
     if (method === "vertex_clustering") {
-      console.log(`🔧 Using vertex clustering with tolerance: ${targetReduction}`);
+      console.log(
+        `🔧 Using vertex clustering with tolerance: ${targetReduction}`,
+      );
       return this.performVertexClustering(geometry, targetReduction);
     }
 
@@ -835,18 +841,30 @@ export class STLManipulator {
     newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
     const originalIndices = Array.from(geometry.index!.array);
-    const originalPositions = geometry.attributes.position.array as Float32Array;
+    const originalPositions = geometry.attributes.position
+      .array as Float32Array;
     const originalNormals = geometry.attributes.normal;
 
-    console.log(`🔧 Collapsing edge: vertex ${vertexIndex2} → vertex ${vertexIndex1}`);
+    console.log(
+      `🔧 Collapsing edge: vertex ${vertexIndex2} → vertex ${vertexIndex1}`,
+    );
 
     // Step 1: Find triangles that will become degenerate (contain both vertices)
     const trianglesToRemove = new Set<number>();
     for (let i = 0; i < originalIndices.length; i += 3) {
-      const triIndices = [originalIndices[i], originalIndices[i + 1], originalIndices[i + 2]];
-      if (triIndices.includes(vertexIndex1) && triIndices.includes(vertexIndex2)) {
+      const triIndices = [
+        originalIndices[i],
+        originalIndices[i + 1],
+        originalIndices[i + 2],
+      ];
+      if (
+        triIndices.includes(vertexIndex1) &&
+        triIndices.includes(vertexIndex2)
+      ) {
         trianglesToRemove.add(Math.floor(i / 3)); // Triangle index
-        console.log(`   Removing degenerate triangle ${Math.floor(i / 3)}: [${triIndices.join(', ')}]`);
+        console.log(
+          `   Removing degenerate triangle ${Math.floor(i / 3)}: [${triIndices.join(", ")}]`,
+        );
       }
     }
 
@@ -863,25 +881,38 @@ export class STLManipulator {
       }
 
       // Remap vertices: vertexIndex2 → vertexIndex1
-      const a = originalIndices[i] === vertexIndex2 ? vertexIndex1 : originalIndices[i];
-      const b = originalIndices[i + 1] === vertexIndex2 ? vertexIndex1 : originalIndices[i + 1];
-      const c = originalIndices[i + 2] === vertexIndex2 ? vertexIndex1 : originalIndices[i + 2];
+      const a =
+        originalIndices[i] === vertexIndex2 ? vertexIndex1 : originalIndices[i];
+      const b =
+        originalIndices[i + 1] === vertexIndex2
+          ? vertexIndex1
+          : originalIndices[i + 1];
+      const c =
+        originalIndices[i + 2] === vertexIndex2
+          ? vertexIndex1
+          : originalIndices[i + 2];
 
       // Double-check for any remaining degeneracies
       if (a !== b && b !== c && a !== c) {
         newIndices.push(a, b, c);
       } else {
         removedTriangles++;
-        console.log(`   Additional degenerate triangle removed: [${a}, ${b}, ${c}]`);
+        console.log(
+          `   Additional degenerate triangle removed: [${a}, ${b}, ${c}]`,
+        );
       }
     }
 
     if (newIndices.length === 0) {
-      console.error("❌ All triangles became degenerate - edge collapse failed");
+      console.error(
+        "❌ All triangles became degenerate - edge collapse failed",
+      );
       return null;
     }
 
-    console.log(`✅ Edge collapse: removed ${removedTriangles} triangles, kept ${newIndices.length / 3} triangles`);
+    console.log(
+      `✅ Edge collapse: removed ${removedTriangles} triangles, kept ${newIndices.length / 3} triangles`,
+    );
 
     // Step 3: Update vertex position
     const newPositions = originalPositions.slice(); // Copy positions
@@ -891,7 +922,10 @@ export class STLManipulator {
 
     // Step 4: Create new geometry
     const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+    newGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(newPositions, 3),
+    );
 
     if (originalNormals) {
       newGeometry.setAttribute("normal", originalNormals.clone());
@@ -914,7 +948,9 @@ export class STLManipulator {
     vertexIndex2: number,
     newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
-    console.log(`🔧 Non-indexed edge collapse: vertex ${vertexIndex2} → vertex ${vertexIndex1}`);
+    console.log(
+      `🔧 Non-indexed edge collapse: vertex ${vertexIndex2} → vertex ${vertexIndex1}`,
+    );
 
     const positions = geometry.attributes.position;
     const normals = geometry.attributes.normal;
@@ -936,10 +972,12 @@ export class STLManipulator {
       }
 
       // Skip degenerate triangles (those that would have both vertices)
-    if (hasVertex1 && hasVertex2) {
-      console.log(`   Removing degenerate triangle ${Math.floor(i / 3)}: contains both vertices`);
-      continue;
-    }
+      if (hasVertex1 && hasVertex2) {
+        console.log(
+          `   Removing degenerate triangle ${Math.floor(i / 3)}: contains both vertices`,
+        );
+        continue;
+      }
 
       // Add triangle vertices, replacing vertexIndex2 with collapsed position
       for (let j = 0; j < 3; j++) {
@@ -992,7 +1030,9 @@ export class STLManipulator {
     // Use flat normals to maintain crisp face shading (avoid color blending)
     computeFlatNormals(newGeometry);
 
-    console.log(`✅ Non-indexed edge collapse complete: ${newPositions.length / 9} triangles remaining`);
+    console.log(
+      `✅ Non-indexed edge collapse complete: ${newPositions.length / 9} triangles remaining`,
+    );
 
     return newGeometry;
   }
@@ -1060,7 +1100,9 @@ export class STLManipulator {
     // TOLERANCE-BASED APPROACH: Merge vertices within tolerance distance
     // Use safe index redirection approach to preserve geometry structure
     if (cloned.index) {
-      console.log(`🔧 Processing indexed geometry with tolerance ${tolerance}...`);
+      console.log(
+        `🔧 Processing indexed geometry with tolerance ${tolerance}...`,
+      );
 
       // For indexed geometry: update indices to point to first occurrence of vertices within tolerance
       const positionToFirstIndex = new Map<string, number>();
@@ -1096,18 +1138,22 @@ export class STLManipulator {
       }
 
       cloned.setIndex(oldIndices);
-      console.log(`✅ Redirected ${duplicatesRemoved} vertex references within tolerance ${tolerance}`);
-
+      console.log(
+        `✅ Redirected ${duplicatesRemoved} vertex references within tolerance ${tolerance}`,
+      );
     } else {
       console.log(`⚠️ Non-indexed geometry - skipping (too risky to modify)`);
     }
 
     const newStats = this.calculateMeshStats(cloned);
     const effectiveVerticesUsed = positionToFirstIndex.size;
-    const reductionAchieved = duplicatesRemoved > 0 ? (duplicatesRemoved / (oldIndices.length)) : 0;
+    const reductionAchieved =
+      duplicatesRemoved > 0 ? duplicatesRemoved / oldIndices.length : 0;
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Smart clustering complete: Redirected ${duplicatesRemoved} duplicate references, ${effectiveVerticesUsed} unique positions found`);
+    console.log(
+      `✅ Smart clustering complete: Redirected ${duplicatesRemoved} duplicate references, ${effectiveVerticesUsed} unique positions found`,
+    );
 
     return Promise.resolve({
       geometry: cloned,
@@ -1122,7 +1168,10 @@ export class STLManipulator {
    * Analyze model quality to determine if vertex clustering is needed
    * ULTRA-CONSERVATIVE: Only processes models with obvious problems
    */
-  private static analyzeModelQuality(geometry: THREE.BufferGeometry, tolerance: number): {
+  private static analyzeModelQuality(
+    geometry: THREE.BufferGeometry,
+    tolerance: number,
+  ): {
     needsClustering: boolean;
     reason: string;
   } {
@@ -1133,7 +1182,7 @@ export class STLManipulator {
     if (vertexCount < 500) {
       return {
         needsClustering: false,
-        reason: "Model under 500 vertices - assumed clean"
+        reason: "Model under 500 vertices - assumed clean",
       };
     }
 
@@ -1141,7 +1190,7 @@ export class STLManipulator {
     if (vertexCount < 2000 && tolerance > 0.01) {
       return {
         needsClustering: false,
-        reason: "Medium model with high tolerance - too risky"
+        reason: "Medium model with high tolerance - too risky",
       };
     }
 
@@ -1170,20 +1219,21 @@ export class STLManipulator {
     if (nearDuplicates < 5) {
       return {
         needsClustering: false,
-        reason: `Only ${nearDuplicates} near duplicates found - model is clean`
+        reason: `Only ${nearDuplicates} near duplicates found - model is clean`,
       };
     }
 
-    if (duplicatePercentage < 0.02) { // Less than 2% duplicates
+    if (duplicatePercentage < 0.02) {
+      // Less than 2% duplicates
       return {
         needsClustering: false,
-        reason: `Only ${(duplicatePercentage * 100).toFixed(1)}% near duplicates - model is clean enough`
+        reason: `Only ${(duplicatePercentage * 100).toFixed(1)}% near duplicates - model is clean enough`,
       };
     }
 
     return {
       needsClustering: true,
-      reason: `Found ${nearDuplicates} near duplicates (${(duplicatePercentage * 100).toFixed(1)}%) at tolerance ${tolerance} - clustering will help`
+      reason: `Found ${nearDuplicates} near duplicates (${(duplicatePercentage * 100).toFixed(1)}%) at tolerance ${tolerance} - clustering will help`,
     };
   }
 }

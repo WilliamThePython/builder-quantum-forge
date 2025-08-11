@@ -202,7 +202,8 @@ export default function STLWorkflowPanel({
   }>({});
 
   // New simplification state variables
-  const [vertexClusteringTolerance, setVertexClusteringTolerance] = useState(0.001);
+  const [vertexClusteringTolerance, setVertexClusteringTolerance] =
+    useState(0.001);
   const [quadricReduction, setQuadricReduction] = useState(0.5);
 
   // Vertex clustering implementation
@@ -776,7 +777,6 @@ export default function STLWorkflowPanel({
 
             {expandedSections.tools && (
               <div className="mt-4 space-y-4">
-
                 {/* Backup/Restore Button */}
                 <Button
                   onClick={() => {
@@ -819,7 +819,9 @@ export default function STLWorkflowPanel({
                         step="0.001"
                         value={vertexClusteringTolerance}
                         onChange={(e) =>
-                          setVertexClusteringTolerance(parseFloat(e.target.value))
+                          setVertexClusteringTolerance(
+                            parseFloat(e.target.value),
+                          )
                         }
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
@@ -985,7 +987,6 @@ export default function STLWorkflowPanel({
                       </div>
                     </div>
                   )}
-
               </div>
             )}
           </div>

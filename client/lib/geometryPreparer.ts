@@ -39,7 +39,6 @@ export function prepareGeometryForViewing(
     ).isProcedurallyGenerated;
   }
 
-
   // Step 1: Ensure proper face orientation for solid display
   ensureSolidObjectDisplay(prepared);
   if (hasNaNValues(prepared)) {
@@ -49,7 +48,9 @@ export function prepareGeometryForViewing(
   // Step 2: Compute flat normals for crisp shading (but preserve existing if decimated)
   // For decimated geometries, preserve existing normals to maintain color mapping
   if (source === "decimation" && prepared.attributes.normal) {
-    console.log("   🎨 Preserving decimated geometry normals to maintain color mapping");
+    console.log(
+      "   🎨 Preserving decimated geometry normals to maintain color mapping",
+    );
     // Keep existing normals from decimation - they're already flat and color-mapped
   } else {
     computeFlatNormals(prepared);
@@ -75,7 +76,8 @@ export function prepareGeometryForViewing(
  */
 function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
   // For geometries that already have proper normals (like decimated ones), check if they need recalculation
-  const hasExistingNormals = geometry.attributes.normal && geometry.attributes.normal.count > 0;
+  const hasExistingNormals =
+    geometry.attributes.normal && geometry.attributes.normal.count > 0;
 
   if (!hasExistingNormals) {
     // Use flat normals to maintain crisp face shading
