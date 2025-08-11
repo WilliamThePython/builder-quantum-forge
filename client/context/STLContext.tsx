@@ -751,6 +751,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       partThickness?: number;
       chamferDepth?: number;
       scale?: number;
+      useTriangulated?: boolean;
     }) => {
       if (!previewMeshMerged) {
         console.error("No 3D model loaded for chamfered parts export");
