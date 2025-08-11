@@ -449,7 +449,7 @@ export class VertexRemovalStitcher {
   ): THREE.BufferGeometry {
     if (targetReduction <= 0) {
       console.log(
-        "⚠�� Zero reduction requested - returning original geometry",
+        "⚠���� Zero reduction requested - returning original geometry",
       );
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
@@ -602,7 +602,25 @@ export class VertexRemovalStitcher {
     }
 
     // Apply vertex remapping to triangle indices
-    const remappedTriangles = validTriangles.map(idx => vertexRemap.get(idx)!);
+    const remappedTriangles = validTriangles.map(idx => {
+      const remapped = vertexRemap.get(idx);
+      if (remapped === undefined) {
+        console.error(`❌ Failed to remap vertex index ${idx}`);
+        throw new Error(`Invalid vertex remapping for index ${idx}`);
+      }
+      return remapped;
+    });
+
+    // Validate all indices are within bounds
+    const maxIndex = newPositions.length / 3 - 1;
+    for (let i = 0; i < remappedTriangles.length; i++) {
+      if (remappedTriangles[i] > maxIndex) {
+        console.error(`❌ Index ${remappedTriangles[i]} out of bounds (max: ${maxIndex})`);
+        throw new Error(`Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
+      }
+    }
+
+    console.log(`   Vertex remapping: ${usedVertices.size} unique vertices → ${newPositions.length / 3} vertices`);
 
     // Update geometry with cleaned vertices and indices
     cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
