@@ -554,6 +554,35 @@ export class VertexRemovalStitcher {
         }
       }
 
+      console.log(`   Processed ${edgesProcessed} edges, skipped ${edgesSkipped} long edges (threshold: ${maxAllowableEdgeLength.toFixed(3)})`);
+
+      // If we skipped all edges due to length, try a more permissive approach
+      if (edgesProcessed === 0 && edgesSkipped > 0 && mergedCount < verticesToRemove) {
+        console.log(`   ⚠️ All edges were too long - trying with relaxed threshold`);
+        const relaxedThreshold = modelSize * 0.5; // 50% of model diagonal
+
+        for (const [v1, v2] of edges.slice(0, Math.min(10, edges.length))) { // Try first 10 edges
+          if (mergedCount >= verticesToRemove) break;
+          if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
+
+          const edgeLength = this.calculateEdgeLength(positions, v1, v2);
+          if (edgeLength <= relaxedThreshold) {
+            // Perform the merge
+            const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
+            const midY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) / 2;
+            const midZ = (positions[v1 * 3 + 2] + positions[v2 * 3 + 2]) / 2;
+
+            positions[v1 * 3] = midX;
+            positions[v1 * 3 + 1] = midY;
+            positions[v1 * 3 + 2] = midZ;
+
+            vertexMergeMap.set(v2, v1);
+            mergedCount++;
+            console.log(`   Merged vertices ${v2} → ${v1} (relaxed threshold)`);
+          }
+        }
+      }
+
       // Check if we made progress in this iteration
       if (mergedCount === initialMergeCount) {
         console.log(
