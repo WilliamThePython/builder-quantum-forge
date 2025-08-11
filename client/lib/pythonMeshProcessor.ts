@@ -568,7 +568,7 @@ export class PythonMeshProcessor {
 
     // Force complete geometry regeneration
     positionAttribute.needsUpdate = true;
-    newGeometry.computeVertexNormals();
+    computeFlatNormals(newGeometry);
     newGeometry.computeBoundingBox();
     newGeometry.computeBoundingSphere();
 
