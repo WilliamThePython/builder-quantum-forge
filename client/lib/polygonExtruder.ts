@@ -207,8 +207,8 @@ export class PolygonExtruder {
   }
 
   /**
-   * Triangulate a polygon using simple fan triangulation
-   * For more complex polygons, this could be enhanced with better triangulation algorithms
+   * Robust polygon triangulation that avoids water wheel effect
+   * Uses ear clipping algorithm for better polygon decomposition
    */
   private static triangulatePolygon(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[][] {
     const triangles: THREE.Vector3[][] = [];
@@ -219,17 +219,144 @@ export class PolygonExtruder {
       // Already a triangle
       triangles.push([vertices[0], vertices[1], vertices[2]]);
     } else if (vertices.length === 4) {
-      // Quad - split into two triangles
+      // Quad - split into two triangles (diagonal from 0 to 2)
       triangles.push([vertices[0], vertices[1], vertices[2]]);
       triangles.push([vertices[0], vertices[2], vertices[3]]);
     } else {
-      // Polygon - fan triangulation from first vertex
-      for (let i = 1; i < vertices.length - 1; i++) {
-        triangles.push([vertices[0], vertices[i], vertices[i + 1]]);
-      }
+      // Complex polygon - use ear clipping algorithm
+      triangles.push(...this.earClippingTriangulation(vertices, normal));
     }
 
     return triangles;
+  }
+
+  /**
+   * Ear clipping triangulation algorithm
+   * Creates a more natural triangulation without water wheel artifacts
+   */
+  private static earClippingTriangulation(vertices: THREE.Vector3[], normal: THREE.Vector3): THREE.Vector3[][] {
+    const triangles: THREE.Vector3[][] = [];
+
+    // Create a working copy of vertex indices
+    const indices: number[] = [];
+    for (let i = 0; i < vertices.length; i++) {
+      indices.push(i);
+    }
+
+    // Keep removing ears until we have a triangle
+    while (indices.length > 3) {
+      let earFound = false;
+
+      for (let i = 0; i < indices.length; i++) {
+        const prev = indices[(i - 1 + indices.length) % indices.length];
+        const curr = indices[i];
+        const next = indices[(i + 1) % indices.length];
+
+        if (this.isEar(vertices, indices, prev, curr, next, normal)) {
+          // Found an ear - create triangle and remove the ear tip
+          triangles.push([
+            vertices[prev],
+            vertices[curr],
+            vertices[next]
+          ]);
+
+          // Remove the ear tip from the polygon
+          indices.splice(i, 1);
+          earFound = true;
+          break;
+        }
+      }
+
+      // Fallback if no ear found (degenerate polygon)
+      if (!earFound) {
+        console.warn("Ear clipping failed, falling back to fan triangulation");
+        // Use simple fan triangulation as fallback
+        for (let i = 1; i < indices.length - 1; i++) {
+          triangles.push([
+            vertices[indices[0]],
+            vertices[indices[i]],
+            vertices[indices[i + 1]]
+          ]);
+        }
+        break;
+      }
+    }
+
+    // Add the final triangle
+    if (indices.length === 3) {
+      triangles.push([
+        vertices[indices[0]],
+        vertices[indices[1]],
+        vertices[indices[2]]
+      ]);
+    }
+
+    return triangles;
+  }
+
+  /**
+   * Check if a vertex forms an ear (a triangle that can be safely removed)
+   */
+  private static isEar(
+    vertices: THREE.Vector3[],
+    indices: number[],
+    prevIdx: number,
+    currIdx: number,
+    nextIdx: number,
+    normal: THREE.Vector3
+  ): boolean {
+    const prev = vertices[prevIdx];
+    const curr = vertices[currIdx];
+    const next = vertices[nextIdx];
+
+    // Check if the triangle has correct winding order
+    const v1 = new THREE.Vector3().subVectors(curr, prev);
+    const v2 = new THREE.Vector3().subVectors(next, curr);
+    const cross = new THREE.Vector3().crossVectors(v1, v2);
+
+    // If the cross product points in the wrong direction, it's a reflex vertex
+    if (cross.dot(normal) <= 0) {
+      return false;
+    }
+
+    // Check if any other vertex is inside this triangle
+    for (let i = 0; i < indices.length; i++) {
+      const idx = indices[i];
+      if (idx === prevIdx || idx === currIdx || idx === nextIdx) continue;
+
+      if (this.pointInTriangle(vertices[idx], prev, curr, next)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if a point is inside a triangle using barycentric coordinates
+   */
+  private static pointInTriangle(
+    point: THREE.Vector3,
+    a: THREE.Vector3,
+    b: THREE.Vector3,
+    c: THREE.Vector3
+  ): boolean {
+    // Convert to 2D by projecting onto the triangle plane
+    const v0 = new THREE.Vector3().subVectors(c, a);
+    const v1 = new THREE.Vector3().subVectors(b, a);
+    const v2 = new THREE.Vector3().subVectors(point, a);
+
+    const dot00 = v0.dot(v0);
+    const dot01 = v0.dot(v1);
+    const dot02 = v0.dot(v2);
+    const dot11 = v1.dot(v1);
+    const dot12 = v1.dot(v2);
+
+    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    return (u >= 0) && (v >= 0) && (u + v <= 1);
   }
 
   /**
