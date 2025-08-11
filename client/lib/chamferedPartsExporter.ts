@@ -74,9 +74,9 @@ export class ChamferedPartsExporter {
       const chamferedFace = chamferedFaces[i];
       const fileExtension = format === "obj" ? "obj" : "stl";
       
-      const partContent = format === "obj" 
-        ? this.createChamferedPolygonOBJ(chamferedFace, partThickness, chamferDepth, scale)
-        : this.createChamferedPolygonSTL(chamferedFace, partThickness, chamferDepth, scale, geometry);
+      const partContent = format === "obj"
+        ? this.createChamferedPolygonOBJ(chamferedFace, partThickness, partThickness, scale)
+        : this.createChamferedPolygonSTL(chamferedFace, partThickness, partThickness, scale, geometry);
       
       const partFilename = `part_${String(i + 1).padStart(4, "0")}_${chamferedFace.faceInfo.type}_chamfered.${fileExtension}`;
 
