@@ -45,8 +45,14 @@ export function prepareGeometryForViewing(
     validateAndFixGeometry(prepared, `${source} solid display fix`);
   }
 
-  // Step 2: Always compute flat normals for crisp shading
-  computeFlatNormals(prepared);
+  // Step 2: Compute flat normals for crisp shading (but preserve existing if decimated)
+  // For decimated geometries, preserve existing normals to maintain color mapping
+  if (source === "decimation" && prepared.attributes.normal) {
+    console.log("   🎨 Preserving decimated geometry normals to maintain color mapping");
+    // Keep existing normals from decimation - they're already flat and color-mapped
+  } else {
+    computeFlatNormals(prepared);
+  }
   if (hasNaNValues(prepared)) {
     validateAndFixGeometry(prepared, `${source} normals fix`);
   }
