@@ -62,7 +62,8 @@ interface STLWorkflowPanelProps {
       | "best"
       | "random_vertex"
       | "python_vertex"
-      | "quadric_edge_collapse",
+      | "quadric_edge_collapse"
+      | "vertex_clustering",
   ) => void;
   isProcessing: boolean;
   geometryStats: {
