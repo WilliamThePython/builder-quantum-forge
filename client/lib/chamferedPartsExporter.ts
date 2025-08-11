@@ -38,6 +38,7 @@ export class ChamferedPartsExporter {
       partThickness?: number; // mm thickness for each polygon piece
       chamferDepth?: number; // how deep to make chamfers (mm)
       scale?: number; // overall scale factor
+      useTriangulated?: boolean; // backup mode using triangulated geometry
     } = {},
   ): Promise<void> {
     if (!geometry || !geometry.attributes.position) {
