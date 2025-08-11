@@ -1218,7 +1218,7 @@ export default function STLWorkflowPanel({
                       </Button>
                     </div>
                     <p className="text-xs text-white/60 mt-1">
-                      Generate chamfered parts with angled edges for perfect assembly
+                      Generate chamfered parts with angled sides that fit together perfectly for easy assembly
                     </p>
 
                     {/* Chamfered Export Settings */}
@@ -1272,12 +1272,6 @@ export default function STLWorkflowPanel({
                             <span>0.1x</span>
                             <span>10x</span>
                           </div>
-                        </div>
-
-                        <div className="text-xs text-white/70 mb-3">
-                          <strong>Chamfer Formula:</strong> chamfer angle = 90° - (edge angle)/2
-                          <br />
-                          Parts will fit together perfectly with angled edges for strong bonds.
                         </div>
 
                         <div className="flex gap-2">
