@@ -18,6 +18,7 @@ export class PolygonPartsExporter {
       format?: "stl" | "obj"; // export format
       partThickness?: number; // mm thickness for each polygon piece
       scale?: number; // overall scale factor
+      useTriangulated?: boolean; // backup mode using triangulated geometry
     } = {},
   ): Promise<void> {
     if (!geometry || !geometry.attributes.position) {
