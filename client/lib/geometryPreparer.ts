@@ -39,19 +39,6 @@ export function prepareGeometryForViewing(
     ).isProcedurallyGenerated;
   }
 
-  // CRITICAL: Preserve color attributes from decimated geometries to maintain color mapping
-  if (source === "decimation") {
-    const hasColors = geometry.attributes.color;
-    console.log(`   🎨 Geometry preparer decimation: hasColors=${!!hasColors}, colorLength=${hasColors?.array?.length || 0}`);
-
-    if (hasColors) {
-      console.log("   🎨 Preserving decimated geometry colors to maintain face-color mapping");
-      console.log(`   🎨 Copying ${hasColors.array.length} color values`);
-      prepared.setAttribute("color", geometry.attributes.color.clone());
-    } else {
-      console.log("   🎨 No colors found in decimated geometry to preserve");
-    }
-  }
 
   // Step 1: Ensure proper face orientation for solid display
   ensureSolidObjectDisplay(prepared);
