@@ -178,7 +178,6 @@ export default function STLWorkflowPanel({
   const [showChamferedSettings, setShowChamferedSettings] = useState(false);
   const [chamferedOptions, setChamferedOptions] = useState({
     partThickness: 2,
-    chamferDepth: 0.5,
     scale: 1,
   });
 
