@@ -2153,7 +2153,7 @@ function MobileWorkflowContent(props: any) {
                 </Button>
 
                 <p className="text-sm text-white/60">
-                  Generate chamfered parts with angled edges for perfect assembly
+                  Generate chamfered parts with angled sides that fit together perfectly for easy assembly
                 </p>
               </div>
             </div>
