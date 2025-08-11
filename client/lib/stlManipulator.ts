@@ -1144,44 +1144,45 @@ export class STLManipulator {
       };
     }
 
-    // Check 3: ONLY look for exact duplicates (no tolerance-based merging)
+    // Check 3: Look for duplicates within tolerance
     const positionSet = new Set<string>();
-    let exactDuplicates = 0;
+    let nearDuplicates = 0;
+    const precision = Math.max(6, Math.floor(-Math.log10(tolerance)));
 
     for (let i = 0; i < vertexCount; i++) {
       const x = positions[i * 3];
       const y = positions[i * 3 + 1];
       const z = positions[i * 3 + 2];
 
-      // Only count EXACT duplicates (precision-level identical)
-      const exactKey = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
-      if (positionSet.has(exactKey)) {
-        exactDuplicates++;
+      // Use tolerance-based key
+      const toleranceKey = `${x.toFixed(precision)},${y.toFixed(precision)},${z.toFixed(precision)}`;
+      if (positionSet.has(toleranceKey)) {
+        nearDuplicates++;
       } else {
-        positionSet.add(exactKey);
+        positionSet.add(toleranceKey);
       }
     }
 
-    // Check 4: Only proceed if there are MANY exact duplicates
-    const duplicatePercentage = exactDuplicates / vertexCount;
+    // Check 4: Only proceed if there are duplicates
+    const duplicatePercentage = nearDuplicates / vertexCount;
 
-    if (exactDuplicates < 10) {
+    if (nearDuplicates < 5) {
       return {
         needsClustering: false,
-        reason: `Only ${exactDuplicates} exact duplicates - not worth the risk`
+        reason: `Only ${nearDuplicates} near duplicates found - model is clean`
       };
     }
 
-    if (duplicatePercentage < 0.05) { // Less than 5% duplicates
+    if (duplicatePercentage < 0.02) { // Less than 2% duplicates
       return {
         needsClustering: false,
-        reason: `Only ${(duplicatePercentage * 100).toFixed(1)}% exact duplicates - model is clean enough`
+        reason: `Only ${(duplicatePercentage * 100).toFixed(1)}% near duplicates - model is clean enough`
       };
     }
 
     return {
       needsClustering: true,
-      reason: `Found ${exactDuplicates} exact duplicates (${(duplicatePercentage * 100).toFixed(1)}%) - safe to clean`
+      reason: `Found ${nearDuplicates} near duplicates (${(duplicatePercentage * 100).toFixed(1)}%) at tolerance ${tolerance} - clustering will help`
     };
   }
 }
