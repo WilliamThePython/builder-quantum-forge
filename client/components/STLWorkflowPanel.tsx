@@ -794,7 +794,7 @@ export default function STLWorkflowPanel({
                       <RefreshCw className="w-3 h-3 mr-2" />
                       {hasBackup
                         ? "🔄 Undo Simplification"
-                        : "⚪ No Backup Available"}
+                        : "�� No Backup Available"}
                     </Button>
                   </div>
 
@@ -1557,11 +1557,13 @@ function MobileWorkflowContent(props: any) {
   const [triangleOptions, setTriangleOptions] = useState({
     partThickness: 2,
     scale: 1,
+    useTriangulated: false,
   });
   const [showChamferedSettings, setShowChamferedSettings] = useState(false);
   const [chamferedOptions, setChamferedOptions] = useState({
     partThickness: 2,
     scale: 1,
+    useTriangulated: false,
   });
 
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
