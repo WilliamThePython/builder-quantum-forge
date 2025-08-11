@@ -1051,79 +1051,54 @@ export class STLManipulator {
       });
     }
 
-    // STEP 2: Only proceed if model actually has issues
+    // STEP 2: SAFE vertex deduplication - don't modify geometry structure
     console.log(`🔧 Model needs clustering: ${modelAnalysis.reason}`);
-    console.log(`🔵 Processing ${originalVertexCount} vertices with tolerance ${tolerance}`);
+    console.log(`🔵 Safely removing exact duplicates only...`);
 
     const cloned = geometry.clone();
 
-    // Use much smaller tolerance for actual clustering (max 0.001 for precision errors)
-    const actualTolerance = Math.min(tolerance, 0.001);
+    // SAFE APPROACH: Only merge vertices that are EXACTLY identical
+    // Don't change positions or create new vertex arrays - too risky
+    if (cloned.index) {
+      console.log(`🔧 Processing indexed geometry...`);
 
-    // Build list of unique vertices by comparing exact positions
-    const vertexMap = new Map<string, number>();
-    const newPositions: number[] = [];
-    const indexRemapping = new Array(originalVertexCount);
-    let mergedVertexCount = 0;
-    let duplicatesFound = 0;
+      // For indexed geometry: just update indices to point to first occurrence of duplicate vertices
+      const positionToFirstIndex = new Map<string, number>();
+      const oldIndices = Array.from(cloned.index.array);
+      let duplicatesRemoved = 0;
 
-    for (let i = 0; i < originalVertexCount; i++) {
-      const x = positions[i * 3];
-      const y = positions[i * 3 + 1];
-      const z = positions[i * 3 + 2];
+      // Build map of first occurrence of each position
+      for (let i = 0; i < originalVertexCount; i++) {
+        const x = positions[i * 3];
+        const y = positions[i * 3 + 1];
+        const z = positions[i * 3 + 2];
+        const key = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
 
-      // Use high precision for near-duplicate detection
-      const key = `${x.toFixed(8)},${y.toFixed(8)},${z.toFixed(8)}`;
-
-      let newIndex = vertexMap.get(key);
-      if (newIndex === undefined) {
-        // Check if any existing vertex is within tolerance
-        let foundNearDuplicate = false;
-        for (let j = 0; j < newPositions.length; j += 3) {
-          const dx = Math.abs(newPositions[j] - x);
-          const dy = Math.abs(newPositions[j + 1] - y);
-          const dz = Math.abs(newPositions[j + 2] - z);
-
-          if (dx < actualTolerance && dy < actualTolerance && dz < actualTolerance) {
-            newIndex = Math.floor(j / 3);
-            foundNearDuplicate = true;
-            duplicatesFound++;
-            break;
-          }
+        if (!positionToFirstIndex.has(key)) {
+          positionToFirstIndex.set(key, i);
         }
-
-        if (!foundNearDuplicate) {
-          newIndex = mergedVertexCount;
-          vertexMap.set(key, newIndex);
-          newPositions.push(x, y, z);
-          mergedVertexCount++;
-        }
-      } else {
-        duplicatesFound++;
       }
 
-      indexRemapping[i] = newIndex;
-    }
+      // Update indices to point to first occurrence of each position
+      for (let i = 0; i < oldIndices.length; i++) {
+        const vertexIndex = oldIndices[i];
+        const x = positions[vertexIndex * 3];
+        const y = positions[vertexIndex * 3 + 1];
+        const z = positions[vertexIndex * 3 + 2];
+        const key = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
 
-    // Update geometry only if we found duplicates
-    if (duplicatesFound > 0) {
-      cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
-
-      if (cloned.index) {
-        const oldIndices = cloned.index.array;
-        const newIndices = new Array(oldIndices.length);
-        for (let i = 0; i < oldIndices.length; i++) {
-          newIndices[i] = indexRemapping[oldIndices[i]];
+        const firstIndex = positionToFirstIndex.get(key)!;
+        if (firstIndex !== vertexIndex) {
+          oldIndices[i] = firstIndex;
+          duplicatesRemoved++;
         }
-        cloned.setIndex(newIndices);
       }
 
-      if (cloned.attributes.color) {
-        cloned.deleteAttribute("color");
-      }
+      cloned.setIndex(oldIndices);
+      console.log(`✅ Redirected ${duplicatesRemoved} duplicate vertex references`);
 
-      computeFlatNormals(cloned);
-      cloned.uuid = THREE.MathUtils.generateUUID();
+    } else {
+      console.log(`⚠️ Non-indexed geometry - skipping (too risky to modify)`);
     }
 
     const newStats = this.calculateMeshStats(cloned);
