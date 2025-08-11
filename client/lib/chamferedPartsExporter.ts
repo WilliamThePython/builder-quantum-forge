@@ -161,8 +161,8 @@ export class ChamferedPartsExporter {
 
     // Add assembly instructions
     const instructions = this.generateChamferedAssemblyInstructions(
-      chamferedFaces.length,
-      { ...options, partThickness, chamferDepth, polygonType },
+      polygonFaces.length,
+      { ...options, partThickness, chamferDepth: partThickness, polygonType },
     );
     zip.file("chamfered_assembly_instructions.txt", instructions);
 
