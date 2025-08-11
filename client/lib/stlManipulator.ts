@@ -1016,7 +1016,8 @@ export class STLManipulator {
   }
 
   /**
-   * Perform vertex clustering to merge nearby vertices
+   * Perform conservative vertex clustering - only merge near-duplicate vertices
+   * This preserves mesh topology while cleaning up precision errors and duplicate vertices
    */
   private static performVertexClustering(
     geometry: THREE.BufferGeometry,
@@ -1036,37 +1037,55 @@ export class STLManipulator {
     const positions = cloned.attributes.position.array as Float32Array;
     const originalVertexCount = positions.length / 3;
 
-    // Build vertex map based on tolerance using spatial grid
+    console.log(`🔵 Conservative vertex clustering: ${originalVertexCount} vertices with tolerance ${tolerance}`);
+
+    // Build list of unique vertices by comparing exact positions
     const vertexMap = new Map<string, number>();
     const newPositions: number[] = [];
     const indexRemapping = new Array(originalVertexCount);
     let mergedVertexCount = 0;
-
-    console.log(`🔵 Vertex clustering: ${originalVertexCount} vertices with tolerance ${tolerance}`);
+    let duplicatesFound = 0;
 
     for (let i = 0; i < originalVertexCount; i++) {
       const x = positions[i * 3];
       const y = positions[i * 3 + 1];
       const z = positions[i * 3 + 2];
 
-      // Create spatial grid key based on tolerance
-      const gridX = Math.floor(x / tolerance);
-      const gridY = Math.floor(y / tolerance);
-      const gridZ = Math.floor(z / tolerance);
-      const key = `${gridX},${gridY},${gridZ}`;
+      // Create position key with tolerance-based rounding for near-duplicates
+      const roundedX = Math.round(x / tolerance) * tolerance;
+      const roundedY = Math.round(y / tolerance) * tolerance;
+      const roundedZ = Math.round(z / tolerance) * tolerance;
+      const key = `${roundedX.toFixed(6)},${roundedY.toFixed(6)},${roundedZ.toFixed(6)}`;
 
       let newIndex = vertexMap.get(key);
       if (newIndex === undefined) {
+        // New unique vertex
         newIndex = mergedVertexCount;
         vertexMap.set(key, newIndex);
-        newPositions.push(x, y, z);
+        newPositions.push(roundedX, roundedY, roundedZ);
         mergedVertexCount++;
+      } else {
+        // Found a near-duplicate vertex
+        duplicatesFound++;
       }
 
       indexRemapping[i] = newIndex;
     }
 
-    // Update geometry with clustered vertices
+    // Only proceed if we found actual duplicates to merge
+    if (duplicatesFound === 0) {
+      console.log(`ℹ️ No duplicate vertices found within tolerance ${tolerance}`);
+      const processingTime = Date.now() - startTime;
+      return Promise.resolve({
+        geometry: cloned,
+        originalStats,
+        newStats: originalStats,
+        reductionAchieved: 0,
+        processingTime,
+      });
+    }
+
+    // Update geometry with deduplicated vertices
     cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
 
     // Update indices if geometry is indexed
@@ -1095,7 +1114,7 @@ export class STLManipulator {
     const reductionAchieved = verticesReduced / originalVertexCount;
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Vertex clustering complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
+    console.log(`✅ Vertex deduplication complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${duplicatesFound} duplicates merged)`);
 
     return Promise.resolve({
       geometry: cloned,
