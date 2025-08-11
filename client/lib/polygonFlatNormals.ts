@@ -14,7 +14,6 @@ export function computePolygonAwareFlatNormals(
 ): void {
   if (!geometry.index) {
     // Non-indexed geometry - compute proper flat normals for crisp face shading
-    const { computeFlatNormals } = await import("./flatNormals");
     computeFlatNormals(geometry);
     return;
   }
