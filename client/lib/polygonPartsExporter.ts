@@ -29,6 +29,7 @@ export class PolygonPartsExporter {
       format = "stl", // default to STL format
       partThickness = 2, // 2mm thick polygon pieces
       scale = 1,
+      useTriangulated = false, // backup mode
     } = options;
 
     const startTime = Date.now();
@@ -36,12 +37,32 @@ export class PolygonPartsExporter {
     // Create zip file
     const zip = new JSZip();
 
-    // Get polygon face data from geometry
-    const polygonFaces = (geometry as any).polygonFaces;
-    const polygonType = (geometry as any).polygonType;
+    // Determine which geometry to use based on backup mode
+    let polygonFaces: PolygonFace[];
+    let polygonType: string;
 
-    if (!polygonFaces) {
-      return this.exportTriangleFallback(geometry, filename, options);
+    if (useTriangulated) {
+      // Backup mode: use triangulated geometry
+      polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+      polygonType = "triangulated_backup";
+      console.log(`🔄 Using backup triangulated mode: ${polygonFaces.length} triangles`);
+    } else {
+      // Normal mode: use merged polygon faces
+      const mergedFaces = PolygonExtruder.extractPolygonsFromMergedGeometry(geometry);
+      if (mergedFaces.length === 0) {
+        // Fallback to triangulated if no merged faces available
+        console.log("⚠️ No merged faces found, falling back to triangulated mode");
+        polygonFaces = PolygonExtruder.extractPolygonsFromTriangulatedGeometry(geometry);
+        polygonType = "triangulated_fallback";
+      } else {
+        polygonFaces = mergedFaces;
+        polygonType = (geometry as any).polygonType || "merged";
+        console.log(`✅ Using merged polygon mode: ${polygonFaces.length} polygons`);
+      }
+    }
+
+    if (polygonFaces.length === 0) {
+      throw new Error("No polygon faces found for export");
     }
 
     // Store original geometry data for triangle extraction
