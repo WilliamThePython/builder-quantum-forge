@@ -55,6 +55,12 @@ export class STLManipulator {
       console.log(`🔧 Python service failed or unavailable, using JavaScript: ${error}`);
     }
 
+    // Choose implementation based on method
+    if (method === "vertex_clustering") {
+      console.log(`🔧 Using vertex clustering with tolerance: ${targetReduction}`);
+      return this.performVertexClustering(geometry, targetReduction);
+    }
+
     // Fallback to JavaScript implementation
     console.log(`🔧 Using JavaScript VertexRemovalStitcher for decimation`);
     const result = await VertexRemovalStitcher.removeVertices(
