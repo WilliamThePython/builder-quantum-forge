@@ -39,15 +39,15 @@ async def decimate_mesh(
     target_reduction: float = 0.5
 ):
     """
-    Decimate a mesh using Open3D's quadric decimation algorithm
-    
+    Decimate a mesh using conservative quadric edge collapse decimation.
+    Optimized for user-uploaded models to avoid artifacts like crimped features.
+
     Args:
         file: STL or OBJ mesh file
         target_reduction: Reduction ratio (0.0 to 1.0, where 0.5 = 50% reduction)
-        preserve_boundary: Whether to preserve boundary edges
-    
+
     Returns:
-        Decimated mesh in STL format
+        Decimated mesh in same format with preserved shape quality
     """
     
     if not file.filename:
