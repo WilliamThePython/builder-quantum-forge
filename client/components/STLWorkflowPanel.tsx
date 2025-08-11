@@ -222,15 +222,8 @@ export default function STLWorkflowPanel({
       duration: 1500,
     });
 
-    // For now, show a placeholder message since we need to implement this properly
-    // through the STL context system rather than directly manipulating geometry
-    setTimeout(() => {
-      toast({
-        title: "✅ Vertex Clustering Complete",
-        description: `Clustered vertices with tolerance ${vertexClusteringTolerance} (feature in development)`,
-        duration: 2500,
-      });
-    }, 1000);
+    // Use the existing onReducePoints interface but pass tolerance as the reduction parameter
+    onReducePoints(vertexClusteringTolerance, "vertex_clustering");
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
