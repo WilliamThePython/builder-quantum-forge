@@ -174,11 +174,13 @@ export default function STLWorkflowPanel({
   const [triangleOptions, setTriangleOptions] = useState({
     partThickness: 2,
     scale: 1,
+    useTriangulated: false,
   });
   const [showChamferedSettings, setShowChamferedSettings] = useState(false);
   const [chamferedOptions, setChamferedOptions] = useState({
     partThickness: 2,
     scale: 1,
+    useTriangulated: false,
   });
 
   // Export format selection
