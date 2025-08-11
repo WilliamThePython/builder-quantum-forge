@@ -41,16 +41,16 @@ export class PythonMeshProcessor {
   }
 
   /**
-   * Decimate mesh using Python Open3D service
+   * Decimate mesh using conservative Python Open3D service
+   * Optimized for user-uploaded models to avoid artifacts
    */
   static async decimateMesh(
     geometry: THREE.BufferGeometry,
     targetReduction: number,
-    preserveBoundary: boolean = true,
   ): Promise<PythonDecimationResult> {
     const startTime = Date.now();
 
-    console.log(`   Preserve boundary: ${preserveBoundary}`);
+    console.log(`   Using conservative decimation for user models`);
 
     // Check service health first
     const isHealthy = await this.checkServiceHealth();
