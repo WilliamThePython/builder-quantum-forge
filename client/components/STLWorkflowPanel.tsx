@@ -201,7 +201,7 @@ export default function STLWorkflowPanel({
     const file = event.target.files?.[0];
     console.log("🔄 File upload triggered:", file?.name, file?.size);
     if (file) {
-      console.log("📁 Calling loadModelFromFile...");
+      console.log("�� Calling loadModelFromFile...");
       loadModelFromFile(file).catch((err) => {
         console.error("❌ Upload failed:", err);
         // Make sure the error is visible to the user
@@ -1120,7 +1120,7 @@ export default function STLWorkflowPanel({
                                         }
 
                                         // Material = surface area * thickness * scale * calibration factor
-                                        const calibrationFactor = 0.1; // Adjust this to calibrate estimates
+                                        const calibrationFactor = 0.002; // Adjust this to calibrate estimates
                                         const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
                                         return Math.round(material);
                                       })()}
@@ -1149,7 +1149,7 @@ export default function STLWorkflowPanel({
                                           totalArea += area;
                                         }
 
-                                        const calibrationFactor = 0.1;
+                                        const calibrationFactor = 0.002;
                                         const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
 
                                         // Time = adjustment factor * material * (1 + log(triangle count))
@@ -1203,7 +1203,7 @@ export default function STLWorkflowPanel({
                                         }
 
                                         // Material = surface area * thickness * scale * calibration factor
-                                        const calibrationFactor = 0.1; // Adjust this to calibrate estimates
+                                        const calibrationFactor = 0.002; // Adjust this to calibrate estimates
                                         const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
                                         return Math.round(material);
                                       })()}
@@ -1232,7 +1232,7 @@ export default function STLWorkflowPanel({
                                           totalArea += area;
                                         }
 
-                                        const calibrationFactor = 0.1;
+                                        const calibrationFactor = 0.002;
                                         const material = totalArea * triangleOptions.partThickness * triangleOptions.scale * calibrationFactor;
 
                                         // Time = adjustment factor * material * (1 + log(triangle count))
