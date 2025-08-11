@@ -12,8 +12,9 @@ export function computePolygonAwareFlatNormals(
   polygonFaces?: any[],
 ): void {
   if (!geometry.index) {
-    // Non-indexed geometry - each triangle already has its own vertices
-    geometry.computeVertexNormals();
+    // Non-indexed geometry - compute proper flat normals for crisp face shading
+    const { computeFlatNormals } = await import("./flatNormals");
+    computeFlatNormals(geometry);
     return;
   }
 
