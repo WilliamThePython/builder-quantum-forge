@@ -84,7 +84,7 @@ export class ChamferedPartsExporter {
       const partInfo = this.calculateChamferedPartInfo(
         chamferedFace,
         partThickness,
-        chamferDepth,
+        partThickness,
         scale,
       );
 
