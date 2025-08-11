@@ -711,6 +711,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     [previewMeshMerged, fileName],
   );
 
+  const addError = useCallback((message: string) => {
+    const error: ErrorMessage = {
+      id: Date.now().toString(),
+      message,
+      timestamp: Date.now(),
+    };
+    setErrors((prev) => [...prev, error]);
+  }, []);
+
   const exportParts = useCallback(
     async (options?: {
       format?: "stl" | "obj";
