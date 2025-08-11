@@ -1179,11 +1179,11 @@ export default function STLWorkflowPanel({
                     </span>
                   </div>
 
-                  {/* 3D Print 'n'Glue */}
+                  {/* 3D Print 'n' Glue */}
                   <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
                     <div className="flex items-center gap-3">
                       <div className="text-white text-sm">
-                        3D Print 'n'Glue (as stl/obj)
+                        3D Print 'n' Glue (as stl/obj)
                       </div>
                       <div className="relative group">
                         <div className="w-4 h-4 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-xs font-bold cursor-help">
@@ -2040,11 +2040,11 @@ function MobileWorkflowContent(props: any) {
                 </span>
               </div>
 
-              {/* 3D Print 'n'Glue */}
+              {/* 3D Print 'n' Glue */}
               <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
                 <div className="flex items-center gap-3">
                   <div className="text-white text-base">
-                    3D Print 'n'Glue (as stl/obj)
+                    3D Print 'n' Glue (as stl/obj)
                   </div>
                   <div className="relative group">
                     <div className="w-5 h-5 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-sm font-bold cursor-help">
@@ -2106,7 +2106,7 @@ function MobileWorkflowContent(props: any) {
         <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
           <div className="flex items-center gap-3">
             <div className="text-white text-base">
-              3D Print 'n'Glue (as stl/obj)
+              3D Print 'n' Glue (as stl/obj)
             </div>
             <div className="relative group">
               <div className="w-5 h-5 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-sm font-bold cursor-help">
