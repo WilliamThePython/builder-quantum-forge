@@ -1156,269 +1156,127 @@ export default function STLWorkflowPanel({
                   )}
                 </div>
 
-                {!geometry && (
-                  <p className="text-xs text-white/50 text-center mt-4">
-                    Upload or load a model first to enable exports
+                {/* 3D Print 'n' Glue Export */}
+                <div>
+                  <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
+                    <Hammer className="w-3 h-3" />
+                    3D Print 'n' Glue Export
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        exportChamferedParts(chamferedOptions);
+                        setShowChamferedSettings(false);
+                      }}
+                      disabled={!geometry}
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
+                    >
+                      <Hammer className="w-4 h-4 mr-2" />
+                      Export Chamfered Parts
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        setShowChamferedSettings(!showChamferedSettings)
+                      }
+                      disabled={!geometry}
+                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
+                      title="Configure chamfer settings"
+                    >
+                      <Wrench className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-white/60 mt-1">
+                    Generate chamfered parts with angled sides that fit together perfectly for easy assembly
                   </p>
-                )}
 
-                <Separator className="bg-white/20 my-4" />
+                  {/* Chamfered Export Settings */}
+                  {showChamferedSettings && (
+                    <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                      <div className="text-white text-sm font-medium mb-3">
+                        Chamfered Parts Settings
+                      </div>
 
-                {/* Coming Soon Features */}
-                <div className="space-y-3">
-                  <div className="text-white text-sm font-medium mb-3 text-center opacity-60">
-                    Coming Soon
+                      {/* Thickness Setting */}
+                      <div className="mb-3">
+                        <div className="text-white text-xs mb-2">
+                          Part Thickness: {chamferedOptions.partThickness}mm
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="0.5"
+                          value={chamferedOptions.partThickness}
+                          onChange={(e) =>
+                            setChamferedOptions((prev) => ({
+                              ...prev,
+                              partThickness: parseFloat(e.target.value),
+                            }))
+                          }
+                          className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                      </div>
+
+                      {/* Scale Setting */}
+                      <div className="mb-3">
+                        <div className="text-white text-xs mb-2">
+                          Scale Factor: {chamferedOptions.scale}x
+                        </div>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="10"
+                          step="0.1"
+                          value={chamferedOptions.scale}
+                          onChange={(e) =>
+                            setChamferedOptions((prev) => ({
+                              ...prev,
+                              scale: parseFloat(e.target.value),
+                            }))
+                          }
+                          className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                        <div className="flex justify-between text-xs text-white/70 mt-1">
+                          <span>0.1x</span>
+                          <span>10x</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            exportChamferedParts(chamferedOptions);
+                            setShowChamferedSettings(false);
+                          }}
+                          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-2 h-8"
+                          disabled={isProcessing || !geometry}
+                        >
+                          Generate Chamfered Parts
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Papercraft Export (Coming Soon) */}
+                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <div className="text-white text-xs">
+                      Papercraft export (as pdf)
+                    </div>
+                    <div className="relative group">
+                      <div className="w-4 h-4 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-xs font-bold cursor-help">
+                        i
+                      </div>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-900 border border-blue-400/30 rounded-md text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
+                        Print out nets of your model with appropriate glue tabs so you can cut, fold, and glue your models into life!
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Papercraft Export */}
-                  <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
-                    <div className="flex items-center gap-3">
-                      <div className="text-white text-sm">
-                        Papercraft export (as pdf)
-                      </div>
-                      <div className="relative group">
-                        <div className="w-4 h-4 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-xs font-bold cursor-help">
-                          i
-                        </div>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-900 border border-blue-400/30 rounded-md text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
-                          Print out nets of your model with appropriate glue
-                          tabs so you can cut, fold, and glue your models into
-                          life!
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-blue-300/60 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded">
-                      COMING SOON
-                    </span>
-                  </div>
-
-                  {/* 3D Print 'n' Glue */}
-                  <div>
-                    <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
-                      <Hammer className="w-3 h-3" />
-                      3D Print 'n' Glue Export
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          exportChamferedParts(chamferedOptions);
-                          setShowChamferedSettings(false);
-                        }}
-                        disabled={!geometry}
-                        className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
-                      >
-                        <Hammer className="w-4 h-4 mr-2" />
-                        Export Chamfered Parts
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          setShowChamferedSettings(!showChamferedSettings)
-                        }
-                        disabled={!geometry}
-                        className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
-                        title="Configure chamfer settings"
-                      >
-                        <Wrench className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-white/60 mt-1">
-                      Generate chamfered parts with angled sides that fit together perfectly for easy assembly
-                    </p>
-
-                    {/* Chamfered Export Settings */}
-                    {showChamferedSettings && (
-                      <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
-                        <div className="text-white text-sm font-medium mb-3">
-                          Chamfered Parts Settings
-                        </div>
-
-                        {/* Thickness Setting */}
-                        <div className="mb-3">
-                          <div className="text-white text-xs mb-2">
-                            Part Thickness: {chamferedOptions.partThickness}mm
-                          </div>
-                          <input
-                            type="range"
-                            min="1"
-                            max="10"
-                            step="0.5"
-                            value={chamferedOptions.partThickness}
-                            onChange={(e) =>
-                              setChamferedOptions((prev) => ({
-                                ...prev,
-                                partThickness: parseFloat(e.target.value),
-                              }))
-                            }
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                        </div>
-
-                        {/* Scale Setting */}
-                        <div className="mb-3">
-                          <div className="text-white text-xs mb-2">
-                            Scale Factor: {chamferedOptions.scale}x
-                          </div>
-                          <input
-                            type="range"
-                            min="0.1"
-                            max="10"
-                            step="0.1"
-                            value={chamferedOptions.scale}
-                            onChange={(e) =>
-                              setChamferedOptions((prev) => ({
-                                ...prev,
-                                scale: parseFloat(e.target.value),
-                              }))
-                            }
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="flex justify-between text-xs text-white/70 mt-1">
-                            <span>0.1x</span>
-                            <span>10x</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => {
-                              exportChamferedParts(chamferedOptions);
-                              setShowChamferedSettings(false);
-                            }}
-                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-2 h-8"
-                            disabled={isProcessing || !geometry}
-                          >
-                            Generate Chamfered Parts
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 3D Print 'n' Glue */}
-                  <div>
-                    <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
-                      <Hammer className="w-3 h-3" />
-                      3D Print 'n' Glue Export
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          exportChamferedParts(chamferedOptions);
-                          setShowChamferedSettings(false);
-                        }}
-                        disabled={!geometry}
-                        className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold h-10"
-                      >
-                        <Hammer className="w-4 h-4 mr-2" />
-                        Export Chamfered Parts
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          setShowChamferedSettings(!showChamferedSettings)
-                        }
-                        disabled={!geometry}
-                        className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white h-10 px-3"
-                        title="Configure chamfer settings"
-                      >
-                        <Wrench className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-white/60 mt-1">
-                      Generate chamfered parts with angled sides that fit together perfectly for easy assembly
-                    </p>
-
-                    {/* Chamfered Export Settings */}
-                    {showChamferedSettings && (
-                      <div className="mt-3 p-4 bg-white/10 rounded-lg border border-white/20">
-                        <div className="text-white text-sm font-medium mb-3">
-                          Chamfered Parts Settings
-                        </div>
-
-                        {/* Thickness Setting */}
-                        <div className="mb-3">
-                          <div className="text-white text-xs mb-2">
-                            Part Thickness: {chamferedOptions.partThickness}mm
-                          </div>
-                          <input
-                            type="range"
-                            min="1"
-                            max="10"
-                            step="0.5"
-                            value={chamferedOptions.partThickness}
-                            onChange={(e) =>
-                              setChamferedOptions((prev) => ({
-                                ...prev,
-                                partThickness: parseFloat(e.target.value),
-                              }))
-                            }
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                        </div>
-
-                        {/* Scale Setting */}
-                        <div className="mb-3">
-                          <div className="text-white text-xs mb-2">
-                            Scale Factor: {chamferedOptions.scale}x
-                          </div>
-                          <input
-                            type="range"
-                            min="0.1"
-                            max="10"
-                            step="0.1"
-                            value={chamferedOptions.scale}
-                            onChange={(e) =>
-                              setChamferedOptions((prev) => ({
-                                ...prev,
-                                scale: parseFloat(e.target.value),
-                              }))
-                            }
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                          />
-                          <div className="flex justify-between text-xs text-white/70 mt-1">
-                            <span>0.1x</span>
-                            <span>10x</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => {
-                              exportChamferedParts(chamferedOptions);
-                              setShowChamferedSettings(false);
-                            }}
-                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs py-2 h-8"
-                            disabled={isProcessing || !geometry}
-                          >
-                            Generate Chamfered Parts
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Papercraft Export */}
-                  <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-600/50 opacity-60">
-                    <div className="flex items-center gap-3">
-                      <div className="text-white text-xs">
-                        Papercraft export (as pdf)
-                      </div>
-                      <div className="relative group">
-                        <div className="w-4 h-4 bg-blue-500/20 border border-blue-400/30 rounded-full flex items-center justify-center text-blue-300 text-xs font-bold cursor-help">
-                          i
-                        </div>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-slate-900 border border-blue-400/30 rounded-md text-xs text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 z-50">
-                          Print out nets of your model with appropriate glue
-                          tabs so you can cut, fold, and glue your models into
-                          life!
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-blue-300/60 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded">
-                      COMING SOON
-                    </span>
-                  </div>
+                  <span className="text-blue-300/60 text-xs font-medium bg-blue-500/10 px-2 py-1 rounded">
+                    COMING SOON
+                  </span>
                 </div>
 
                 {!geometry && (
