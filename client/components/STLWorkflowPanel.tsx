@@ -946,7 +946,13 @@ export default function STLWorkflowPanel({
 
                 <Separator className="bg-white/20" />
 
-                {/* Triangle Export */}
+                {/* Crafting Exports Section */}
+                <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                  <Hammer className="w-4 h-4" />
+                  Crafting Exports
+                </div>
+
+                {/* Polygon Parts Export */}
                 <div>
                   <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
                     <Package className="w-3 h-3" />
