@@ -232,10 +232,10 @@ export default function STLWorkflowPanel({
     } else {
       // Export parts
       if (format === "stl") {
-        exportParts(triangleOptions);
+        exportParts({ ...triangleOptions, useTriangulated: triangleOptions.modelType === "triangle" });
       } else {
         // Export parts as OBJ
-        exportParts({ ...triangleOptions, format: "obj" });
+        exportParts({ ...triangleOptions, format: "obj", useTriangulated: triangleOptions.modelType === "triangle" });
       }
     }
   };
