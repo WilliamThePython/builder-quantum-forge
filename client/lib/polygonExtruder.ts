@@ -208,35 +208,6 @@ export class PolygonExtruder {
   }
 
   /**
-   * Extract original triangles from stored triangle indices
-   * This preserves the original mesh triangulation to prevent water wheel effect
-   */
-  private static extractOriginalTriangles(
-    triangleIndices: number[],
-    polygonVertices: THREE.Vector3[]
-  ): THREE.Vector3[][] {
-    const triangles: THREE.Vector3[][] = [];
-
-    // Process triangle indices in groups of 3
-    for (let i = 0; i < triangleIndices.length; i += 3) {
-      const i1 = triangleIndices[i];
-      const i2 = triangleIndices[i + 1];
-      const i3 = triangleIndices[i + 2];
-
-      // Validate indices
-      if (i1 < polygonVertices.length && i2 < polygonVertices.length && i3 < polygonVertices.length) {
-        triangles.push([
-          polygonVertices[i1],
-          polygonVertices[i2],
-          polygonVertices[i3]
-        ]);
-      }
-    }
-
-    return triangles;
-  }
-
-  /**
    * Triangulate a polygon using simple fan triangulation
    * For more complex polygons, this could be enhanced with better triangulation algorithms
    */
