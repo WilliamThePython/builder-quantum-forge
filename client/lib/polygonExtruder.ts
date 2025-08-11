@@ -401,6 +401,7 @@ export class PolygonExtruder {
       normal: faceInfo.normal || new THREE.Vector3(0, 0, 1),
       type: faceInfo.type || "polygon",
       index,
+      triangleIndices: faceInfo.triangleIndices || [], // Preserve original triangulation
     }));
   }
 }
