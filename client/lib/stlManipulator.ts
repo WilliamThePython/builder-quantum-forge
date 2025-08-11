@@ -923,9 +923,10 @@ export class STLManipulator {
       }
 
       // Skip degenerate triangles (those that would have both vertices)
-      if (hasVertex1 && hasVertex2) {
-        continue;
-      }
+    if (hasVertex1 && hasVertex2) {
+      console.log(`   Removing degenerate triangle ${Math.floor(i / 3)}: contains both vertices`);
+      continue;
+    }
 
       // Add triangle vertices, replacing vertexIndex2 with collapsed position
       for (let j = 0; j < 3; j++) {
