@@ -930,8 +930,8 @@ export class STLManipulator {
       );
     }
 
-    // Recompute normals
-    newGeometry.computeVertexNormals();
+    // Use flat normals to maintain crisp face shading (avoid color blending)
+    computeFlatNormals(newGeometry);
 
     return newGeometry;
   }
