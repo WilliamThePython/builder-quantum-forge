@@ -509,10 +509,20 @@ export class VertexRemovalStitcher {
         // Skip if either vertex is already merged
         if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
 
-        // Quality check: Skip very long edges to avoid distortion in user models
+        // Quality check: Skip extremely long edges to avoid major distortion
         const edgeLength = this.calculateEdgeLength(positions, v1, v2);
-        const maxAllowableEdgeLength = 0.1; // Conservative threshold for user models
-        if (edgeLength > maxAllowableEdgeLength) continue;
+
+        // Calculate dynamic threshold based on model scale (average edge length)
+        const modelBounds = new THREE.Box3().setFromBufferAttribute(
+          new THREE.BufferAttribute(positions, 3)
+        );
+        const modelSize = modelBounds.getSize(new THREE.Vector3()).length();
+        const maxAllowableEdgeLength = modelSize * 0.2; // 20% of model diagonal
+
+        if (edgeLength > maxAllowableEdgeLength) {
+          console.log(`   Skipping long edge: ${edgeLength.toFixed(3)} > ${maxAllowableEdgeLength.toFixed(3)}`);
+          continue;
+        }
 
         // Calculate collapse position (midpoint for simplicity)
         const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
