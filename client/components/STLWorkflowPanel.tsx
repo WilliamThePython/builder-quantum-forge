@@ -197,6 +197,10 @@ export default function STLWorkflowPanel({
     processingTime?: number;
   }>({});
 
+  // New simplification state variables
+  const [vertexClusteringTolerance, setVertexClusteringTolerance] = useState(0.1);
+  const [quadricReduction, setQuadricReduction] = useState(0.5);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     console.log("🔄 File upload triggered:", file?.name, file?.size);
