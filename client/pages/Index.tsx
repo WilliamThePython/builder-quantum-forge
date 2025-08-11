@@ -36,7 +36,8 @@ export default function Index() {
       | "best"
       | "random_vertex"
       | "python_vertex"
-      | "quadric_edge_collapse",
+      | "quadric_edge_collapse"
+      | "vertex_clustering",
   ) => {
     // Map UI method names to backend method names
     let backendMethod:
