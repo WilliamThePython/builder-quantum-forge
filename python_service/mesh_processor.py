@@ -36,8 +36,7 @@ async def health_check():
 @app.post("/decimate")
 async def decimate_mesh(
     file: UploadFile = File(...),
-    target_reduction: float = 0.5,
-    preserve_boundary: bool = True
+    target_reduction: float = 0.5
 ):
     """
     Decimate a mesh using Open3D's quadric decimation algorithm
