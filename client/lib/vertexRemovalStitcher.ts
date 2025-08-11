@@ -506,6 +506,16 @@ export class VertexRemovalStitcher {
 
       console.log(`   Processing ${edges.length} edges, shortest: ${this.calculateEdgeLength(positions, edges[0]?.[0], edges[0]?.[1])?.toFixed(3) || 'N/A'}`);
 
+      // Calculate dynamic threshold based on model scale
+      const modelBounds = new THREE.Box3().setFromBufferAttribute(
+        new THREE.BufferAttribute(positions, 3)
+      );
+      const modelSize = modelBounds.getSize(new THREE.Vector3()).length();
+      const maxAllowableEdgeLength = modelSize * 0.2; // 20% of model diagonal
+
+      let edgesProcessed = 0;
+      let edgesSkipped = 0;
+
       for (const [v1, v2] of edges) {
         if (mergedCount >= verticesToRemove) {
           break;
@@ -517,17 +527,12 @@ export class VertexRemovalStitcher {
         // Quality check: Skip extremely long edges to avoid major distortion
         const edgeLength = this.calculateEdgeLength(positions, v1, v2);
 
-        // Calculate dynamic threshold based on model scale (average edge length)
-        const modelBounds = new THREE.Box3().setFromBufferAttribute(
-          new THREE.BufferAttribute(positions, 3)
-        );
-        const modelSize = modelBounds.getSize(new THREE.Vector3()).length();
-        const maxAllowableEdgeLength = modelSize * 0.2; // 20% of model diagonal
-
         if (edgeLength > maxAllowableEdgeLength) {
-          console.log(`   Skipping long edge: ${edgeLength.toFixed(3)} > ${maxAllowableEdgeLength.toFixed(3)}`);
+          edgesSkipped++;
           continue;
         }
+
+        edgesProcessed++;
 
         // Calculate collapse position (midpoint for simplicity)
         const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
