@@ -1057,35 +1057,36 @@ export class STLManipulator {
 
     const cloned = geometry.clone();
 
-    // SAFE APPROACH: Only merge vertices that are EXACTLY identical
-    // Don't change positions or create new vertex arrays - too risky
+    // TOLERANCE-BASED APPROACH: Merge vertices within tolerance distance
+    // Use safe index redirection approach to preserve geometry structure
     if (cloned.index) {
-      console.log(`🔧 Processing indexed geometry...`);
+      console.log(`🔧 Processing indexed geometry with tolerance ${tolerance}...`);
 
-      // For indexed geometry: just update indices to point to first occurrence of duplicate vertices
+      // For indexed geometry: update indices to point to first occurrence of vertices within tolerance
       const positionToFirstIndex = new Map<string, number>();
       const oldIndices = Array.from(cloned.index.array);
       let duplicatesRemoved = 0;
+      const precision = Math.max(6, Math.floor(-Math.log10(tolerance)));
 
-      // Build map of first occurrence of each position
+      // Build map of first occurrence of each position (using tolerance)
       for (let i = 0; i < originalVertexCount; i++) {
         const x = positions[i * 3];
         const y = positions[i * 3 + 1];
         const z = positions[i * 3 + 2];
-        const key = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
+        const key = `${x.toFixed(precision)},${y.toFixed(precision)},${z.toFixed(precision)}`;
 
         if (!positionToFirstIndex.has(key)) {
           positionToFirstIndex.set(key, i);
         }
       }
 
-      // Update indices to point to first occurrence of each position
+      // Update indices to point to first occurrence of each position (within tolerance)
       for (let i = 0; i < oldIndices.length; i++) {
         const vertexIndex = oldIndices[i];
         const x = positions[vertexIndex * 3];
         const y = positions[vertexIndex * 3 + 1];
         const z = positions[vertexIndex * 3 + 2];
-        const key = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
+        const key = `${x.toFixed(precision)},${y.toFixed(precision)},${z.toFixed(precision)}`;
 
         const firstIndex = positionToFirstIndex.get(key)!;
         if (firstIndex !== vertexIndex) {
@@ -1095,7 +1096,7 @@ export class STLManipulator {
       }
 
       cloned.setIndex(oldIndices);
-      console.log(`✅ Redirected ${duplicatesRemoved} duplicate vertex references`);
+      console.log(`✅ Redirected ${duplicatesRemoved} vertex references within tolerance ${tolerance}`);
 
     } else {
       console.log(`⚠️ Non-indexed geometry - skipping (too risky to modify)`);
