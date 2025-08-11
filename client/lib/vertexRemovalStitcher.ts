@@ -569,6 +569,7 @@ export class VertexRemovalStitcher {
     }
 
     console.log(`   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`);
+    console.log(`   Final geometry: ${validTriangles.length / 3} valid triangles`);
 
     // Apply the cleaned indices
     cloned.setIndex(validTriangles);
@@ -577,8 +578,16 @@ export class VertexRemovalStitcher {
     const newUUID = THREE.MathUtils.generateUUID();
     cloned.uuid = newUUID;
 
+    // Validate the geometry is not malformed
+    if (validTriangles.length === 0) {
+      console.error("❌ All triangles were removed - geometry is empty!");
+      return cloned; // Return original if everything was removed
+    }
+
     // Recompute normals with flat shading to maintain crisp faces
     computeFlatNormals(cloned);
+
+    console.log(`✅ Decimation complete: ${cloned.attributes.position.count} vertices, ${validTriangles.length / 3} triangles`);
 
     return cloned;
   }
