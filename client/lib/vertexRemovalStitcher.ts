@@ -421,6 +421,15 @@ export class VertexRemovalStitcher {
     const startTime = Date.now();
     const originalStats = this.getMeshStats(geometry);
 
+    // Debug: Check what attributes the input geometry has
+    console.log(`🔧 VertexRemovalStitcher input geometry attributes:`, {
+      position: !!geometry.attributes.position,
+      normal: !!geometry.attributes.normal,
+      color: !!geometry.attributes.color,
+      colorLength: geometry.attributes.color?.array?.length || 0,
+      vertexCount: geometry.attributes.position?.count || 0
+    });
+
     // Use our own pure edge collapse implementation
     const simplifiedGeometry = this.pureQuadricEdgeCollapse(
       geometry,
