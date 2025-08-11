@@ -14,7 +14,7 @@ export class STLManipulator {
   static async reducePoints(
     geometry: THREE.BufferGeometry,
     targetReduction: number = 0.5,
-    method: "quadric_edge_collapse" = "quadric_edge_collapse",
+    method: "quadric_edge_collapse" | "vertex_clustering" = "quadric_edge_collapse",
   ): Promise<{
     geometry: THREE.BufferGeometry;
     originalStats: MeshStats;
