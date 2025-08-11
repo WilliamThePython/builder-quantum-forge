@@ -2,6 +2,7 @@
  * Python mesh processing client using Open3D backend
  */
 import * as THREE from "three";
+import { computeFlatNormals } from "./flatNormals";
 
 export interface PythonDecimationResult {
   geometry: THREE.BufferGeometry;
@@ -481,7 +482,7 @@ export class PythonMeshProcessor {
 
     // Log original positions for comparison
     console.log(
-      `   🔍 BEFORE: First vertex [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`,
+      `   ��� BEFORE: First vertex [${originalPositions[0].toFixed(3)}, ${originalPositions[1].toFixed(3)}, ${originalPositions[2].toFixed(3)}]`,
     );
 
     // Create modified positions array
