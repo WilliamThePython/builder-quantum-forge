@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
+import { PolygonExtruder, PolygonFace, ExtrusionOptions } from "./polygonExtruder";
 
 /**
  * PolygonPartsExporter exports each polygon face as a separate STL or OBJ file
