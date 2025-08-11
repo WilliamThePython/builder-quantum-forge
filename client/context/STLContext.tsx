@@ -805,10 +805,25 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setIsProcessingTool(true);
 
       try {
+        console.log("🔧 Starting decimation...", {
+          reductionAmount,
+          method,
+          inputVertices: workingMeshTri.attributes.position.count,
+        });
+
         const manipulator = new STLManipulator(workingMeshTri);
         const result = await manipulator.reducePoints(reductionAmount, method);
 
+        console.log("🔧 Decimation result:", {
+          success: result.success,
+          message: result.message,
+          hasGeometry: !!result.geometry,
+          outputVertices: result.geometry?.attributes.position.count,
+        });
+
         if (result.success && result.geometry) {
+          console.log("✅ Updating meshes after decimation...");
+
           // Update working mesh
           setWorkingMeshTri(result.geometry);
 
@@ -825,6 +840,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             "decimated",
           );
           setGeometry(displayGeometry);
+
+          console.log("✅ All meshes updated successfully!", {
+            displayVertices: displayGeometry.attributes.position.count,
+          });
+        } else {
+          console.error("❌ Decimation failed:", result.message);
         }
 
         return result;
