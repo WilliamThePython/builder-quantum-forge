@@ -64,8 +64,27 @@ export class STLManipulator {
       `✅ Decimation complete: ${result.originalStats.vertices} → ${result.newStats.vertices} vertices (${reductionPercent}% reduction)`,
     );
 
+    // Validate the result geometry before returning
+    const finalGeometry = result.simplifiedGeometry;
+
+    if (!finalGeometry.attributes.position) {
+      console.error("❌ Decimation produced geometry without positions");
+      throw new Error("Invalid decimated geometry - missing positions");
+    }
+
+    if (finalGeometry.index && finalGeometry.index.count === 0) {
+      console.error("❌ Decimation produced geometry with no triangles");
+      throw new Error("Invalid decimated geometry - no triangles remain");
+    }
+
+    console.log("✅ Decimation validation passed:", {
+      vertices: finalGeometry.attributes.position.count,
+      triangles: finalGeometry.index ? finalGeometry.index.count / 3 : 0,
+      hasNormals: !!finalGeometry.attributes.normal,
+    });
+
     return {
-      geometry: result.simplifiedGeometry,
+      geometry: finalGeometry,
       originalStats: result.originalStats,
       newStats: result.newStats,
       reductionAchieved: result.reductionAchieved,
