@@ -483,6 +483,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   ) => {
     let preview = workingGeometry.clone();
 
+    // CRITICAL: Preserve color attributes from decimated geometry
+    if (workingGeometry.attributes.color && !preview.attributes.color) {
+      console.log(`🎨 createPreviewFromWorkingMesh: Preserving colors from ${operationType} geometry`);
+      preview.setAttribute("color", workingGeometry.attributes.color.clone());
+    }
+
     // Try to reconstruct polygon faces for better preview
     try {
       const polygonFaces =
