@@ -156,7 +156,7 @@ export class STLManipulator {
       if (result.success) {
         return {
           success: true,
-          message: `Edge collapsed: ${vertexIndex1}↔${vertexIndex2}`,
+          message: `Edge collapsed: ${vertexIndex1}��${vertexIndex2}`,
           geometry: result.geometry,
           originalStats: { vertices: vertexCount, faces: 0 },
           newStats: {
@@ -1013,6 +1013,97 @@ export class STLManipulator {
     // Always use midpoint - simple, predictable, and preserves mesh quality
     // Coplanar face merging happens separately in viewer/export pipeline
     return v1.clone().add(v2).multiplyScalar(0.5);
+  }
+
+  /**
+   * Perform vertex clustering to merge nearby vertices
+   */
+  private static performVertexClustering(
+    geometry: THREE.BufferGeometry,
+    tolerance: number,
+  ): Promise<{
+    geometry: THREE.BufferGeometry;
+    originalStats: any;
+    newStats: any;
+    reductionAchieved: number;
+    processingTime: number;
+  }> {
+    const startTime = Date.now();
+    const originalStats = this.calculateMeshStats(geometry);
+
+    // Clone geometry for processing
+    const cloned = geometry.clone();
+    const positions = cloned.attributes.position.array as Float32Array;
+    const originalVertexCount = positions.length / 3;
+
+    // Build vertex map based on tolerance using spatial grid
+    const vertexMap = new Map<string, number>();
+    const newPositions: number[] = [];
+    const indexRemapping = new Array(originalVertexCount);
+    let mergedVertexCount = 0;
+
+    console.log(`🔵 Vertex clustering: ${originalVertexCount} vertices with tolerance ${tolerance}`);
+
+    for (let i = 0; i < originalVertexCount; i++) {
+      const x = positions[i * 3];
+      const y = positions[i * 3 + 1];
+      const z = positions[i * 3 + 2];
+
+      // Create spatial grid key based on tolerance
+      const gridX = Math.floor(x / tolerance);
+      const gridY = Math.floor(y / tolerance);
+      const gridZ = Math.floor(z / tolerance);
+      const key = `${gridX},${gridY},${gridZ}`;
+
+      let newIndex = vertexMap.get(key);
+      if (newIndex === undefined) {
+        newIndex = mergedVertexCount;
+        vertexMap.set(key, newIndex);
+        newPositions.push(x, y, z);
+        mergedVertexCount++;
+      }
+
+      indexRemapping[i] = newIndex;
+    }
+
+    // Update geometry with clustered vertices
+    cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+
+    // Update indices if geometry is indexed
+    if (cloned.index) {
+      const oldIndices = cloned.index.array;
+      const newIndices = new Array(oldIndices.length);
+
+      for (let i = 0; i < oldIndices.length; i++) {
+        newIndices[i] = indexRemapping[oldIndices[i]];
+      }
+
+      cloned.setIndex(newIndices);
+    }
+
+    // Remove color attributes to force fresh colors
+    if (cloned.attributes.color) {
+      cloned.deleteAttribute("color");
+    }
+
+    // Compute flat normals for crisp shading
+    computeFlatNormals(cloned);
+    cloned.uuid = THREE.MathUtils.generateUUID();
+
+    const newStats = this.calculateMeshStats(cloned);
+    const verticesReduced = originalVertexCount - mergedVertexCount;
+    const reductionAchieved = verticesReduced / originalVertexCount;
+    const processingTime = Date.now() - startTime;
+
+    console.log(`✅ Vertex clustering complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${(reductionAchieved * 100).toFixed(1)}% reduction)`);
+
+    return Promise.resolve({
+      geometry: cloned,
+      originalStats,
+      newStats,
+      reductionAchieved,
+      processingTime,
+    });
   }
 }
 
