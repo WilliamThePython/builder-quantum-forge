@@ -147,6 +147,8 @@ export const useSTL = () => {
       "This usually happens during hot reload or component tree changes",
     );
     console.error("Please refresh the page to fix this issue");
+    console.error("Current context value:", context);
+    console.error("STLContext:", STLContext);
     throw new Error("useSTL must be used within an STLProvider");
   }
   return context;
