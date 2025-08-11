@@ -144,7 +144,7 @@ function ensureSolidObjectDisplay(geometry: THREE.BufferGeometry): void {
       geometry.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
     }
 
-    // Use flat normals to maintain crisp face shading
+    // Recompute normals only after face flipping since orientation changed
     computeFlatNormals(geometry);
   }
 }
