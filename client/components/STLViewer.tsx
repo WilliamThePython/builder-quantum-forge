@@ -1269,6 +1269,7 @@ function STLMesh() {
       // Apply colors to geometry
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
+      console.log(`   🎨 Applied ${colors.length / 3} vertex colors to geometry (${colors.length} total values)`);
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
       computePolygonAwareFlatNormals(geometry, polygonFaces);
