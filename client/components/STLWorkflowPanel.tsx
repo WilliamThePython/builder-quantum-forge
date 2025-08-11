@@ -1380,6 +1380,193 @@ export default function STLWorkflowPanel({
                         </div>
                       </div>
 
+                      {/* Export Stats Preview */}
+                      {geometry && (
+                        <div className="mb-4 p-2 bg-white/5 rounded border border-white/10">
+                          <div className="text-white text-xs font-medium mb-1">
+                            Chamfered Parts Export Preview:
+                          </div>
+                          <div className="text-xs text-white/70 space-y-1">
+                            {(() => {
+                              const polygonFaces = (geometry as any)
+                                .polygonFaces;
+                              const polygonType = (geometry as any).polygonType;
+
+                              if (polygonFaces) {
+                                const faceTypes = [
+                                  ...new Set(
+                                    polygonFaces.map((f: any) => f.type),
+                                  ),
+                                ];
+                                return (
+                                  <>
+                                    <div>
+                                      • {polygonFaces.length} chamfered parts (
+                                      {polygonType})
+                                    </div>
+                                    <div>
+                                      • Face types: {faceTypes.join(", ")}
+                                    </div>
+                                    <div>
+                                      • Thickness:{" "}
+                                      {chamferedOptions.partThickness}
+                                      mm, Scale: {chamferedOptions.scale}x
+                                    </div>
+                                    <div>
+                                      • Est. material: ~
+                                      {(() => {
+                                        // Calculate total surface area from triangles
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          // Get triangle vertices
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          // Calculate triangle area using cross product
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        // Material = surface area * thickness * scale * calibration factor (adjusted by 0.75)
+                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
+                                        return Math.round(material);
+                                      })()}
+                                      g filament
+                                    </div>
+                                    <div>
+                                      • Est. print time: ~
+                                      {(() => {
+                                        // Calculate material first (same as above)
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
+
+                                        // Time = adjustment factor * material * (1 + log(polygon count))
+                                        const timeAdjustmentFactor = 0.01; // Adjust this to calibrate time estimates
+                                        const time = timeAdjustmentFactor * material * (1 + Math.log(polygonFaces.length));
+                                        return Math.floor(time);
+                                      })()}
+                                      h
+                                    </div>
+                                  </>
+                                );
+                              } else {
+                                const triangleCount = Math.floor(
+                                  geometry.attributes.position.count / 3,
+                                );
+                                return (
+                                  <>
+                                    <div>
+                                      • {triangleCount} chamfered parts
+                                      (fallback)
+                                    </div>
+                                    <div>
+                                      • Thickness:{" "}
+                                      {chamferedOptions.partThickness}
+                                      mm, Scale: {chamferedOptions.scale}x
+                                    </div>
+                                    <div>
+                                      • Est. material: ~
+                                      {(() => {
+                                        // Calculate total surface area from triangles
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          // Get triangle vertices
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          // Calculate triangle area using cross product
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        // Material = surface area * thickness * scale * calibration factor (adjusted by 0.75)
+                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
+                                        return Math.round(material);
+                                      })()}
+                                      g filament
+                                    </div>
+                                    <div>
+                                      • Est. print time: ~
+                                      {(() => {
+                                        // Calculate material first (same as above)
+                                        const positions = geometry.attributes.position.array;
+                                        let totalArea = 0;
+
+                                        for (let i = 0; i < positions.length; i += 9) {
+                                          const v1 = { x: positions[i], y: positions[i+1], z: positions[i+2] };
+                                          const v2 = { x: positions[i+3], y: positions[i+4], z: positions[i+5] };
+                                          const v3 = { x: positions[i+6], y: positions[i+7], z: positions[i+8] };
+
+                                          const edge1 = { x: v2.x - v1.x, y: v2.y - v1.y, z: v2.z - v1.z };
+                                          const edge2 = { x: v3.x - v1.x, y: v3.y - v1.y, z: v3.z - v1.z };
+                                          const cross = {
+                                            x: edge1.y * edge2.z - edge1.z * edge2.y,
+                                            y: edge1.z * edge2.x - edge1.x * edge2.z,
+                                            z: edge1.x * edge2.y - edge1.y * edge2.x
+                                          };
+                                          const area = 0.5 * Math.sqrt(cross.x * cross.x + cross.y * cross.y + cross.z * cross.z);
+                                          totalArea += area;
+                                        }
+
+                                        const calibrationFactor = 0.003; // 0.004 * 0.75
+                                        const material = totalArea * chamferedOptions.partThickness * chamferedOptions.scale * calibrationFactor;
+
+                                        // Time = adjustment factor * material * (1 + log(triangle count))
+                                        const timeAdjustmentFactor = 0.01; // Adjust this to calibrate time estimates
+                                        const time = timeAdjustmentFactor * material * (1 + Math.log(triangleCount));
+                                        return Math.floor(time);
+                                      })()}
+                                      h
+                                    </div>
+                                  </>
+                                );
+                              }
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex gap-2">
                         <Button
                           onClick={() => {
