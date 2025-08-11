@@ -981,6 +981,8 @@ export class STLManipulator {
     // Use flat normals to maintain crisp face shading (avoid color blending)
     computeFlatNormals(newGeometry);
 
+    console.log(`✅ Non-indexed edge collapse complete: ${newPositions.length / 9} triangles remaining`);
+
     return newGeometry;
   }
 
