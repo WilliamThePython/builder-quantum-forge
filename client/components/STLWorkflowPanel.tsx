@@ -1192,7 +1192,7 @@ export default function STLWorkflowPanel({
                   <div className="flex gap-2">
                     <Button
                       onClick={() => {
-                        exportChamferedParts(chamferedOptions);
+                        exportChamferedParts({ ...chamferedOptions, useTriangulated: chamferedOptions.modelType === "triangle" });
                         setShowChamferedSettings(false);
                       }}
                       disabled={!geometry}
