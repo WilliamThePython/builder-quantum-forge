@@ -823,46 +823,72 @@ export class STLManipulator {
     vertexIndex2: number,
     newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
-    const indices = Array.from(geometry.index!.array);
-    const positions = geometry.attributes.position;
-    const normals = geometry.attributes.normal;
+    const originalIndices = Array.from(geometry.index!.array);
+    const originalPositions = geometry.attributes.position.array as Float32Array;
+    const originalNormals = geometry.attributes.normal;
 
-    // Replace all references to vertexIndex2 with vertexIndex1
-    for (let i = 0; i < indices.length; i++) {
-      if (indices[i] === vertexIndex2) {
-        indices[i] = vertexIndex1;
+    console.log(`🔧 Collapsing edge: vertex ${vertexIndex2} → vertex ${vertexIndex1}`);
+
+    // Step 1: Find triangles that will become degenerate (contain both vertices)
+    const trianglesToRemove = new Set<number>();
+    for (let i = 0; i < originalIndices.length; i += 3) {
+      const triIndices = [originalIndices[i], originalIndices[i + 1], originalIndices[i + 2]];
+      if (triIndices.includes(vertexIndex1) && triIndices.includes(vertexIndex2)) {
+        trianglesToRemove.add(Math.floor(i / 3)); // Triangle index
+        console.log(`   Removing degenerate triangle ${Math.floor(i / 3)}: [${triIndices.join(', ')}]`);
       }
     }
 
-    // Update the position of vertexIndex1 to the new collapsed position
-    positions.setXYZ(vertexIndex1, newPosition.x, newPosition.y, newPosition.z);
+    // Step 2: Build new indices array, merging vertices and removing degenerate triangles
+    const newIndices: number[] = [];
+    let removedTriangles = 0;
 
-    // Remove degenerate triangles (triangles where all vertices are the same)
-    const validIndices: number[] = [];
-    for (let i = 0; i < indices.length; i += 3) {
-      const a = indices[i];
-      const b = indices[i + 1];
-      const c = indices[i + 2];
+    for (let i = 0; i < originalIndices.length; i += 3) {
+      const triangleIndex = Math.floor(i / 3);
 
-      // Keep triangle if all vertices are different
+      if (trianglesToRemove.has(triangleIndex)) {
+        removedTriangles++;
+        continue; // Skip degenerate triangles
+      }
+
+      // Remap vertices: vertexIndex2 → vertexIndex1
+      const a = originalIndices[i] === vertexIndex2 ? vertexIndex1 : originalIndices[i];
+      const b = originalIndices[i + 1] === vertexIndex2 ? vertexIndex1 : originalIndices[i + 1];
+      const c = originalIndices[i + 2] === vertexIndex2 ? vertexIndex1 : originalIndices[i + 2];
+
+      // Double-check for any remaining degeneracies
       if (a !== b && b !== c && a !== c) {
-        validIndices.push(a, b, c);
+        newIndices.push(a, b, c);
+      } else {
+        removedTriangles++;
+        console.log(`   Additional degenerate triangle removed: [${a}, ${b}, ${c}]`);
       }
     }
 
-    if (validIndices.length === 0) {
+    if (newIndices.length === 0) {
+      console.error("❌ All triangles became degenerate - edge collapse failed");
       return null;
     }
 
-    // Create new geometry
-    const newGeometry = new THREE.BufferGeometry();
-    newGeometry.setAttribute("position", positions.clone());
-    if (normals) {
-      newGeometry.setAttribute("normal", normals.clone());
-    }
-    newGeometry.setIndex(validIndices);
+    console.log(`✅ Edge collapse: removed ${removedTriangles} triangles, kept ${newIndices.length / 3} triangles`);
 
-    // Use flat normals to maintain crisp face shading (avoid color blending)
+    // Step 3: Update vertex position
+    const newPositions = originalPositions.slice(); // Copy positions
+    newPositions[vertexIndex1 * 3] = newPosition.x;
+    newPositions[vertexIndex1 * 3 + 1] = newPosition.y;
+    newPositions[vertexIndex1 * 3 + 2] = newPosition.z;
+
+    // Step 4: Create new geometry
+    const newGeometry = new THREE.BufferGeometry();
+    newGeometry.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+
+    if (originalNormals) {
+      newGeometry.setAttribute("normal", originalNormals.clone());
+    }
+
+    newGeometry.setIndex(newIndices);
+
+    // Use flat normals to maintain crisp face shading
     computeFlatNormals(newGeometry);
 
     return newGeometry;
