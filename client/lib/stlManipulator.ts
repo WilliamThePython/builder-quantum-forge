@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { MeshStats } from "./meshSimplifier";
 import { VertexRemovalStitcher } from "./vertexRemovalStitcher";
 import { computeFlatNormals } from "./flatNormals";
-import { computeFlatNormals } from "./flatNormals";
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
