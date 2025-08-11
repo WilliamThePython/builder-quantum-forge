@@ -1099,7 +1099,8 @@ export default function STLWorkflowPanel({
                                       {Math.floor(
                                         (polygonFaces.length *
                                           15 *
-                                          (triangleOptions.partThickness / 2)) /
+                                          (triangleOptions.partThickness / 2) *
+                                          Math.pow(triangleOptions.scale, 3)) /
                                           60,
                                       )}
                                       h
@@ -1109,7 +1110,8 @@ export default function STLWorkflowPanel({
                                       {Math.round(
                                         polygonFaces.length *
                                           2.5 *
-                                          (triangleOptions.partThickness / 2),
+                                          (triangleOptions.partThickness / 2) *
+                                          Math.pow(triangleOptions.scale, 3),
                                       )}
                                       g filament
                                     </div>
@@ -1135,7 +1137,8 @@ export default function STLWorkflowPanel({
                                       {Math.floor(
                                         (triangleCount *
                                           10 *
-                                          (triangleOptions.partThickness / 2)) /
+                                          (triangleOptions.partThickness / 2) *
+                                          Math.pow(triangleOptions.scale, 3)) /
                                           60,
                                       )}
                                       h
@@ -1145,7 +1148,8 @@ export default function STLWorkflowPanel({
                                       {Math.round(
                                         triangleCount *
                                           1.5 *
-                                          (triangleOptions.partThickness / 2),
+                                          (triangleOptions.partThickness / 2) *
+                                          Math.pow(triangleOptions.scale, 3),
                                       )}
                                       g filament
                                     </div>
@@ -1507,7 +1511,7 @@ export default function STLWorkflowPanel({
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                Just a friendly heads up! ����
+                Just a friendly heads up! �����
               </AlertDialogTitle>
               <AlertDialogDescription className="text-slate-300">
                 The colors feature uses vibrant, changing colors that might
