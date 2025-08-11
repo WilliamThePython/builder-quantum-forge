@@ -217,9 +217,6 @@ export default function STLWorkflowPanel({
     const startTime = Date.now();
 
     try {
-      // Create backup before processing
-      createBackup();
-
       // Simple vertex clustering implementation
       const cloned = geometry.clone();
       const positions = cloned.attributes.position.array as Float32Array;
