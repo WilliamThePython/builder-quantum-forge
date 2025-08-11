@@ -571,8 +571,32 @@ export class VertexRemovalStitcher {
     console.log(`   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`);
     console.log(`   Final geometry: ${validTriangles.length / 3} valid triangles`);
 
-    // Apply the cleaned indices
-    cloned.setIndex(validTriangles);
+    // Remap vertex indices to remove gaps (important for proper rendering)
+    const usedVertices = new Set(validTriangles);
+    const vertexRemap = new Map<number, number>();
+    const newPositions: number[] = [];
+    let newVertexIndex = 0;
+
+    // Build vertex remapping and collect used vertex positions
+    for (const vertexIndex of Array.from(usedVertices).sort((a, b) => a - b)) {
+      vertexRemap.set(vertexIndex, newVertexIndex);
+
+      // Copy vertex position
+      const baseIndex = vertexIndex * 3;
+      newPositions.push(
+        positions[baseIndex],
+        positions[baseIndex + 1],
+        positions[baseIndex + 2]
+      );
+      newVertexIndex++;
+    }
+
+    // Apply vertex remapping to triangle indices
+    const remappedTriangles = validTriangles.map(idx => vertexRemap.get(idx)!);
+
+    // Update geometry with cleaned vertices and indices
+    cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
+    cloned.setIndex(remappedTriangles);
     cloned.attributes.position.needsUpdate = true;
 
     const newUUID = THREE.MathUtils.generateUUID();
