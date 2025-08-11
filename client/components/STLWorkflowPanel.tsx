@@ -744,20 +744,89 @@ export default function STLWorkflowPanel({
           {/* 3. TOOLS SECTION */}
           <div className="mb-6">
             <SectionHeader
-              title="3. SIMPLIFICATION (in beta)"
+              title="3. SIMPLIFICATION"
               isExpanded={expandedSections.tools}
               onToggle={() => toggleSection("tools")}
             />
 
             {expandedSections.tools && (
-              <div className="mt-4 space-y-3">
-                {/* Reduction Settings */}
+              <div className="mt-4 space-y-4">
+
+                {/* Backup/Restore Button */}
+                <Button
+                  onClick={() => {
+                    restoreFromBackup();
+                  }}
+                  className={`w-full text-white text-xs py-2 h-8 ${
+                    hasBackup
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : "bg-gray-600 cursor-not-allowed opacity-50"
+                  }`}
+                  disabled={!hasBackup}
+                  title={
+                    hasBackup
+                      ? "Restore model to state before last simplification"
+                      : "No backup available - perform a simplification first"
+                  }
+                >
+                  <RefreshCw className="w-3 h-3 mr-2" />
+                  {hasBackup
+                    ? "🔄 Undo Last Simplification"
+                    : "⚪ No Backup Available"}
+                </Button>
+
+                {/* 3.1 Vertex Clustering */}
                 <div className="p-4 bg-white/10 rounded-lg border border-white/20">
-                  <div className="text-white text-sm font-medium mb-2">
-                    Quadric Edge Collapse
+                  <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                    <span className="text-orange-400">3.1</span>
+                    Vertex Clustering
                   </div>
 
-                  {/* Reduction Amount */}
+                  <div className="mb-3">
+                    <div className="text-white text-xs mb-2">
+                      Tolerance Distance
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min="0.01"
+                        max="2.0"
+                        step="0.01"
+                        value={vertexClusteringTolerance}
+                        onChange={(e) =>
+                          setVertexClusteringTolerance(parseFloat(e.target.value))
+                        }
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <div className="flex justify-between text-xs text-white/70">
+                        <span>0.01</span>
+                        <span className="font-medium text-white">
+                          {vertexClusteringTolerance.toFixed(2)}
+                        </span>
+                        <span>2.0</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      // TODO: Implement vertex clustering
+                      console.log("Vertex clustering with tolerance:", vertexClusteringTolerance);
+                    }}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
+                    disabled={isProcessing}
+                  >
+                    🔵 Apply Vertex Clustering
+                  </Button>
+                </div>
+
+                {/* 3.2 Open3D Quadric Decimation */}
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+                  <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                    <span className="text-green-400">3.2</span>
+                    Open3D Quadric Decimation
+                  </div>
+
                   <div className="mb-3">
                     <div className="text-white text-xs mb-2">
                       Target Reduction Percentage
@@ -768,158 +837,133 @@ export default function STLWorkflowPanel({
                         min="0.1"
                         max="0.9"
                         step="0.1"
-                        value={reductionAmount}
+                        value={quadricReduction}
                         onChange={(e) =>
-                          setReductionAmount(parseFloat(e.target.value))
+                          setQuadricReduction(parseFloat(e.target.value))
                         }
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <div className="flex justify-between text-xs text-white/70">
                         <span>10%</span>
                         <span className="font-medium text-white">
-                          {Math.round(reductionAmount * 100)}%
+                          {Math.round(quadricReduction * 100)}%
                         </span>
                         <span>90%</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Additional Options */}
-                  <div className="mb-3 space-y-2">
-                    <Button
-                      onClick={() => {
-                        restoreFromBackup();
-                      }}
-                      className={`w-full text-white text-xs py-2 h-8 ${
-                        hasBackup
-                          ? "bg-yellow-600 hover:bg-yellow-700"
-                          : "bg-gray-600 cursor-not-allowed opacity-50"
-                      }`}
-                      disabled={!hasBackup}
-                      title={
-                        hasBackup
-                          ? "Restore model to state before last simplification"
-                          : "No backup available - perform a simplification first"
-                      }
-                    >
-                      <RefreshCw className="w-3 h-3 mr-2" />
-                      {hasBackup
-                        ? "🔄 Undo Simplification"
-                        : "⚪ No Backup Available"}
-                    </Button>
+                  <Button
+                    onClick={() => {
+                      onReducePoints(
+                        quadricReduction,
+                        "quadric_edge_collapse" as any,
+                      );
+                    }}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white text-xs py-2 h-9"
+                    disabled={isProcessing}
+                  >
+                    🟢 Apply Open3D Decimation
+                  </Button>
+                </div>
+
+                {/* 3.3 Decimation Painter */}
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+                  <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                    <span className="text-purple-400">3.3</span>
+                    Decimation Painter
                   </div>
 
-                  {/* Reduction Results */}
-                  {simplificationStats.originalStats &&
-                    simplificationStats.newStats && (
-                      <div className="mb-3 p-3 bg-green-500/10 border border-green-500/20 rounded">
-                        <div className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
-                          ✅ Reduction Complete
-                        </div>
-                        <div className="text-xs text-white/70 space-y-1">
-                          <div className="flex justify-between">
-                            <span>Vertices:</span>
-                            <span>
-                              {simplificationStats.originalStats?.vertices?.toLocaleString() ||
-                                0}{" "}
-                              →{" "}
-                              {simplificationStats.newStats?.vertices?.toLocaleString() ||
-                                0}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Triangles:</span>
-                            <span>
-                              {simplificationStats.originalStats?.faces?.toLocaleString() ||
-                                0}{" "}
-                              →{" "}
-                              {simplificationStats.newStats?.faces?.toLocaleString() ||
-                                0}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Reduction:</span>
-                            <span className="text-green-400 font-medium">
-                              {(
-                                simplificationStats.reductionAchieved! * 100
-                              ).toFixed(1)}
-                              %
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Method:</span>
-                            <span className="text-blue-300 capitalize">
-                              {reductionMethod.replace("_", " ")}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Processing:</span>
-                            <span>{simplificationStats.processingTime}ms</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => {
-                        onReducePoints(
-                          reductionAmount,
-                          "quadric_edge_collapse" as any,
-                        );
-                      }}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-2 h-9"
-                      disabled={isProcessing}
-                    >
-                      🔧 Apply Quadric Decimation
-                    </Button>
-
-                    {/* Decimation Painter Toggle */}
-                    <div
-                      className={`p-3 rounded-lg border transition-all ${
-                        decimationPainterMode
-                          ? "bg-blue-500/20 border-blue-500/50"
-                          : "bg-white/5 border-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Palette
-                            className={`w-4 h-4 ${
-                              decimationPainterMode
-                                ? "text-blue-300"
-                                : "text-blue-400"
-                            }`}
-                          />
-                          <div>
-                            <div
-                              className={`text-xs font-medium ${
-                                decimationPainterMode
-                                  ? "text-blue-200"
-                                  : "text-white"
-                              }`}
-                            >
-                              Decimation Painter{" "}
-                              {decimationPainterMode ? "🎯" : ""}
-                            </div>
-                            <div className="text-white/60 text-xs">
-                              {decimationPainterMode
-                                ? "Click on edges to decimate them"
-                                : "Click edges to decimate individual vertex pairs"}
-                            </div>
-                          </div>
-                        </div>
-                        <Switch
-                          id="decimation-painter"
-                          checked={decimationPainterMode}
-                          onCheckedChange={(checked) => {
-                            setDecimationPainterMode(checked);
-                          }}
+                  <div
+                    className={`p-3 rounded-lg border transition-all ${
+                      decimationPainterMode
+                        ? "bg-purple-500/20 border-purple-500/50"
+                        : "bg-white/5 border-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Palette
+                          className={`w-4 h-4 ${
+                            decimationPainterMode
+                              ? "text-purple-300"
+                              : "text-purple-400"
+                          }`}
                         />
+                        <div>
+                          <div
+                            className={`text-xs font-medium ${
+                              decimationPainterMode
+                                ? "text-purple-200"
+                                : "text-white"
+                            }`}
+                          >
+                            Interactive Edge Decimation{" "}
+                            {decimationPainterMode ? "🎯" : ""}
+                          </div>
+                          <div className="text-white/60 text-xs">
+                            {decimationPainterMode
+                              ? "Click on edges to decimate them"
+                              : "Click edges to decimate individual vertex pairs"}
+                          </div>
+                        </div>
                       </div>
+                      <Switch
+                        id="decimation-painter"
+                        checked={decimationPainterMode}
+                        onCheckedChange={(checked) => {
+                          setDecimationPainterMode(checked);
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
+
+                {/* Reduction Results */}
+                {simplificationStats.originalStats &&
+                  simplificationStats.newStats && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/20 rounded">
+                      <div className="text-green-200 text-xs font-medium mb-2 flex items-center gap-1">
+                        ✅ Simplification Complete
+                      </div>
+                      <div className="text-xs text-white/70 space-y-1">
+                        <div className="flex justify-between">
+                          <span>Vertices:</span>
+                          <span>
+                            {simplificationStats.originalStats?.vertices?.toLocaleString() ||
+                              0}{" "}
+                            →{" "}
+                            {simplificationStats.newStats?.vertices?.toLocaleString() ||
+                              0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Triangles:</span>
+                          <span>
+                            {simplificationStats.originalStats?.faces?.toLocaleString() ||
+                              0}{" "}
+                            →{" "}
+                            {simplificationStats.newStats?.faces?.toLocaleString() ||
+                              0}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reduction:</span>
+                          <span className="text-green-400 font-medium">
+                            {(
+                              simplificationStats.reductionAchieved! * 100
+                            ).toFixed(1)}
+                            %
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Processing:</span>
+                          <span>{simplificationStats.processingTime}ms</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
               </div>
             )}
           </div>
