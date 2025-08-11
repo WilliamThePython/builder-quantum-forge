@@ -1016,8 +1016,8 @@ export class STLManipulator {
   }
 
   /**
-   * Perform conservative vertex clustering - only merge near-duplicate vertices
-   * This preserves mesh topology while cleaning up precision errors and duplicate vertices
+   * Intelligent vertex clustering - analyzes model first, only processes if needed
+   * Won't touch clean models, only fixes actual issues in complex user uploads
    */
   private static performVertexClustering(
     geometry: THREE.BufferGeometry,
@@ -1031,13 +1031,34 @@ export class STLManipulator {
   }> {
     const startTime = Date.now();
     const originalStats = this.calculateMeshStats(geometry);
-
-    // Clone geometry for processing
-    const cloned = geometry.clone();
     const positions = cloned.attributes.position.array as Float32Array;
     const originalVertexCount = positions.length / 3;
 
-    console.log(`🔵 Conservative vertex clustering: ${originalVertexCount} vertices with tolerance ${tolerance}`);
+    console.log(`🔍 Analyzing model for vertex clustering needs...`);
+
+    // STEP 1: Analyze if this model actually needs clustering
+    const modelAnalysis = this.analyzeModelQuality(geometry, tolerance);
+
+    if (!modelAnalysis.needsClustering) {
+      console.log(`✨ Model is already clean! ${modelAnalysis.reason}`);
+      const processingTime = Date.now() - startTime;
+      return Promise.resolve({
+        geometry: geometry.clone(),
+        originalStats,
+        newStats: originalStats,
+        reductionAchieved: 0,
+        processingTime,
+      });
+    }
+
+    // STEP 2: Only proceed if model actually has issues
+    console.log(`🔧 Model needs clustering: ${modelAnalysis.reason}`);
+    console.log(`🔵 Processing ${originalVertexCount} vertices with tolerance ${tolerance}`);
+
+    const cloned = geometry.clone();
+
+    // Use much smaller tolerance for actual clustering (max 0.001 for precision errors)
+    const actualTolerance = Math.min(tolerance, 0.001);
 
     // Build list of unique vertices by comparing exact positions
     const vertexMap = new Map<string, number>();
@@ -1051,70 +1072,66 @@ export class STLManipulator {
       const y = positions[i * 3 + 1];
       const z = positions[i * 3 + 2];
 
-      // Create position key with tolerance-based rounding for near-duplicates
-      const roundedX = Math.round(x / tolerance) * tolerance;
-      const roundedY = Math.round(y / tolerance) * tolerance;
-      const roundedZ = Math.round(z / tolerance) * tolerance;
-      const key = `${roundedX.toFixed(6)},${roundedY.toFixed(6)},${roundedZ.toFixed(6)}`;
+      // Use high precision for near-duplicate detection
+      const key = `${x.toFixed(8)},${y.toFixed(8)},${z.toFixed(8)}`;
 
       let newIndex = vertexMap.get(key);
       if (newIndex === undefined) {
-        // New unique vertex
-        newIndex = mergedVertexCount;
-        vertexMap.set(key, newIndex);
-        newPositions.push(roundedX, roundedY, roundedZ);
-        mergedVertexCount++;
+        // Check if any existing vertex is within tolerance
+        let foundNearDuplicate = false;
+        for (let j = 0; j < newPositions.length; j += 3) {
+          const dx = Math.abs(newPositions[j] - x);
+          const dy = Math.abs(newPositions[j + 1] - y);
+          const dz = Math.abs(newPositions[j + 2] - z);
+
+          if (dx < actualTolerance && dy < actualTolerance && dz < actualTolerance) {
+            newIndex = Math.floor(j / 3);
+            foundNearDuplicate = true;
+            duplicatesFound++;
+            break;
+          }
+        }
+
+        if (!foundNearDuplicate) {
+          newIndex = mergedVertexCount;
+          vertexMap.set(key, newIndex);
+          newPositions.push(x, y, z);
+          mergedVertexCount++;
+        }
       } else {
-        // Found a near-duplicate vertex
         duplicatesFound++;
       }
 
       indexRemapping[i] = newIndex;
     }
 
-    // Only proceed if we found actual duplicates to merge
-    if (duplicatesFound === 0) {
-      console.log(`ℹ️ No duplicate vertices found within tolerance ${tolerance}`);
-      const processingTime = Date.now() - startTime;
-      return Promise.resolve({
-        geometry: cloned,
-        originalStats,
-        newStats: originalStats,
-        reductionAchieved: 0,
-        processingTime,
-      });
-    }
+    // Update geometry only if we found duplicates
+    if (duplicatesFound > 0) {
+      cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
 
-    // Update geometry with deduplicated vertices
-    cloned.setAttribute("position", new THREE.Float32BufferAttribute(newPositions, 3));
-
-    // Update indices if geometry is indexed
-    if (cloned.index) {
-      const oldIndices = cloned.index.array;
-      const newIndices = new Array(oldIndices.length);
-
-      for (let i = 0; i < oldIndices.length; i++) {
-        newIndices[i] = indexRemapping[oldIndices[i]];
+      if (cloned.index) {
+        const oldIndices = cloned.index.array;
+        const newIndices = new Array(oldIndices.length);
+        for (let i = 0; i < oldIndices.length; i++) {
+          newIndices[i] = indexRemapping[oldIndices[i]];
+        }
+        cloned.setIndex(newIndices);
       }
 
-      cloned.setIndex(newIndices);
-    }
+      if (cloned.attributes.color) {
+        cloned.deleteAttribute("color");
+      }
 
-    // Remove color attributes to force fresh colors
-    if (cloned.attributes.color) {
-      cloned.deleteAttribute("color");
+      computeFlatNormals(cloned);
+      cloned.uuid = THREE.MathUtils.generateUUID();
     }
-
-    // Compute flat normals for crisp shading
-    computeFlatNormals(cloned);
-    cloned.uuid = THREE.MathUtils.generateUUID();
 
     const newStats = this.calculateMeshStats(cloned);
     const verticesReduced = originalVertexCount - mergedVertexCount;
     const reductionAchieved = verticesReduced / originalVertexCount;
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Vertex deduplication complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${duplicatesFound} duplicates merged)`);
+    console.log(`✅ Smart clustering complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${duplicatesFound} precision errors fixed)`);
 
     return Promise.resolve({
       geometry: cloned,
@@ -1123,6 +1140,78 @@ export class STLManipulator {
       reductionAchieved,
       processingTime,
     });
+  }
+
+  /**
+   * Analyze model quality to determine if vertex clustering is needed
+   */
+  private static analyzeModelQuality(geometry: THREE.BufferGeometry, tolerance: number): {
+    needsClustering: boolean;
+    reason: string;
+  } {
+    const positions = geometry.attributes.position.array as Float32Array;
+    const vertexCount = positions.length / 3;
+
+    // Check 1: Very small models (pre-loaded examples) - don't touch
+    if (vertexCount < 100) {
+      return {
+        needsClustering: false,
+        reason: "Small model (likely pre-loaded example) - no clustering needed"
+      };
+    }
+
+    // Check 2: Look for actual duplicate vertices
+    const positionSet = new Set<string>();
+    let exactDuplicates = 0;
+    let nearDuplicates = 0;
+
+    for (let i = 0; i < vertexCount; i++) {
+      const x = positions[i * 3];
+      const y = positions[i * 3 + 1];
+      const z = positions[i * 3 + 2];
+
+      const exactKey = `${x},${y},${z}`;
+      if (positionSet.has(exactKey)) {
+        exactDuplicates++;
+      } else {
+        positionSet.add(exactKey);
+
+        // Check for near-duplicates within very small tolerance
+        for (let j = 0; j < i; j++) {
+          const x2 = positions[j * 3];
+          const y2 = positions[j * 3 + 1];
+          const z2 = positions[j * 3 + 2];
+
+          const dist = Math.sqrt((x-x2)**2 + (y-y2)**2 + (z-z2)**2);
+          if (dist > 0 && dist < 0.0001) { // Very tight tolerance for precision errors
+            nearDuplicates++;
+            break;
+          }
+        }
+      }
+    }
+
+    // Check 3: Only cluster if there are actual issues
+    const duplicatePercentage = (exactDuplicates + nearDuplicates) / vertexCount;
+
+    if (exactDuplicates === 0 && nearDuplicates === 0) {
+      return {
+        needsClustering: false,
+        reason: "No duplicate or near-duplicate vertices found"
+      };
+    }
+
+    if (duplicatePercentage < 0.01) { // Less than 1% duplicates
+      return {
+        needsClustering: false,
+        reason: `Only ${((duplicatePercentage * 100).toFixed(2))}% potential duplicates - model is clean`
+      };
+    }
+
+    return {
+      needsClustering: true,
+      reason: `Found ${exactDuplicates} exact + ${nearDuplicates} near-duplicates (${(duplicatePercentage * 100).toFixed(1)}%)`
+    };
   }
 }
 
