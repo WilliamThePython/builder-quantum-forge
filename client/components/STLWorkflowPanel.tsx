@@ -1098,7 +1098,7 @@ export default function STLWorkflowPanel({
                                       • Est. print time: ~
                                       {Math.floor(
                                         (polygonFaces.length *
-                                          3 *
+                                          1 *
                                           (triangleOptions.partThickness / 2) *
                                           Math.pow(triangleOptions.scale, 1.5)) /
                                           60,
@@ -1109,7 +1109,7 @@ export default function STLWorkflowPanel({
                                       • Est. material: ~
                                       {Math.round(
                                         polygonFaces.length *
-                                          0.8 *
+                                          0.27 *
                                           (triangleOptions.partThickness / 2) *
                                           Math.pow(triangleOptions.scale, 2.2),
                                       )}
@@ -1136,7 +1136,7 @@ export default function STLWorkflowPanel({
                                       • Est. print time: ~
                                       {Math.floor(
                                         (triangleCount *
-                                          2 *
+                                          0.67 *
                                           (triangleOptions.partThickness / 2) *
                                           Math.pow(triangleOptions.scale, 1.5)) /
                                           60,
@@ -1147,7 +1147,7 @@ export default function STLWorkflowPanel({
                                       • Est. material: ~
                                       {Math.round(
                                         triangleCount *
-                                          0.5 *
+                                          0.17 *
                                           (triangleOptions.partThickness / 2) *
                                           Math.pow(triangleOptions.scale, 2.2),
                                       )}
