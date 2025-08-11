@@ -464,11 +464,11 @@ export class PolygonPartsExporter {
    * Calculate detailed information for a polygon part
    */
   private static calculatePolygonPartInfo(
-    faceInfo: any,
+    polygonFace: PolygonFace,
     thickness: number,
     scale: number,
   ) {
-    const vertices = faceInfo.originalVertices.map((v: THREE.Vector3) =>
+    const vertices = polygonFace.vertices.map((v: THREE.Vector3) =>
       v.clone().multiplyScalar(scale),
     );
 
