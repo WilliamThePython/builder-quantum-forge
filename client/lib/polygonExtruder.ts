@@ -8,7 +8,6 @@ export interface PolygonFace {
   normal?: THREE.Vector3;
   type?: string;
   index?: number;
-  triangleIndices?: number[]; // Original triangulation indices to prevent water wheel effect
 }
 
 /**
