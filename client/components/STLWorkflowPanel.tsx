@@ -1098,9 +1098,9 @@ export default function STLWorkflowPanel({
                                       • Est. print time: ~
                                       {Math.floor(
                                         (polygonFaces.length *
-                                          15 *
+                                          3 *
                                           (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 3)) /
+                                          Math.pow(triangleOptions.scale, 1.5)) /
                                           60,
                                       )}
                                       h
@@ -1109,9 +1109,9 @@ export default function STLWorkflowPanel({
                                       • Est. material: ~
                                       {Math.round(
                                         polygonFaces.length *
-                                          2.5 *
+                                          0.8 *
                                           (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 3),
+                                          Math.pow(triangleOptions.scale, 2.2),
                                       )}
                                       g filament
                                     </div>
@@ -1136,9 +1136,9 @@ export default function STLWorkflowPanel({
                                       • Est. print time: ~
                                       {Math.floor(
                                         (triangleCount *
-                                          10 *
+                                          2 *
                                           (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 3)) /
+                                          Math.pow(triangleOptions.scale, 1.5)) /
                                           60,
                                       )}
                                       h
@@ -1147,9 +1147,9 @@ export default function STLWorkflowPanel({
                                       • Est. material: ~
                                       {Math.round(
                                         triangleCount *
-                                          1.5 *
+                                          0.5 *
                                           (triangleOptions.partThickness / 2) *
-                                          Math.pow(triangleOptions.scale, 3),
+                                          Math.pow(triangleOptions.scale, 2.2),
                                       )}
                                       g filament
                                     </div>
