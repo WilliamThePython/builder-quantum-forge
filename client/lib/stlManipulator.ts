@@ -31,7 +31,7 @@ export class STLManipulator {
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
 
       if (isAvailable) {
-        const pythonResult = await PythonMeshProcessor.decimate(
+        const pythonResult = await PythonMeshProcessor.decimateMesh(
           geometry,
           targetReduction,
         );
