@@ -827,6 +827,19 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           inputVertices: workingMeshTri.attributes.position.count,
         });
 
+        // CRITICAL: Transfer colors from display geometry to working mesh before decimation
+        const displayGeometry = geometry; // The current display geometry with colors
+        if (displayGeometry?.attributes.color && !workingMeshTri.attributes.color) {
+          console.log("🎨 Transferring colors from display geometry to working mesh before decimation");
+          console.log(`🎨 Display geometry has ${displayGeometry.attributes.color.array.length} color values`);
+
+          // Clone colors to working mesh to preserve them during decimation
+          workingMeshTri.setAttribute("color", displayGeometry.attributes.color.clone());
+          console.log(`🎨 Working mesh now has ${workingMeshTri.attributes.color.array.length} color values`);
+        } else {
+          console.log(`🎨 Color transfer check: displayHasColors=${!!displayGeometry?.attributes.color}, workingHasColors=${!!workingMeshTri.attributes.color}`);
+        }
+
         // Call static method directly
         const result = await STLManipulator.reducePoints(
           workingMeshTri,
