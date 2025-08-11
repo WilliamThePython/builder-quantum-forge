@@ -97,6 +97,12 @@ interface STLContextType {
     partThickness?: number;
     scale?: number;
   }) => Promise<void>;
+  exportChamferedParts: (options?: {
+    format?: "stl" | "obj";
+    partThickness?: number;
+    chamferDepth?: number;
+    scale?: number;
+  }) => Promise<void>;
   clearError: () => void;
   clearErrorById: (id: string) => void;
   addError: (message: string) => void;
