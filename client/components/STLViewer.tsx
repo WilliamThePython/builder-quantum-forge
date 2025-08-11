@@ -1166,8 +1166,11 @@ function STLMesh() {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
       // Check if geometry already has preserved colors (e.g., from decimation)
       const existingColors = geometry.attributes.color?.array as Float32Array;
+      console.log(`   🎨 STL Viewer color check: hasExistingColors=${!!existingColors}, length=${existingColors?.length || 0}, vertexCount=${geometry.attributes.position.count}`);
+
       if (existingColors && existingColors.length > 0) {
         console.log("   🎨 Using existing preserved colors instead of generating new ones");
+        console.log(`   🎨 First few preserved colors: [${existingColors[0]?.toFixed(3)}, ${existingColors[1]?.toFixed(3)}, ${existingColors[2]?.toFixed(3)}]`);
         originalColors.current = new Float32Array(existingColors);
 
         // Ensure flat normals for crisp face rendering with preserved colors
@@ -1181,6 +1184,8 @@ function STLMesh() {
         console.log(`✅ Preserved colors applied to ${geometry.attributes.position.count / 3} triangles`);
         return; // Skip color generation, use existing colors
       }
+
+      console.log("   🎨 No existing colors found, generating new colors");
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
