@@ -926,7 +926,7 @@ export default function STLWorkflowPanel({
               <div className="mt-4 space-y-4">
                 {/* Standard STL Export */}
                 <div>
-                  <div className="text-white text-xs font-medium mb-2 flex items-center gap-2">
+                  <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
                     <Download className="w-3 h-3" />
                     Standard Export
                   </div>
