@@ -1280,6 +1280,12 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     restoreFromBackup,
   };
 
+  // Ensure contextValue is properly defined before rendering
+  if (!contextValue) {
+    console.error("❌ STLContext contextValue is undefined during render");
+    return null;
+  }
+
   return (
     <STLContext.Provider value={contextValue}>{children}</STLContext.Provider>
   );
