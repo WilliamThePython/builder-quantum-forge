@@ -1212,6 +1212,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     exportSTL,
     exportOBJ,
     exportParts,
+    exportChamferedParts,
     clearError,
     clearErrorById,
     addError,
