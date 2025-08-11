@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { MeshStats } from "./meshSimplifier";
 import { VertexRemovalStitcher } from "./vertexRemovalStitcher";
 import { computeFlatNormals } from "./flatNormals";
+import { computeFlatNormals } from "./flatNormals";
 
 /**
  * STL Manipulation utilities for cleaning, simplifying, and highlighting STL geometries
@@ -156,7 +157,7 @@ export class STLManipulator {
       if (result.success) {
         return {
           success: true,
-          message: `Edge collapsed: ${vertexIndex1}��${vertexIndex2}`,
+          message: `Edge collapsed: ${vertexIndex1}↔${vertexIndex2}`,
           geometry: result.geometry,
           originalStats: { vertices: vertexCount, faces: 0 },
           newStats: {
