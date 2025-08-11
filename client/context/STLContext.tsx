@@ -15,6 +15,7 @@ import {
 } from "../lib/stlManipulator";
 import { TriangleExporter } from "../lib/triangleExporter";
 import { PolygonPartsExporter } from "../lib/polygonPartsExporter";
+import { ChamferedPartsExporter } from "../lib/chamferedPartsExporter";
 import { STLExporter } from "../lib/stlExporter";
 import { OBJConverter } from "../lib/objConverter";
 import { PolygonGeometryBuilder } from "../lib/polygonGeometryBuilder";
