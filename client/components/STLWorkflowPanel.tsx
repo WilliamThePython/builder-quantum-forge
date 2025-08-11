@@ -1017,7 +1017,7 @@ export default function STLWorkflowPanel({
                         <input
                           type="range"
                           min="0.5"
-                          max="3"
+                          max="10"
                           step="0.1"
                           value={triangleOptions.scale}
                           onChange={(e) =>
@@ -1030,7 +1030,7 @@ export default function STLWorkflowPanel({
                         />
                         <div className="flex justify-between text-xs text-white/70 mt-1">
                           <span>0.5x</span>
-                          <span>3x</span>
+                          <span>10x</span>
                         </div>
                       </div>
 
