@@ -1102,11 +1102,11 @@ export class STLManipulator {
     }
 
     const newStats = this.calculateMeshStats(cloned);
-    const verticesReduced = originalVertexCount - mergedVertexCount;
-    const reductionAchieved = verticesReduced / originalVertexCount;
+    const effectiveVerticesUsed = positionToFirstIndex.size;
+    const reductionAchieved = duplicatesRemoved > 0 ? (duplicatesRemoved / (oldIndices.length)) : 0;
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Smart clustering complete: ${originalVertexCount} → ${mergedVertexCount} vertices (${duplicatesFound} precision errors fixed)`);
+    console.log(`✅ Smart clustering complete: Redirected ${duplicatesRemoved} duplicate references, ${effectiveVerticesUsed} unique positions found`);
 
     return Promise.resolve({
       geometry: cloned,
