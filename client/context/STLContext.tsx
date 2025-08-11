@@ -409,17 +409,11 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     // Always recompute normals for large files to fix any malformed faces from STL
     loadedGeometry.computeVertexNormals();
 
-    // Implement triangulate-first workflow
-    console.log("🔧 Implementing triangulate-first workflow...");
-
-    // Step 1: Store original mesh as fully triangulated
+    // Use the same geometry for everything - no dual mesh system
     setOriginalMesh(loadedGeometry);
     setWorkingMeshTri(loadedGeometry);
-
-    // Step 2: Create coplanar-merged version for preview and parts export
-    const mergedGeometry = createPreviewFromWorkingMesh(loadedGeometry, "initial");
-    setPreviewMeshMerged(mergedGeometry);
-    setGeometry(mergedGeometry);
+    setPreviewMeshMerged(loadedGeometry);
+    setGeometry(loadedGeometry);
 
     console.log("✅ Minimal processing complete - geometry set directly", {
       vertices: loadedGeometry.attributes.position.count,
