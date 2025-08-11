@@ -1605,13 +1605,13 @@ function MobileWorkflowContent(props: any) {
   const [triangleOptions, setTriangleOptions] = useState({
     partThickness: 2,
     scale: 1,
-    useTriangulated: false,
+    modelType: "merged" as "triangle" | "merged",
   });
   const [showChamferedSettings, setShowChamferedSettings] = useState(false);
   const [chamferedOptions, setChamferedOptions] = useState({
     partThickness: 2,
     scale: 1,
-    useTriangulated: false,
+    modelType: "merged" as "triangle" | "merged",
   });
 
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
