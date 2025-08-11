@@ -473,8 +473,8 @@ export class VertexRemovalStitcher {
     );
     const verticesToRemove = originalVertexCount - targetVertexCount;
 
-    // For aggressive reductions, use dynamic edge list rebuilding
-    const isAggressiveReduction = targetReduction > 0.5;
+    // Use conservative approach for user-uploaded models to avoid artifacts
+    const isAggressiveReduction = targetReduction > 0.7; // Raised threshold - be more conservative
 
     let edges = this.buildEdgeList(indices);
 
@@ -484,7 +484,7 @@ export class VertexRemovalStitcher {
 
     // Perform iterative edge collapses until target is reached
     let iterationCount = 0;
-    const maxIterations = isAggressiveReduction ? 10 : 5; // More iterations for massive reductions
+    const maxIterations = isAggressiveReduction ? 6 : 3; // Reduced iterations to preserve quality
 
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
