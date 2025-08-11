@@ -1144,6 +1144,7 @@ export class STLManipulator {
 
   /**
    * Analyze model quality to determine if vertex clustering is needed
+   * ULTRA-CONSERVATIVE: Only processes models with obvious problems
    */
   private static analyzeModelQuality(geometry: THREE.BufferGeometry, tolerance: number): {
     needsClustering: boolean;
@@ -1152,65 +1153,60 @@ export class STLManipulator {
     const positions = geometry.attributes.position.array as Float32Array;
     const vertexCount = positions.length / 3;
 
-    // Check 1: Very small models (pre-loaded examples) - don't touch
-    if (vertexCount < 100) {
+    // Check 1: Small models (likely clean examples) - NEVER touch
+    if (vertexCount < 500) {
       return {
         needsClustering: false,
-        reason: "Small model (likely pre-loaded example) - no clustering needed"
+        reason: "Model under 500 vertices - assumed clean"
       };
     }
 
-    // Check 2: Look for actual duplicate vertices
+    // Check 2: Models under 2000 vertices - be extra careful
+    if (vertexCount < 2000 && tolerance > 0.01) {
+      return {
+        needsClustering: false,
+        reason: "Medium model with high tolerance - too risky"
+      };
+    }
+
+    // Check 3: ONLY look for exact duplicates (no tolerance-based merging)
     const positionSet = new Set<string>();
     let exactDuplicates = 0;
-    let nearDuplicates = 0;
 
     for (let i = 0; i < vertexCount; i++) {
       const x = positions[i * 3];
       const y = positions[i * 3 + 1];
       const z = positions[i * 3 + 2];
 
-      const exactKey = `${x},${y},${z}`;
+      // Only count EXACT duplicates (precision-level identical)
+      const exactKey = `${x.toFixed(10)},${y.toFixed(10)},${z.toFixed(10)}`;
       if (positionSet.has(exactKey)) {
         exactDuplicates++;
       } else {
         positionSet.add(exactKey);
-
-        // Check for near-duplicates within very small tolerance
-        for (let j = 0; j < i; j++) {
-          const x2 = positions[j * 3];
-          const y2 = positions[j * 3 + 1];
-          const z2 = positions[j * 3 + 2];
-
-          const dist = Math.sqrt((x-x2)**2 + (y-y2)**2 + (z-z2)**2);
-          if (dist > 0 && dist < 0.0001) { // Very tight tolerance for precision errors
-            nearDuplicates++;
-            break;
-          }
-        }
       }
     }
 
-    // Check 3: Only cluster if there are actual issues
-    const duplicatePercentage = (exactDuplicates + nearDuplicates) / vertexCount;
+    // Check 4: Only proceed if there are MANY exact duplicates
+    const duplicatePercentage = exactDuplicates / vertexCount;
 
-    if (exactDuplicates === 0 && nearDuplicates === 0) {
+    if (exactDuplicates < 10) {
       return {
         needsClustering: false,
-        reason: "No duplicate or near-duplicate vertices found"
+        reason: `Only ${exactDuplicates} exact duplicates - not worth the risk`
       };
     }
 
-    if (duplicatePercentage < 0.01) { // Less than 1% duplicates
+    if (duplicatePercentage < 0.05) { // Less than 5% duplicates
       return {
         needsClustering: false,
-        reason: `Only ${((duplicatePercentage * 100).toFixed(2))}% potential duplicates - model is clean`
+        reason: `Only ${(duplicatePercentage * 100).toFixed(1)}% exact duplicates - model is clean enough`
       };
     }
 
     return {
       needsClustering: true,
-      reason: `Found ${exactDuplicates} exact + ${nearDuplicates} near-duplicates (${(duplicatePercentage * 100).toFixed(1)}%)`
+      reason: `Found ${exactDuplicates} exact duplicates (${(duplicatePercentage * 100).toFixed(1)}%) - safe to clean`
     };
   }
 }
