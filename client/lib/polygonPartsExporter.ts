@@ -73,23 +73,24 @@ export class PolygonPartsExporter {
 
     // Create individual files for each polygon face
     for (let i = 0; i < polygonFaces.length; i++) {
-      const faceInfo = polygonFaces[i];
+      const polygonFace = polygonFaces[i];
       const fileExtension = format === "obj" ? "obj" : "stl";
-      const partContent =
-        format === "obj"
-          ? this.createPolygonOBJ(faceInfo, i, partThickness, scale)
-          : this.createPolygonSTL(
-              faceInfo,
-              i,
-              partThickness,
-              scale,
-              originalGeometry,
-            );
-      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${faceInfo.type}.${fileExtension}`;
+
+      // Use generalized polygon extruder for consistent geometry
+      const extrusionOptions: ExtrusionOptions = {
+        thickness: partThickness,
+        scale: scale,
+      };
+
+      const partContent = format === "obj"
+        ? this.createPolygonOBJ(polygonFace, i, partThickness, scale) // Keep OBJ for now
+        : PolygonExtruder.createExtrudedPolygon(polygonFace, extrusionOptions);
+
+      const partFilename = `part_${String(i + 1).padStart(4, "0")}_${polygonFace.type || 'polygon'}.${fileExtension}`;
 
       // Calculate part geometry and metrics
       const partInfo = this.calculatePolygonPartInfo(
-        faceInfo,
+        polygonFace,
         partThickness,
         scale,
       );
