@@ -449,7 +449,7 @@ export class VertexRemovalStitcher {
   ): THREE.BufferGeometry {
     if (targetReduction <= 0) {
       console.log(
-        "⚠���� Zero reduction requested - returning original geometry",
+        "⚠�� Zero reduction requested - returning original geometry",
       );
       const cloned = geometry.clone();
       cloned.uuid = THREE.MathUtils.generateUUID();
@@ -489,9 +489,12 @@ export class VertexRemovalStitcher {
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
 
+      console.log(`   Iteration ${iterationCount + 1}: trying to merge ${verticesToRemove - mergedCount} more vertices`);
+
       // For aggressive reductions, rebuild edge list every iteration to find new collapse opportunities
       if (isAggressiveReduction && iterationCount > 0) {
         edges = this.buildEdgeList(cloned.index!.array as Uint32Array);
+        console.log(`   Rebuilt edge list: ${edges.length} edges`);
       }
 
       // Sort edges by length for optimal collapse order (shortest first)
@@ -500,6 +503,8 @@ export class VertexRemovalStitcher {
         const lengthB = this.calculateEdgeLength(positions, b[0], b[1]);
         return lengthA - lengthB;
       });
+
+      console.log(`   Processing ${edges.length} edges, shortest: ${this.calculateEdgeLength(positions, edges[0]?.[0], edges[0]?.[1])?.toFixed(3) || 'N/A'}`);
 
       for (const [v1, v2] of edges) {
         if (mergedCount >= verticesToRemove) {
