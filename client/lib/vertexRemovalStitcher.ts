@@ -509,6 +509,11 @@ export class VertexRemovalStitcher {
         // Skip if either vertex is already merged
         if (vertexMergeMap.has(v1) || vertexMergeMap.has(v2)) continue;
 
+        // Quality check: Skip very long edges to avoid distortion in user models
+        const edgeLength = this.calculateEdgeLength(positions, v1, v2);
+        const maxAllowableEdgeLength = 0.1; // Conservative threshold for user models
+        if (edgeLength > maxAllowableEdgeLength) continue;
+
         // Calculate collapse position (midpoint for simplicity)
         const midX = (positions[v1 * 3] + positions[v2 * 3]) / 2;
         const midY = (positions[v1 * 3 + 1] + positions[v2 * 3 + 1]) / 2;
