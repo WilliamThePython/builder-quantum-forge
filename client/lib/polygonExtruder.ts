@@ -65,18 +65,10 @@ export class PolygonExtruder {
 
     let stlContent = `solid extruded_polygon_${polygon.index || 0}\n`;
 
-    // Use ORIGINAL triangulation if available to prevent water wheel effect
-    let frontTriangles: THREE.Vector3[][];
+    // Simple polygon extrusion - just triangulate the polygon outline into solid faces
+    const frontTriangles = this.triangulatePolygon(frontVertices, normal);
 
-    if (polygon.triangleIndices && polygon.triangleIndices.length > 0) {
-      // Use original triangulation from the mesh
-      frontTriangles = this.extractOriginalTriangles(polygon.triangleIndices, frontVertices);
-    } else {
-      // Fallback to triangulation if no original indices
-      frontTriangles = this.triangulatePolygon(frontVertices, normal);
-    }
-
-    // Front face - use original or fallback triangulation
+    // Front face
     for (const triangle of frontTriangles) {
       stlContent += this.addTriangleToSTL(triangle[0], triangle[1], triangle[2], normal);
     }
