@@ -20,6 +20,7 @@ import { STLExporter } from "../lib/stlExporter";
 import { OBJConverter } from "../lib/objConverter";
 import { PolygonGeometryBuilder } from "../lib/polygonGeometryBuilder";
 import { PolygonFaceReconstructor } from "../lib/polygonFaceReconstructor";
+import { EdgeAdjacentMerger } from "../lib/edgeAdjacentMerger";
 import {
   STLGeometryValidator,
   ValidationReport,
