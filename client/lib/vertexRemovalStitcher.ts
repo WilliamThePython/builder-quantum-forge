@@ -630,6 +630,9 @@ export class VertexRemovalStitcher {
     const originalColors = cloned.attributes.color?.array as Float32Array;
     const newColors: number[] = [];
 
+    console.log(`   🎨 Decimation color debug: originalColors exists=${!!originalColors}, length=${originalColors?.length || 0}`);
+    console.log(`   🎨 Original vertex count: ${positions.length / 3}, Used vertices: ${usedVertices.size}`);
+
     for (const vertexIndex of Array.from(usedVertices).sort((a, b) => a - b)) {
       vertexRemap.set(vertexIndex, newVertexIndex);
 
@@ -648,10 +651,16 @@ export class VertexRemovalStitcher {
           originalColors[baseIndex + 1],
           originalColors[baseIndex + 2]
         );
+        console.log(`   🎨 Copied color for vertex ${vertexIndex}: [${originalColors[baseIndex].toFixed(3)}, ${originalColors[baseIndex + 1].toFixed(3)}, ${originalColors[baseIndex + 2].toFixed(3)}]`);
+      } else if (originalColors) {
+        console.log(`   🎨 Skipping vertex ${vertexIndex}: baseIndex ${baseIndex} >= colors length ${originalColors.length}`);
       }
 
       newVertexIndex++;
     }
+
+    console.log(`   🎨 Color preservation result: ${newColors.length / 3} vertices with colors`);
+
 
     // Apply vertex remapping to triangle indices
     const remappedTriangles = validTriangles.map(idx => {
