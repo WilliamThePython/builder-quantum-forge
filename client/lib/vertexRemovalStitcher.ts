@@ -461,18 +461,6 @@ export class VertexRemovalStitcher {
 
     const cloned = geometry.clone();
 
-    // CRITICAL: Ensure all attributes (especially colors) are properly cloned
-    if (geometry.attributes.color && !cloned.attributes.color) {
-      console.log("🎨 Manually copying color attribute to cloned geometry");
-      cloned.setAttribute("color", geometry.attributes.color.clone());
-    }
-
-    console.log(`🎨 Cloned geometry attributes check:`, {
-      position: !!cloned.attributes.position,
-      normal: !!cloned.attributes.normal,
-      color: !!cloned.attributes.color,
-      colorLength: cloned.attributes.color?.array?.length || 0
-    });
 
     const positions = cloned.attributes.position.array as Float32Array;
     const indices = cloned.index?.array;
