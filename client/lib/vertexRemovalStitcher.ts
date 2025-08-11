@@ -551,22 +551,27 @@ export class VertexRemovalStitcher {
       );
     }
 
-    // Update all triangle indices to use merged vertices (NO TRIANGLES DELETED)
-    const newIndices = new Uint32Array(indices.length);
-    let remappedIndices = 0;
+    // Update triangle indices to use merged vertices and remove degenerate triangles
+    const validTriangles: number[] = [];
+    let removedTriangles = 0;
 
-    for (let i = 0; i < indices.length; i++) {
-      const originalVertex = indices[i];
-      const mergedVertex = vertexMergeMap.get(originalVertex) ?? originalVertex;
-      newIndices[i] = mergedVertex;
+    for (let i = 0; i < indices.length; i += 3) {
+      const v1 = vertexMergeMap.get(indices[i]) ?? indices[i];
+      const v2 = vertexMergeMap.get(indices[i + 1]) ?? indices[i + 1];
+      const v3 = vertexMergeMap.get(indices[i + 2]) ?? indices[i + 2];
 
-      if (mergedVertex !== originalVertex) {
-        remappedIndices++;
+      // Skip degenerate triangles (where two or more vertices are the same)
+      if (v1 !== v2 && v2 !== v3 && v3 !== v1) {
+        validTriangles.push(v1, v2, v3);
+      } else {
+        removedTriangles++;
       }
     }
 
-    // Apply the updated indices
-    cloned.setIndex(Array.from(newIndices));
+    console.log(`   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`);
+
+    // Apply the cleaned indices
+    cloned.setIndex(validTriangles);
     cloned.attributes.position.needsUpdate = true;
 
     const newUUID = THREE.MathUtils.generateUUID();
