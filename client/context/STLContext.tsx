@@ -725,6 +725,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       format?: "stl" | "obj";
       partThickness?: number;
       scale?: number;
+      useTriangulated?: boolean;
     }) => {
       if (!previewMeshMerged) {
         console.error("No 3D model loaded for parts export");
