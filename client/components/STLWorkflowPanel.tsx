@@ -170,18 +170,18 @@ export default function STLWorkflowPanel({
   });
 
   // Triangle export settings
-  const [showTriangleSettings, setShowTriangleSettings] = useState(false);
-  const [triangleOptions, setTriangleOptions] = useState({
-    partThickness: 2,
-    scale: 1,
-    useTriangulated: false,
-  });
-  const [showChamferedSettings, setShowChamferedSettings] = useState(false);
-  const [chamferedOptions, setChamferedOptions] = useState({
-    partThickness: 2,
-    scale: 1,
-    useTriangulated: false,
-  });
+ const [showTriangleSettings, setShowTriangleSettings] = useState(false);
+ const [triangleOptions, setTriangleOptions] = useState({
+   partThickness: 2,
+   scale: 1,
+   modelType: "merged" as "triangle" | "merged",
+ });
+ const [showChamferedSettings, setShowChamferedSettings] = useState(false);
+ const [chamferedOptions, setChamferedOptions] = useState({
+   partThickness: 2,
+   scale: 1,
+   modelType: "merged" as "triangle" | "merged",
+ });
 
   // Export format selection
   const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
