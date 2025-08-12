@@ -1071,9 +1071,7 @@ export class STLManipulator {
     // TOLERANCE-BASED APPROACH: Merge vertices within tolerance distance
     // Use safe index redirection approach to preserve geometry structure
     if (cloned.index) {
-      console.log(
-        `🔧 Processing indexed geometry with tolerance ${tolerance}...`,
-      );
+      // Processing indexed geometry with tolerance-based clustering
 
       // For indexed geometry: update indices to point to first occurrence of vertices within tolerance
       const positionToFirstIndex = new Map<string, number>();
@@ -1109,11 +1107,9 @@ export class STLManipulator {
       }
 
       cloned.setIndex(oldIndices);
-      console.log(
-        `✅ Redirected ${duplicatesRemoved} vertex references within tolerance ${tolerance}`,
-      );
+      // Vertex references redirected to reduce duplicates
     } else {
-      console.log(`⚠️ Non-indexed geometry - skipping (too risky to modify)`);
+      // Non-indexed geometry skipped for safety
     }
 
     const newStats = this.calculateMeshStats(cloned);
@@ -1122,9 +1118,7 @@ export class STLManipulator {
       duplicatesRemoved > 0 ? duplicatesRemoved / oldIndices.length : 0;
     const processingTime = Date.now() - startTime;
 
-    console.log(
-      `✅ Smart clustering complete: Redirected ${duplicatesRemoved} duplicate references, ${effectiveVerticesUsed} unique positions found`,
-    );
+    // Vertex clustering completed successfully
 
     return Promise.resolve({
       geometry: cloned,
