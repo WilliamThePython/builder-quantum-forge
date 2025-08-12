@@ -29,7 +29,6 @@ import { ModelCache } from "../lib/input/modelCache";
 import { getTestFileSizeData } from "../lib/utilities/fileSizeEstimator";
 import { computeFlatNormals } from "../lib/visualization/flatNormals";
 import { prepareGeometryForViewing } from "../lib/visualization/geometryPreparer";
-import { convertToNonIndexedForFlatColors } from "../lib/flatGeometry";
 import {
   validateAndFixGeometry,
   hasNaNValues,
