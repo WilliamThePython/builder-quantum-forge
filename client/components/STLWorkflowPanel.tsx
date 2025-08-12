@@ -2178,17 +2178,12 @@ export default function STLWorkflowPanel({
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                Just a friendly heads up! �����
+                Just a heads up!
               </AlertDialogTitle>
               <AlertDialogDescription className="text-slate-300">
-                The colors feature uses vibrant, changing colors that might
-                flash or change rapidly. If you're sensitive to flashing lights
-                or have photosensitive epilepsy, you might want to skip this
-                one.
+                The colors feature uses colors that might flash or change rapidly based on mouse movement. If you're sensitive to flashing lights or have photosensitive epilepsy, you might want to skip this one.
                 <br />
                 <br />
-                No worries either way - just want to make sure you have a
-                comfortable experience! ✨
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
