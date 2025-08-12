@@ -690,7 +690,7 @@ export default function STLWorkflowPanel({
                                 className="fixed inset-0 z-40"
                                 onClick={() => setShowHighlightColorPicker(false)}
                               />
-                              <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
                                 <HexColorPicker
                                   color={viewerSettings.highlightColor}
                                   onChange={(color) => {
@@ -798,7 +798,7 @@ export default function STLWorkflowPanel({
                           className="fixed inset-0 z-40"
                           onClick={() => setShowColorPicker(false)}
                         />
-                        <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
                           <HexColorPicker
                             color={viewerSettings.backgroundColor}
                             onChange={(color) => {
