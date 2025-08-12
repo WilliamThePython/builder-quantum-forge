@@ -1236,6 +1236,81 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     backupPreviewMeshMerged,
   ]);
 
+  // Merged mesh management functions
+  const clearMergedMesh = useCallback(() => {
+    setMergedGeometry(null);
+    setHasMergedMesh(false);
+    // Switch viewer back to triangle mesh when merged mesh is cleared
+    setViewerSettings(prev => ({ ...prev, meshType: "triangle" }));
+  }, []);
+
+  const mergeCoplanarFaces = useCallback(async (): Promise<ToolOperationResult> => {
+    if (!workingMeshTri) {
+      return {
+        success: false,
+        message: "No triangle mesh loaded. Please load a model first.",
+        stats: null,
+      };
+    }
+
+    try {
+      setIsProcessingTool(true);
+
+      // Import the coplanar merger if not already available
+      const { AggressiveCoplanarMerger } = await import("../lib/aggressiveCoplanarMerger");
+
+      const startTime = performance.now();
+      const originalStats = getGeometryStats();
+
+      // Create merged mesh from current triangle mesh
+      const mergedMesh = workingMeshTri.clone();
+
+      // Apply coplanar face merging
+      const merger = new AggressiveCoplanarMerger(mergedMesh);
+      await merger.process();
+
+      const processingTime = Math.round(performance.now() - startTime);
+      const newStats = {
+        vertices: mergedMesh.attributes.position.count / 3,
+        faces: mergedMesh.index ? mergedMesh.index.count / 3 : mergedMesh.attributes.position.count / 9,
+      };
+
+      // Store the merged mesh
+      setMergedGeometry(mergedMesh);
+      setHasMergedMesh(true);
+
+      const reductionAchieved = originalStats ?
+        (originalStats.faces - newStats.faces) / originalStats.faces : 0;
+
+      return {
+        success: true,
+        message: `Coplanar face merging completed successfully in ${processingTime}ms`,
+        stats: {
+          originalStats,
+          newStats,
+          reductionAchieved,
+          processingTime,
+        },
+      };
+    } catch (error) {
+      console.error("Error during coplanar face merging:", error);
+      return {
+        success: false,
+        message: `Coplanar face merging failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        stats: null,
+      };
+    } finally {
+      setIsProcessingTool(false);
+    }
+  }, [workingMeshTri, getGeometryStats]);
+
+  // Clear merged mesh when triangle mesh is updated
+  useEffect(() => {
+    if (workingMeshTri) {
+      clearMergedMesh();
+    }
+  }, [workingMeshTri, clearMergedMesh]);
+
   const contextValue: STLContextType = {
     geometry,
     fileName,
