@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import { Scissors, Minimize2, MousePointer, Settings, X, Palette, Eye } from 'lucide-react';
-import { Button } from './ui/button';
-import { Switch } from './ui/switch';
-import { Label } from './ui/label';
-import { Separator } from './ui/separator';
-import { STLToolMode } from '../lib/processing/stlManipulator';
+import React, { useState } from "react";
+import {
+  Scissors,
+  Minimize2,
+  MousePointer,
+  Settings,
+  X,
+  Palette,
+  Eye,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
+import { STLToolMode } from "../lib/processing/stlManipulator";
 
 interface STLToolsPanelProps {
   activeToolMode: STLToolMode;
   onToolModeChange: (mode: STLToolMode) => void;
-  onReducePoints: (reduction: number, method: 'random' | 'best') => void;
+  onReducePoints: (reduction: number, method: "random" | "best") => void;
   isProcessing: boolean;
   geometryStats: {
     vertices: number;
@@ -31,30 +39,32 @@ export default function STLToolsPanel({
   randomColors,
   wireframe,
   onRandomColorsChange,
-  onWireframeChange
+  onWireframeChange,
 }: STLToolsPanelProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [reductionAmount, setReductionAmount] = useState(0.5);
-  const [reductionMethod, setReductionMethod] = useState<'random' | 'best'>('random');
+  const [reductionMethod, setReductionMethod] = useState<"random" | "best">(
+    "random",
+  );
 
   const tools = [
     {
       id: STLToolMode.Highlight,
-      name: 'Highlight Facet',
+      name: "Highlight Facet",
       icon: MousePointer,
-      description: 'Hover over model to highlight polygon faces',
-      color: 'bg-blue-500 hover:bg-blue-600',
-      activeColor: 'bg-blue-600'
+      description: "Hover over model to highlight polygon faces",
+      color: "bg-blue-500 hover:bg-blue-600",
+      activeColor: "bg-blue-600",
     },
     {
       id: STLToolMode.Reduce,
-      name: 'Reduce Points',
+      name: "Reduce Points",
       icon: Minimize2,
-      description: 'Reduce vertices using random or best methods',
-      color: 'bg-orange-500 hover:bg-orange-600',
-      activeColor: 'bg-orange-600',
-      hasSettings: true
-    }
+      description: "Reduce vertices using random or best methods",
+      color: "bg-orange-500 hover:bg-orange-600",
+      activeColor: "bg-orange-600",
+      hasSettings: true,
+    },
   ];
 
   const handleToolClick = (tool: any) => {
@@ -96,7 +106,9 @@ export default function STLToolsPanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Palette className="w-4 h-4 text-white/70" />
-              <Label htmlFor="colors" className="text-sm text-white/80">Random Colors</Label>
+              <Label htmlFor="colors" className="text-sm text-white/80">
+                Random Colors
+              </Label>
             </div>
             <Switch
               id="colors"
@@ -109,7 +121,9 @@ export default function STLToolsPanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 text-white/70" />
-              <Label htmlFor="wireframe" className="text-sm text-white/80">Wireframe Mode</Label>
+              <Label htmlFor="wireframe" className="text-sm text-white/80">
+                Wireframe Mode
+              </Label>
             </div>
             <Switch
               id="wireframe"
@@ -126,7 +140,7 @@ export default function STLToolsPanel({
           {tools.map((tool) => {
             const Icon = tool.icon;
             const isActive = activeToolMode === tool.id;
-            
+
             return (
               <div key={tool.id}>
                 <Button
@@ -135,7 +149,7 @@ export default function STLToolsPanel({
                   className={`
                     w-full justify-start text-left p-3 h-auto relative group
                     ${isActive ? tool.activeColor : tool.color}
-                    ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}
                     text-white border-0 transition-all duration-200
                   `}
                 >
@@ -163,31 +177,30 @@ export default function STLToolsPanel({
                       <div className="text-white text-xs mb-2">Method</div>
                       <div className="flex gap-1">
                         <Button
-                          onClick={() => setReductionMethod('random')}
+                          onClick={() => setReductionMethod("random")}
                           className={`flex-1 text-xs py-1 px-2 h-6 ${
-                            reductionMethod === 'random'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                            reductionMethod === "random"
+                              ? "bg-orange-500 text-white"
+                              : "bg-white/20 hover:bg-white/30 text-white/80"
                           }`}
                         >
                           Random
                         </Button>
                         <Button
-                          onClick={() => setReductionMethod('best')}
+                          onClick={() => setReductionMethod("best")}
                           className={`flex-1 text-xs py-1 px-2 h-6 ${
-                            reductionMethod === 'best'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/20 hover:bg-white/30 text-white/80'
+                            reductionMethod === "best"
+                              ? "bg-orange-500 text-white"
+                              : "bg-white/20 hover:bg-white/30 text-white/80"
                           }`}
                         >
                           Best
                         </Button>
                       </div>
                       <div className="text-xs text-white/60 mt-1">
-                        {reductionMethod === 'random'
-                          ? 'Randomly removes vertices'
-                          : 'Removes vertices in flat areas'
-                        }
+                        {reductionMethod === "random"
+                          ? "Randomly removes vertices"
+                          : "Removes vertices in flat areas"}
                       </div>
                     </div>
 
@@ -203,7 +216,9 @@ export default function STLToolsPanel({
                           max="0.9"
                           step="0.1"
                           value={reductionAmount}
-                          onChange={(e) => setReductionAmount(parseFloat(e.target.value))}
+                          onChange={(e) =>
+                            setReductionAmount(parseFloat(e.target.value))
+                          }
                           className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
                         />
                         <div className="flex justify-between text-xs text-white/70">
@@ -245,8 +260,10 @@ export default function STLToolsPanel({
         {activeToolMode !== STLToolMode.None && (
           <div className="mt-4 p-2 bg-blue-500/20 rounded-lg border border-blue-500/30">
             <div className="text-blue-300 text-xs font-medium">
-              {activeToolMode === STLToolMode.Highlight && 'Hover over model to highlight polygon faces'}
-              {activeToolMode === STLToolMode.Reduce && 'Adjust settings and click "Apply"'}
+              {activeToolMode === STLToolMode.Highlight &&
+                "Hover over model to highlight polygon faces"}
+              {activeToolMode === STLToolMode.Reduce &&
+                'Adjust settings and click "Apply"'}
             </div>
             {activeToolMode === STLToolMode.Highlight && (
               <Button
@@ -279,7 +296,7 @@ export default function STLToolsPanel({
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .slider::-moz-range-thumb {
           height: 16px;
@@ -288,7 +305,7 @@ export default function STLToolsPanel({
           background: #f97316;
           cursor: pointer;
           border: 2px solid #fff;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>

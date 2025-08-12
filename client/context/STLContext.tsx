@@ -24,7 +24,10 @@ import {
   STLGeometryValidator,
   ValidationReport,
 } from "../lib/utilities/stlGeometryValidator";
-import { ModelFileHandler, ProcessedModel } from "../lib/input/modelFileHandler";
+import {
+  ModelFileHandler,
+  ProcessedModel,
+} from "../lib/input/modelFileHandler";
 import { ModelCache } from "../lib/input/modelCache";
 import { getTestFileSizeData } from "../lib/utilities/fileSizeEstimator";
 import { computeFlatNormals } from "../lib/visualization/flatNormals";
@@ -511,7 +514,9 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     try {
       console.log("✅ Beginning file load process...");
-      const { loadModelFile } = await import("../lib/input/simplifiedSTLLoader");
+      const { loadModelFile } = await import(
+        "../lib/input/simplifiedSTLLoader"
+      );
 
       setOriginalFormat(
         file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj",
