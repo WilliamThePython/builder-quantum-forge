@@ -959,7 +959,7 @@ function STLMesh() {
       } else {
         // Fallback: if no original vertices, try to reconstruct from face type
         console.warn(
-          "��️ Face missing original vertices, using fallback for face:",
+          "���� Face missing original vertices, using fallback for face:",
           faceIndex,
         );
       }
@@ -1285,8 +1285,8 @@ function STLMesh() {
     const colors = geometry.attributes.color?.array as Float32Array;
     if (!colors) return;
 
-    // Only reset and highlight if we're actually highlighting something
-    if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight) {
+    // Only reset and highlight if we're actually highlighting something and highlighting is enabled
+    if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight && viewerSettings.enableHighlighting) {
       // Reset all colors to original first
       colors.set(originalColors.current);
       const polygonFaces = (geometry as any).polygonFaces;
@@ -1316,12 +1316,13 @@ function STLMesh() {
             for (const triangleIndex of targetFace.triangleIndices) {
               const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
 
-              // Apply red color to all 3 vertices of the triangle
+              // Apply custom highlight color to all 3 vertices of the triangle
+              const highlightColor = new THREE.Color(viewerSettings.highlightColor);
               for (let v = 0; v < 9; v += 3) {
                 if (triangleStart + v + 2 < colors.length) {
-                  colors[triangleStart + v] = 1.0; // Red
-                  colors[triangleStart + v + 1] = 0.0; // Green
-                  colors[triangleStart + v + 2] = 0.0; // Blue
+                  colors[triangleStart + v] = highlightColor.r;
+                  colors[triangleStart + v + 1] = highlightColor.g;
+                  colors[triangleStart + v + 2] = highlightColor.b;
                 }
               }
             }
@@ -1329,12 +1330,13 @@ function STLMesh() {
         } else {
           // Fallback: highlight just the single triangle
 
+          const highlightColor = new THREE.Color(viewerSettings.highlightColor);
           const triangleStart = highlightedTriangle * 9;
           for (let v = 0; v < 9; v += 3) {
             if (triangleStart + v + 2 < colors.length) {
-              colors[triangleStart + v] = 1.0; // Red
-              colors[triangleStart + v + 1] = 0.0; // Green
-              colors[triangleStart + v + 2] = 0.0; // Blue
+              colors[triangleStart + v] = highlightColor.r;
+              colors[triangleStart + v + 1] = highlightColor.g;
+              colors[triangleStart + v + 2] = highlightColor.b;
             }
           }
         }
@@ -1342,20 +1344,21 @@ function STLMesh() {
         // Fallback: single triangle highlighting for non-polygon geometries
         const triangleStart = highlightedTriangle * 9; // 3 vertices * 3 color components
 
+        const highlightColor = new THREE.Color(viewerSettings.highlightColor);
         for (let i = 0; i < 9; i += 3) {
           const idx = triangleStart + i;
           if (idx < colors.length) {
-            // Set to bright red color
-            colors[idx] = 1.0; // Red
-            colors[idx + 1] = 0.0; // Green
-            colors[idx + 2] = 0.0; // Blue
+            // Set to custom highlight color
+            colors[idx] = highlightColor.r;
+            colors[idx + 1] = highlightColor.g;
+            colors[idx + 2] = highlightColor.b;
           }
         }
       }
     }
 
     geometry.attributes.color.needsUpdate = true;
-  }, [geometry, highlightedTriangle, toolMode, viewerSettings.randomColors]);
+  }, [geometry, highlightedTriangle, toolMode, viewerSettings.randomColors, viewerSettings.highlightColor, viewerSettings.enableHighlighting]);
 
   // Handle mouse interaction for highlighting
   useEffect(() => {
