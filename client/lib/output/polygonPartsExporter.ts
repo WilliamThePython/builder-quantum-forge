@@ -5,7 +5,7 @@ import {
   PolygonExtruder,
   PolygonFace,
   ExtrusionOptions,
-} from "./polygonExtruder";
+} from "../processing/polygonExtruder";
 
 /**
  * PolygonPartsExporter exports each polygon face as a separate STL or OBJ file
