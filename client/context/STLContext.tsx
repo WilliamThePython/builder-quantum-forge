@@ -1351,6 +1351,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     hasBackup,
     createBackup,
     restoreFromBackup,
+    mergedGeometry,
+    hasMergedMesh,
+    mergeCoplanarFaces,
+    clearMergedMesh,
   };
 
   // Ensure contextValue is properly defined before rendering
