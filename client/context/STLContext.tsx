@@ -1173,19 +1173,22 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
           // Update working mesh
           setWorkingMeshTri(result.geometry);
 
-          // Create proper preview mesh with reconstructed faces
-          const newPreview = createPreviewFromWorkingMesh(
+          // Clear merged mesh since triangle mesh changed
+          clearMergedMesh();
+
+          // Update display with triangle mesh
+          const displayGeometry = prepareGeometryForViewing(
             result.geometry,
             "edge_decimated",
           );
-          setPreviewMeshMerged(newPreview);
-
-          // Update display
-          const displayGeometry = prepareGeometryForViewing(
-            newPreview,
-            "edge_decimated",
-          );
           setGeometry(displayGeometry);
+        } else if (!result.success && result.message.includes("Edge not found")) {
+          // Return specific error for edge not found
+          return {
+            success: false,
+            message: "Edge not found in triangulated mesh. Please ensure you are working with a valid triangle model.",
+            geometry: null,
+          };
         }
 
         return result;
