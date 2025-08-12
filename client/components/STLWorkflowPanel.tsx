@@ -255,34 +255,7 @@ export default function STLWorkflowPanel({
     }
   };
 
-  const handleFormatSelection = (format: "stl" | "obj") => {
-    setShowExportFormatDialog(false);
 
-    if (exportType === "complete") {
-      // Export complete model
-      if (format === "stl") {
-        exportSTL();
-      } else {
-        // Export complete model as OBJ
-        exportOBJ();
-      }
-    } else {
-      // Export parts
-      if (format === "stl") {
-        exportParts({
-          ...triangleOptions,
-          useTriangulated: triangleOptions.modelType === "triangle",
-        });
-      } else {
-        // Export parts as OBJ
-        exportParts({
-          ...triangleOptions,
-          format: "obj",
-          useTriangulated: triangleOptions.modelType === "triangle",
-        });
-      }
-    }
-  };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     try {
