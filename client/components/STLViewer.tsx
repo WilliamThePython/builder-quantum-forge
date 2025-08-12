@@ -1062,6 +1062,41 @@ function STLMesh() {
     }
   }, [viewerSettings.autoSpin]);
 
+  // Function to update highlighting based on current mouse position
+  const updateHighlightingFromMousePosition = () => {
+    if (!meshRef.current || !geometry) return;
+
+    // Perform raycasting at current pointer position
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObject(meshRef.current);
+
+    if (intersects.length > 0) {
+      const intersection = intersects[0];
+      const faceIndex = STLManipulator.getPolygonFaceFromIntersection(
+        geometry,
+        intersection,
+      );
+
+      // Get the first triangle index from the face for stats calculation
+      const polygonFaces = (geometry as any)?.polygonFaces;
+      if (
+        polygonFaces &&
+        Array.isArray(polygonFaces) &&
+        faceIndex < polygonFaces.length
+      ) {
+        const face = polygonFaces[faceIndex];
+        if (face && face.triangleIndices && face.triangleIndices.length > 0) {
+          const triangleIndex = face.triangleIndices[0];
+          setHighlightedTriangle(triangleIndex);
+        } else {
+          setHighlightedTriangle(faceIndex);
+        }
+      } else {
+        setHighlightedTriangle(faceIndex);
+      }
+    }
+  };
+
   // Spinning animation frame loop
   useFrame(() => {
     if (!meshRef.current) return;
