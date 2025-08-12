@@ -621,6 +621,28 @@ export default function STLWorkflowPanel({
 
             {expandedSections.visualization && (
               <div className="mt-4 space-y-4">
+                {/* Mesh Type Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-white/70" />
+                    <Label htmlFor="meshType" className="text-sm text-white/80">
+                      Mesh Type
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-white/60">Triangle</Label>
+                    <Switch
+                      id="meshType"
+                      checked={viewerSettings.meshType === "merged"}
+                      onCheckedChange={(checked) => {
+                        const newMeshType = checked ? "merged" : "triangle";
+                        updateViewerSettings({ meshType: newMeshType });
+                      }}
+                    />
+                    <Label className="text-xs text-white/60">Merged</Label>
+                  </div>
+                </div>
+
                 {/* Colors */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -2422,7 +2444,7 @@ function MobileWorkflowContent(props: any) {
     const file = event.target.files?.[0];
     if (file) {
       loadModelFromFile(file).catch((err) => {
-        console.error("���� Upload failed:", err);
+        console.error("����� Upload failed:", err);
         alert(`Upload failed: ${err.message}`);
       });
     }
