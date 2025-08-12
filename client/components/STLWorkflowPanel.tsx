@@ -1076,12 +1076,7 @@ export default function STLWorkflowPanel({
                   </div>
 
                   <Button
-                    onClick={() => {
-                      onReducePoints(
-                        quadricReduction,
-                        "quadric_edge_collapse" as any,
-                      );
-                    }}
+                    onClick={handleQuadricDecimation}
                     className="w-full bg-green-500 hover:bg-green-600 text-white text-xs py-2 h-9"
                     disabled={isProcessing}
                   >
@@ -2062,7 +2057,7 @@ export default function STLWorkflowPanel({
                                       (fallback)
                                     </div>
                                     <div>
-                                      • Thickness:{" "}
+                                      ��� Thickness:{" "}
                                       {chamferedOptions.partThickness}
                                       mm, Scale: {chamferedOptions.scale}x
                                     </div>
