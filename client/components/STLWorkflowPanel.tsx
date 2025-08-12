@@ -664,10 +664,6 @@ export default function STLWorkflowPanel({
                     {/* Highlight Color Picker - Show when highlighting is enabled */}
                     {viewerSettings.enableHighlighting && (
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: viewerSettings.highlightColor }} />
-                          <Label className="text-sm text-white/80">Highlight Color</Label>
-                        </div>
                         <div className="relative">
                           {/* Current Color Display & Toggle */}
                           <button
