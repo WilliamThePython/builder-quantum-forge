@@ -2100,7 +2100,7 @@ export default function STLWorkflowPanel({
                   return (
                     <>
                       <button
-                        onClick={() => handleFormatSelection("stl")}
+                        onClick={() => exportSTL()}
                         className="w-full p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                       >
                         <div className="flex items-center gap-3 mb-2">
