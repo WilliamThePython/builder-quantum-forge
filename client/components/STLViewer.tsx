@@ -1164,9 +1164,7 @@ function STLMesh() {
   // POLYGON-AWARE coloring with enforced flat shading per polygon face
   useEffect(() => {
     if (geometry && viewerSettings.randomColors && !viewerSettings.wireframe) {
-      console.log(
-        `   🎨 STL Viewer: Applying fresh colors to geometry with ${geometry.attributes.position.count} vertices`,
-      );
+      // Applying fresh vertex colors to geometry
 
       const colors = new Float32Array(geometry.attributes.position.count * 3);
       const polygonFaces = (geometry as any).polygonFaces;
@@ -1250,9 +1248,7 @@ function STLMesh() {
       // Apply colors to geometry
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       geometry.attributes.color.needsUpdate = true;
-      console.log(
-        `   🎨 Applied ${colors.length / 3} vertex colors to geometry (${colors.length} total values)`,
-      );
+      // Vertex colors applied successfully
 
       // Since we now use non-indexed geometry for viewing, just ensure flat normals
       computePolygonAwareFlatNormals(geometry, polygonFaces);
