@@ -1402,7 +1402,7 @@ function STLMesh() {
 
   // Handle mouse interaction for highlighting
   useEffect(() => {
-    if (toolMode !== STLToolMode.Highlight || !meshRef.current || !viewerSettings.enableHighlighting) return;
+    if (toolMode !== STLToolMode.Highlight || !meshRef.current) return;
 
     const handleMouseMove = (event: MouseEvent) => {
       // Update pointer position
