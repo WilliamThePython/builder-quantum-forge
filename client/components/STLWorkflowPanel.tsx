@@ -2174,60 +2174,6 @@ export default function STLWorkflowPanel({
                         )}
                       </button>
 
-                      <button
-                        onClick={() => handleFormatSelection("obj")}
-                        className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <Package className="w-5 h-5" />
-                          <div className="text-left flex-1">
-                            <div className="font-semibold">OBJ Format</div>
-                            <div className="text-sm text-blue-100">
-                              Better topology for editing and groups
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* OBJ File Size Info */}
-                        {geometry && (
-                          <div className="mt-2 pt-2 border-t border-blue-400/30">
-                            <div className="text-xs text-blue-100 space-y-1">
-                              {exportType === "complete" && sizeEstimate && (
-                                <>
-                                  <div className="flex justify-between">
-                                    <span>📝 File size:</span>
-                                    <span className="font-mono">
-                                      {sizeEstimate.obj.formatted}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                              {exportType === "parts" && partsEstimate && (
-                                <>
-                                  <div className="flex justify-between">
-                                    <span>📦 Total download:</span>
-                                    <span className="font-mono">
-                                      {partsEstimate.totalFormatted}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>📄 Per part average:</span>
-                                    <span className="font-mono">
-                                      {partsEstimate.averageFormatted}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>🔢 Number of files:</span>
-                                    <span className="font-mono">
-                                      {partsEstimate.partCount}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </button>
                     </>
                   );
                 })()}
