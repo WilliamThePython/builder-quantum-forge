@@ -1023,7 +1023,6 @@ export default function STLWorkflowPanel({
                   </p>
                 </div>
 
-                <Separator className="bg-white/20" />
 
                 {/* Crafting Exports Section */}
                 <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
@@ -1359,7 +1358,7 @@ export default function STLWorkflowPanel({
                                       mm, Scale: {triangleOptions.scale}x
                                     </div>
                                     <div>
-                                      • Est. material: ~
+                                      �� Est. material: ~
                                       {(() => {
                                         // Calculate total surface area from triangles
                                         const positions =
