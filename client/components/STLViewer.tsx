@@ -1469,7 +1469,7 @@ function STLMesh() {
         canvas.removeEventListener("click", handleClick);
       };
     }
-  }, [toolMode, geometry, camera, raycaster, pointer, viewerSettings.enableHighlighting]);
+  }, [toolMode, geometry, camera, raycaster, pointer]);
 
   // Update canvas cursor and styling for decimation painter mode
   useEffect(() => {
