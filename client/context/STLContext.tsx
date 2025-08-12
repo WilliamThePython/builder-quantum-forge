@@ -702,7 +702,6 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     [previewMeshMerged, fileName],
   );
 
-
   const addError = useCallback((message: string) => {
     const error: ErrorMessage = {
       id: Date.now().toString(),

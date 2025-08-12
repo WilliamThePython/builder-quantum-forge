@@ -1326,7 +1326,11 @@ function STLMesh() {
     if (!colors) return;
 
     // Only reset and highlight if we're actually highlighting something and highlighting is enabled
-    if (highlightedTriangle !== null && toolMode === STLToolMode.Highlight && viewerSettings.enableHighlighting) {
+    if (
+      highlightedTriangle !== null &&
+      toolMode === STLToolMode.Highlight &&
+      viewerSettings.enableHighlighting
+    ) {
       // Reset all colors to original first
       colors.set(originalColors.current);
       const polygonFaces = (geometry as any).polygonFaces;
@@ -1357,7 +1361,9 @@ function STLMesh() {
               const triangleStart = triangleIndex * 9; // 9 values per triangle (3 vertices × 3 components)
 
               // Apply custom highlight color to all 3 vertices of the triangle
-              const highlightColor = new THREE.Color(viewerSettings.highlightColor);
+              const highlightColor = new THREE.Color(
+                viewerSettings.highlightColor,
+              );
               for (let v = 0; v < 9; v += 3) {
                 if (triangleStart + v + 2 < colors.length) {
                   colors[triangleStart + v] = highlightColor.r;
@@ -1398,7 +1404,14 @@ function STLMesh() {
     }
 
     geometry.attributes.color.needsUpdate = true;
-  }, [geometry, highlightedTriangle, toolMode, viewerSettings.randomColors, viewerSettings.highlightColor, viewerSettings.enableHighlighting]);
+  }, [
+    geometry,
+    highlightedTriangle,
+    toolMode,
+    viewerSettings.randomColors,
+    viewerSettings.highlightColor,
+    viewerSettings.enableHighlighting,
+  ]);
 
   // Handle mouse interaction for highlighting
   useEffect(() => {

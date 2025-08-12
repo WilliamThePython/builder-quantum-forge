@@ -165,7 +165,8 @@ export default function STLWorkflowPanel({
   >(null);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showHighlightColorPicker, setShowHighlightColorPicker] = useState(false);
+  const [showHighlightColorPicker, setShowHighlightColorPicker] =
+    useState(false);
   const [expandedSections, setExpandedSections] = useState({
     upload: true,
     visualization: true,
@@ -255,8 +256,6 @@ export default function STLWorkflowPanel({
       });
     }
   };
-
-
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     try {
@@ -645,9 +644,14 @@ export default function STLWorkflowPanel({
                       <div className="flex items-center gap-2">
                         <div
                           className="w-3 h-3 rounded-full border border-white/30"
-                          style={{ backgroundColor: viewerSettings.highlightColor }}
+                          style={{
+                            backgroundColor: viewerSettings.highlightColor,
+                          }}
                         />
-                        <Label htmlFor="highlighting" className="text-sm text-white/80">
+                        <Label
+                          htmlFor="highlighting"
+                          className="text-sm text-white/80"
+                        >
                           Highlighting
                         </Label>
                       </div>
@@ -667,7 +671,11 @@ export default function STLWorkflowPanel({
                         <div className="relative">
                           {/* Current Color Display & Toggle */}
                           <button
-                            onClick={() => setShowHighlightColorPicker(!showHighlightColorPicker)}
+                            onClick={() =>
+                              setShowHighlightColorPicker(
+                                !showHighlightColorPicker,
+                              )
+                            }
                             className="flex items-center gap-3 w-full p-2 bg-slate-800/50 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors"
                           >
                             <div
@@ -688,14 +696,18 @@ export default function STLWorkflowPanel({
                               {/* Backdrop */}
                               <div
                                 className="fixed inset-0 z-40"
-                                onClick={() => setShowHighlightColorPicker(false)}
+                                onClick={() =>
+                                  setShowHighlightColorPicker(false)
+                                }
                               />
                               <div className="absolute top-full right-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
                                 <HexColorPicker
                                   color={viewerSettings.highlightColor}
                                   onChange={(color) => {
                                     clearHighlightOnMenuInteraction();
-                                    updateViewerSettings({ highlightColor: color });
+                                    updateViewerSettings({
+                                      highlightColor: color,
+                                    });
                                   }}
                                   style={{ width: "180px", height: "180px" }}
                                 />
@@ -716,7 +728,9 @@ export default function STLWorkflowPanel({
                                     placeholder="#ff0000"
                                   />
                                   <button
-                                    onClick={() => setShowHighlightColorPicker(false)}
+                                    onClick={() =>
+                                      setShowHighlightColorPicker(false)
+                                    }
                                     className="text-white/60 hover:text-white/80 transition-colors"
                                   >
                                     <X className="w-4 h-4" />
@@ -1096,7 +1110,6 @@ export default function STLWorkflowPanel({
                     Download the complete model in STL format
                   </p>
                 </div>
-
 
                 {/* Crafting Exports Section */}
                 <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
@@ -2247,7 +2260,6 @@ export default function STLWorkflowPanel({
                           </div>
                         )}
                       </button>
-
                     </>
                   );
                 })()}
@@ -2275,7 +2287,10 @@ export default function STLWorkflowPanel({
                 Just a heads up!
               </AlertDialogTitle>
               <AlertDialogDescription className="text-slate-300">
-                The colors feature uses colors that might flash or change rapidly based on mouse movement. If you're sensitive to flashing lights or have photosensitive epilepsy, you might want to skip this one.
+                The colors feature uses colors that might flash or change
+                rapidly based on mouse movement. If you're sensitive to flashing
+                lights or have photosensitive epilepsy, you might want to skip
+                this one.
                 <br />
                 <br />
               </AlertDialogDescription>
@@ -2367,7 +2382,6 @@ function MobileWorkflowContent(props: any) {
     modelType: "merged" as "triangle" | "merged",
   });
 
-
   const [exportType, setExportType] = useState<"complete" | "parts">(
     "complete",
   );
@@ -2427,7 +2441,6 @@ function MobileWorkflowContent(props: any) {
       });
     }
   };
-
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     try {
@@ -3046,7 +3059,6 @@ function MobileWorkflowContent(props: any) {
                   </div>
                 </div>
               </button>
-
             </div>
 
             <button

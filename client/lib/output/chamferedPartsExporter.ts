@@ -645,8 +645,7 @@ export class ChamferedPartsExporter {
     // Surface area (including chamfers)
     const topBottomArea = area * 2;
     const sideArea = perimeter * thickness;
-    const chamferArea =
-      edges.length * chamferDepth * scale * thickness;
+    const chamferArea = edges.length * chamferDepth * scale * thickness;
     const surfaceArea = topBottomArea + sideArea + chamferArea;
 
     // Print time estimation (increased for chamfer complexity)
@@ -661,8 +660,7 @@ export class ChamferedPartsExporter {
     const material = volume * materialDensity;
 
     // Complexity score (higher due to chamfers)
-    const complexity =
-      vertices.length + area / 100 + edges.length * 0.5;
+    const complexity = vertices.length + area / 100 + edges.length * 0.5;
 
     return {
       area,

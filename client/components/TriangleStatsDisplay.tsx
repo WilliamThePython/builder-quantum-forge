@@ -63,7 +63,11 @@ export default function TriangleStatsDisplay() {
                   ? "bg-red-500"
                   : "bg-gray-500 border border-gray-400"
               }`}
-              title={viewerSettings.enableHighlighting ? "Highlighted face" : "Face info (highlighting disabled)"}
+              title={
+                viewerSettings.enableHighlighting
+                  ? "Highlighted face"
+                  : "Face info (highlighting disabled)"
+              }
             />
             <span className="text-white/80 text-xs">{faceLabel}</span>
           </div>
@@ -138,7 +142,11 @@ export default function TriangleStatsDisplay() {
                   ? "bg-red-500"
                   : "bg-gray-500 border border-gray-400"
               }`}
-              title={viewerSettings.enableHighlighting ? "Highlighted face" : "Face info (highlighting disabled)"}
+              title={
+                viewerSettings.enableHighlighting
+                  ? "Highlighted face"
+                  : "Face info (highlighting disabled)"
+              }
             />
             <span className="text-white/90 font-medium">{faceLabel}</span>
           </div>
