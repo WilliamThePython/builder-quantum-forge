@@ -639,18 +639,13 @@ export default function STLWorkflowPanel({
 
                 {/* Highlight Settings - Show when colors are enabled */}
                 {randomColors && (
-                  <div className="ml-4 pl-4 border-l-2 border-blue-500/20">
-                    {/* Highlighting Enable/Disable with integrated color picker */}
+                  <div className="ml-4 pl-4 border-l-2 border-blue-500/20 space-y-3">
+                    {/* Highlighting Enable/Disable */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => viewerSettings.enableHighlighting && setShowHighlightColorPicker(!showHighlightColorPicker)}
-                          disabled={!viewerSettings.enableHighlighting}
-                          className={`w-3 h-3 rounded-full border border-white/30 transition-opacity ${
-                            viewerSettings.enableHighlighting ? 'cursor-pointer hover:opacity-80' : 'opacity-50'
-                          }`}
+                        <div
+                          className="w-3 h-3 rounded-full border border-white/30"
                           style={{ backgroundColor: viewerSettings.highlightColor }}
-                          title={viewerSettings.enableHighlighting ? 'Click to change highlight color' : 'Enable highlighting to change color'}
                         />
                         <Label htmlFor="highlighting" className="text-sm text-white/80">
                           Highlighting
@@ -666,48 +661,76 @@ export default function STLWorkflowPanel({
                       />
                     </div>
 
-                    {/* Highlight Color Picker Popover */}
-                    {showHighlightColorPicker && viewerSettings.enableHighlighting && (
-                      <>
-                        {/* Backdrop */}
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setShowHighlightColorPicker(false)}
-                        />
-                        <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
-                          <HexColorPicker
-                            color={viewerSettings.highlightColor}
-                            onChange={(color) => {
-                              clearHighlightOnMenuInteraction();
-                              updateViewerSettings({ highlightColor: color });
-                            }}
-                            style={{ width: "180px", height: "180px" }}
-                          />
-                          <div className="mt-3 flex justify-between items-center">
-                            <input
-                              type="text"
-                              value={viewerSettings.highlightColor}
-                              onChange={(e) => {
-                                const color = e.target.value;
-                                if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
-                                  clearHighlightOnMenuInteraction();
-                                  updateViewerSettings({
-                                    highlightColor: color,
-                                  });
-                                }
-                              }}
-                              className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white w-20"
-                              placeholder="#ff0000"
-                            />
-                            <button
-                              onClick={() => setShowHighlightColorPicker(false)}
-                              className="text-white/60 hover:text-white/80 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
+                    {/* Highlight Color Picker - Show when highlighting is enabled */}
+                    {viewerSettings.enableHighlighting && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: viewerSettings.highlightColor }} />
+                          <Label className="text-sm text-white/80">Highlight Color</Label>
                         </div>
-                      </>
+                        <div className="relative">
+                          {/* Current Color Display & Toggle */}
+                          <button
+                            onClick={() => setShowHighlightColorPicker(!showHighlightColorPicker)}
+                            className="flex items-center gap-3 w-full p-2 bg-slate-800/50 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors"
+                          >
+                            <div
+                              className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm"
+                              style={{
+                                backgroundColor: viewerSettings.highlightColor,
+                              }}
+                            />
+                            <span className="text-sm text-white/80 flex-1 text-left">
+                              {viewerSettings.highlightColor}
+                            </span>
+                            <Palette className="w-4 h-4 text-white/60" />
+                          </button>
+
+                          {/* Highlight Color Picker Popover */}
+                          {showHighlightColorPicker && (
+                            <>
+                              {/* Backdrop */}
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setShowHighlightColorPicker(false)}
+                              />
+                              <div className="absolute top-full left-0 mt-2 z-50 bg-slate-900 border border-slate-600 rounded-lg p-3 shadow-xl">
+                                <HexColorPicker
+                                  color={viewerSettings.highlightColor}
+                                  onChange={(color) => {
+                                    clearHighlightOnMenuInteraction();
+                                    updateViewerSettings({ highlightColor: color });
+                                  }}
+                                  style={{ width: "180px", height: "180px" }}
+                                />
+                                <div className="mt-3 flex justify-between items-center">
+                                  <input
+                                    type="text"
+                                    value={viewerSettings.highlightColor}
+                                    onChange={(e) => {
+                                      const color = e.target.value;
+                                      if (/^#[0-9A-Fa-f]{6}$/i.test(color)) {
+                                        clearHighlightOnMenuInteraction();
+                                        updateViewerSettings({
+                                          highlightColor: color,
+                                        });
+                                      }
+                                    }}
+                                    className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white w-20"
+                                    placeholder="#ff0000"
+                                  />
+                                  <button
+                                    onClick={() => setShowHighlightColorPicker(false)}
+                                    className="text-white/60 hover:text-white/80 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
