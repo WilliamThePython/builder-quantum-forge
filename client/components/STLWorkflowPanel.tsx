@@ -1136,6 +1136,37 @@ export default function STLWorkflowPanel({
                   </div>
                 </div>
 
+                {/* 3.4 Merge Coplanar Faces */}
+                <div className="p-4 bg-white/10 rounded-lg border border-white/20">
+                  <div className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+                    <span className="text-blue-400">3.4</span>
+                    Merge Coplanar Faces
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="text-white text-xs mb-2">
+                      Convert triangle mesh to merged polygon mesh
+                    </div>
+                    <div className="text-white/60 text-xs">
+                      Creates merged mesh with polygons instead of triangles. Required for merged mesh viewing and polygon exports.
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleMergeCoplanarFaces}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 h-9"
+                    disabled={isProcessing}
+                  >
+                    🔄 Generate Merged Mesh
+                  </Button>
+
+                  {hasMergedMesh && (
+                    <div className="mt-2 text-xs text-green-400">
+                      ✅ Merged mesh available
+                    </div>
+                  )}
+                </div>
+
                 {/* Reduction Results */}
                 {simplificationStats.originalStats &&
                   simplificationStats.newStats && (
