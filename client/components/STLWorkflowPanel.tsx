@@ -187,7 +187,7 @@ export default function STLWorkflowPanel({
   });
 
   // Export format selection
-  const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
+
   const [exportType, setExportType] = useState<"complete" | "parts">(
     "complete",
   );
@@ -2305,7 +2305,7 @@ function MobileWorkflowContent(props: any) {
     modelType: "merged" as "triangle" | "merged",
   });
 
-  const [showExportFormatDialog, setShowExportFormatDialog] = useState(false);
+
   const [exportType, setExportType] = useState<"complete" | "parts">(
     "complete",
   );
