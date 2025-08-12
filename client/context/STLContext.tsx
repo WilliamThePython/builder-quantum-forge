@@ -45,6 +45,7 @@ interface ViewerSettings {
   autoSpin: boolean;
   highlightColor: string;
   enableHighlighting: boolean;
+  meshType: "triangle" | "merged";
 }
 
 interface ErrorMessage {
