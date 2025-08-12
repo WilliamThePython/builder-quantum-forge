@@ -1019,7 +1019,7 @@ export default function STLWorkflowPanel({
                     Export Complete Model
                   </Button>
                   <p className="text-xs text-white/60 mt-1">
-                    Download the complete model in STL or OBJ format
+                    Download the complete model in STL format
                   </p>
                 </div>
 
