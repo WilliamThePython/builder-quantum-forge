@@ -43,6 +43,8 @@ interface ViewerSettings {
   wireframe: boolean;
   backgroundColor: string;
   autoSpin: boolean;
+  highlightColor: string;
+  enableHighlighting: boolean;
 }
 
 interface ErrorMessage {
@@ -134,6 +136,8 @@ const defaultViewerSettings: ViewerSettings = {
   wireframe: false,
   backgroundColor: "#0a0a0a",
   autoSpin: false,
+  highlightColor: "#ff0000",
+  enableHighlighting: true,
 };
 
 const STLContext = createContext<STLContextType | undefined>(undefined);
