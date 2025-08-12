@@ -2339,32 +2339,6 @@ function MobileWorkflowContent(props: any) {
     }
   };
 
-  const handleFormatSelection = (format: "stl" | "obj") => {
-    setShowExportFormatDialog(false);
-
-    if (exportType === "complete") {
-      if (format === "stl") {
-        exportSTL();
-      } else {
-        // Export complete model as OBJ
-        exportOBJ();
-      }
-    } else {
-      if (format === "stl") {
-        exportParts({
-          ...triangleOptions,
-          useTriangulated: triangleOptions.modelType === "triangle",
-        });
-      } else {
-        // Export parts as OBJ
-        exportParts({
-          ...triangleOptions,
-          format: "obj",
-          useTriangulated: triangleOptions.modelType === "triangle",
-        });
-      }
-    }
-  };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     try {
