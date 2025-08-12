@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { MeshStats } from "./meshSimplifier";
 import { EdgeAdjacentMerger, PolygonFace } from "./edgeAdjacentMerger";
-import { computeFlatNormals } from "./flatNormals";
+import { computeFlatNormals } from "../visualization/flatNormals";
 
 /**
  * Clean vertex removal implementation for decimation painter
