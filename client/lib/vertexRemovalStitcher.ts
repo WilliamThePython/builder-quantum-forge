@@ -490,14 +490,12 @@ export class VertexRemovalStitcher {
     while (mergedCount < verticesToRemove && iterationCount < maxIterations) {
       const initialMergeCount = mergedCount;
 
-      console.log(
-        `   Iteration ${iterationCount + 1}: trying to merge ${verticesToRemove - mergedCount} more vertices`,
-      );
+      // Processing next iteration
 
       // For aggressive reductions, rebuild edge list every iteration to find new collapse opportunities
       if (isAggressiveReduction && iterationCount > 0) {
         edges = this.buildEdgeList(cloned.index!.array as Uint32Array);
-        console.log(`   Rebuilt edge list: ${edges.length} edges`);
+        // Rebuilt edge list for aggressive reduction
       }
 
       // Sort edges by length for optimal collapse order (shortest first)
@@ -507,9 +505,7 @@ export class VertexRemovalStitcher {
         return lengthA - lengthB;
       });
 
-      console.log(
-        `   Processing ${edges.length} edges, shortest: ${this.calculateEdgeLength(positions, edges[0]?.[0], edges[0]?.[1])?.toFixed(3) || "N/A"}`,
-      );
+      // Processing edges from shortest to longest
 
       // Calculate dynamic threshold based on model scale
       const modelBounds = new THREE.Box3().setFromBufferAttribute(
@@ -559,9 +555,7 @@ export class VertexRemovalStitcher {
         }
       }
 
-      console.log(
-        `   Processed ${edgesProcessed} edges, skipped ${edgesSkipped} long edges (threshold: ${maxAllowableEdgeLength.toFixed(3)})`,
-      );
+      // Edge processing completed
 
       // If we skipped all edges due to length, try a more permissive approach
       if (
@@ -569,9 +563,7 @@ export class VertexRemovalStitcher {
         edgesSkipped > 0 &&
         mergedCount < verticesToRemove
       ) {
-        console.log(
-          `   ⚠️ All edges were too long - trying with relaxed threshold`,
-        );
+        // All edges too long - trying relaxed threshold
         const relaxedThreshold = modelSize * 0.5; // 50% of model diagonal
 
         for (const [v1, v2] of edges.slice(0, Math.min(10, edges.length))) {
@@ -631,12 +623,7 @@ export class VertexRemovalStitcher {
       }
     }
 
-    console.log(
-      `   Removed ${removedTriangles} degenerate triangles from ${indices.length / 3} total`,
-    );
-    console.log(
-      `   Final geometry: ${validTriangles.length / 3} valid triangles`,
-    );
+    // Degenerate triangles removed, geometry cleaned
 
     // Remap vertex indices to remove gaps (important for proper rendering)
     const usedVertices = new Set(validTriangles);
@@ -673,18 +660,12 @@ export class VertexRemovalStitcher {
     const maxIndex = newPositions.length / 3 - 1;
     for (let i = 0; i < remappedTriangles.length; i++) {
       if (remappedTriangles[i] > maxIndex) {
-        console.error(
-          `❌ Index ${remappedTriangles[i]} out of bounds (max: ${maxIndex})`,
-        );
-        throw new Error(
-          `Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`,
-        );
+        console.error(`❌ Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
+        throw new Error(`Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
       }
     }
 
-    console.log(
-      `   Vertex remapping: ${usedVertices.size} unique vertices → ${newPositions.length / 3} vertices`,
-    );
+    // Vertex remapping completed
 
     // Update geometry with cleaned vertices and indices
     cloned.setAttribute(
@@ -706,9 +687,7 @@ export class VertexRemovalStitcher {
     // Recompute normals with flat shading to maintain crisp faces
     computeFlatNormals(cloned);
 
-    console.log(
-      `✅ Decimation complete: ${cloned.attributes.position.count} vertices, ${validTriangles.length / 3} triangles`,
-    );
+    // Decimation process completed successfully
 
     return cloned;
   }
