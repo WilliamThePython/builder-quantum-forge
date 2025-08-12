@@ -231,6 +231,91 @@ export default function STLWorkflowPanel({
     onReducePoints(vertexClusteringTolerance, "vertex_clustering");
   };
 
+  // Quadric decimation implementation with popups
+  const handleQuadricDecimation = async () => {
+    if (!geometry) {
+      toast({
+        title: "❌ No Model Loaded",
+        description: "Please load a model before applying quadric decimation.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    toast({
+      title: "🟢 Quadric Decimation Started",
+      description: `Reducing triangles by ${Math.round(quadricReduction * 100)}%...`,
+      duration: 1500,
+    });
+
+    try {
+      const result = await onReducePoints(quadricReduction, "quadric_edge_collapse");
+
+      if (result?.success) {
+        toast({
+          title: "✅ Quadric Decimation Complete",
+          description: `Reduced triangles by ${result.stats?.reductionAchieved ? Math.round(result.stats.reductionAchieved * 100) : 0}% in ${result.stats?.processingTime || 0}ms`,
+          duration: 3000,
+        });
+        setSimplificationStats(result.stats || {});
+      } else {
+        toast({
+          title: "❌ Quadric Decimation Failed",
+          description: result?.message || "Unknown error occurred",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Quadric Decimation Error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        duration: 3000,
+      });
+    }
+  };
+
+  // Merge coplanar faces implementation with popups
+  const handleMergeCoplanarFaces = async () => {
+    if (!geometry) {
+      toast({
+        title: "❌ No Model Loaded",
+        description: "Please load a model before merging coplanar faces.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    toast({
+      title: "🔄 Merging Coplanar Faces",
+      description: "Processing coplanar face merging...",
+      duration: 1500,
+    });
+
+    try {
+      const result = await mergeCoplanarFaces();
+
+      if (result.success) {
+        toast({
+          title: "✅ Coplanar Face Merging Complete",
+          description: result.message,
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "❌ Coplanar Face Merging Failed",
+          description: result.message,
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Coplanar Face Merging Error",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        duration: 3000,
+      });
+    }
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     console.log("🔄 File upload triggered:", file?.name, file?.size);
