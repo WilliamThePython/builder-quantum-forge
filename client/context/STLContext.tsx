@@ -7,34 +7,34 @@ import React, {
   useEffect,
 } from "react";
 import * as THREE from "three";
-import { analytics } from "../lib/analytics";
+import { analytics } from "../lib/utilities/analytics";
 import {
   STLManipulator,
   STLToolMode,
   ToolOperationResult,
-} from "../lib/stlManipulator";
-import { TriangleExporter } from "../lib/triangleExporter";
-import { PolygonPartsExporter } from "../lib/polygonPartsExporter";
-import { ChamferedPartsExporter } from "../lib/chamferedPartsExporter";
-import { STLExporter } from "../lib/stlExporter";
-import { OBJConverter } from "../lib/objConverter";
-import { PolygonGeometryBuilder } from "../lib/polygonGeometryBuilder";
-import { PolygonFaceReconstructor } from "../lib/polygonFaceReconstructor";
+} from "../lib/processing/stlManipulator";
+import { TriangleExporter } from "../lib/output/triangleExporter";
+import { PolygonPartsExporter } from "../lib/output/polygonPartsExporter";
+import { ChamferedPartsExporter } from "../lib/output/chamferedPartsExporter";
+import { STLExporter } from "../lib/output/stlExporter";
+import { OBJConverter } from "../lib/processing/objConverter";
+import { PolygonGeometryBuilder } from "../lib/processing/polygonGeometryBuilder";
+import { PolygonFaceReconstructor } from "../lib/processing/polygonFaceReconstructor";
 import {
   STLGeometryValidator,
   ValidationReport,
-} from "../lib/stlGeometryValidator";
-import { ModelFileHandler, ProcessedModel } from "../lib/modelFileHandler";
-import { ModelCache } from "../lib/modelCache";
-import { getTestFileSizeData } from "../lib/fileSizeEstimator";
-import { computeFlatNormals } from "../lib/flatNormals";
-import { prepareGeometryForViewing } from "../lib/geometryPreparer";
+} from "../lib/utilities/stlGeometryValidator";
+import { ModelFileHandler, ProcessedModel } from "../lib/input/modelFileHandler";
+import { ModelCache } from "../lib/input/modelCache";
+import { getTestFileSizeData } from "../lib/utilities/fileSizeEstimator";
+import { computeFlatNormals } from "../lib/visualization/flatNormals";
+import { prepareGeometryForViewing } from "../lib/visualization/geometryPreparer";
 import { convertToNonIndexedForFlatColors } from "../lib/flatGeometry";
 import {
   validateAndFixGeometry,
   hasNaNValues,
   logGeometryStats,
-} from "../lib/geometryValidator";
+} from "../lib/utilities/geometryValidator";
 
 interface ViewerSettings {
   randomColors: boolean;
