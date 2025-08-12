@@ -511,7 +511,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     try {
       console.log("✅ Beginning file load process...");
-      const { loadModelFile } = await import("../lib/simplifiedSTLLoader");
+      const { loadModelFile } = await import("../lib/input/simplifiedSTLLoader");
 
       setOriginalFormat(
         file.name.toLowerCase().endsWith(".stl") ? "stl" : "obj",

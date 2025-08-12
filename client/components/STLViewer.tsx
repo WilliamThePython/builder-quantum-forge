@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { useSTL } from "../context/STLContext";
 import { STLManipulator, STLToolMode } from "../lib/processing/stlManipulator";
 import { computeFlatNormals } from "../lib/visualization/flatNormals";
-import { computePolygonAwareFlatNormals } from "../lib/polygonFlatNormals";
+import { computePolygonAwareFlatNormals } from "../lib/visualization/polygonFlatNormals";
 import { convertToNonIndexedForFlatColors } from "../lib/flatGeometry";
 
 // ENHANCED: Helper function to find the nearest POLYGON PERIMETER edge to a click point
