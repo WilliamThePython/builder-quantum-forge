@@ -2197,7 +2197,7 @@ export default function STLWorkflowPanel({
                 onClick={handleEpilepsyWarningAccept}
                 className="bg-blue-600 text-white hover:bg-blue-700"
               >
-                I'm good, let's see those colors! 🎨
+                I'm good, let's see those colors!
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
