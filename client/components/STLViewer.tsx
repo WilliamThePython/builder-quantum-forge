@@ -1163,8 +1163,8 @@ function STLMesh() {
       meshRef.current.rotation.z +=
         autoSpinState.current.rotationAxis.z * rotationAmount;
 
-      // Update highlighting during auto-spin if in highlight mode and highlighting is enabled
-      if (toolMode === STLToolMode.Highlight && viewerSettings.enableHighlighting && geometry) {
+      // Update highlighting during auto-spin if in highlight mode
+      if (toolMode === STLToolMode.Highlight && geometry) {
         updateHighlightingFromMousePosition();
       }
     }
