@@ -4,7 +4,7 @@ import {
   validateAndFixGeometry,
   hasNaNValues,
   logGeometryStats,
-} from "./geometryValidator";
+} from "../utilities/geometryValidator";
 
 /**
  * UNIFIED GEOMETRY PREPARATION
