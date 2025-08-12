@@ -2997,18 +2997,6 @@ function MobileWorkflowContent(props: any) {
                 </div>
               </button>
 
-              <button
-                onClick={() => handleFormatSelection("obj")}
-                className="w-full p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-3"
-              >
-                <Package className="w-5 h-5" />
-                <div className="text-left">
-                  <div className="font-semibold">OBJ Format</div>
-                  <div className="text-sm text-blue-100">
-                    Better topology for editing and groups
-                  </div>
-                </div>
-              </button>
             </div>
 
             <button
