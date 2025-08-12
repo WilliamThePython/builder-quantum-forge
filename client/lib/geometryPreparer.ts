@@ -48,9 +48,7 @@ export function prepareGeometryForViewing(
   // Step 2: Compute flat normals for crisp shading (but preserve existing if decimated)
   // For decimated geometries, preserve existing normals to maintain color mapping
   if (source === "decimation" && prepared.attributes.normal) {
-    console.log(
-      "   🎨 Preserving decimated geometry normals to maintain color mapping",
-    );
+    // Preserving normals to maintain color mapping
     // Keep existing normals from decimation - they're already flat and color-mapped
   } else {
     computeFlatNormals(prepared);
