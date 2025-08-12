@@ -244,8 +244,16 @@ export default function STLWorkflowPanel({
   };
 
   const handleExportClick = (type: "complete" | "parts") => {
-    setExportType(type);
-    setShowExportFormatDialog(true);
+    // Directly export STL format
+    if (type === "complete") {
+      exportSTL();
+    } else {
+      exportParts({
+        ...triangleOptions,
+        format: "stl",
+        useTriangulated: triangleOptions.modelType === "triangle",
+      });
+    }
   };
 
   const handleFormatSelection = (format: "stl" | "obj") => {
@@ -2348,8 +2356,16 @@ function MobileWorkflowContent(props: any) {
   };
 
   const handleExportClick = (type: "complete" | "parts") => {
-    setExportType(type);
-    setShowExportFormatDialog(true);
+    // Directly export STL format
+    if (type === "complete") {
+      exportSTL();
+    } else {
+      exportParts({
+        ...triangleOptions,
+        format: "stl",
+        useTriangulated: triangleOptions.modelType === "triangle",
+      });
+    }
   };
 
   const handleFormatSelection = (format: "stl" | "obj") => {
