@@ -833,9 +833,7 @@ export class STLManipulator {
       .array as Float32Array;
     const originalNormals = geometry.attributes.normal;
 
-    console.log(
-      `🔧 Collapsing edge: vertex ${vertexIndex2} → vertex ${vertexIndex1}`,
-    );
+    // Collapsing edge by merging vertices
 
     // Step 1: Find triangles that will become degenerate (contain both vertices)
     const trianglesToRemove = new Set<number>();
@@ -850,9 +848,7 @@ export class STLManipulator {
         triIndices.includes(vertexIndex2)
       ) {
         trianglesToRemove.add(Math.floor(i / 3)); // Triangle index
-        console.log(
-          `   Removing degenerate triangle ${Math.floor(i / 3)}: [${triIndices.join(", ")}]`,
-        );
+        // Remove degenerate triangle
       }
     }
 
@@ -885,22 +881,16 @@ export class STLManipulator {
         newIndices.push(a, b, c);
       } else {
         removedTriangles++;
-        console.log(
-          `   Additional degenerate triangle removed: [${a}, ${b}, ${c}]`,
-        );
+        // Remove additional degenerate triangle
       }
     }
 
     if (newIndices.length === 0) {
-      console.error(
-        "❌ All triangles became degenerate - edge collapse failed",
-      );
+      console.error("❌ Edge collapse failed: all triangles became degenerate");
       return null;
     }
 
-    console.log(
-      `✅ Edge collapse: removed ${removedTriangles} triangles, kept ${newIndices.length / 3} triangles`,
-    );
+    // Edge collapse completed successfully
 
     // Step 3: Update vertex position
     const newPositions = originalPositions.slice(); // Copy positions
