@@ -6,7 +6,7 @@ import STLViewer from "../components/STLViewer";
 import STLWorkflowPanel from "../components/STLWorkflowPanel";
 import TriangleStatsDisplay from "../components/TriangleStatsDisplay";
 import { useSTL } from "../context/STLContext";
-import { STLToolMode } from "../lib/stlManipulator";
+import { STLToolMode } from "../lib/processing/stlManipulator";
 import { useIsMobile } from "../hooks/use-mobile";
 
 export default function Index() {

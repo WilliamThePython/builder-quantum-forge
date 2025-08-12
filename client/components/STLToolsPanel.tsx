@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
-import { STLToolMode } from '../lib/stlManipulator';
+import { STLToolMode } from '../lib/processing/stlManipulator';
 
 interface STLToolsPanelProps {
   activeToolMode: STLToolMode;

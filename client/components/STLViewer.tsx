@@ -3,8 +3,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { useSTL } from "../context/STLContext";
-import { STLManipulator, STLToolMode } from "../lib/stlManipulator";
-import { computeFlatNormals } from "../lib/flatNormals";
+import { STLManipulator, STLToolMode } from "../lib/processing/stlManipulator";
+import { computeFlatNormals } from "../lib/visualization/flatNormals";
 import { computePolygonAwareFlatNormals } from "../lib/polygonFlatNormals";
 import { convertToNonIndexedForFlatColors } from "../lib/flatGeometry";
 

@@ -42,7 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { STLToolMode } from "../lib/stlManipulator";
+import { STLToolMode } from "../lib/processing/stlManipulator";
 import { useSTL } from "../context/STLContext";
 import {
   estimateModelFileSize,
