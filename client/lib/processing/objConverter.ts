@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { computeFlatNormals } from "./flatNormals";
+import { computeFlatNormals } from "../visualization/flatNormals";
 
 export interface OBJConversionResult {
   success?: boolean;
