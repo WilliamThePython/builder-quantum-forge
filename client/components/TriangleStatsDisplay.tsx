@@ -58,8 +58,12 @@ export default function TriangleStatsDisplay() {
         <div className="flex flex-col gap-1 items-center text-center">
           <div className="flex items-center gap-2">
             <div
-              className="w-2 h-2 rounded-sm bg-red-500"
-              title="Highlighted face"
+              className={`w-2 h-2 rounded-sm ${
+                viewerSettings.enableHighlighting
+                  ? "bg-red-500"
+                  : "bg-gray-500 border border-gray-400"
+              }`}
+              title={viewerSettings.enableHighlighting ? "Highlighted face" : "Face info (highlighting disabled)"}
             />
             <span className="text-white/80 text-xs">{faceLabel}</span>
           </div>
@@ -129,8 +133,12 @@ export default function TriangleStatsDisplay() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div
-              className="w-3 h-3 rounded-sm bg-red-500"
-              title="Highlighted face"
+              className={`w-3 h-3 rounded-sm ${
+                viewerSettings.enableHighlighting
+                  ? "bg-red-500"
+                  : "bg-gray-500 border border-gray-400"
+              }`}
+              title={viewerSettings.enableHighlighting ? "Highlighted face" : "Face info (highlighting disabled)"}
             />
             <span className="text-white/90 font-medium">{faceLabel}</span>
           </div>
