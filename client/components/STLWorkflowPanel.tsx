@@ -761,15 +761,14 @@ export default function STLWorkflowPanel({
                       className="flex items-center gap-2 p-2 bg-slate-800/50 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors"
                     >
                       <div
-                        className="w-6 h-6 rounded-full border-2 border-white/30 shadow-sm"
+                        className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm"
                         style={{
                           backgroundColor: viewerSettings.backgroundColor,
                         }}
                       />
-                      <span className="text-sm text-white/80 flex-1 text-left">
+                      <span className="text-xs text-white/70">
                         {viewerSettings.backgroundColor}
                       </span>
-                      <Palette className="w-4 h-4 text-white/60" />
                     </button>
 
                     {/* Color Picker Popover */}
