@@ -1058,7 +1058,7 @@ export default function STLWorkflowPanel({
                     </Button>
                   </div>
                   <p className="text-xs text-white/60 mt-1">
-                    Download individual polygon parts in STL or OBJ format
+                    Download individual polygon parts in STL format
                   </p>
 
                   {/* Triangle Export Settings */}
