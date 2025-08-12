@@ -303,6 +303,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     useState<boolean>(false);
   const [isDecimating, setIsDecimating] = useState<boolean>(false);
 
+  // Merged mesh state
+  const [mergedGeometry, setMergedGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [hasMergedMesh, setHasMergedMesh] = useState<boolean>(false);
+
   const updateProgress = (
     percentage: number,
     stage: string,
