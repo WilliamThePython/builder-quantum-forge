@@ -130,6 +130,12 @@ interface STLContextType {
   hasBackup: boolean;
   createBackup: () => void;
   restoreFromBackup: () => void;
+
+  // Merged mesh functionality
+  mergedGeometry: THREE.BufferGeometry | null;
+  hasMergedMesh: boolean;
+  mergeCoplanarFaces: () => Promise<ToolOperationResult>;
+  clearMergedMesh: () => void;
 }
 
 const defaultViewerSettings: ViewerSettings = {
