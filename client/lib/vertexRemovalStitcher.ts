@@ -660,8 +660,12 @@ export class VertexRemovalStitcher {
     const maxIndex = newPositions.length / 3 - 1;
     for (let i = 0; i < remappedTriangles.length; i++) {
       if (remappedTriangles[i] > maxIndex) {
-        console.error(`❌ Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
-        throw new Error(`Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`);
+        console.error(
+          `❌ Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`,
+        );
+        throw new Error(
+          `Invalid triangle index: ${remappedTriangles[i]} > ${maxIndex}`,
+        );
       }
     }
 
