@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import { GeometryCleanup, CleanupResults } from "./geometryCleanup";
-import { OBJConverter, OBJConversionResult } from "./objConverter";
-import { PolygonFaceReconstructor } from "./polygonFaceReconstructor";
-import { STLGeometryValidator } from "./stlGeometryValidator";
-import { computeFlatNormals } from "./flatNormals";
+import { GeometryCleanup, CleanupResults } from "../utilities/geometryCleanup";
+import { OBJConverter, OBJConversionResult } from "../processing/objConverter";
+import { PolygonFaceReconstructor } from "../processing/polygonFaceReconstructor";
+import { STLGeometryValidator } from "../utilities/stlGeometryValidator";
+import { computeFlatNormals } from "../visualization/flatNormals";
 
 export interface ProcessedModel {
   geometry: THREE.BufferGeometry;
@@ -104,7 +104,7 @@ export class ModelFileHandler {
     if (objConversion.hasPolygons) console.log("   📰 Contains polygon faces");
 
     // Validate geometry
-    console.log("✅ Validating processed geometry...");
+    console.log("�� Validating processed geometry...");
     const validationResults = STLGeometryValidator.validateGeometry(geometry);
 
     const processingTime = Date.now() - startTime;
