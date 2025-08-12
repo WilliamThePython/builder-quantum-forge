@@ -165,6 +165,7 @@ export default function STLWorkflowPanel({
   >(null);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showHighlightColorPicker, setShowHighlightColorPicker] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     upload: true,
     visualization: true,
