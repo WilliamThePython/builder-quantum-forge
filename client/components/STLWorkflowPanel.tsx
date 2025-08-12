@@ -2474,6 +2474,9 @@ function MobileWorkflowContent(props: any) {
     decimationPainterMode,
     setDecimationPainterMode,
     setHighlightedTriangle,
+    hasMergedMesh,
+    mergeCoplanarFaces,
+    clearMergedMesh,
   } = useSTL();
 
   // Get other props
