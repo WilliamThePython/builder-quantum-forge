@@ -2,7 +2,7 @@
  * Python mesh processing client using Open3D backend
  */
 import * as THREE from "three";
-import { computeFlatNormals } from "./flatNormals";
+import { computeFlatNormals } from "../visualization/flatNormals";
 
 export interface PythonDecimationResult {
   geometry: THREE.BufferGeometry;
