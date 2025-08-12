@@ -6,7 +6,7 @@ import {
   PolygonFace,
   ExtrusionOptions,
   ChamferOptions,
-} from "./polygonExtruder";
+} from "../processing/polygonExtruder";
 
 /**
  * Interface for edge information with angles
