@@ -32,10 +32,8 @@ export class STLManipulator {
 
       // Check if Python service is available
       const isAvailable = await PythonMeshProcessor.isServiceHealthy();
-      console.log(`🔧 Python service health check: ${isAvailable}`);
 
       if (isAvailable) {
-        console.log(`🔧 Using Python service for decimation`);
         const pythonResult = await PythonMeshProcessor.decimateMesh(
           geometry,
           targetReduction,
@@ -54,21 +52,15 @@ export class STLManipulator {
         };
       }
     } catch (error) {
-      console.log(
-        `🔧 Python service failed or unavailable, using JavaScript: ${error}`,
-      );
+      // Python service unavailable, fall back to JavaScript
     }
 
     // Choose implementation based on method
     if (method === "vertex_clustering") {
-      console.log(
-        `🔧 Using vertex clustering with tolerance: ${targetReduction}`,
-      );
       return this.performVertexClustering(geometry, targetReduction);
     }
 
     // Fallback to JavaScript implementation
-    console.log(`🔧 Using JavaScript VertexRemovalStitcher for decimation`);
     const result = await VertexRemovalStitcher.removeVertices(
       geometry,
       targetReduction,
@@ -94,11 +86,7 @@ export class STLManipulator {
       throw new Error("Invalid decimated geometry - no triangles remain");
     }
 
-    console.log("✅ Decimation validation passed:", {
-      vertices: finalGeometry.attributes.position.count,
-      triangles: finalGeometry.index ? finalGeometry.index.count / 3 : 0,
-      hasNormals: !!finalGeometry.attributes.normal,
-    });
+    // Geometry validation passed
 
     return {
       geometry: finalGeometry,
