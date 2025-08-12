@@ -663,7 +663,7 @@ export default function STLWorkflowPanel({
 
                     {/* Highlight Color Picker - Show when highlighting is enabled */}
                     {viewerSettings.enableHighlighting && (
-                      <div className="space-y-2">
+                      <div>
                         <div className="relative">
                           {/* Current Color Display & Toggle */}
                           <button
