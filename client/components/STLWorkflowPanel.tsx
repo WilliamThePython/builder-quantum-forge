@@ -48,7 +48,7 @@ import {
   estimateModelFileSize,
   estimatePartsFileSize,
   getTestFileSizeData,
-} from "../lib/fileSizeEstimator";
+} from "../lib/utilities/fileSizeEstimator";
 import { HexColorPicker } from "react-colorful";
 import { useToast } from "../hooks/use-toast";
 
@@ -2395,7 +2395,7 @@ function MobileWorkflowContent(props: any) {
     const file = event.target.files?.[0];
     if (file) {
       loadModelFromFile(file).catch((err) => {
-        console.error("��� Upload failed:", err);
+        console.error("���� Upload failed:", err);
         alert(`Upload failed: ${err.message}`);
       });
     }
