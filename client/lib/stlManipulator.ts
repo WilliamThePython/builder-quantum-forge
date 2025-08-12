@@ -926,9 +926,7 @@ export class STLManipulator {
     vertexIndex2: number,
     newPosition: THREE.Vector3,
   ): THREE.BufferGeometry | null {
-    console.log(
-      `🔧 Non-indexed edge collapse: vertex ${vertexIndex2} → vertex ${vertexIndex1}`,
-    );
+    // Non-indexed edge collapse
 
     const positions = geometry.attributes.position;
     const normals = geometry.attributes.normal;
@@ -951,9 +949,7 @@ export class STLManipulator {
 
       // Skip degenerate triangles (those that would have both vertices)
       if (hasVertex1 && hasVertex2) {
-        console.log(
-          `   Removing degenerate triangle ${Math.floor(i / 3)}: contains both vertices`,
-        );
+        // Skip degenerate triangle
         continue;
       }
 
@@ -1008,9 +1004,7 @@ export class STLManipulator {
     // Use flat normals to maintain crisp face shading (avoid color blending)
     computeFlatNormals(newGeometry);
 
-    console.log(
-      `✅ Non-indexed edge collapse complete: ${newPositions.length / 9} triangles remaining`,
-    );
+    // Non-indexed edge collapse completed
 
     return newGeometry;
   }
@@ -1052,13 +1046,13 @@ export class STLManipulator {
     const positions = geometry.attributes.position.array as Float32Array;
     const originalVertexCount = positions.length / 3;
 
-    console.log(`🔍 Analyzing model for vertex clustering needs...`);
+    // Analyze if model needs vertex clustering
 
     // STEP 1: Analyze if this model actually needs clustering
     const modelAnalysis = this.analyzeModelQuality(geometry, tolerance);
 
     if (!modelAnalysis.needsClustering) {
-      console.log(`✨ Model is already clean! ${modelAnalysis.reason}`);
+      // Model doesn't need clustering
       const processingTime = Date.now() - startTime;
       return Promise.resolve({
         geometry: geometry.clone(),
@@ -1070,8 +1064,7 @@ export class STLManipulator {
     }
 
     // STEP 2: SAFE vertex deduplication - don't modify geometry structure
-    console.log(`🔧 Model needs clustering: ${modelAnalysis.reason}`);
-    console.log(`🔵 Safely removing exact duplicates only...`);
+    // Model needs clustering - proceeding with safe vertex merging
 
     const cloned = geometry.clone();
 
