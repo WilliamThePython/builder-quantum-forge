@@ -1304,6 +1304,37 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     }
   }, [workingMeshTri, getGeometryStats]);
 
+  // Function to update viewer geometry based on mesh type setting
+  const updateViewerGeometry = useCallback(() => {
+    const meshType = viewerSettings.meshType;
+
+    if (meshType === "merged") {
+      if (mergedGeometry) {
+        const displayGeometry = prepareGeometryForViewing(mergedGeometry, "merged_display");
+        setGeometry(displayGeometry);
+      } else {
+        // No merged mesh available, show error and revert to triangle
+        addError("No merged mesh found. Please run Merge Coplanar Faces first.");
+        setViewerSettings(prev => ({ ...prev, meshType: "triangle" }));
+        if (workingMeshTri) {
+          const displayGeometry = prepareGeometryForViewing(workingMeshTri, "triangle_display");
+          setGeometry(displayGeometry);
+        }
+      }
+    } else {
+      // Show triangle mesh
+      if (workingMeshTri) {
+        const displayGeometry = prepareGeometryForViewing(workingMeshTri, "triangle_display");
+        setGeometry(displayGeometry);
+      }
+    }
+  }, [viewerSettings.meshType, mergedGeometry, workingMeshTri, addError]);
+
+  // Update viewer when mesh type setting changes
+  useEffect(() => {
+    updateViewerGeometry();
+  }, [updateViewerGeometry]);
+
   // Clear merged mesh when triangle mesh is updated
   useEffect(() => {
     if (workingMeshTri) {
