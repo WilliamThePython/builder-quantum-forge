@@ -2187,7 +2187,7 @@ export default function STLWorkflowPanel({
               </div>
 
               <button
-                onClick={() => setShowExportFormatDialog(false)}
+                onClick={() => {}}
                 className="w-full mt-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
               >
                 Cancel
@@ -3014,7 +3014,7 @@ function MobileWorkflowContent(props: any) {
             </div>
 
             <button
-              onClick={() => setShowExportFormatDialog(false)}
+              onClick={() => {}}
               className="w-full mt-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-base"
             >
               Cancel
