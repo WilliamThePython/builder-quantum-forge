@@ -1127,6 +1127,11 @@ function STLMesh() {
         autoSpinState.current.rotationAxis.y * rotationAmount;
       meshRef.current.rotation.z +=
         autoSpinState.current.rotationAxis.z * rotationAmount;
+
+      // Update highlighting during auto-spin if in highlight mode and highlighting is enabled
+      if (toolMode === STLToolMode.Highlight && viewerSettings.enableHighlighting && geometry) {
+        updateHighlightingFromMousePosition();
+      }
     }
 
     // Handle natural deceleration when auto spin is turned off
@@ -1362,7 +1367,7 @@ function STLMesh() {
 
   // Handle mouse interaction for highlighting
   useEffect(() => {
-    if (toolMode !== STLToolMode.Highlight || !meshRef.current) return;
+    if (toolMode !== STLToolMode.Highlight || !meshRef.current || !viewerSettings.enableHighlighting) return;
 
     const handleMouseMove = (event: MouseEvent) => {
       // Update pointer position
@@ -1429,7 +1434,7 @@ function STLMesh() {
         canvas.removeEventListener("click", handleClick);
       };
     }
-  }, [toolMode, geometry, camera, raycaster, pointer]);
+  }, [toolMode, geometry, camera, raycaster, pointer, viewerSettings.enableHighlighting]);
 
   // Update canvas cursor and styling for decimation painter mode
   useEffect(() => {
