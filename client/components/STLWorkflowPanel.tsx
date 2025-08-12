@@ -151,6 +151,9 @@ export default function STLWorkflowPanel({
     decimationPainterMode,
     setDecimationPainterMode,
     setHighlightedTriangle,
+    hasMergedMesh,
+    mergeCoplanarFaces,
+    clearMergedMesh,
   } = useSTL();
 
   // Clear face highlight when interacting with menu
