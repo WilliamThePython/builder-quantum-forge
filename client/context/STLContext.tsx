@@ -1260,7 +1260,7 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       setIsProcessingTool(true);
 
       // Import the coplanar merger if not already available
-      const { AggressiveCoplanarMerger } = await import("../lib/aggressiveCoplanarMerger");
+      const { EdgeAdjacentMerger } = await import("../lib/processing/edgeAdjacentMerger");
 
       const startTime = performance.now();
       const originalStats = getGeometryStats();
