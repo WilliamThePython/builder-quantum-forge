@@ -1269,8 +1269,10 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
       const mergedMesh = workingMeshTri.clone();
 
       // Apply coplanar face merging
-      const merger = new AggressiveCoplanarMerger(mergedMesh);
-      await merger.process();
+      const polygonFaces = EdgeAdjacentMerger.mergeCoplanarTriangles(mergedMesh);
+
+      // Add polygon face metadata to geometry
+      (mergedMesh as any).polygonFaces = polygonFaces;
 
       const processingTime = Math.round(performance.now() - startTime);
       const newStats = {
