@@ -304,7 +304,8 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
   const [isDecimating, setIsDecimating] = useState<boolean>(false);
 
   // Merged mesh state
-  const [mergedGeometry, setMergedGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [mergedGeometry, setMergedGeometry] =
+    useState<THREE.BufferGeometry | null>(null);
   const [hasMergedMesh, setHasMergedMesh] = useState<boolean>(false);
 
   const updateProgress = (
@@ -1182,11 +1183,15 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
             "edge_decimated",
           );
           setGeometry(displayGeometry);
-        } else if (!result.success && result.message.includes("Edge not found")) {
+        } else if (
+          !result.success &&
+          result.message.includes("Edge not found")
+        ) {
           // Return specific error for edge not found
           return {
             success: false,
-            message: "Edge not found in triangulated mesh. Please ensure you are working with a valid triangle model.",
+            message:
+              "Edge not found in triangulated mesh. Please ensure you are working with a valid triangle model.",
             geometry: null,
           };
         }
@@ -1244,70 +1249,77 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
     setMergedGeometry(null);
     setHasMergedMesh(false);
     // Switch viewer back to triangle mesh when merged mesh is cleared
-    setViewerSettings(prev => ({ ...prev, meshType: "triangle" }));
+    setViewerSettings((prev) => ({ ...prev, meshType: "triangle" }));
   }, []);
 
-  const mergeCoplanarFaces = useCallback(async (): Promise<ToolOperationResult> => {
-    if (!workingMeshTri) {
-      return {
-        success: false,
-        message: "No triangle mesh loaded. Please load a model first.",
-        stats: null,
-      };
-    }
+  const mergeCoplanarFaces =
+    useCallback(async (): Promise<ToolOperationResult> => {
+      if (!workingMeshTri) {
+        return {
+          success: false,
+          message: "No triangle mesh loaded. Please load a model first.",
+          stats: null,
+        };
+      }
 
-    try {
-      setIsProcessingTool(true);
+      try {
+        setIsProcessingTool(true);
 
-      // Import the coplanar merger if not already available
-      const { EdgeAdjacentMerger } = await import("../lib/processing/edgeAdjacentMerger");
+        // Import the coplanar merger if not already available
+        const { EdgeAdjacentMerger } = await import(
+          "../lib/processing/edgeAdjacentMerger"
+        );
 
-      const startTime = performance.now();
-      const originalStats = getGeometryStats();
+        const startTime = performance.now();
+        const originalStats = getGeometryStats();
 
-      // Create merged mesh from current triangle mesh
-      const mergedMesh = workingMeshTri.clone();
+        // Create merged mesh from current triangle mesh
+        const mergedMesh = workingMeshTri.clone();
 
-      // Apply coplanar face merging
-      const polygonFaces = EdgeAdjacentMerger.mergeCoplanarTriangles(mergedMesh);
+        // Apply coplanar face merging
+        const polygonFaces =
+          EdgeAdjacentMerger.mergeCoplanarTriangles(mergedMesh);
 
-      // Add polygon face metadata to geometry
-      (mergedMesh as any).polygonFaces = polygonFaces;
+        // Add polygon face metadata to geometry
+        (mergedMesh as any).polygonFaces = polygonFaces;
 
-      const processingTime = Math.round(performance.now() - startTime);
-      const newStats = {
-        vertices: mergedMesh.attributes.position.count / 3,
-        faces: mergedMesh.index ? mergedMesh.index.count / 3 : mergedMesh.attributes.position.count / 9,
-      };
+        const processingTime = Math.round(performance.now() - startTime);
+        const newStats = {
+          vertices: mergedMesh.attributes.position.count / 3,
+          faces: mergedMesh.index
+            ? mergedMesh.index.count / 3
+            : mergedMesh.attributes.position.count / 9,
+        };
 
-      // Store the merged mesh
-      setMergedGeometry(mergedMesh);
-      setHasMergedMesh(true);
+        // Store the merged mesh
+        setMergedGeometry(mergedMesh);
+        setHasMergedMesh(true);
 
-      const reductionAchieved = originalStats ?
-        (originalStats.faces - newStats.faces) / originalStats.faces : 0;
+        const reductionAchieved = originalStats
+          ? (originalStats.faces - newStats.faces) / originalStats.faces
+          : 0;
 
-      return {
-        success: true,
-        message: `Coplanar face merging completed successfully in ${processingTime}ms`,
-        stats: {
-          originalStats,
-          newStats,
-          reductionAchieved,
-          processingTime,
-        },
-      };
-    } catch (error) {
-      console.error("Error during coplanar face merging:", error);
-      return {
-        success: false,
-        message: `Coplanar face merging failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        stats: null,
-      };
-    } finally {
-      setIsProcessingTool(false);
-    }
-  }, [workingMeshTri, getGeometryStats]);
+        return {
+          success: true,
+          message: `Coplanar face merging completed successfully in ${processingTime}ms`,
+          stats: {
+            originalStats,
+            newStats,
+            reductionAchieved,
+            processingTime,
+          },
+        };
+      } catch (error) {
+        console.error("Error during coplanar face merging:", error);
+        return {
+          success: false,
+          message: `Coplanar face merging failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          stats: null,
+        };
+      } finally {
+        setIsProcessingTool(false);
+      }
+    }, [workingMeshTri, getGeometryStats]);
 
   // Function to update viewer geometry based on mesh type setting
   const updateViewerGeometry = useCallback(() => {
@@ -1315,21 +1327,32 @@ export const STLProvider: React.FC<STLProviderProps> = ({ children }) => {
 
     if (meshType === "merged") {
       if (mergedGeometry) {
-        const displayGeometry = prepareGeometryForViewing(mergedGeometry, "merged_display");
+        const displayGeometry = prepareGeometryForViewing(
+          mergedGeometry,
+          "merged_display",
+        );
         setGeometry(displayGeometry);
       } else {
         // No merged mesh available, show error and revert to triangle
-        addError("No merged mesh found. Please run Merge Coplanar Faces first.");
-        setViewerSettings(prev => ({ ...prev, meshType: "triangle" }));
+        addError(
+          "No merged mesh found. Please run Merge Coplanar Faces first.",
+        );
+        setViewerSettings((prev) => ({ ...prev, meshType: "triangle" }));
         if (workingMeshTri) {
-          const displayGeometry = prepareGeometryForViewing(workingMeshTri, "triangle_display");
+          const displayGeometry = prepareGeometryForViewing(
+            workingMeshTri,
+            "triangle_display",
+          );
           setGeometry(displayGeometry);
         }
       }
     } else {
       // Show triangle mesh
       if (workingMeshTri) {
-        const displayGeometry = prepareGeometryForViewing(workingMeshTri, "triangle_display");
+        const displayGeometry = prepareGeometryForViewing(
+          workingMeshTri,
+          "triangle_display",
+        );
         setGeometry(displayGeometry);
       }
     }
